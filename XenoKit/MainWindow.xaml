@@ -1,0 +1,132 @@
+﻿<Controls:MetroWindow x:Class="XenoKit.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XenoKit"
+        xmlns:_controls="clr-namespace:XenoKit.Controls"
+        xmlns:_views="clr-namespace:XenoKit.Views"
+        xmlns:eepkView="clr-namespace:EEPK_Organiser.View"
+        xmlns:undoRedo="clr-namespace:Xv2CoreLib.Resource.UndoRedo;assembly=Xv2CoreLib"
+        xmlns:editor="clr-namespace:XenoKit.Editor"
+        xmlns:bacView="clr-namespace:XenoKit.Views.BAC"
+        mc:Ignorable="d"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        Title="XenoKit" TitleCharacterCasing="Normal" MinHeight="720" MinWidth="1280" Height="720" Width="1550" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Closing="MetroWindow_Closing" SizeChanged="WindowResized">
+    <Window.InputBindings>
+        <KeyBinding Key="Z" Modifiers="Ctrl"  Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
+        <KeyBinding Key="Y" Modifiers="Ctrl"  Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
+    </Window.InputBindings>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="632*" MinWidth="500"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="641*" MinWidth="585"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="250*" MinWidth="10"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="5*" MinHeight="420"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*" MinHeight="136"/>
+        </Grid.RowDefinitions>
+
+        <GridSplitter Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Margin="0.145,0,0.091,0.327"/>
+        <GridSplitter Grid.Column="3" Grid.Row="2" ResizeDirection="Rows" Height="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+        <GridSplitter Grid.Column="3" Grid.Row="1" Grid.RowSpan="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+
+
+        <_controls:GameView x:Name="monoGameView" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
+
+        <TabControl Grid.Column="0" Grid.Row="1" SelectionChanged="MainTabControl_SelectionChanged" HorizontalAlignment="Stretch" Margin="10,5.2,9.855,28.327" VerticalAlignment="Stretch" Grid.RowSpan="3">
+            <Controls:MetroTabItem Header="Animation" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.AnimationVisibility}">
+                <Grid>
+                    <_controls:AnimationTabView x:Name="animationTabView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch"/>
+                </Grid>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Camera" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.CameraVisibility}">
+                <Grid>
+                    <_controls:CameraTabView x:Name="cameraTabView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch"/>
+
+                </Grid>
+
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Action" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.ActionVisibility}">
+                <Grid>
+                    <_controls:BacTab x:Name="bacControlView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                </Grid>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="State" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.StateVisibility}"/>
+
+            <Controls:MetroTabItem Header="Projectile" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.ProjectileVisibility}"/>
+            <Controls:MetroTabItem Header="Hitbox" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.HitboxVisibility}"/>
+            <Controls:MetroTabItem Header="Effect" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.EffectVisibility}">
+                <eepkView:EepkEditor x:Name="eepkEditor" effectContainerFile="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.EepkFile.File}"/>
+
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Audio" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.AudioVisibility}">
+                <_views:AudioTab x:Name="audioControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="System" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SystemVisibility}"/>
+        </TabControl>
+
+        <TabControl x:Name="scenLogTab" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.ColumnSpan="2" Margin="5.145,0.182,15.545,28.327">
+            
+            <Controls:MetroTabItem Header="Log" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <_controls:LogView x:Name="logView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Controls:MetroTabItem>
+        </TabControl>
+
+
+        <Menu HorizontalAlignment="Left" Height="29" VerticalAlignment="Top" Margin="0, 2" Grid.Row="0" Grid.ColumnSpan="4">
+            <MenuItem Header="File">
+                <MenuItem Header="Load (from game)">
+                    <MenuItem Header="Character" Command="{Binding LoadCharacterCommand}"/>
+                    <MenuItem Header="Moveset" Command="{Binding LoadMovesetCommand}"/>
+                    <MenuItem Header="Super Skill" Command="{Binding LoadSuperSkillCommand}"/>
+                    <MenuItem Header="Ultimate Skill" Command="{Binding LoadUltimateSkillCommand}"/>
+                    <MenuItem Header="Evasive Skill" Command="{Binding LoadEvasiveSkillCommand}"/>
+                    <MenuItem Header="Blast Skill" Command="{Binding LoadBlastSkillCommand}"/>
+                    <MenuItem Header="Awoken Skill" Command="{Binding LoadAwokenSkillCommand}"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Save (current)" Command="{Binding SaveCurrentCommand}"/>
+                <MenuItem Header="Save (all)" Command="{Binding SaveAllCommand}"/>
+                <Separator/>
+                <MenuItem Header="Settings" Command="{Binding SettingsCommand}"/>
+                <Separator/>
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
+                <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Debug">
+                <MenuItem Header="Reload System" Click="MenuItem_ReloadSystem_Click"/>
+            </MenuItem>
+        </Menu>
+        <Grid Grid.ColumnSpan="5" Margin="0,0,-0.455,-3.673" Grid.Row="3" Background="{DynamicResource MahApps.Brushes.Accent2}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding CurrentLogMessage}"/>
+        </Grid>
+
+        <!-- Far right. Outliner + SettingsPanel -->
+        <Grid Grid.Column="4" Grid.Row="1" Grid.RowSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1.7*"/>
+                <RowDefinition Height="2"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <_controls:OutlinerView/>
+            <GridSplitter Grid.Row="1"/>
+            <_views:SettingsPanel Grid.Row="2"/>
+        </Grid>
+    </Grid>
+</Controls:MetroWindow>

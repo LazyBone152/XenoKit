@@ -1,0 +1,32 @@
+﻿<Controls:MetroWindow x:Class="XenoKit.Windows.OutlinerItemProperties"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XenoKit.Windows"
+        mc:Ignorable="d"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        Title="Properties" TitleCharacterCasing="Normal" MinHeight="100" MinWidth="150" Height="450" Width="600" ShowInTaskbar="True" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False">
+    <Grid>
+        <DataGrid x:Name="dataGrid" ItemsSource="{Binding Files}" SelectionMode="Single" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="File" Width="*" Binding="{Binding FileType}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="CharaCode" Width="*" Binding="{Binding Arg0_Wrapper}"/>
+                <DataGridCheckBoxColumn Header="IsEnglish" Width="*" Binding="{Binding IsEnglish}"/>
+                <DataGridTextColumn Header="Path" Width="*" Binding="{Binding PathString}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Shared" Width="*" Binding="{Binding BorrowString}" IsReadOnly="True"/>
+            </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Break Share Link" Command="{Binding BreakShareLinkCommand}"/>
+                    <MenuItem Header="Replace" Command="{Binding ReplaceFileCommand}"/>
+                    <MenuItem Header="Delete" Command="{Binding RemoveFileCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="New VOX ACB"/>
+                    <MenuItem Header="New EAN"/>
+                    <MenuItem Header="New CAM.EAN"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+    </Grid>
+</Controls:MetroWindow>

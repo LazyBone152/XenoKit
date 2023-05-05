@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;net452</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <PackageId>MonoGame.Framework.WpfInterop</PackageId>
+    <Version>1.9.1</Version>
+    <Authors>MarcStan</Authors>
+    <Description>MonoGame integration with WPF. This package provides the D3D11Host from the MonoGame WpfInteropSample. It extends it with WpfGame, WpfMouse and WpfKeyboard and makes it actually usable in any WPF application.
+
+Supports .Net 4.5.2, .Net Core 3.1 and .Net 5</Description>
+    <Copyright>Copyright MarcStan 2016 - 2021</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/MarcStan/monogame-framework-wpfinterop</PackageProjectUrl>
+    <PackageTags>monogame wpf interop</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\MonoGame.Framework.WpfInterop.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="SharpDX" Version="4.2.0" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Direct3D9" Version="4.2.0" />
+    <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="readme.txt">
+      <Pack>true</Pack>
+      <PackagePath>\</PackagePath>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj" />
+  </ItemGroup>
+
+</Project>

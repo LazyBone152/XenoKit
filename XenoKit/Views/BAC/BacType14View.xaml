@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="XenoKit.Views.BAC.BacType14View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BAC"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType14View}"
+             mc:Ignorable="d" 
+             d:DesignHeight="1000" d:DesignWidth="520">
+    <Grid>
+        <Expander Header="Animation Modification" IsExpanded="True">
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <StackPanel Margin="20, 5" Width="200">
+                    <CheckBox Content="Head" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_Head, UpdateSourceTrigger=Default}"/>
+                    <CheckBox Content="Spine (Horizontal)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_SpineHor, UpdateSourceTrigger=Default}"/>
+                    <CheckBox Content="Spine (Vertical)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_SpineVert, UpdateSourceTrigger=Default}"/>
+                    <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}"/>
+                </StackPanel>
+                <StackPanel Margin="20, 5" Width="200">
+                    <CheckBox Content="Unk5" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_Unk5, UpdateSourceTrigger=Default}"/>
+                    <CheckBox Content="Unk6" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_Unk6, UpdateSourceTrigger=Default}"/>
+                    <CheckBox Content="Unk7" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_Unk7, UpdateSourceTrigger=Default}"/>
+                    <CheckBox Content="Unk8" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_Unk8, UpdateSourceTrigger=Default}"/>
+                </StackPanel>
+            </StackPanel>
+        </Expander>
+    </Grid>
+</UserControl>

@@ -1,0 +1,28 @@
+﻿<Controls:MetroWindow x:Class="XenoKit.Windows.EntitySelector"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XenoKit.Windows"
+        mc:Ignorable="d"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        Title="Entity Select" Height="357.187" Width="300" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False">
+    <Grid>
+        <DataGrid x:Name="listBox" AutoGenerateColumns="False" CanUserDeleteRows="False" CanUserAddRows="False" ItemsSource="{Binding Items}" PreviewKeyDown="ListBox_PreviewKeyDown" MouseDoubleClick="ListBox_MouseDoubleClick" HorizontalAlignment="Left" Height="249" Margin="31,10,0,0" VerticalAlignment="Top" Width="230" SelectionMode="Single">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding ID}" IsReadOnly="True" Width="50*"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="150*">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="ToolTip" Value="{Binding Name}" />
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button Content="Ok" HorizontalAlignment="Left" Margin="111,292,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <CheckBox ToolTip="Ignore loose files and load directly from CPK." IsChecked="{Binding OnlyLoadFromCPK}" Content="Only Load From CPK" HorizontalAlignment="Left" Margin="76,268,0,0" VerticalAlignment="Top" Width="153"/>
+
+    </Grid>
+</Controls:MetroWindow>

@@ -1,0 +1,203 @@
+﻿<UserControl x:Class="XenoKit.Views.BAC.BacType1View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BAC"
+             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType0View}"
+             mc:Ignorable="d" 
+             d:DesignHeight="1000" d:DesignWidth="520">
+    <Grid>
+        <StackPanel>
+            <Expander Margin="0, 2, 0, 0" Header="Hitbox" IsExpanded="True">
+                <Grid>
+
+                    <WrapPanel>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="BDM File"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BdmType}"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="BDM ID"/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BdmEntryID, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Damage" ToolTip="Damage taken by the target (when not guarding), in addition to damage dealt by the BDM entry."/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.Damage, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Damage (blocked)" ToolTip="Damage taken by the target when blocking, in addition to damage dealt by the BDM entry."/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.DamageWhenBlocked, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Stamina (blocked)" ToolTip="Stamina consumed by the target after blocking this hitbox."/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.StaminaBlockedConsume, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
+                        </Grid>
+
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="_I_20"/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.I_20, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="_I_22"/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.I_22, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="_F_24"/>
+                            <controls:NumericUpDown Grid.Column="1" StringFormat="0.00#####" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.F_24, UpdateSourceTrigger=Default}"/>
+                        </Grid>
+
+                    </WrapPanel>
+
+                </Grid>
+            </Expander>
+            <Expander Header="Settings" IsExpanded="True">
+                <StackPanel>
+                    <WrapPanel>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Impact Type"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmImpactType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ImpactType}"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Damage Type"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmDamageType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.DamageType}"/>
+                        </Grid>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Spawn Source"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmSpawnSource}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxSpawnSource}"/>
+                        </Grid>
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Grid Margin="3,3,0,0" Width="280">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="125"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Flag A" ToolTip="Unknown purpose."/>
+                            <CheckBox Grid.Column="1" Content="1" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk1}"/>
+                            <CheckBox Grid.Column="2" Content="2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk2}"/>
+                            <CheckBox Grid.Column="3" Content="3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk3}"/>
+                            <CheckBox Grid.Column="4" Content="4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk4}"/>
+
+                        </Grid>
+                    </WrapPanel>
+                </StackPanel>
+            </Expander>
+            <Expander Header="Matrix3x3" IsExpanded="True">
+                <StackPanel Width="500" HorizontalAlignment="Left">
+                    <Grid Margin="3,3,0,0" Width="500">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Position"/>
+                        <Label Grid.Column="1" Content="X"/>
+                        <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.PositionX, UpdateSourceTrigger=Default}"/>
+
+                        <Label Grid.Column="3" Content="Y"/>
+                        <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.PositionY, UpdateSourceTrigger=Default}"/>
+
+                        <Label Grid.Column="5" Content="Z"/>
+                        <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.PositionZ, UpdateSourceTrigger=Default}"/>
+
+                    </Grid>
+                    <Grid Margin="3,3,0,0" Width="500">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Rotation"/>
+                        <Label Grid.Column="1" Content="X"/>
+                        <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.RotationX, UpdateSourceTrigger=Default}"/>
+
+                        <Label Grid.Column="3" Content="Y"/>
+                        <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.RotationY, UpdateSourceTrigger=Default}"/>
+
+                        <Label Grid.Column="5" Content="Z"/>
+                        <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.RotationZ, UpdateSourceTrigger=Default}"/>
+
+                    </Grid>
+                    <Grid Margin="3,3,0,0" Width="500">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Scale"/>
+                        <Label Grid.Column="1" Content="X"/>
+                        <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ScaleX, UpdateSourceTrigger=Default}"/>
+
+                        <Label Grid.Column="3" Content="Y"/>
+                        <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ScaleY, UpdateSourceTrigger=Default}"/>
+
+                        <Label Grid.Column="5" Content="Z"/>
+                        <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ScaleZ, UpdateSourceTrigger=Default}"/>
+
+                    </Grid>
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,25 @@
+﻿<Window x:Class="WpfTest.Views.TextInputWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:scenes="clr-namespace:WpfTest.Scenes"
+        mc:Ignorable="d"
+        Title="Inputtest Window" Height="768" Width="1024">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel x:Name="Sidebar">
+            <TextBlock Text="Enter text here, outside the game panel:" TextWrapping="Wrap" />
+            <TextBox Width="100" Height="23" />
+            <TextBlock Text="The text below will be replaced when you type while the game panel has focus (only letters and space). Press delete to clear:" TextWrapping="Wrap" />
+            <TextBlock x:Name="TextFromGame" Text="" TextWrapping="Wrap" />
+        </StackPanel>
+        <Grid Grid.Column="1">
+            <scenes:TextInputScene x:Name="Game" />
+            <TextBox x:Name="TextboxOverWpfGame" Margin="10" Width="100" Height="23" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        </Grid>
+    </Grid>
+</Window>

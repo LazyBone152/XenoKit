@@ -1,0 +1,71 @@
+﻿<UserControl x:Class="XenoKit.Views.BAC.BacType7View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BAC"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType7View}"
+             mc:Ignorable="d" 
+             d:DesignHeight="1000" d:DesignWidth="520">
+    <Grid>
+        <StackPanel>
+            <Expander Header="Throw Handler" IsExpanded="True">
+
+                <StackPanel >
+                    
+                    <StackPanel Margin="10, 2" Width="500" HorizontalAlignment="Left">
+                        <Label Content="Link Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                        <Separator/>
+                        <WrapPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="5, 5" Width="275">
+                                    <CheckBox Content="Attack"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Attacks, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Movement" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Movement, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Disable Ki Blast"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_DisableKiBlast, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}" />
+
+                                </StackPanel>
+                                <StackPanel Margin="5, 5" Width="220">
+                                    <CheckBox Content="Counters" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Counters, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Unk6" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Unk6, UpdateSourceTrigger=Default}"/>
+                                    <CheckBox Content="Unk7" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Unk7, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Back-Hits" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_BackHits, UpdateSourceTrigger=Default}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="5, 5" Width="275">
+                                    <CheckBox Content="Combos"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Combos, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Supers" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Supers, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Ultimates/Awokens/Evasives"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_UltimatesAndEvasives, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="ZVanish" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_ZVanish, UpdateSourceTrigger=Default}" />
+
+                                </StackPanel>
+                                <StackPanel Margin="5, 5" Width="220">
+                                    <CheckBox Content="Ki Blasts" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_KiBlasts, UpdateSourceTrigger=Default}"/>
+                                    <CheckBox Content="Jump" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Jump, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Guard" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Guard, UpdateSourceTrigger=Default}"/>
+                                    <CheckBox Content="Flying and Step Dash" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_FlyingAndStepDash, UpdateSourceTrigger=Default}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="5, 5" Width="275">
+                                    <CheckBox Content="Unk17"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Unk17, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Unk18" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Unk18, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Unk19"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Unk19, UpdateSourceTrigger=Default}" />
+                                    <CheckBox Content="Unk20" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType7View}}, Path=BacViewModel.Flag_Unk20, UpdateSourceTrigger=Default}" />
+
+                                </StackPanel>
+                            </StackPanel>
+                        </WrapPanel>
+
+                    </StackPanel>
+
+                </StackPanel>
+
+            </Expander>
+
+        </StackPanel>
+    </Grid>
+</UserControl>

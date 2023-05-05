@@ -1,0 +1,30 @@
+﻿<Window x:Class="WpfTest.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:scenes="clr-namespace:WpfTest.Scenes"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="768" Width="1024" MinWidth="800" MinHeight="520">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+            <TextBlock Text="Press any button to launch a new window with more demos:" TextWrapping="Wrap" Margin="5" />
+            <Button Width="180" Height="30" Content="Launch a game in new window" Margin="5" Click="OpenNewWindow" />
+            <Button Width="180" Height="30" Content="Test input controls" Margin="5" Click="OpenTextInputWindow" />
+            <Button Width="180" Height="30" Content="Show multiple scenes" Margin="5" Click="OpenMultipleGameWindow" />
+            <Button Width="180" Height="30" Content="Show scenes in tabs" Margin="5" Click="OpenTabbedGameWindow" />
+            <Button Width="180" Height="30" Content="Use Rendertarget" Margin="5" Click="OpenRendertargetGameWindow" />
+            <Button Width="180" Height="30" Content="Show closeable tabs" Margin="5" Click="OpenCloseableTabWindow" />
+            <Button Width="180" Height="30" Content="Show model scene" Margin="5" Click="OpenModelWindow" />
+            <Button Width="180" Height="30" Content="Show msaa" Margin="5" Click="OpenMsaaWindow" />
+            <Button Width="180" Height="30" Content="Show multiple msaa scenes" Margin="5" Click="OpenMultipleMsaaWindow" />
+            <Button Width="180" Height="30" Content="Show dpi scaling scene" Margin="5" Click="OpenDpiScalingWindow" />
+            <Button Width="180" Height="30" Content="Show sprite scene" Margin="5" Click="OpenSpriteWindow" />
+        </StackPanel>
+        <scenes:CubeDemoScene Grid.Column="1" />
+    </Grid>
+</Window>

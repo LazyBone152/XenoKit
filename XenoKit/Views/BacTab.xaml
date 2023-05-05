@@ -1,0 +1,188 @@
+﻿<UserControl x:Class="XenoKit.Controls.BacTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:bacView="clr-namespace:XenoKit.Views.BAC"
+             xmlns:local="clr-namespace:XenoKit.Controls"
+             xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="600">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="293*" MinWidth="75"/>
+            <ColumnDefinition Width="3"/>
+            <ColumnDefinition Width="306*" MinWidth="75"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="250*"/>
+            <RowDefinition Height="3"/>
+            <RowDefinition Height="200*"/>
+        </Grid.RowDefinitions>
+
+        <GridSplitter Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Grid.Column="1" Grid.ColumnSpan="1"/>
+        <GridSplitter Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+
+
+        <DataGrid x:Name="bacTypeDataGrid" SelectionChanged="DataGrid_SelectionChanged" ItemsSource="{Binding Path=SelectedItem.IBacTypes.Binding, ElementName=bacEntryDataGrid}" Margin="6.018,64,23.436,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Grid.Column="2">
+
+            <DataGrid.InputBindings>
+                <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBacTypeCommand}"/>
+                <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteBacTypeCommand}"/>
+                <KeyBinding Key="Delete" Command="{Binding RemoveBacTypeCommand}"/>
+            </DataGrid.InputBindings>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Start" Width="Auto" Binding="{Binding StartTime}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Duration" Width="Auto" Binding="{Binding Duration}" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Type" Width="*" Binding="{Binding Type, Mode=OneWay}" IsReadOnly="True"/>
+            </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Copy" Command="{Binding CopyBacTypeCommand}"/>
+                    <MenuItem Header="Paste" Command="{Binding PasteBacTypeCommand}"/>
+                    <MenuItem Header="Delete" Command="{Binding RemoveBacTypeCommand}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Setter Property="Margin" Value="10,0,0,0"/>
+                </Style>
+                <Style TargetType="{x:Type Grid}">
+                    <Setter Property="Margin" Value="5,0,0,0"/>
+                </Style>
+            </StackPanel.Resources>
+
+
+            <StackPanel VerticalAlignment="Center">
+                <Button lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Animation" Command="{Binding AddBacTypeCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Hitbox" Command="{Binding AddBacTypeCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="2"/>
+                            <MenuItem Header="Invulnerability" Command="{Binding AddBacTypeCommand}" CommandParameter="3"/>
+                            <MenuItem Header="TimeScale" Command="{Binding AddBacTypeCommand}" CommandParameter="4"/>
+                            <MenuItem Header="Tracking" Command="{Binding AddBacTypeCommand}" CommandParameter="5"/>
+                            <MenuItem Header="Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="6"/>
+                            <MenuItem Header="Bcm Callback" Command="{Binding AddBacTypeCommand}" CommandParameter="7"/>
+                            <MenuItem Header="Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="8"/>
+                            <MenuItem Header="Projectile" Command="{Binding AddBacTypeCommand}" CommandParameter="9"/>
+                            <MenuItem Header="Camera" Command="{Binding AddBacTypeCommand}" CommandParameter="10"/>
+                            <MenuItem Header="Sound" Command="{Binding AddBacTypeCommand}" CommandParameter="11"/>
+                            <MenuItem Header="Targeting Assistance" Command="{Binding AddBacTypeCommand}" CommandParameter="12"/>
+                            <MenuItem Header="Bcs PartSet Invisibility" Command="{Binding AddBacTypeCommand}" CommandParameter="13"/>
+                            <MenuItem Header="Bone Modification" Command="{Binding AddBacTypeCommand}" CommandParameter="14"/>
+                            <MenuItem Header="Functions" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
+                            <MenuItem Header="Screen Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="16"/>
+                            <MenuItem Header="ThrowHandler" Command="{Binding AddBacTypeCommand}" CommandParameter="17"/>
+                            <MenuItem Header="Physics Object" Command="{Binding AddBacTypeCommand}" CommandParameter="18"/>
+                            <MenuItem Header="Aura" Command="{Binding AddBacTypeCommand}" CommandParameter="19"/>
+                            <MenuItem Header="Homing Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="20"/>
+                            <MenuItem Header="Eye Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="21"/>
+                            <MenuItem Header="BAC_Type22" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
+                            <MenuItem Header="Transparency Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="23"/>
+                            <MenuItem Header="Dual Skill Handler" Command="{Binding AddBacTypeCommand}" CommandParameter="24"/>
+                            <MenuItem Header="Extended Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="25"/>
+                            <MenuItem Header="Extended Camera Control" Command="{Binding AddBacTypeCommand}" CommandParameter="26"/>
+                            <MenuItem Header="Effect Property Control" Command="{Binding AddBacTypeCommand}" CommandParameter="27"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+                <TextBlock Text="New" HorizontalAlignment="Center" FontSize="8"/>
+                
+            </StackPanel>
+
+            <StackPanel VerticalAlignment="Center">
+                <Button Command="{Binding RemoveBacTypeCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Delete"/>
+                </Button>
+                <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
+
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2" Grid.ColumnSpan="3" Margin="0,0.018,0.436,0.327">
+            <StackPanel>
+                <bacView:BacTypeBaseView BacViewModel="{Binding BacTypeBaseViewModel}"/>
+                <bacView:BacType0View BacViewModel="{Binding BacType0ViewModel}"/>
+                <bacView:BacType1View BacViewModel="{Binding BacType1ViewModel}"/>
+                <bacView:BacType2View BacViewModel="{Binding BacType2ViewModel}"/>
+                <bacView:BacType3View BacViewModel="{Binding BacType3ViewModel}"/>
+                <bacView:BacType4View BacViewModel="{Binding BacType4ViewModel}"/>
+                <bacView:BacType5View BacViewModel="{Binding BacType5ViewModel}"/>
+                <bacView:BacType6View BacViewModel="{Binding BacType6ViewModel}"/>
+                <bacView:BacType7View BacViewModel="{Binding BacType7ViewModel}"/>
+                <bacView:BacType8View BacViewModel="{Binding BacType8ViewModel}"/>
+                <bacView:BacType9View BacViewModel="{Binding BacType9ViewModel}"/>
+                <bacView:BacType10View BacViewModel="{Binding BacType10ViewModel}"/>
+                <bacView:BacType11View BacViewModel="{Binding BacType11ViewModel}"/>
+                <bacView:BacType12View BacViewModel="{Binding BacType12ViewModel}"/>
+                <bacView:BacType13View BacViewModel="{Binding BacType13ViewModel}"/>
+                <bacView:BacType14View BacViewModel="{Binding BacType14ViewModel}"/>
+                <bacView:BacType15View BacViewModel="{Binding BacType15ViewModel}"/>
+                <bacView:BacType16View BacViewModel="{Binding BacType16ViewModel}"/>
+                <bacView:BacType17View BacViewModel="{Binding BacType17ViewModel}"/>
+                <bacView:BacType18View BacViewModel="{Binding BacType18ViewModel}"/>
+                <bacView:BacType19View BacViewModel="{Binding BacType19ViewModel}"/>
+                <bacView:BacType20View BacViewModel="{Binding BacType20ViewModel}"/>
+                <bacView:BacType21View BacViewModel="{Binding BacType21ViewModel}"/>
+                <bacView:BacType22View BacViewModel="{Binding BacType22ViewModel}"/>
+                <bacView:BacType23View BacViewModel="{Binding BacType23ViewModel}"/>
+                <bacView:BacType24View BacViewModel="{Binding BacType24ViewModel}"/>
+                <bacView:BacType25View BacViewModel="{Binding BacType25ViewModel}"/>
+                <bacView:BacType26View BacViewModel="{Binding BacType26ViewModel}"/>
+                <bacView:BacType27View BacViewModel="{Binding BacType27ViewModel}"/>
+            </StackPanel>
+        </ScrollViewer>
+        <DataGrid x:Name="bacEntryDataGrid" SelectionChanged="BacEntryDataGrid_SelectionChanged" ItemsSource="{Binding ViewBacTypes}" Margin="10,64,10.364,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False">
+
+            <DataGrid.InputBindings>
+                <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBacEntryCommand}"/>
+                <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteBacEntryCommand}"/>
+                <KeyBinding Key="Delete" Command="{Binding RemoveBacEntryCommand}"/>
+            </DataGrid.InputBindings>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Width="*" Binding="{Binding UndoableId, UpdateSourceTrigger=LostFocus}" IsReadOnly="False"/>
+                <DataGridTextColumn Header="Flags" Width="*" Binding="{Binding UndoableFlag, UpdateSourceTrigger=LostFocus}" IsReadOnly="False"/>
+            </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Copy" Command="{Binding CopyBacEntryCommand}"/>
+                    <MenuItem Header="Paste" Command="{Binding PasteBacEntryCommand}"/>
+                    <MenuItem Header="Delete" Command="{Binding RemoveBacEntryCommand}"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+
+        <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Setter Property="Margin" Value="10,0,0,0"/>
+                </Style>
+                <Style TargetType="{x:Type Grid}">
+                    <Setter Property="Margin" Value="5,0,0,0"/>
+                </Style>
+            </StackPanel.Resources>
+
+
+            <StackPanel VerticalAlignment="Center">
+                <Button Command="{Binding AddBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                </Button>
+                <TextBlock Text="New" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
+
+            <StackPanel VerticalAlignment="Center">
+                <Button Command="{Binding RemoveBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Delete"/>
+                </Button>
+                <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+</UserControl>

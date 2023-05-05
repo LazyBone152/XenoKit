@@ -1,0 +1,66 @@
+﻿<Window x:Class="WpfTest.Views.TabWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:scenes="clr-namespace:WpfTest.Scenes"
+        xmlns:wpfTest="clr-namespace:WpfTest"
+        xmlns:userControls="clr-namespace:WpfTest.UserControls"
+        mc:Ignorable="d"
+        Title="TabWindow" MinHeight="400" MinWidth="600" Width="600" Height="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="100" />
+        </Grid.RowDefinitions>
+        <TabControl x:Name="TabControl">
+            <TabItem Header="First game tab">
+                <scenes:TabScene Margin="10" />
+            </TabItem>
+            <TabItem Header="Text only tab">
+                <ScrollViewer>
+                    <TextBlock TextWrapping="Wrap">
+                        Corporate ipsum from <Hyperlink NavigateUri="http://www.cipsum.com/" wpfTest:HyperlinkExtensions.LaunchInBrowser="True">cipsum.com</Hyperlink>
+                    <LineBreak /><LineBreak />
+                    Leverage agile frameworks to provide a robust synopsis for high level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition. Organically grow the holistic world view of disruptive innovation via workplace diversity and empowerment.
+                    <LineBreak /><LineBreak />
+                    Bring to the table win-win survival strategies to ensure proactive domination. At the end of the day, going forward, a new normal that has evolved from generation X is on the runway heading towards a streamlined cloud solution. User generated content in real-time will have multiple touchpoints for offshoring.
+                    <LineBreak /><LineBreak />
+                    Capitalize on low hanging fruit to identify a ballpark value added activity to beta test. Override the digital divide with additional clickthroughs from DevOps. Nanotechnology immersion along the information highway will close the loop on focusing solely on the bottom line.
+                    <LineBreak /><LineBreak />
+                    Podcasting operational change management inside of workflows to establish a framework. Taking seamless key performance indicators offline to maximise the long tail. Keeping your eye on the ball while performing a deep dive on the start-up mentality to derive convergence on cross-platform integration.
+                    <LineBreak /><LineBreak />
+                    Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate B2C users after installed base benefits. Dramatically visualize customer directed convergence without revolutionary ROI.
+                    <LineBreak /><LineBreak />
+                    Efficiently unleash cross-media information without cross-media value. Quickly maximize timely deliverables for real-time schemas. Dramatically maintain clicks-and-mortar solutions without functional solutions.
+                    <LineBreak /><LineBreak />
+                    Completely synergize resource taxing relationships via premier niche markets. Professionally cultivate one-to-one customer service with robust ideas. Dynamically innovate resource-leveling customer service for state of the art customer service.
+                    <LineBreak /><LineBreak />
+                    Objectively innovate empowered manufactured products whereas parallel platforms. Holisticly predominate extensible testing procedures for reliable supply chains. Dramatically engage top-line web services vis-a-vis cutting-edge deliverables.
+                    <LineBreak /><LineBreak />
+                    Proactively envisioned multimedia based expertise and cross-media growth strategies. Seamlessly visualize quality intellectual capital without superior collaboration and idea-sharing. Holistically pontificate installed base portals after maintainable products.
+                    <LineBreak /><LineBreak />
+                    Phosfluorescently engage worldwide methodologies with web-enabled technology. Interactively coordinate proactive e-commerce via process-centric "outside the box" thinking. Completely pursue scalable customer service through sustainable potentialities.
+                </TextBlock>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="Second game tab">
+                <scenes:TabScene Margin="10" />
+            </TabItem>
+            <TabItem Header="Third game tab">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Game tab with additional text" />
+                    <scenes:TabScene Margin="10" Grid.Row="1" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Fourth game tab (usercontrol)">
+                <userControls:GameInUserControl Margin="10" />
+            </TabItem>
+        </TabControl>
+        <TextBox AcceptsReturn="True" Grid.Row="1" x:Name="LogOutput" BorderThickness="0" Background="Transparent" IsReadOnly="True" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" />
+    </Grid>
+</Window>

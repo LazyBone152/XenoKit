@@ -1,0 +1,83 @@
+﻿<UserControl x:Class="XenoKit.Controls.OutlinerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:editor="clr-namespace:XenoKit.Editor"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="200">
+    <Grid>
+        <ListBox x:Name="listBox" ItemsSource="{Binding files.OutlinerItems.Binding}" SelectedItem="{Binding files.SelectedItem}" HorizontalAlignment="Stretch" Margin="10,26,9.855,10.327" VerticalAlignment="Stretch">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel.Resources>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Margin" Value="2,0,0,0"/>
+                                </Style>
+                                <Style TargetType="{x:Type Separator}">
+                                    <Setter Property="Margin" Value="2,0,0,0"/>
+                                </Style>
+                                <Style TargetType="{x:Type iconPacks:PackIconMaterialDesign}">
+                                    <Setter Property="Margin" Value="2,0,0,0"/>
+                                </Style>
+                                <Style TargetType="{x:Type iconPacks:PackIconMaterial}">
+                                    <Setter Property="Margin" Value="2,0,0,0"/>
+                                </Style>
+                            </StackPanel.Resources>
+                            <iconPacks:PackIconMaterial Visibility="{Binding IsSkill}" Kind="Karate" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterial Visibility="{Binding IsMoveset}" Kind="Walk" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterialDesign Visibility="{Binding IsCharacter}" Kind="Accessibility" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterial Visibility="{Binding IsCommon}" Kind="AlphaCCircleOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+
+                            <Separator HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
+                                <Separator.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="90"/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </Separator.RenderTransform>
+                            </Separator>
+                            <TextBlock Text="{Binding DisplayType}"/>
+                            <Separator HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
+                                <Separator.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform Angle="90"/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </Separator.RenderTransform>
+                            </Separator>
+
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ContextMenu>
+                <ContextMenu FontSize="12" FocusManager.IsFocusScope="False">
+                    <MenuItem Header="Set as Actor" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.IsCharacter}">
+                        <MenuItem Header="Primary" Command="{Binding SetActorPrimaryCommand}"/>
+                        <MenuItem Header="Target" Command="{Binding SetActorTargetCommand}"/>
+                    </MenuItem>
+                    <Separator Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.IsCharacter}" />
+                    <MenuItem Header="Save" Command="{Binding Source={x:Static editor:Files.Instance}, Path=SaveSelectedItemCommand}"/>
+                    <MenuItem Header="Read Only" IsCheckable="True" IsChecked="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.ReadOnly, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Separator/>
+                    <MenuItem Header="Properties" Command="{Binding PropertiesCommand}"/>
+                </ContextMenu>
+            </ListBox.ContextMenu>
+        </ListBox>
+        <TextBlock HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Outliner" VerticalAlignment="Top" Width="60"/>
+
+    </Grid>
+</UserControl>

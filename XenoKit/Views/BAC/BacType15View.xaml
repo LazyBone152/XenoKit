@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="XenoKit.Views.BAC.BacType15View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BAC"
+             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType15View}"
+             mc:Ignorable="d" 
+             d:DesignHeight="1000" d:DesignWidth="520">
+    <Grid>
+        <Expander Header="Functions" IsExpanded="True">
+            <StackPanel HorizontalAlignment="Left">
+                <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="500">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="125"/>
+                            <ColumnDefinition Width="256"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Function"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BacFunctionNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.FunctionType}"/>
+                        <controls:NumericUpDown Margin="10, 0" Grid.Column="2" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.FunctionType, UpdateSourceTrigger=Default}"/>
+
+                    </Grid>
+                </WrapPanel>
+                <WrapPanel MaxWidth="800">
+
+                    <Grid Margin="3,5,0,0" Width="250" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.IsParam1Enabled, UpdateSourceTrigger=Default}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param1Name, UpdateSourceTrigger=Default}" ToolTip="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param1ToolTip, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param1, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.IsParam2Enabled, UpdateSourceTrigger=Default}" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Params2Visibility, UpdateSourceTrigger=Default}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param2Name, UpdateSourceTrigger=Default}" ToolTip="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param2ToolTip, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param2, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250" Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Params2SkillIdVisibility, UpdateSourceTrigger=Default}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="125"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Skill Type"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BacFunctionSkillType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param2}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.IsParam3Enabled, UpdateSourceTrigger=Default}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param3Name, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param3, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.IsParam4Enabled, UpdateSourceTrigger=Default}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Parameter 4"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param4, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.IsParam5Enabled, UpdateSourceTrigger=Default}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Parameter 5"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType15View}}, Path=BacViewModel.Param5, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                </WrapPanel>
+            </StackPanel>
+        </Expander>
+    </Grid>
+</UserControl>

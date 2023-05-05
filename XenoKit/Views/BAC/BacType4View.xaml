@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="XenoKit.Views.BAC.BacType4View"
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BAC"
+             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary"
+             mc:Ignorable="d" 
+             d:DesignHeight="1000" d:DesignWidth="520">
+    <Grid>
+
+        <StackPanel Margin="0, 0, 0, 0">
+
+            <Expander Margin="0, 2, 0, 0" Header="Animation" IsExpanded="True">
+                <Grid>
+                    <WrapPanel>
+                        <Grid Margin="3,3,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="TimeScale"/>
+                            <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType4View}}, Path=BacViewModel.TimeScale, UpdateSourceTrigger=Default}"/>
+                        </Grid>
+                    </WrapPanel>
+
+                </Grid>
+            </Expander>
+            
+        </StackPanel>
+    </Grid>
+</UserControl>
