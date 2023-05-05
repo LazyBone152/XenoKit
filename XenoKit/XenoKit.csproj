@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -16,6 +17,7 @@
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,6 +50,8 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -59,6 +63,10 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>XenoKitIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AForge">
@@ -82,6 +90,9 @@
     <Reference Include="ControlzEx, Version=4.0.0.0, Culture=neutral, PublicKeyToken=69f1c32f803d307e, processorArchitecture=MSIL">
       <HintPath>..\packages\ControlzEx.4.4.0\lib\net462\ControlzEx.dll</HintPath>
     </Reference>
+    <Reference Include="Costura, Version=5.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Costura.Fody.5.7.0\lib\netstandard1.0\Costura.dll</HintPath>
+    </Reference>
     <Reference Include="CSharpImageLibrary, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\CSharpImageLibrary.3.2.0.0\lib\net462\CSharpImageLibrary.dll</HintPath>
     </Reference>
@@ -94,96 +105,60 @@
     <Reference Include="GalaSoft.MvvmLight.Platform, Version=5.4.1.0, Culture=neutral, PublicKeyToken=5f873c45e98af8a1, processorArchitecture=MSIL">
       <HintPath>..\packages\MvvmLightLibs.5.4.1.1\lib\net45\GalaSoft.MvvmLight.Platform.dll</HintPath>
     </Reference>
+    <Reference Include="GongSolutions.WPF.DragDrop, Version=3.0.0.0, Culture=neutral, PublicKeyToken=91f1945125b7a587, processorArchitecture=MSIL">
+      <HintPath>..\packages\gong-wpf-dragdrop.3.2.0\lib\net47\GongSolutions.WPF.DragDrop.dll</HintPath>
+    </Reference>
     <Reference Include="MahApps.Metro, Version=2.0.0.0, Culture=neutral, PublicKeyToken=51482d6f650b2b3f, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.2.4.9\lib\net47\MahApps.Metro.dll</HintPath>
     </Reference>
-    <Reference Include="MahApps.Metro.IconPacks, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.dll</HintPath>
+    <Reference Include="MahApps.Metro.IconPacks.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.11.0\lib\net47\MahApps.Metro.IconPacks.Core.dll</HintPath>
     </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.BoxIcons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.BoxIcons.dll</HintPath>
+    <Reference Include="MahApps.Metro.IconPacks.Material, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.IconPacks.Material.4.11.0\lib\net47\MahApps.Metro.IconPacks.Material.dll</HintPath>
     </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Core.dll</HintPath>
+    <Reference Include="MahApps.Metro.IconPacks.MaterialDesign, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.IconPacks.MaterialDesign.4.11.0\lib\net47\MahApps.Metro.IconPacks.MaterialDesign.dll</HintPath>
     </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Entypo, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Entypo.dll</HintPath>
+    <Reference Include="MahApps.Metro.IconPacks.MaterialLight, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.IconPacks.MaterialLight.4.11.0\lib\net47\MahApps.Metro.IconPacks.MaterialLight.dll</HintPath>
     </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.EvaIcons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.EvaIcons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.FeatherIcons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.FeatherIcons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.FontAwesome, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.FontAwesome.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Ionicons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Ionicons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.JamIcons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.JamIcons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Material, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Material.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.MaterialDesign, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.MaterialDesign.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.MaterialLight, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.MaterialLight.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Microns, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Microns.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Modern, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Modern.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Octicons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Octicons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.PicolIcons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.PicolIcons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.RPGAwesome, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.RPGAwesome.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.SimpleIcons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.SimpleIcons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Typicons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Typicons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Unicons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Unicons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.WeatherIcons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.WeatherIcons.dll</HintPath>
-    </Reference>
-    <Reference Include="MahApps.Metro.IconPacks.Zondicons, Version=3.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.IconPacks.3.1.0\lib\net47\MahApps.Metro.IconPacks.Zondicons.dll</HintPath>
+    <Reference Include="MahApps.Metro.IconPacks.Modern, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.11.0\lib\net47\MahApps.Metro.IconPacks.Modern.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Xaml.Behaviors.Wpf.1.1.19\lib\net45\Microsoft.Xaml.Behaviors.dll</HintPath>
     </Reference>
-    <Reference Include="MonoGame.Framework, Version=3.7.0.1708, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MonoGame.Framework.WindowsDX.3.7.0.1708\lib\net45\MonoGame.Framework.dll</HintPath>
+    <Reference Include="MonoGame.Extended, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MonoGame.Extended.3.8.0\lib\netstandard2.0\MonoGame.Extended.dll</HintPath>
     </Reference>
-    <Reference Include="MonoGame.Framework.WpfInterop, Version=1.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MonoGame.Framework.WpfInterop.1.7.1\lib\net452\MonoGame.Framework.WpfInterop.dll</HintPath>
+    <Reference Include="MonoGame.Extended.Particles, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MonoGame.Extended.Particles.3.8.0\lib\netstandard2.0\MonoGame.Extended.Particles.dll</HintPath>
     </Reference>
     <Reference Include="NAudio, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NAudio.1.9.0\lib\net35\NAudio.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Ookii.Dialogs.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=66aa232afad40158, processorArchitecture=MSIL">
       <HintPath>..\packages\Ookii.Dialogs.Wpf.1.1.0\lib\net45\Ookii.Dialogs.Wpf.dll</HintPath>
     </Reference>
+    <Reference Include="Pfim, Version=0.10.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Pfim.0.10.3\lib\netstandard2.0\Pfim.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationFramework.Aero" />
-    <Reference Include="SharpDX, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.4.0.1\lib\net45\SharpDX.dll</HintPath>
+    <Reference Include="SharpDX, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.4.2.0\lib\net45\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.D3DCompiler, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpDX.D3DCompiler.4.2.0\lib\net45\SharpDX.D3DCompiler.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct2D1, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.Direct2D1.4.0.1\lib\net45\SharpDX.Direct2D1.dll</HintPath>
@@ -215,25 +190,100 @@
     <Reference Include="Shim.Drawing, Version=3.0.1.0, Culture=neutral, PublicKeyToken=a7d03c0bc8d64dbc, processorArchitecture=MSIL">
       <HintPath>..\packages\shim.drawing.3.0.1\lib\net45\Shim.Drawing.dll</HintPath>
     </Reference>
+    <Reference Include="SpriteFontPlus, Version=0.7.0.22, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SpriteFontPlus.MonoGame.0.7.0.22\lib\net45\SpriteFontPlus.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.AppContext.4.3.0\lib\net463\System.AppContext.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Common, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Data.Common.4.3.0\lib\net451\System.Data.Common.dll</HintPath>
     </Reference>
     <Reference Include="System.Design" />
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.3.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.Tracing, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.Tracing.4.3.0\lib\net462\System.Diagnostics.Tracing.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Globalization.Calendars, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
+    </Reference>
     <Reference Include="System.Half, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\XV2 Tools\DLLs\System.Half.dll</HintPath>
     </Reference>
-    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Compression.4.3.0\lib\net46\System.IO.Compression.dll</HintPath>
+    </Reference>
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.IO.Compression.ZipFile, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Compression.ZipFile.4.3.0\lib\net46\System.IO.Compression.ZipFile.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.FileSystem.4.3.0\lib\net46\System.IO.FileSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.FileSystem.Primitives.4.3.0\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Linq, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Linq.4.3.0\lib\net463\System.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Linq.Expressions, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Linq.Expressions.4.3.0\lib\net463\System.Linq.Expressions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Http.4.3.0\lib\net46\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Sockets, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Sockets.4.3.0\lib\net46\System.Net.Sockets.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Numerics.Vectors.4.3.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
     </Reference>
+    <Reference Include="System.Reflection, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reflection.4.3.0\lib\net462\System.Reflection.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Extensions, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.Extensions.4.3.0\lib\net462\System.Runtime.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.InteropServices.4.3.0\lib\net463\System.Runtime.InteropServices.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+    </Reference>
     <Reference Include="System.Security" />
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.RegularExpressions, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.RegularExpressions.4.3.0\lib\net463\System.Text.RegularExpressions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
@@ -242,9 +292,11 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Xml.ReaderWriter.4.3.0\lib\net46\System.Xml.ReaderWriter.dll</HintPath>
     </Reference>
     <Reference Include="UsefulThings, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\UsefulCSharpThings.1.6.0.0\lib\net462\UsefulThings.dll</HintPath>
@@ -295,6 +347,9 @@
     <Compile Include="..\..\XV2 Tools\AudioCueEditor\Audio\WavStream.cs">
       <Link>Views\ACE\Audio\WavStream.cs</Link>
     </Compile>
+    <Compile Include="..\..\XV2 Tools\AudioCueEditor\Data\HcaEncryptionKeys.cs">
+      <Link>Views\ACE\Data\HcaEncryptionKeys.cs</Link>
+    </Compile>
     <Compile Include="..\..\XV2 Tools\AudioCueEditor\ViewModel\MainViewModel.cs">
       <Link>Views\ACE\ViewModel\MainViewModel.cs</Link>
     </Compile>
@@ -325,20 +380,29 @@
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Extensions\EMB\EmbExtensions.cs">
       <Link>Extensions\EmbExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\AssetContainerSettings.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\AssetContainerSettings.xaml.cs</Link>
+    </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\AssetSelector.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\AssetSelector.xaml.cs</Link>
     </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EcfEditorWindow.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\Editors\EcfEditorWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EmbEditForm.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\Editors\EmbEditForm.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EmpEditorWindow.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\Editors\EmpEditorWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EtrEditorWindow.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\Editors\EtrEditorWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\MaterialsEditorForm.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\Editors\MaterialsEditorForm.xaml.cs</Link>
+    </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EffectSelector.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\EffectSelector.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EmbEditForm.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\EmbEditForm.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EmmEditForm.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\EmmEditForm.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EMP\EMP_Editor.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\EMP\EMP_Editor.xaml.cs</Link>
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EntitySelector.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\EntitySelector.xaml.cs</Link>
@@ -351,9 +415,6 @@
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\LogPrompt.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\LogPrompt.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\MaterialSelector.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\MaterialSelector.xaml.cs</Link>
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorAll.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\Recolor\RecolorAll.xaml.cs</Link>
@@ -369,9 +430,6 @@
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\RenameForm.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\RenameForm.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\TextureSelector.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\TextureSelector.xaml.cs</Link>
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Misc\CacheManager.cs">
       <Link>Views\EEPK Organiser\Misc\CacheManager.cs</Link>
@@ -391,30 +449,159 @@
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Name\NameListManager.cs">
       <Link>Views\EEPK Organiser\Names\NameListManager.cs</Link>
     </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\AssetContainerViewModel.cs">
+      <Link>Views\EEPK Organiser\ViewModel\AssetContainerViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\EcfNodeViewModel.cs">
+      <Link>Views\EEPK Organiser\ViewModel\EcfNodeViewModel.cs</Link>
+    </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\EffectPartViewModel.cs">
       <Link>Views\EEPK Organiser\ViewModel\EffectPartViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\EmpKeyframesViewModel.cs">
+      <Link>Views\EEPK Organiser\ViewModel\EmpKeyframesViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\EmpNodeViewModel.cs">
+      <Link>Views\EEPK Organiser\ViewModel\EmpNodeViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\EmpTextureViewModel.cs">
+      <Link>Views\EEPK Organiser\ViewModel\EmpTextureViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\EtrNodeViewModel.cs">
+      <Link>Views\EEPK Organiser\ViewModel\EtrNodeViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\MaterialViewModel.cs">
+      <Link>Views\EEPK Organiser\ViewModel\MaterialViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Controls\ShapeDraw.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Controls\ShapeDraw.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EcfEditor.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EcfEditor.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EmpEditor.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EmpEditor.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpKeyframesView.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpKeyframesView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpKeyframeView.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpKeyframeView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpModifiersView.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpModifiersView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpNodeView.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpNodeView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpTextureView.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpTextureView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\KeyframedValueView.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\KeyframedValueView.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EtrEditor.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\EtrEditor.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\MaterialsEditor.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\MaterialsEditor.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Editors\TextureEditor.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Editors\TextureEditor.xaml.cs</Link>
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\View\EepkEditor.xaml.cs">
       <Link>Views\EEPK Organiser\View\EepkEditor.xaml.cs</Link>
     </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomColor.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomColor.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomMatUV.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomMatUV.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomRgbColor.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomRgbColor.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomVector2.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomVector2.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomVector3.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomVector3.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomVector4.xaml.cs">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomVector4.xaml.cs</Link>
+    </Compile>
     <Compile Include="DialogSettings.cs" />
-    <Compile Include="Editor\ValuesDictionary\BAC.cs" />
+    <Compile Include="Editor\Files\OutlinerItem.cs" />
+    <Compile Include="Editor\Files\EditorVisibility.cs" />
+    <Compile Include="Engine\Animation\AnimationPlayerBase.cs" />
+    <Compile Include="Engine\Animation\EmaAnimationPlayer.cs" />
     <Compile Include="Engine\Animation\VisualSkeleton.cs" />
     <Compile Include="Engine\Audio\AudioEngine.cs" />
     <Compile Include="Engine\Audio\CueInstance.cs" />
     <Compile Include="Engine\Audio\WorldAudioPlayer.cs" />
+    <Compile Include="Engine\Character\PartSets.cs" />
     <Compile Include="Engine\Collision\BoundingOrientedBox.cs" />
+    <Compile Include="Engine\CompiledObjectManager.cs" />
+    <Compile Include="Engine\EmdViewer.cs" />
     <Compile Include="Engine\EngineUtils.cs" />
+    <Compile Include="Engine\GameBase.cs" />
     <Compile Include="Engine\Gizmo\AnimatorGizmo.cs" />
-    <Compile Include="Engine\Gizmo\GizmoModel.cs" />
+    <Compile Include="Engine\Gizmo\BacMatrixGizmo.cs" />
+    <Compile Include="Engine\Gizmo\BoneScaleGizmo.cs" />
+    <Compile Include="Engine\Gizmo\GizmoBase.cs" />
+    <Compile Include="Engine\Gizmo\HitboxGizmo.cs" />
+    <Compile Include="Engine\Gizmo\TransformOperations\BacMatrixTransformOperation.cs" />
+    <Compile Include="Engine\Gizmo\TransformOperations\BoneScaleTransformOperation.cs" />
+    <Compile Include="Engine\Gizmo\TransformOperations\ModelTransformOperation.cs" />
+    <Compile Include="Engine\Lighting\DirLight.cs" />
+    <Compile Include="Engine\Scripting\BAC\Simulation\HitboxPreview.cs" />
+    <Compile Include="Engine\Scripting\BAC\Simulation\BacSimulationObject.cs" />
+    <Compile Include="Engine\Shapes\GizmoGeometry.cs" />
+    <Compile Include="Engine\Gizmo\TransformOperations\AnimationTransformOperation.cs" />
+    <Compile Include="Engine\Gizmo\TransformOperations\ITransformOperation.cs" />
+    <Compile Include="Engine\Gizmo\ModelGizmo.cs" />
     <Compile Include="Engine\Input.cs" />
+    <Compile Include="Engine\Model\StageModel.cs" />
     <Compile Include="Engine\Objects\DrawableBoundingBox.cs" />
+    <Compile Include="Engine\Scripting\BAC\ActionControl.cs" />
+    <Compile Include="Engine\Scripting\BAC\BacEntryInstance.cs" />
+    <Compile Include="Engine\Scripting\ScriptEntity.cs" />
+    <Compile Include="Engine\Shader\Buffers.cs" />
+    <Compile Include="Engine\Shader\DXBC\DxbcParser.cs" />
+    <Compile Include="Engine\Shader\ShaderManager.cs" />
+    <Compile Include="Engine\Shader\MaterialParameters.cs" />
+    <Compile Include="Engine\Shader\ShaderProgram.cs" />
+    <Compile Include="Engine\Shader\Xv2ShaderEffect.cs" />
+    <Compile Include="Engine\Shader\Xv2Shader.cs" />
     <Compile Include="Engine\Shapes\GeometricPrimitive.cs" />
     <Compile Include="Engine\Shapes\Quad.cs" />
     <Compile Include="Engine\Objects\VisualBone.cs" />
     <Compile Include="Engine\Shapes\Sphere.cs" />
+    <Compile Include="Engine\Textures\TextureLoader.cs" />
+    <Compile Include="Engine\Textures\Xv2Texture.cs" />
+    <Compile Include="Engine\Text\TextInstance.cs" />
+    <Compile Include="Engine\Text\TextRenderer.cs" />
     <Compile Include="Engine\Vertex\VertexPositionNormal.cs" />
     <Compile Include="Engine\Vertex\VertexPositionNormalTextureBlend.cs" />
+    <Compile Include="Engine\Vertex\VertexPositionTextureColor.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxAsset.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxColorFade.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxEmo.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxLight.cs" />
+    <Compile Include="Engine\Vfx\Particle\Particle.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleEmissionData.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleEmitter.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleNodeBase.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleSystem.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleUV.cs" />
+    <Compile Include="Engine\Vfx\VfxEffect.cs" />
+    <Compile Include="Engine\Vfx\VfxManager.cs" />
+    <Compile Include="Engine\View\CameraAnimationInstance.cs" />
+    <Compile Include="Engine\View\CameraBase.cs" />
+    <Compile Include="Engine\View\ICameraBase.cs" />
+    <Compile Include="Engine\View\SimpleCamera.cs" />
+    <Compile Include="Helper\Find.cs" />
+    <Compile Include="Helper\ViewHelpers.cs" />
     <Compile Include="ViewModel\BAC\BACType0ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType10ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType11ViewModel.cs" />
@@ -435,6 +622,8 @@
     <Compile Include="ViewModel\BAC\BACType25ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType26ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType27ViewModel.cs" />
+    <Compile Include="ViewModel\BAC\BACType28ViewModel.cs" />
+    <Compile Include="ViewModel\BAC\BACType29ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType2ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType3ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType4ViewModel.cs" />
@@ -444,6 +633,14 @@
     <Compile Include="ViewModel\BAC\BACType8ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType9ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACTypeBaseViewModel.cs" />
+    <Compile Include="ViewModel\BCS\BcsBodyViewModel.cs" />
+    <Compile Include="ViewModel\BCS\BcsColorSelectorViewModel.cs" />
+    <Compile Include="ViewModel\BCS\BcsHeaderViewModel.cs" />
+    <Compile Include="ViewModel\BCS\BcsPartViewModel.cs" />
+    <Compile Include="ViewModel\BCS\BcsPhysicsPartViewModel.cs" />
+    <Compile Include="ViewModel\BCS\BcsSkeletonDataViewModel.cs" />
+    <Compile Include="ViewModel\EMD\EmdAABBViewModel.cs" />
+    <Compile Include="ViewModel\EMD\EmdTextureViewModel.cs" />
     <Compile Include="Views\AudioTab.xaml.cs">
       <DependentUpon>AudioTab.xaml</DependentUpon>
     </Compile>
@@ -510,6 +707,12 @@
     <Compile Include="Views\BAC\BacType27View.xaml.cs">
       <DependentUpon>BacType27View.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\BAC\BacType28View.xaml.cs">
+      <DependentUpon>BacType28View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BAC\BacType29View.xaml.cs">
+      <DependentUpon>BacType29View.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\BAC\BacType2View.xaml.cs">
       <DependentUpon>BacType2View.xaml</DependentUpon>
     </Compile>
@@ -537,11 +740,32 @@
     <Compile Include="Views\BAC\BacTypeBaseView.xaml.cs">
       <DependentUpon>BacTypeBaseView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\BCS\BcsBodyView.xaml.cs">
+      <DependentUpon>BcsBodyView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCS\BcsCharaFilesView.xaml.cs">
+      <DependentUpon>BcsCharaFilesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCS\BcsColorView.xaml.cs">
+      <DependentUpon>BcsColorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCS\BcsHeaderView.xaml.cs">
+      <DependentUpon>BcsHeaderView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCS\BcsPartSetView.xaml.cs">
+      <DependentUpon>BcsPartSetView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCS\BcsSkeletonDataView.xaml.cs">
+      <DependentUpon>BcsSkeletonDataView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CameraTabView.xaml.cs">
       <DependentUpon>CameraTabView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\AnimationTabView.xaml.cs">
       <DependentUpon>AnimationTabView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EmdViewer.xaml.cs">
+      <DependentUpon>EmdViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\GameView.xaml.cs">
       <DependentUpon>GameView.xaml</DependentUpon>
@@ -553,33 +777,38 @@
       <DependentUpon>OutlinerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Editor\ClipboardConstants.cs" />
-    <Compile Include="Editor\Files.cs" />
+    <Compile Include="Editor\Files\Files.cs" />
     <Compile Include="Editor\Log.cs" />
     <Compile Include="Engine\SceneManager.cs" />
     <Compile Include="Helper\GeneralHelpers.cs" />
     <Compile Include="Engine\Animation\AnimationPlayer.cs" />
-    <Compile Include="Engine\Objects\Grid.cs" />
     <Compile Include="Engine\Objects\WorldGrid.cs" />
     <Compile Include="Engine\Shapes\Plane.cs" />
-    <Compile Include="Engine\Scripting\BacPlayer.cs" />
+    <Compile Include="Engine\Scripting\BAC\BacPlayer.cs" />
     <Compile Include="Engine\View\Camera.cs" />
     <Compile Include="Engine\Shapes\Cube.cs" />
     <Compile Include="Engine\Animation\DebugSkeleton.cs" />
-    <Compile Include="Engine\EmdModel.cs" />
+    <Compile Include="Engine\Model\Xv2Model.cs" />
     <Compile Include="Engine\Entity.cs" />
     <Compile Include="Engine\Objects\ObjectAxis.cs" />
-    <Compile Include="Engine\Animation\Skeleton.cs" />
+    <Compile Include="Engine\Animation\Xv2Skeleton.cs" />
     <Compile Include="Engine\Objects\WorldAxis.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Compile Include="Views\SettingsPanel.xaml.cs">
       <DependentUpon>SettingsPanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\EAN\BoneFilter.xaml.cs">
-      <DependentUpon>BoneFilter.xaml</DependentUpon>
+    <Compile Include="Windows\BAC\EditBacEntryFlags.xaml.cs">
+      <DependentUpon>EditBacEntryFlags.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\BCS\BcsColorSelector.xaml.cs">
+      <DependentUpon>BcsColorSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\EAN\EanModiferForm.xaml.cs">
       <DependentUpon>EanModiferForm.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\FindAndReplace.xaml.cs">
+      <DependentUpon>FindAndReplace.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\OutlinerItemProperties.xaml.cs">
       <DependentUpon>OutlinerItemProperties.xaml</DependentUpon>
@@ -596,7 +825,7 @@
     <Compile Include="Windows\SetGameDir.xaml.cs">
       <DependentUpon>SetGameDir.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Engine\Character.cs" />
+    <Compile Include="Engine\Character\Actor.cs" />
     <Compile Include="Editor\Data\CopyItem.cs" />
     <Compile Include="Editor\Data\Move.cs" />
     <Compile Include="Windows\Settings.xaml.cs">
@@ -637,28 +866,43 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\AssetContainerSettings.xaml">
+      <Link>Views\EEPK Organiser\Forms\AssetContainerSettings.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\AssetSelector.xaml">
       <Link>Views\EEPK Organiser\Forms\AssetSelector.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EcfEditorWindow.xaml">
+      <Link>Views\EEPK Organiser\Forms\Editors\EcfEditorWindow.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EmbEditForm.xaml">
+      <Link>Views\EEPK Organiser\Forms\Editors\EmbEditForm.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EmpEditorWindow.xaml">
+      <Link>Views\EEPK Organiser\Forms\Editors\EmpEditorWindow.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\EtrEditorWindow.xaml">
+      <Link>Views\EEPK Organiser\Forms\Editors\EtrEditorWindow.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Editors\MaterialsEditorForm.xaml">
+      <Link>Views\EEPK Organiser\Forms\Editors\MaterialsEditorForm.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\EffectSelector.xaml">
       <Link>Views\EEPK Organiser\Forms\EffectSelector.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\EmbEditForm.xaml">
-      <Link>Views\EEPK Organiser\Forms\EmbEditForm.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\EmmEditForm.xaml">
-      <Link>Views\EEPK Organiser\Forms\EmmEditForm.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\EMP\EMP_Editor.xaml">
-      <Link>Views\EEPK Organiser\Forms\EMP\EMP_Editor.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -679,11 +923,6 @@
     </Page>
     <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\LogPrompt.xaml">
       <Link>Views\EEPK Organiser\Forms\LogPrompt.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\MaterialSelector.xaml">
-      <Link>Views\EEPK Organiser\Forms\MaterialSelector.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -712,13 +951,98 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\TextureSelector.xaml">
-      <Link>Views\EEPK Organiser\Forms\TextureSelector.xaml</Link>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Controls\ShapeDraw.xaml">
+      <Link>Views\EEPK Organiser\View\Controls\ShapeDraw.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EcfEditor.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EcfEditor.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EmpEditor.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EmpEditor.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpKeyframesView.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpKeyframesView.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpKeyframeView.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpKeyframeView.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpModifiersView.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpModifiersView.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpNodeView.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpNodeView.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\EmpTextureView.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\EmpTextureView.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EMP\KeyframedValueView.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EMP\KeyframedValueView.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\EtrEditor.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\EtrEditor.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\MaterialsEditor.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\MaterialsEditor.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Editors\TextureEditor.xaml">
+      <Link>Views\EEPK Organiser\View\Editors\TextureEditor.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="..\..\XV2 Tools\EEPK Editor\View\EepkEditor.xaml">
       <Link>Views\EEPK Organiser\View\EepkEditor.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomColor.xaml">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomColor.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomMatUV.xaml">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomMatUV.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomRgbColor.xaml">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomRgbColor.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomVector2.xaml">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomVector2.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomVector3.xaml">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomVector3.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\Vectors\CustomVector4.xaml">
+      <Link>Views\EEPK Organiser\View\Vectors\CustomVector4.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -810,6 +1134,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\BAC\BacType28View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BAC\BacType29View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\BAC\BacType2View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -846,11 +1178,39 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\BCS\BcsBodyView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCS\BcsCharaFilesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCS\BcsColorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCS\BcsHeaderView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCS\BcsPartSetView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCS\BcsSkeletonDataView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\CameraTabView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\AnimationTabView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EmdViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -883,11 +1243,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Windows\EAN\BoneFilter.xaml">
+    <Page Include="Windows\BAC\EditBacEntryFlags.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\BCS\BcsColorSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\EAN\EanModiferForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\FindAndReplace.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -935,6 +1303,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="..\.editorconfig">
+      <Link>.editorconfig</Link>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -947,18 +1318,18 @@
   <ItemGroup>
     <Resource Include="readme.txt" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <Resource Include="Resources\icons8-delete-48.png" />
-    <Resource Include="Resources\icons8-expand-arrow-50.png" />
-    <Resource Include="Resources\icons8-info-512.png" />
-    <Resource Include="Resources\icons8-plus-40.png" />
-    <Resource Include="Resources\icons8-question-mark-64.png" />
-    <Resource Include="Resources\icons8-trash-40.png" />
-    <Resource Include="Resources\icons8-undo-24.png" />
+    <Folder Include="Content\" />
+    <Folder Include="Engine\Scripting\BSA\" />
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="Resources\transparent_checkerboard.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj">
+      <Project>{e75f2be2-787a-4a7a-927d-d0f06b10472c}</Project>
+      <Name>MonoGame.Framework.WindowsDX</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\XV2 Tools\LB_Common\LB_Common.csproj">
       <Project>{513b1851-4576-45ec-8f8e-400a38b05502}</Project>
       <Name>LB_Common</Name>
@@ -967,13 +1338,23 @@
       <Project>{fdb88e51-0d73-47b9-a342-e574ec0ba583}</Project>
       <Name>Xv2CoreLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MonoGameWpfInterloop\MonoGame.Framework.WpfInterop\MonoGame.Framework.WpfInterop.csproj">
+      <Project>{60d02330-e7cb-4078-95ad-10daa7ac3b1d}</Project>
+      <Name>MonoGame.Framework.WpfInterop</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="XenoKitIcon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\MonoGame.Framework.WindowsDX.3.7.0.1708\build\MonoGame.Framework.WindowsDX.targets" Condition="Exists('..\packages\MonoGame.Framework.WindowsDX.3.7.0.1708\build\MonoGame.Framework.WindowsDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MonoGame.Framework.WindowsDX.3.7.0.1708\build\MonoGame.Framework.WindowsDX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Framework.WindowsDX.3.7.0.1708\build\MonoGame.Framework.WindowsDX.targets'))" />
+    <Error Condition="!Exists('..\packages\Fody.6.5.5\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.6.5.5\build\Fody.targets'))" />
+    <Error Condition="!Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props'))" />
+    <Error Condition="!Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets'))" />
   </Target>
+  <Import Project="..\packages\Fody.6.5.5\build\Fody.targets" Condition="Exists('..\packages\Fody.6.5.5\build\Fody.targets')" />
+  <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets')" />
 </Project>

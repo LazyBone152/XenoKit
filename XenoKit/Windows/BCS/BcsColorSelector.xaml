@@ -1,0 +1,28 @@
+﻿<Controls:MetroWindow x:Class="XenoKit.Windows.BcsColorSelector"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:local="clr-namespace:XenoKit.Windows"
+        mc:Ignorable="d"
+        Title="Color Selector" Height="440" Width="330" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" Name="Window" TitleCharacterCasing="Normal">
+    <Grid>
+        <ListBox x:Name="colorListBox" ItemsSource="{Binding ElementName=Window, Path=ColorGroup.ColorsList.Binding}" SelectedValuePath="ID" SelectedValue="{Binding ElementName=Window, Path=SelectedValue}" Height="390" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center" SelectionMode="Single" Margin="5" SelectionChanged="colorListBox_SelectionChanged">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" IsItemsHost="True" MaxWidth="300">
+                    </WrapPanel>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="2">
+                        <Grid Background="{Binding ColorPreview}" Width="30" Height="20" ToolTip="{Binding ToolTip}"/>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+    </Grid>
+</Controls:MetroWindow>

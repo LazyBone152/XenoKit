@@ -5,16 +5,24 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:local="clr-namespace:XenoKit.Views.BAC"
-             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType0View}"
+             xmlns:bac="clr-namespace:Xv2CoreLib.BAC;assembly=Xv2CoreLib"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:bacDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib" d:DataContext="{d:DesignInstance Type=local:BacType0View}"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="BoundingBoxType" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="bac:BAC_Type1+BoundingBoxTypeEnum"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
     <Grid>
         <StackPanel>
             <Expander Margin="0, 2, 0, 0" Header="Hitbox" IsExpanded="True">
                 <Grid>
-
                     <WrapPanel>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -22,7 +30,7 @@
                             <Label Content="BDM File"/>
                             <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BdmType}"/>
                         </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -30,7 +38,7 @@
                             <Label Content="BDM ID"/>
                             <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BdmEntryID, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
                         </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -38,7 +46,7 @@
                             <Label Content="Damage" ToolTip="Damage taken by the target (when not guarding), in addition to damage dealt by the BDM entry."/>
                             <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.Damage, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
                         </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -46,7 +54,7 @@
                             <Label Content="Damage (blocked)" ToolTip="Damage taken by the target when blocking, in addition to damage dealt by the BDM entry."/>
                             <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.DamageWhenBlocked, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
                         </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -55,30 +63,6 @@
                             <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.StaminaBlockedConsume, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
                         </Grid>
 
-                        <Grid Margin="3,3,0,0" Width="250">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="_I_20"/>
-                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.I_20, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
-                        </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="_I_22"/>
-                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.I_22, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
-                        </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="_F_24"/>
-                            <controls:NumericUpDown Grid.Column="1" StringFormat="0.00#####" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.F_24, UpdateSourceTrigger=Default}"/>
-                        </Grid>
 
                     </WrapPanel>
 
@@ -87,7 +71,7 @@
             <Expander Header="Settings" IsExpanded="True">
                 <StackPanel>
                     <WrapPanel>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -95,7 +79,7 @@
                             <Label Content="Impact Type"/>
                             <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmImpactType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ImpactType}"/>
                         </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -103,7 +87,7 @@
                             <Label Content="Damage Type"/>
                             <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmDamageType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.DamageType}"/>
                         </Grid>
-                        <Grid Margin="3,3,0,0" Width="250">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -111,29 +95,38 @@
                             <Label Content="Spawn Source"/>
                             <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BdmSpawnSource}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxSpawnSource}"/>
                         </Grid>
-                    </WrapPanel>
-                    <WrapPanel>
-                        <Grid Margin="3,3,0,0" Width="280">
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="125"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Flag A" ToolTip="Unknown purpose."/>
-                            <CheckBox Grid.Column="1" Content="1" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk1}"/>
-                            <CheckBox Grid.Column="2" Content="2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk2}"/>
-                            <CheckBox Grid.Column="3" Content="3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk3}"/>
-                            <CheckBox Grid.Column="4" Content="4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk4}"/>
-
+                            <Label Content="Bone"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BoneLink}"/>
                         </Grid>
                     </WrapPanel>
+
                 </StackPanel>
             </Expander>
-            <Expander Header="Matrix3x3" IsExpanded="True">
+            <Expander Header="Bounding Box" IsExpanded="True">
                 <StackPanel Width="500" HorizontalAlignment="Left">
-                    <Grid Margin="3,3,0,0" Width="500">
+
+                    <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Type" ToolTip="The bounding box type determines how the Min and Max values work.&#x0a;&#x0a;Basic: Hitbox will be a uniform cube, with the bounds set to Size. &#x0a;&#x0a;MinMax: The bounds of the hitbox can be defined with the Min and Max values. This is in addition to Size.&#x0a;&#x0a;Other types: Unknown. These wont get a preview hitbox in the editor."/>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding Source={StaticResource ResourceKey=BoundingBoxType}}" SelectedItem="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BoundingBoxType, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="125"/>
+                            <ColumnDefinition Width="110"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Size" ToolTip="Minimum size of the hitbox, on all axis."/>
+                        <controls:NumericUpDown Grid.Column="1" StringFormat="0.00#####" Interval="0.05" Minimum="0.05" Maximum="100" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.Size, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="500">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="105"/>
                             <ColumnDefinition Width="20"/>
@@ -143,7 +136,7 @@
                             <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="110"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Position"/>
+                        <Label Content="Position" ToolTip="Position of the hitbox, relative to the Spawn Source.&#x0a;&#x0a;For Bounding Boxes, this is the center."/>
                         <Label Grid.Column="1" Content="X"/>
                         <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.PositionX, UpdateSourceTrigger=Default}"/>
 
@@ -154,7 +147,7 @@
                         <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.PositionZ, UpdateSourceTrigger=Default}"/>
 
                     </Grid>
-                    <Grid Margin="3,3,0,0" Width="500">
+                    <Grid Margin="3,5,0,0" Width="500" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BoundsEnabled, UpdateSourceTrigger=Default}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="105"/>
                             <ColumnDefinition Width="20"/>
@@ -164,18 +157,18 @@
                             <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="110"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Rotation"/>
+                        <Label Content="Min Bounds" ToolTip="The minimum bounds of the box."/>
                         <Label Grid.Column="1" Content="X"/>
-                        <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.RotationX, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.MinX, UpdateSourceTrigger=Default}"/>
 
                         <Label Grid.Column="3" Content="Y"/>
-                        <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.RotationY, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.MinY, UpdateSourceTrigger=Default}"/>
 
                         <Label Grid.Column="5" Content="Z"/>
-                        <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.RotationZ, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.MinZ, UpdateSourceTrigger=Default}"/>
 
                     </Grid>
-                    <Grid Margin="3,3,0,0" Width="500">
+                    <Grid Margin="3,5,0,0" Width="500" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.BoundsEnabled, UpdateSourceTrigger=Default}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="105"/>
                             <ColumnDefinition Width="20"/>
@@ -185,17 +178,46 @@
                             <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="110"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Scale"/>
+                        <Label Content="Max Bounds" ToolTip="The maximum bounds of the box."/>
                         <Label Grid.Column="1" Content="X"/>
-                        <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ScaleX, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.MaxX, UpdateSourceTrigger=Default}"/>
 
                         <Label Grid.Column="3" Content="Y"/>
-                        <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ScaleY, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.MaxY, UpdateSourceTrigger=Default}"/>
 
                         <Label Grid.Column="5" Content="Z"/>
-                        <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.ScaleZ, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.MaxZ, UpdateSourceTrigger=Default}"/>
 
                     </Grid>
+
+                </StackPanel>
+            </Expander>
+            <Expander Header="Unknown" IsExpanded="False">
+                <StackPanel HorizontalAlignment="Left">
+                    <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="_I_20"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.I_20, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
+                    </Grid>
+                    <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                        <Label Content="Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                        <Separator/>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Margin="20, 5" Width="200">
+                                <CheckBox Content="Unk1"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk1, UpdateSourceTrigger=Default}"/>
+                                <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk2, UpdateSourceTrigger=Default}" />
+
+                            </StackPanel>
+                            <StackPanel Margin="20, 5" Width="200">
+                                <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk3, UpdateSourceTrigger=Default}" />
+                                <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType1View}}, Path=BacViewModel.HitboxFlagA_Unk4, UpdateSourceTrigger=Default}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </StackPanel>
                 </StackPanel>
             </Expander>
         </StackPanel>

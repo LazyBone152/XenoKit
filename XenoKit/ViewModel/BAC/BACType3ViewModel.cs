@@ -20,6 +20,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type3>(nameof(bacType.InvulnerabilityType), bacType, bacType.InvulnerabilityType, value, "Invulnerability Type"));
                 bacType.InvulnerabilityType = value;
                 RaisePropertyChanged(() => Type);
+                bacType.RefreshType();
             }
         }
         public ushort I_10
@@ -65,7 +66,7 @@ namespace XenoKit.ViewModel.BAC
 
         private void UpdateBacPlayer()
         {
-            SceneManager.InvokeBacValuesChangedEvent();
+            SceneManager.InvokeBacDataChangedEvent();
         }
 
     }

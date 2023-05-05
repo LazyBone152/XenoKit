@@ -12,10 +12,11 @@
         xmlns:bacView="clr-namespace:XenoKit.Views.BAC"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        Title="XenoKit" TitleCharacterCasing="Normal" MinHeight="720" MinWidth="1280" Height="720" Width="1550" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Closing="MetroWindow_Closing" SizeChanged="WindowResized">
+        Title="XenoKit" TitleCharacterCasing="Normal" MinHeight="720" MinWidth="1280" Height="720" Width="1550" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Closing="MetroWindow_Closing" SizeChanged="WindowResized" ResizeMode="CanResizeWithGrip" Drop="MetroWindow_Drop" AllowDrop="True">
     <Window.InputBindings>
-        <KeyBinding Key="Z" Modifiers="Ctrl"  Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
-        <KeyBinding Key="Y" Modifiers="Ctrl"  Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
+        <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
+        <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding FindReplaceCommand}"/>
     </Window.InputBindings>
 
     <Grid>
@@ -24,7 +25,7 @@
             <ColumnDefinition Width="5"/>
             <ColumnDefinition Width="641*" MinWidth="585"/>
             <ColumnDefinition Width="5"/>
-            <ColumnDefinition Width="250*" MinWidth="10"/>
+            <ColumnDefinition Width="250" MaxWidth="250" MinWidth="10"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -40,37 +41,77 @@
 
         <_controls:GameView x:Name="monoGameView" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
 
-        <TabControl Grid.Column="0" Grid.Row="1" SelectionChanged="MainTabControl_SelectionChanged" HorizontalAlignment="Stretch" Margin="10,5.2,9.855,28.327" VerticalAlignment="Stretch" Grid.RowSpan="3">
-            <Controls:MetroTabItem Header="Animation" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.AnimationVisibility}">
+        <TabControl x:Name="mainTabControl" Grid.Column="0" Grid.Row="1" SelectionChanged="MainTabControl_SelectionChanged" HorizontalAlignment="Stretch" Margin="10,5.2,9.855,28.327" VerticalAlignment="Stretch" Grid.RowSpan="3">
+            <Controls:MetroTabItem Header="BCS" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.BcsVisibility}" >
+                <TabControl x:Name="bcsTabControl" Controls:TabControlHelper.Underlined="TabItems" SelectionChanged="MainTabControl_SelectionChanged">
+                    <Controls:MetroTabItem Header="Part Sets" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                        <Grid>
+                            <_views:BcsPartSetView/>
+                        </Grid>
+                    </Controls:MetroTabItem>
+                    <Controls:MetroTabItem Header="Colors" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                        <Grid>
+                            <_views:BcsColorView/>
+                        </Grid>
+                    </Controls:MetroTabItem>
+                    <Controls:MetroTabItem Header="Bodies" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                        <Grid>
+                            <_views:BcsBodyView/>
+                        </Grid>
+                    </Controls:MetroTabItem>
+                    <Controls:MetroTabItem Header="Header" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                        <Grid>
+                            <_views:BcsHeaderView/>
+                        </Grid>
+                    </Controls:MetroTabItem>
+                    <Controls:MetroTabItem Header="SkeletonData1" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                        <Grid>
+                            <_views:BcsSkeletonDataView SkeletonData="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.character.CharacterData.BcsFile.File.SkeletonData1}"/>
+                        </Grid>
+                    </Controls:MetroTabItem>
+                    <Controls:MetroTabItem Header="SkeletonData2" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                        <Grid>
+                            <_views:BcsSkeletonDataView SkeletonData="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.character.CharacterData.BcsFile.File.SkeletonData2}"/>
+                        </Grid>
+                    </Controls:MetroTabItem>
+                    <Controls:MetroTabItem Header="Files" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                        <Grid>
+                            <_views:BcsCharaFilesView/>
+                        </Grid>
+                    </Controls:MetroTabItem>
+                </TabControl>
+            </Controls:MetroTabItem>
+            
+            <Controls:MetroTabItem Header="Animation" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.AnimationVisibility}">
                 <Grid>
                     <_controls:AnimationTabView x:Name="animationTabView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch"/>
                 </Grid>
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem Header="Camera" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.CameraVisibility}">
+            <Controls:MetroTabItem Header="Camera" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.CameraVisibility}">
                 <Grid>
                     <_controls:CameraTabView x:Name="cameraTabView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch"/>
 
                 </Grid>
 
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem Header="Action" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.ActionVisibility}">
+            <Controls:MetroTabItem Header="Action" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.ActionVisibility}">
                 <Grid>
                     <_controls:BacTab x:Name="bacControlView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                 </Grid>
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem Header="State" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.StateVisibility}"/>
+            <Controls:MetroTabItem Header="State" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.StateVisibility}"/>
 
-            <Controls:MetroTabItem Header="Projectile" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.ProjectileVisibility}"/>
-            <Controls:MetroTabItem Header="Hitbox" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.HitboxVisibility}"/>
-            <Controls:MetroTabItem Header="Effect" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.EffectVisibility}">
+            <Controls:MetroTabItem Header="Projectile" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.ProjectileVisibility}"/>
+            <Controls:MetroTabItem Header="Hitbox" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.HitboxVisibility}"/>
+            <Controls:MetroTabItem Header="Effect" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.EffectVisibility}">
                 <eepkView:EepkEditor x:Name="eepkEditor" effectContainerFile="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.EepkFile.File}"/>
 
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem Header="Audio" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.AudioVisibility}">
+            <Controls:MetroTabItem Header="Audio" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.AudioVisibility}">
                 <_views:AudioTab x:Name="audioControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem Header="System" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SystemVisibility}"/>
+            <Controls:MetroTabItem Header="System" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.SystemVisibility}"/>
         </TabControl>
 
         <TabControl x:Name="scenLogTab" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.ColumnSpan="2" Margin="5.145,0.182,15.545,28.327">
@@ -85,7 +126,6 @@
             <MenuItem Header="File">
                 <MenuItem Header="Load (from game)">
                     <MenuItem Header="Character" Command="{Binding LoadCharacterCommand}"/>
-                    <MenuItem Header="Moveset" Command="{Binding LoadMovesetCommand}"/>
                     <MenuItem Header="Super Skill" Command="{Binding LoadSuperSkillCommand}"/>
                     <MenuItem Header="Ultimate Skill" Command="{Binding LoadUltimateSkillCommand}"/>
                     <MenuItem Header="Evasive Skill" Command="{Binding LoadEvasiveSkillCommand}"/>
@@ -103,8 +143,14 @@
             <MenuItem Header="Edit">
                 <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
                 <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
+                <Separator/>
+                <MenuItem Header="Find/Replace" Command="{Binding FindReplaceCommand}"/>
             </MenuItem>
-            <MenuItem Header="Debug">
+            <MenuItem Header="Help">
+                <MenuItem Header="GitHub" Command="{Binding GitHubCommand}"/>
+                <MenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Debug" Visibility="Hidden">
                 <MenuItem Header="Reload System" Click="MenuItem_ReloadSystem_Click"/>
             </MenuItem>
         </Menu>

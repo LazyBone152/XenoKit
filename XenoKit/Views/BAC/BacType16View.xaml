@@ -6,11 +6,11 @@
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:local="clr-namespace:XenoKit.Views.BAC"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType16View}"
+             xmlns:bacDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib" d:DataContext="{d:DesignInstance Type=local:BacType16View}"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
-        <Expander Header="Screen Effect" IsExpanded="True">
+        <Expander Header="Post Effect" IsExpanded="True">
             <StackPanel HorizontalAlignment="Left">
                 <WrapPanel>
                     <Grid Margin="3,5,0,0" Width="500">
@@ -19,57 +19,57 @@
                             <ColumnDefinition Width="265"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="BPE ID" ToolTip="The ID of the Screen Effect entry in the cmn.bpe file. "/>
+                        <Label Content="PostEffect ID" ToolTip="The ID of the Post Effect entry in the cmn.bpe file. "/>
                         <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.ScreenEffectIds}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.BpeID}"/>
                         <controls:NumericUpDown Margin="10, 0" Grid.Column="2" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.BpeID, UpdateSourceTrigger=Default}"/>
 
                     </Grid>
                 </WrapPanel>
+                <WrapPanel>
+                    <Grid Margin="3,3,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Bone"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Bone}"/>
+                    </Grid>
+                </WrapPanel>
+                <Grid Margin="3,10,0,0" Width="510" HorizontalAlignment="Left">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="105"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="111.6"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="111.6"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="113"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Position"/>
+                    <Label Grid.Column="1" Content="X"/>
+                    <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.PositionX, UpdateSourceTrigger=Default}"/>
+
+                    <Label Grid.Column="3" Content="Y"/>
+                    <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.PositionY, UpdateSourceTrigger=Default}"/>
+
+                    <Label Grid.Column="5" Content="Z"/>
+                    <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.PositionZ, UpdateSourceTrigger=Default}"/>
+
+                </Grid>
                 <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
-                    <Label Content="Screen Effect Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                    <Label Content="Post Effect Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
                     <Separator/>
                     <StackPanel Orientation="Horizontal">
                         <StackPanel Margin="20, 5" Width="200">
-                            <CheckBox Content="Disable Effect"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_DisableEffect, UpdateSourceTrigger=Default}"  ToolTip="Disable any active instances of this Screen Effect."/>
+                            <CheckBox Content="Disable Effect"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_DisableEffect, UpdateSourceTrigger=Default}"  ToolTip="Disable any active instances of this Post Effect."/>
                             <CheckBox Content="Unk1" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk1, UpdateSourceTrigger=Default}" />
-                            
+
                         </StackPanel>
                         <StackPanel Margin="20, 5" Width="200">
                             <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}" />
                             <CheckBox Content="Unk5" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk5, UpdateSourceTrigger=Default}"/>
                         </StackPanel>
                     </StackPanel>
-
-                </StackPanel>
-                <StackPanel>
-                    <Label Content="Unknown Values" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
-                    <Separator/>
-                    <WrapPanel MaxWidth="800">
-                        <Grid Margin="3,5,0,0" Width="250">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="_F_20"/>
-                            <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.F_20, UpdateSourceTrigger=Default}"/>
-                        </Grid>
-                        <Grid Margin="3,5,0,0" Width="250">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="_F_24"/>
-                            <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.F_24, UpdateSourceTrigger=Default}"/>
-                        </Grid>
-                        <Grid Margin="3,5,0,0" Width="250">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="_F_28"/>
-                            <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.F_28, UpdateSourceTrigger=Default}"/>
-                        </Grid>
-                    </WrapPanel>
 
                 </StackPanel>
 

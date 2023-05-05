@@ -15,9 +15,9 @@
              d:DesignHeight="500" d:DesignWidth="600">
     <Grid Controls:ControlsHelper.ContentCharacterCasing="Normal">
 
-        <TabControl Grid.Row="2" Controls:TabControlHelper.Underlined="TabPanel">
+        <TabControl x:Name="audioTabControl" Grid.Row="2" Controls:TabControlHelper.Underlined="TabPanel">
 
-            <Controls:MetroTabItem Header="SE" Controls:HeaderedControlHelper.HeaderFontSize="14">
+            <Controls:MetroTabItem Header="SE" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.SeVisibility}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="44"/>
@@ -41,10 +41,10 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <view:CueEditorView Grid.Row="2" AcbFile="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedSeAcbFile.File}"/>
+                    <view:CueEditorView Grid.Row="2" AcbWrapperDP="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedSeAcbFile.File}"/>
                 </Grid>
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem Header="Voice" Controls:HeaderedControlHelper.HeaderFontSize="14">
+            <Controls:MetroTabItem Header="Voice" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.VoxVisibility}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="44"/>
@@ -77,7 +77,7 @@
 
                     </StackPanel>
 
-                    <view:CueEditorView Grid.Row="2" AcbFile="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedVoxAcbFile.File}"/>
+                    <view:CueEditorView Grid.Row="2" AcbWrapperDP="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedVoxAcbFile.File}"/>
                 </Grid>
 
             </Controls:MetroTabItem>

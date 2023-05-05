@@ -1,22 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using XenoKit.Engine.Vertex;
-using XenoKit.Engine.View;
 
 namespace XenoKit.Engine.Shapes
 {
     public class Sphere : GeometricPrimitive
     {
-
-        public Sphere(float diameter, bool alwaysVisible = false, int tessellation = 16)
+        public Sphere(GameBase gameBase, float diameter, bool alwaysVisible = false, int tessellation = 16) : base(gameBase)
         {
             base.alwaysVisible = alwaysVisible;
-            GraphicsDevice graphicsDevice = SceneManager.GraphicsDeviceRef;
 
             if (tessellation < 3)
                 throw new ArgumentOutOfRangeException("tessellation");
@@ -88,7 +80,7 @@ namespace XenoKit.Engine.Shapes
                 AddIndex(CurrentVertex - 2 - i);
             }
 
-            InitializePrimitive(graphicsDevice);
+            InitializePrimitive(gameBase.GraphicsDevice);
         }
     
         

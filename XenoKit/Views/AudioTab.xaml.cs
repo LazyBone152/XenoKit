@@ -3,22 +3,10 @@ using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using XenoKit.Editor;
 using Xv2CoreLib;
 using Xv2CoreLib.ACB;
-using Xv2CoreLib.EAN;
 using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Views
@@ -81,9 +69,6 @@ namespace XenoKit.Views
 
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
-            foreach (var costume in costumes)
-                undos.AddRange(files.SelectedItem.character.characterData.AddCostume(costume));
-
             undos.Add(new UndoableListAdd<Xv2File<ACB_Wrapper>>(files.SelectedMove.Files.SeAcbFile, seFile));
             
             UndoManager.Instance.AddCompositeUndo(undos, $"New SE ({result})");
@@ -101,7 +86,7 @@ namespace XenoKit.Views
         {
             var dialogSettings = DialogSettings.Default;
             List<int> originalCostumes = files.SelectedItem.SelectedSeAcbFile.Costumes;
-            dialogSettings.DefaultText = files.SelectedItem.SelectedEanFile.GetCostumesString();
+            dialogSettings.DefaultText = files.SelectedItem.SelectedSeAcbFile.GetCostumesString();
 
             var result = await DialogCoordinator.Instance.ShowInputAsync(this, "Edit Costumes", "Enter the costume ID (or IDs) that the SE is for (if entering multiple costumes, separate them by a comma):", dialogSettings);
 
@@ -204,7 +189,7 @@ namespace XenoKit.Views
 
                 if (Xv2File<ACB_Wrapper>.HasCostume(files.SelectedMove.Files.SeAcbFile, costumes))
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "New Voice", "One or more of the entered costumes are already in use on a SE ACB.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    await DialogCoordinator.Instance.ShowMessageAsync(this, "New Voice", "One or more of the entered costumes are already in use on a VOX ACB.", MessageDialogStyle.Affirmative, DialogSettings.Default);
                     return;
                 }
             }
@@ -234,16 +219,11 @@ namespace XenoKit.Views
 
             var voxFile = new Xv2File<ACB_Wrapper>(ACB_Wrapper.NewXv2Acb(), costumes, Xenoverse2.MoveFileTypes.VOX_ACB, files.SelectedItem.GetMoveType(), isEnglish, false);
             voxFile.CharaCode = charaCode;
+            voxFile.Costumes = costumes;
             files.SelectedMove.Files.VoxAcbFile.Add(voxFile);
             files.SelectedItem.SelectedVoxAcbFile = voxFile;
 
             List<IUndoRedo> undos = new List<IUndoRedo>();
-
-            if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Moveset)
-            {
-                foreach (var costume in costumes)
-                    undos.AddRange(files.SelectedItem.character.characterData.AddCostume(costume));
-            }
 
             undos.Add(new UndoableListAdd<Xv2File<ACB_Wrapper>>(files.SelectedMove.Files.VoxAcbFile, voxFile));
 
@@ -272,7 +252,7 @@ namespace XenoKit.Views
 
             if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Moveset)
             {
-                dialogSettings.DefaultText = files.SelectedItem.SelectedEanFile.GetCostumesString();
+                dialogSettings.DefaultText = files.SelectedItem.SelectedVoxAcbFile.GetCostumesString();
 
                 var result = await DialogCoordinator.Instance.ShowInputAsync(this, "Costume for this voice file...", "Enter the costume ID (or IDs) that the voice file is for (if entering multiple costumes, separate them by a comma):", DialogSettings.Default);
 
@@ -331,10 +311,14 @@ namespace XenoKit.Views
         }
 
 
-        
+        private bool IsCac()
+        {
+            return files.SelectedItem?.character?.CharacterData?.IsCaC == true;
+        }
 
         private bool CanDeleteVoxFile()
         {
+            if (IsCac()) return false;
             if(files.SelectedItem?.GetMoveType() == Xenoverse2.MoveType.Skill)
             {
                 return true;
@@ -352,7 +336,8 @@ namespace XenoKit.Views
 
         private bool CanAddVoxFile()
         {
-            if (files.SelectedItem?.GetMoveType() == Xenoverse2.MoveType.Common)
+            if (IsCac()) return false;
+            if (files.SelectedItem?.GetMoveType() == Xenoverse2.MoveType.Common || files.SelectedItem == null)
                 return false;
 
             return true;
@@ -360,6 +345,7 @@ namespace XenoKit.Views
 
         private bool CanRenameVoxFile()
         {
+            if (IsCac()) return false;
             if (files.SelectedItem?.GetMoveType() == Xenoverse2.MoveType.Skill)
             {
                 return true;

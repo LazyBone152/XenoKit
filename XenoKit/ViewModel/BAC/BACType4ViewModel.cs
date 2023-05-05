@@ -23,6 +23,7 @@ namespace XenoKit.ViewModel.BAC
                     bacType.TimeScale = value;
                     RaisePropertyChanged(() => TimeScale);
                     UpdateBacPlayer();
+                    bacType.RefreshType();
                 }
             }
         }
@@ -57,7 +58,7 @@ namespace XenoKit.ViewModel.BAC
 
         private void UpdateBacPlayer()
         {
-            SceneManager.InvokeBacValuesChangedEvent();
+            SceneManager.InvokeBacDataChangedEvent();
         }
     }
 }

@@ -55,5 +55,26 @@ namespace XenoKit.Helper
                    * Matrix.CreateTranslation(lerpedTrans);
             return result;
         }
+
+        public static Quaternion EulerAnglesToQuaternion(Vector3 eulerAngles)
+        {
+            //https://stackoverflow.com/questions/70462758/c-sharp-how-to-convert-quaternions-to-euler-angles-xyz
+
+            float cy = (float)Math.Cos(eulerAngles.Z * 0.5);
+            float sy = (float)Math.Sin(eulerAngles.Z * 0.5);
+            float cp = (float)Math.Cos(eulerAngles.Y * 0.5);
+            float sp = (float)Math.Sin(eulerAngles.Y * 0.5);
+            float cr = (float)Math.Cos(eulerAngles.X * 0.5);
+            float sr = (float)Math.Sin(eulerAngles.X * 0.5);
+
+            return new Quaternion
+            {
+                W = (cr * cp * cy + sr * sp * sy),
+                X = (sr * cp * cy - cr * sp * sy),
+                Y = (cr * sp * cy + sr * cp * sy),
+                Z = (cr * cp * sy - sr * sp * cy)
+            };
+
+        }
     }
 }

@@ -28,8 +28,7 @@ namespace XenoKit.Engine.Shapes
         public short[] Indexes;
 
 
-        public Quad(Vector3 origin, Vector3 normal, Vector3 up,
-            float width, float height)
+        public Quad(Vector3 origin, Vector3 normal, Vector3 up, float width, float height)
         {
             Vertices = new VertexPositionNormalTexture[4];
             Indexes = new short[6];

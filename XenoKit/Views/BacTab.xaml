@@ -6,9 +6,12 @@
              xmlns:bacView="clr-namespace:XenoKit.Views.BAC"
              xmlns:local="clr-namespace:XenoKit.Controls"
              xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             Dialog:DialogParticipation.Register="{Binding}"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="600">
+             d:DesignHeight="450" d:DesignWidth="600" Name="UserControl">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="293*" MinWidth="75"/>
@@ -25,11 +28,13 @@
         <GridSplitter Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
 
 
-        <DataGrid x:Name="bacTypeDataGrid" SelectionChanged="DataGrid_SelectionChanged" ItemsSource="{Binding Path=SelectedItem.IBacTypes.Binding, ElementName=bacEntryDataGrid}" Margin="6.018,64,23.436,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Grid.Column="2">
+        <DataGrid x:Name="bacTypeDataGrid" SelectionChanged="DataGrid_SelectionChanged" ItemsSource="{Binding Path=SelectedItem.IBacTypes.Binding, ElementName=bacEntryDataGrid}" Margin="6.018,64,23.436,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Grid.Column="2" Controls:ControlsHelper.ContentCharacterCasing="Normal">
 
             <DataGrid.InputBindings>
                 <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBacTypeCommand}"/>
                 <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteBacTypeCommand}"/>
+                <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DuplicateBacTypeCommand}"/>
+                <KeyBinding Key="F" Command="{Binding FocusBacTypeCommand}"/>
                 <KeyBinding Key="Delete" Command="{Binding RemoveBacTypeCommand}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
@@ -39,9 +44,49 @@
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
                 <ContextMenu>
+                    <MenuItem Header="Add">
+
+                        <MenuItem Header="[0] Animation" Command="{Binding AddBacTypeCommand}" CommandParameter="0"/>
+                        <MenuItem Header="[1] Hitbox" Command="{Binding AddBacTypeCommand}" CommandParameter="1"/>
+                        <MenuItem Header="[2] Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="2"/>
+                        <MenuItem Header="[3] Invulnerability" Command="{Binding AddBacTypeCommand}" CommandParameter="3"/>
+                        <MenuItem Header="[4] TimeScale" Command="{Binding AddBacTypeCommand}" CommandParameter="4"/>
+                        <MenuItem Header="[5] Tracking" Command="{Binding AddBacTypeCommand}" CommandParameter="5"/>
+                        <MenuItem Header="[6] Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="6"/>
+                        <MenuItem Header="[7] BCM Callback" Command="{Binding AddBacTypeCommand}" CommandParameter="7"/>
+                        <MenuItem Header="[8] Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="8"/>
+                        <MenuItem Header="[9] Projectile" Command="{Binding AddBacTypeCommand}" CommandParameter="9"/>
+                        <MenuItem Header="[10] Camera" Command="{Binding AddBacTypeCommand}" CommandParameter="10"/>
+                        <MenuItem Header="[11] Sound" Command="{Binding AddBacTypeCommand}" CommandParameter="11"/>
+                        <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddBacTypeCommand}" CommandParameter="12"/>
+                        <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddBacTypeCommand}" CommandParameter="13"/>
+                        <MenuItem Header="[14] Bone Modification" Command="{Binding AddBacTypeCommand}" CommandParameter="14"/>
+                        <MenuItem Header="[15] Functions" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
+                        <MenuItem Header="[16] Post Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="16"/>
+                        <MenuItem Header="[17] ThrowHandler" Command="{Binding AddBacTypeCommand}" CommandParameter="17"/>
+                        <MenuItem Header="[18] Physics Object" Command="{Binding AddBacTypeCommand}" CommandParameter="18"/>
+                        <MenuItem Header="[19] Aura" Command="{Binding AddBacTypeCommand}" CommandParameter="19"/>
+                        <MenuItem Header="[20] Homing Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="20"/>
+                        <MenuItem Header="[21] Eye Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="21"/>
+                        <MenuItem Header="[22] BAC_Type22" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
+                        <MenuItem Header="[23] Transparency Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="23"/>
+                        <MenuItem Header="[24] Dual Skill Handler" Command="{Binding AddBacTypeCommand}" CommandParameter="24"/>
+                        <MenuItem Header="[25] Extended Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="25"/>
+                        <MenuItem Header="[26] Extended Camera Control" Command="{Binding AddBacTypeCommand}" CommandParameter="26"/>
+                        <MenuItem Header="[27] Effect Property Control" Command="{Binding AddBacTypeCommand}" CommandParameter="27"/>
+                        <MenuItem Header="[28] BAC_Type28" Command="{Binding AddBacTypeCommand}" CommandParameter="28"/>
+                        <MenuItem Header="[29] BAC_Type29" Command="{Binding AddBacTypeCommand}" CommandParameter="29"/>
+                    </MenuItem>
+                    <Separator/>
                     <MenuItem Header="Copy" Command="{Binding CopyBacTypeCommand}"/>
                     <MenuItem Header="Paste" Command="{Binding PasteBacTypeCommand}"/>
+                    <MenuItem Header="Duplicate" Command="{Binding DuplicateBacTypeCommand}"/>
                     <MenuItem Header="Delete" Command="{Binding RemoveBacTypeCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Move Up" Command="{Binding MoveUpBacTypeCommand}"/>
+                    <MenuItem Header="Move Down" Command="{Binding MoveDownBacTypeCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Focus" Command="{Binding FocusBacTypeCommand}"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
         </DataGrid>
@@ -61,34 +106,36 @@
                     <iconPacks:PackIconMaterialLight Kind="Plus"/>
                     <Button.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Animation" Command="{Binding AddBacTypeCommand}" CommandParameter="0"/>
-                            <MenuItem Header="Hitbox" Command="{Binding AddBacTypeCommand}" CommandParameter="1"/>
-                            <MenuItem Header="Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="2"/>
-                            <MenuItem Header="Invulnerability" Command="{Binding AddBacTypeCommand}" CommandParameter="3"/>
-                            <MenuItem Header="TimeScale" Command="{Binding AddBacTypeCommand}" CommandParameter="4"/>
-                            <MenuItem Header="Tracking" Command="{Binding AddBacTypeCommand}" CommandParameter="5"/>
-                            <MenuItem Header="Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="6"/>
-                            <MenuItem Header="Bcm Callback" Command="{Binding AddBacTypeCommand}" CommandParameter="7"/>
-                            <MenuItem Header="Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="8"/>
-                            <MenuItem Header="Projectile" Command="{Binding AddBacTypeCommand}" CommandParameter="9"/>
-                            <MenuItem Header="Camera" Command="{Binding AddBacTypeCommand}" CommandParameter="10"/>
-                            <MenuItem Header="Sound" Command="{Binding AddBacTypeCommand}" CommandParameter="11"/>
-                            <MenuItem Header="Targeting Assistance" Command="{Binding AddBacTypeCommand}" CommandParameter="12"/>
-                            <MenuItem Header="Bcs PartSet Invisibility" Command="{Binding AddBacTypeCommand}" CommandParameter="13"/>
-                            <MenuItem Header="Bone Modification" Command="{Binding AddBacTypeCommand}" CommandParameter="14"/>
-                            <MenuItem Header="Functions" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
-                            <MenuItem Header="Screen Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="16"/>
-                            <MenuItem Header="ThrowHandler" Command="{Binding AddBacTypeCommand}" CommandParameter="17"/>
-                            <MenuItem Header="Physics Object" Command="{Binding AddBacTypeCommand}" CommandParameter="18"/>
-                            <MenuItem Header="Aura" Command="{Binding AddBacTypeCommand}" CommandParameter="19"/>
-                            <MenuItem Header="Homing Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="20"/>
-                            <MenuItem Header="Eye Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="21"/>
-                            <MenuItem Header="BAC_Type22" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
-                            <MenuItem Header="Transparency Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="23"/>
-                            <MenuItem Header="Dual Skill Handler" Command="{Binding AddBacTypeCommand}" CommandParameter="24"/>
-                            <MenuItem Header="Extended Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="25"/>
-                            <MenuItem Header="Extended Camera Control" Command="{Binding AddBacTypeCommand}" CommandParameter="26"/>
-                            <MenuItem Header="Effect Property Control" Command="{Binding AddBacTypeCommand}" CommandParameter="27"/>
+                            <MenuItem Header="[0] Animation" Command="{Binding AddBacTypeCommand}" CommandParameter="0"/>
+                            <MenuItem Header="[1] Hitbox" Command="{Binding AddBacTypeCommand}" CommandParameter="1"/>
+                            <MenuItem Header="[2] Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="2"/>
+                            <MenuItem Header="[3] Invulnerability" Command="{Binding AddBacTypeCommand}" CommandParameter="3"/>
+                            <MenuItem Header="[4] TimeScale" Command="{Binding AddBacTypeCommand}" CommandParameter="4"/>
+                            <MenuItem Header="[5] Tracking" Command="{Binding AddBacTypeCommand}" CommandParameter="5"/>
+                            <MenuItem Header="[6] Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="6"/>
+                            <MenuItem Header="[7] BCM Callback" Command="{Binding AddBacTypeCommand}" CommandParameter="7"/>
+                            <MenuItem Header="[8] Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="8"/>
+                            <MenuItem Header="[9] Projectile" Command="{Binding AddBacTypeCommand}" CommandParameter="9"/>
+                            <MenuItem Header="[10] Camera" Command="{Binding AddBacTypeCommand}" CommandParameter="10"/>
+                            <MenuItem Header="[11] Sound" Command="{Binding AddBacTypeCommand}" CommandParameter="11"/>
+                            <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddBacTypeCommand}" CommandParameter="12"/>
+                            <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddBacTypeCommand}" CommandParameter="13"/>
+                            <MenuItem Header="[14] Bone Modification" Command="{Binding AddBacTypeCommand}" CommandParameter="14"/>
+                            <MenuItem Header="[15] Functions" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
+                            <MenuItem Header="[16] Post Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="16"/>
+                            <MenuItem Header="[17] ThrowHandler" Command="{Binding AddBacTypeCommand}" CommandParameter="17"/>
+                            <MenuItem Header="[18] Physics Object" Command="{Binding AddBacTypeCommand}" CommandParameter="18"/>
+                            <MenuItem Header="[19] Aura" Command="{Binding AddBacTypeCommand}" CommandParameter="19"/>
+                            <MenuItem Header="[20] Homing Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="20"/>
+                            <MenuItem Header="[21] Eye Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="21"/>
+                            <MenuItem Header="[22] BAC_Type22" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
+                            <MenuItem Header="[23] Transparency Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="23"/>
+                            <MenuItem Header="[24] Dual Skill Handler" Command="{Binding AddBacTypeCommand}" CommandParameter="24"/>
+                            <MenuItem Header="[25] Extended Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="25"/>
+                            <MenuItem Header="[26] Extended Camera Control" Command="{Binding AddBacTypeCommand}" CommandParameter="26"/>
+                            <MenuItem Header="[27] Effect Property Control" Command="{Binding AddBacTypeCommand}" CommandParameter="27"/>
+                            <MenuItem Header="[28] BAC_Type28" Command="{Binding AddBacTypeCommand}" CommandParameter="28"/>
+                            <MenuItem Header="[29] BAC_Type29" Command="{Binding AddBacTypeCommand}" CommandParameter="29"/>
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
@@ -136,24 +183,46 @@
                 <bacView:BacType25View BacViewModel="{Binding BacType25ViewModel}"/>
                 <bacView:BacType26View BacViewModel="{Binding BacType26ViewModel}"/>
                 <bacView:BacType27View BacViewModel="{Binding BacType27ViewModel}"/>
+                <bacView:BacType28View BacViewModel="{Binding BacType28ViewModel}"/>
+                <bacView:BacType29View BacViewModel="{Binding BacType29ViewModel}"/>
             </StackPanel>
         </ScrollViewer>
-        <DataGrid x:Name="bacEntryDataGrid" SelectionChanged="BacEntryDataGrid_SelectionChanged" ItemsSource="{Binding ViewBacTypes}" Margin="10,64,10.364,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False">
+        <DataGrid x:Name="bacEntryDataGrid" SelectionChanged="BacEntryDataGrid_SelectionChanged" ItemsSource="{Binding ViewBacTypes}" Margin="10,64,10.364,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Controls:ControlsHelper.ContentCharacterCasing="Normal">
 
             <DataGrid.InputBindings>
                 <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBacEntryCommand}"/>
                 <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteBacEntryCommand}"/>
+                <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding PasteReplaceBacEntryCommand}"/>
+                <KeyBinding Key="E" Modifiers="Ctrl" Command="{Binding EditBacFlagsCommand}"/>
                 <KeyBinding Key="Delete" Command="{Binding RemoveBacEntryCommand}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Width="*" Binding="{Binding UndoableId, UpdateSourceTrigger=LostFocus}" IsReadOnly="False"/>
-                <DataGridTextColumn Header="Flags" Width="*" Binding="{Binding UndoableFlag, UpdateSourceTrigger=LostFocus}" IsReadOnly="False"/>
+                <DataGridTemplateColumn Header="ID" Width="*" SortMemberPath="SortID">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Index}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <Controls:NumericUpDown Value="{Binding ElementName=UserControl, Path=SelectedBacID, UpdateSourceTrigger=LostFocus}" Minimum="0" Maximum="{Binding ElementName=UserControl, Path=MaximumBacID}" InterceptManualEnter="True" TextAlignment="Left" HideUpDownButtons="True"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Flag" Width="*" Binding="{Binding FlagStr}" IsReadOnly="True"/>
+                <DataGridTextColumn x:Name="nameColumn" Header="Name" Width="2.5*" Binding="{Binding MovesetBacEntryName}" IsReadOnly="True"/>
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
                 <ContextMenu>
+                    <MenuItem Header="Add" Command="{Binding AddBacEntryCommand}"/>
+                    <Separator/>
                     <MenuItem Header="Copy" Command="{Binding CopyBacEntryCommand}"/>
-                    <MenuItem Header="Paste" Command="{Binding PasteBacEntryCommand}"/>
+                    <MenuItem Header="Paste (New)" Command="{Binding PasteBacEntryCommand}"/>
+                    <MenuItem Header="Paste (Replace)" Command="{Binding PasteReplaceBacEntryCommand}"/>
                     <MenuItem Header="Delete" Command="{Binding RemoveBacEntryCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Edit Flags" Command="{Binding EditBacFlagsCommand}"/>
+                    <MenuItem Header="Rebase" Command="{Binding RebaseBacEntryCommand}"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
         </DataGrid>

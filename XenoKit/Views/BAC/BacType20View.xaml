@@ -6,7 +6,7 @@
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:local="clr-namespace:XenoKit.Views.BAC"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType20View}"
+             xmlns:bacDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib" d:DataContext="{d:DesignInstance Type=local:BacType20View}"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
@@ -28,10 +28,21 @@
                             <ColumnDefinition Width="256"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Arc Direction"/>
-                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.HomingArcDirection}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.HomingArcDirection}"/>
-                        <controls:NumericUpDown Margin="10, 0" Grid.Column="2" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.HomingArcDirection, UpdateSourceTrigger=Default}"/>
+                        <Label Content="Homing Flags" VerticalContentAlignment="Center"/>
 
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <StackPanel Margin="0, 5" Width="115">
+                                <CheckBox Content="Left"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Left, UpdateSourceTrigger=Default}"/>
+                                <CheckBox Content="Float Speed" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Float, UpdateSourceTrigger=Default}"/>
+                                <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
+                            </StackPanel>
+                            <StackPanel Margin="20, 5" Width="115">
+                                <CheckBox Content="Enable Bones" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_UseBones, UpdateSourceTrigger=Default}" ToolTip="Required for the UserBone and TargetBone options to be usable."/>
+                                <CheckBox Content="Unk5" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Unk5, UpdateSourceTrigger=Default}"/>
+                                <CheckBox Content="Unk6" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Unk6, UpdateSourceTrigger=Default}"/>
+                            </StackPanel>
+                        </StackPanel>
                     </Grid>
                 </StackPanel>
 
@@ -41,7 +52,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Speed Modifier" ToolTip="Based on Arc Direction this can either be a integer or a float. Arc Directions 7, 15 and 35 will use the float format, while all others are integers."/>
+                        <Label Content="Speed Modifier" ToolTip="This determines the homing speed. Its usage depends on the Float Speed flag:&#x0a;&#x0a;When enabled:&#x0a;Higher values result in a faster speed. Decimals are allowed.&#x0a;&#x0a;When disabled:&#x0a;Lower values rersult in a faster speed. Decimals are not allowed."/>
                         <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.SpeedModifier, UpdateSourceTrigger=Default}"/>
                     </Grid>
                     <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
@@ -55,17 +66,17 @@
                 </WrapPanel>
 
 
-                <Grid Margin="3,5,0,0" Width="500" HorizontalAlignment="Left">
+                <Grid Margin="3,5,0,0" Width="503" HorizontalAlignment="Left">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="105"/>
                         <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="105"/>
+                        <ColumnDefinition Width="111.6*"/>
                         <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="105"/>
+                        <ColumnDefinition Width="111.6*"/>
                         <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="105"/>
+                        <ColumnDefinition Width="111.6*"/>
                     </Grid.ColumnDefinitions>
-                    <Label Content="Displacement"/>
+                    <Label Content="Displacement" ToolTip="The displaced target for the homing movement. Use this if you want to home towards some place offset from the target character. &#x0a;&#x0a;X: Negative shifts to the left, positive to the right.&#x0a;Y: Positive shifts upwards, negative downwards&#x0a;Z: Does not appear to actually be that useful."/>
                     <Label Grid.Column="1" Content="X"/>
                     <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.DisplacementX, UpdateSourceTrigger=Default}"/>
 
@@ -78,21 +89,21 @@
                 </Grid>
 
                 <WrapPanel>
-                    <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                    <Grid Margin="3,5,0,0" Width="250">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="_I_32" ToolTip="Purpose is currently unknown, but the values suggest it may be a BoneLink."/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.I_32, UpdateSourceTrigger=Default}"/>
+                        <Label Content="User Bone"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.UserBone}" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_UseBones, UpdateSourceTrigger=Default}"/>
                     </Grid>
-                    <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                    <Grid Margin="3,5,0,0" Width="250">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="_I_36" ToolTip="Purpose is currently unknown, but the values suggest it may be a BoneLink."/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.I_36, UpdateSourceTrigger=Default}"/>
+                        <Label Content="Target Bone"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.TargetBone}" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_UseBones, UpdateSourceTrigger=Default}"/>
                     </Grid>
                 </WrapPanel>
             </StackPanel>

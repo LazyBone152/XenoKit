@@ -16,6 +16,10 @@ namespace XenoKit.Editor
 
         public static void Add(string message, LogType type)
         {
+#if !DEBUG
+            if (type == LogType.Debug) return;
+#endif
+
             int existing = Exists(message, type);
 
             if (existing != -1)
@@ -32,6 +36,10 @@ namespace XenoKit.Editor
 
         public static void Add(string message, string exception, LogType type)
         {
+#if !DEBUG
+            if (type == LogType.Debug) return;
+#endif
+
             int existing = Exists(message, type);
 
             if (existing != -1)
@@ -88,7 +96,7 @@ namespace XenoKit.Editor
 
     public class LogEntry : INotifyPropertyChanged
     {
-        #region INotifyPropertyChanged
+#region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void NotifyPropertyChanged(String propertyName = "")
@@ -98,7 +106,7 @@ namespace XenoKit.Editor
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-        #endregion
+#endregion
 
         public string _message;
         public string Exception;
@@ -156,6 +164,10 @@ namespace XenoKit.Editor
     {
         Info,
         Warning,
-        Error
+        Error,
+        /// <summary>
+        /// For log messages intended solely for debugging. Will not appear in release builds.
+        /// </summary>
+        Debug
     }
 }

@@ -17,16 +17,15 @@ namespace XenoKit.Engine.Shapes
         public VertexPositionColorTexture[] _vertices { get; set; }
         private BasicEffect effect;
 
-        public Plane(Vector3 position, Vector3 size, GraphicsDevice graphicsDevice, Color _color)
+        public Plane(Vector3 position, Vector3 size, GameBase gameBase, Color _color) : base(gameBase)
         {
             color = _color;
             Size = size;
-            effect = new BasicEffect(graphicsDevice);
+            effect = new BasicEffect(gameBase.GraphicsDevice);
             effect.Alpha = 1f;
             effect.VertexColorEnabled = true;
             Transform = Matrix.CreateWorld(position, Vector3.Forward, Vector3.Up);
             Name = "Cube";
-            this.graphicsDevice = graphicsDevice;
             ConstructPlane();
         }
 
@@ -58,26 +57,22 @@ namespace XenoKit.Engine.Shapes
 
 
 
-        public override void Draw(Camera camera)
+        public override void Draw()
         {
-            effect.Projection = camera.ProjectionMatrix;
-            effect.View = camera.ViewMatrix;
+            effect.Projection = CameraBase.ProjectionMatrix;
+            effect.View = CameraBase.ViewMatrix;
             effect.World = Transform;
 
             foreach (var pass in effect.CurrentTechnique.Passes)
             {
-                graphicsDevice.DepthStencilState = DepthStencilState.Default;
-                graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-                graphicsDevice.BlendState = BlendState.Opaque;
-                graphicsDevice.DepthStencilState = DepthStencilState.Default;
+                GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+                GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+                GraphicsDevice.BlendState = BlendState.Opaque;
+                GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                 pass.Apply();
 
-                graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, _vertices, 0, _vertices.Length / 3);
+                GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, _vertices, 0, _vertices.Length / 3);
             }
-        }
-        
-        public override void Update(GameTime gameTime)
-        {
         }
 
     }

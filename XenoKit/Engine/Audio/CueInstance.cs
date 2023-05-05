@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using XenoKit.Editor;
+using XenoKit.Engine.Scripting;
 using Xv2CoreLib.ACB;
 using Xv2CoreLib.AFS2;
 
@@ -24,6 +25,15 @@ namespace XenoKit.Engine.Audio
         private readonly ACB_Wrapper acb;
         private readonly Entity Entity;
         private readonly AudioEngine AudioEngine;
+
+        //Deferred actions:
+        private bool tracksHaveFinished = false;
+        private bool terminateCue = false;
+
+        //Script Entity:
+        private ScriptEntity ScriptEntity;
+        private bool HasScriptEntity;
+        private bool TerminateWhenOutOfScope;
 
         //Audio Playback:
         private List<WorldAudioPlayer> AudioPlayers = new List<WorldAudioPlayer>();
@@ -46,7 +56,7 @@ namespace XenoKit.Engine.Audio
         private Stopwatch Stopwatch = new Stopwatch();
 
 
-        public CueInstance(AudioEngine audioEngine, ACB_Wrapper acb, int cueId, Entity entity, bool _isPreview)
+        public CueInstance(AudioEngine audioEngine, ACB_Wrapper acb, int cueId, Entity entity, bool _isPreview, ScriptEntity scriptEntity, bool terminateWhenOutOfScope)
         {
             this.acb = acb;
             AcbName = acb.AcbFile.Name;
@@ -54,11 +64,23 @@ namespace XenoKit.Engine.Audio
             Entity = entity;
             AudioEngine = audioEngine;
             isPreview = _isPreview;
+
+            //Script
+            ScriptEntity = scriptEntity;
+            HasScriptEntity = ScriptEntity != null;
+            TerminateWhenOutOfScope = terminateWhenOutOfScope;
+        }
+
+        #region LoadEndCue
+        /// <summary>
+        /// Begins the CUE. Call this after CueEnded has been subscribed to!
+        /// </summary>
+        public void Init()
+        {
             LoadCue();
             BeginPlay();
         }
 
-        #region LoadEndCue
         private void LoadCue()
         {
             Stopwatch.Start();
@@ -164,7 +186,7 @@ namespace XenoKit.Engine.Audio
 
         private void LoadAction(List<AcbTableReference> refs, CommandTableType type)
         {
-            if (isPreview) return; 
+            //if (isPreview) return; 
 
             foreach (var trackIndex in refs)
             {
@@ -199,6 +221,11 @@ namespace XenoKit.Engine.Audio
         
         public void Terminate()
         {
+            terminateCue = true;
+        }
+
+        private void KillCue()
+        {
             foreach (var audioPlayer in AudioPlayers)
             {
                 audioPlayer.Terminate();
@@ -206,7 +233,7 @@ namespace XenoKit.Engine.Audio
 
             IsFinished = true;
 
-            if(Timer != null)
+            if (Timer != null)
                 Timer.Elapsed -= EndCue;
 
             CueEnded?.Invoke(this, EventArgs.Empty);
@@ -214,7 +241,7 @@ namespace XenoKit.Engine.Audio
 
         private void WavePlayer_PlaybackStopped(object sender, NAudio.Wave.StoppedEventArgs e)
         {
-            AudioPlayers.RemoveAll(x => x.IsFinished);
+            tracksHaveFinished = true;
         }
 
         #endregion
@@ -397,10 +424,33 @@ namespace XenoKit.Engine.Audio
 
         public void Update()
         {
+            if (terminateCue)
+            {
+                KillCue();
+                return;
+            }
+
+            if (tracksHaveFinished)
+            {
+                AudioPlayers.RemoveAll(x => x.IsFinished);
+                tracksHaveFinished = false;
+            }
+
+            //If CUE is out of scope, terminate it
+            if(HasScriptEntity)
+            {
+                if (!ScriptEntity.InScope && TerminateWhenOutOfScope)
+                {
+                    Terminate();
+                    return;
+                }
+            }
+                
+
             //Terminate the cue if its finished
             if((loop || CueLengthElapsed > 0) && AudioPlayers.Count == 0 && Tracks.Count == 0)
             {
-                Terminate();
+                KillCue();
                 return;
             }
 

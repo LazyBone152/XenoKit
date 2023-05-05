@@ -1,38 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using XenoKit.Engine.Shapes;
-using XenoKit.Engine.View;
 
 namespace XenoKit.Engine.Objects
 {
-    public class ObjectAxis
+    public class ObjectAxis : Entity
     {
         public Cube yCube;
         public Cube xCube;
         public Cube zCube;
         public Cube leftBoneCube;
+        private bool IsWorldAxis;
 
-        public ObjectAxis(GraphicsDevice graphicsDevice)
+        public ObjectAxis(bool isWorldAxis, GameBase gameBase) : base(gameBase)
         {
-            xCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.005f, 0.2f, 0.005f), graphicsDevice, Color.Red, true, true);
-            yCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.005f, 0.2f, 0.005f), graphicsDevice, Color.Green, true, true);
-            zCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.005f, 0.2f, 0.005f), graphicsDevice, Color.Blue, true, true);
-            leftBoneCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.01f, 0.01f, 0.01f), graphicsDevice, Color.Yellow, false, true);
+            IsWorldAxis = isWorldAxis;
+            xCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.005f, 0.2f, 0.005f), gameBase, Color.Red, true, true);
+            yCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.005f, 0.2f, 0.005f), gameBase, Color.Green, true, true);
+            zCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.005f, 0.2f, 0.005f), gameBase, Color.Blue, true, true);
+            leftBoneCube = new Cube(new Vector3(0, 0, 0), new Vector3(0.01f, 0.01f, 0.01f), gameBase, Color.Yellow, false, true);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Camera camera, Matrix world, bool isLeft = false)
+        public override void Draw()
         {
-            xCube.Draw(camera, Matrix.CreateRotationZ(-(float)Math.PI / 2.0f) * world);
-            yCube.Draw(camera, world);
-            zCube.Draw(camera, Matrix.CreateRotationX((float)Math.PI / 2.0f) * world);
-            if(isLeft)
-                leftBoneCube.Draw(camera, world);
-            
+            Draw(Matrix.Identity);
+        }
+
+        public void Draw(Matrix world, bool isLeft = false)
+        {
+            if((IsWorldAxis && SceneManager.ShowWorldAxis) || !IsWorldAxis)
+            {
+                xCube.Draw(Matrix.CreateRotationZ(-(float)Math.PI / 2.0f) * Matrix.CreateScale(-1f, 1f, 1f) * world);
+                yCube.Draw(world);
+                zCube.Draw(Matrix.CreateRotationX((float)Math.PI / 2.0f) * world);
+                if (isLeft)
+                    leftBoneCube.Draw(world);
+            }
         }
     }
 }

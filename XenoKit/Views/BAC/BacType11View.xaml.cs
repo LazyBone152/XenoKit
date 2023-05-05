@@ -66,7 +66,7 @@ namespace XenoKit.Views.BAC
 
             if(acb == null)
             {
-                Log.Add($"Could not find the ACB for AcbType {BacViewModel.AcbType}. Preview failed.");
+                Log.Add($"Could not find the ACB for AcbType {(AcbType)BacViewModel.AcbType}. Preview failed.");
                 return;
             }
 

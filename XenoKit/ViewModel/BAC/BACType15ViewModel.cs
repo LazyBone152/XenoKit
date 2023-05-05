@@ -22,6 +22,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type15>(nameof(bacType.FunctionType), bacType, bacType.FunctionType, value, "FunctionType"));
                 bacType.FunctionType = value;
                 RaisePropertyChanged(() => FunctionType);
+                bacType.RefreshType();
                 RefreshUI();
             }
         }
@@ -143,13 +144,13 @@ namespace XenoKit.ViewModel.BAC
 
         private void UpdateBacPlayer()
         {
-            SceneManager.InvokeBacValuesChangedEvent();
+            SceneManager.InvokeBacDataChangedEvent();
         }
     
         private bool IsParamEnabled(int num)
         {
             int numParams;
-            if (!Editor.ValuesDictionary.BAC.BacFunctionParamCount.TryGetValue(FunctionType, out numParams))
+            if (!Xv2CoreLib.ValuesDictionary.BAC.BacFunctionParamCount.TryGetValue(FunctionType, out numParams))
                 return true;
 
             return numParams >= num;
@@ -158,7 +159,7 @@ namespace XenoKit.ViewModel.BAC
         private string GetParam1Name()
         {
             string name;
-            if (!Editor.ValuesDictionary.BAC.BacFunctionParam1Names.TryGetValue(FunctionType, out name))
+            if (!Xv2CoreLib.ValuesDictionary.BAC.BacFunctionParam1Names.TryGetValue(FunctionType, out name))
                 return "Parameter 1";
 
             return name;
@@ -167,7 +168,7 @@ namespace XenoKit.ViewModel.BAC
         private string GetParam2Name()
         {
             string name;
-            if (!Editor.ValuesDictionary.BAC.BacFunctionParam2Names.TryGetValue(FunctionType, out name))
+            if (!Xv2CoreLib.ValuesDictionary.BAC.BacFunctionParam2Names.TryGetValue(FunctionType, out name))
                 return "Parameter 2";
 
             return name;
@@ -176,7 +177,7 @@ namespace XenoKit.ViewModel.BAC
         private string GetParam3Name()
         {
             string name;
-            if (!Editor.ValuesDictionary.BAC.BacFunctionParam3Names.TryGetValue(FunctionType, out name))
+            if (!Xv2CoreLib.ValuesDictionary.BAC.BacFunctionParam3Names.TryGetValue(FunctionType, out name))
                 return "Parameter 3";
 
             return name;
@@ -185,7 +186,7 @@ namespace XenoKit.ViewModel.BAC
         private string GetParam1ToolTip()
         {
             string tooltip;
-            if (!Editor.ValuesDictionary.BAC.BacFunctionParam1ToolTips.TryGetValue(FunctionType, out tooltip))
+            if (!Xv2CoreLib.ValuesDictionary.BAC.BacFunctionParam1ToolTips.TryGetValue(FunctionType, out tooltip))
                 return null;
 
             return tooltip;
@@ -194,7 +195,7 @@ namespace XenoKit.ViewModel.BAC
         private string GetParam2ToolTip()
         {
             string tooltip;
-            if (!Editor.ValuesDictionary.BAC.BacFunctionParam2ToolTips.TryGetValue(FunctionType, out tooltip))
+            if (!Xv2CoreLib.ValuesDictionary.BAC.BacFunctionParam2ToolTips.TryGetValue(FunctionType, out tooltip))
                 return null;
 
             return tooltip;

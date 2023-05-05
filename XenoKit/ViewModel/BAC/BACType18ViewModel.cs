@@ -21,6 +21,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type18>(nameof(bacType.Function), bacType, bacType.Function, (FunctionType)value, "PhysicsFunction"));
                 bacType.Function = (FunctionType)value;
                 RaisePropertyChanged(() => PhysicsFunction);
+                bacType.RefreshType();
             }
         }
         public ushort EanID

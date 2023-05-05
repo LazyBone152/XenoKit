@@ -22,6 +22,7 @@ namespace XenoKit.ViewModel.BAC
                 bacType.AcbType = (AcbType)value;
                 RaisePropertyChanged(() => AcbType);
                 RaisePropertyChanged(() => CueId);
+                bacType.RefreshType();
             }
         }
         public ushort CueId
@@ -35,7 +36,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type11>(nameof(bacType.CueId), bacType, bacType.CueId, value, "Sound CueId"));
                 bacType.CueId = value;
                 RaisePropertyChanged(() => CueId);
-
+                bacType.RefreshType();
             }
         }
         

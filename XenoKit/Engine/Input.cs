@@ -1,47 +1,43 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Framework.WpfInterop.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XenoKit.Editor;
 
 namespace XenoKit.Engine
 {
     public enum MouseButtons { Left, Right, Middle, X1, X2 };
 
-    public static class Input
+    public class Input
     {
-        public static MouseState MouseState { get; set; }
-        public static MouseState PreviousMouseState { get; set; }
-        public static KeyboardState KeyboardState { get; set; }
-        public static Vector2 MousePosition {  get { return MouseState.Position.ToVector2(); } }
+        public MouseState MouseState { get; private set; }
+        public MouseState PreviousMouseState { get; private set; }
+        public KeyboardState KeyboardState { get; private set; }
+        public Vector2 MousePosition {  get { return MouseState.Position.ToVector2(); } }
 
         //Scrolling
         /// <summary>
         /// Current MouseWheelValue, as of the previous frame. 
         /// </summary>
-        private static int CurrentMouseWheelValue = 0;
-        public static int MouseScrollThisFrame = 0;
+        private int CurrentMouseWheelValue = 0;
+        public int MouseScrollThisFrame = 0;
 
         //Set externally whenever a mouse button is held down, allowing for exclusive control of that press. Mainly needed so that the camera wont recieve control when dealing with other mouse click events.
-        public static bool IsLeftClickHeldDown = false;
-        public static bool IsRightClickHeldDown = false;
+        public object LeftClickHeldDownContext { get; set; }
+        public object RightClickHeldDownContext { get; set; }
 
         //Events
-        public static event EventHandler LeftDoubleClick;
+        public event EventHandler LeftDoubleClick;
 
         //Left Click
-        private static bool _wasLeftMouseReleased = false;
-        private static int _currentLeftDoubleClickPeriod = 0;
-        private static Vector2 _mouseLocationAtDoubleClickStart;
+        private bool _wasLeftMouseReleased = false;
+        private int _currentLeftDoubleClickPeriod = 0;
+        private Vector2 _mouseLocationAtDoubleClickStart;
 
         //Const
         private const int DoubleClickPeriod = 60;
 
-        public static void Update(WpfMouse mouse, WpfKeyboard keyboard)
+        public void Update(WpfMouse mouse, WpfKeyboard keyboard)
         {
             PreviousMouseState = MouseState;
             MouseState = mouse.GetState();
@@ -56,7 +52,7 @@ namespace XenoKit.Engine
 
         }
 
-        private static void HandleLeftMouseDoubleClick()
+        private void HandleLeftMouseDoubleClick()
         {
             //If mouse has moved position drastically, then dont raise the event
             if((MousePosition.X < _mouseLocationAtDoubleClickStart.X - 10 || MousePosition.X > _mouseLocationAtDoubleClickStart.X + 10) || 
@@ -69,7 +65,6 @@ namespace XenoKit.Engine
             //Double clicked
             if (MouseState.LeftButton == ButtonState.Pressed && _currentLeftDoubleClickPeriod > 0 && _wasLeftMouseReleased)
             {
-                Log.Add("Double clicked", LogType.Info);
                 LeftDoubleClick?.Invoke(MouseState, new EventArgs());
                 _wasLeftMouseReleased = false;
             }
@@ -97,13 +92,13 @@ namespace XenoKit.Engine
 
         #region Mouse
 
-        public static bool WasButtonHeld(MouseButtons button)
+        public bool WasButtonHeld(MouseButtons button)
         {
             return (GetButtonState(button, MouseState) == ButtonState.Pressed
                     && GetButtonState(button, PreviousMouseState) == ButtonState.Pressed);
         }
 
-        public static ButtonState GetButtonState(MouseButtons button, MouseState state)
+        public ButtonState GetButtonState(MouseButtons button, MouseState state)
         {
             if (button == MouseButtons.Left)
                 return state.LeftButton;
@@ -122,12 +117,12 @@ namespace XenoKit.Engine
         #endregion
 
         #region Keyboard
-        public static bool IsKeyDown(Keys key)
+        public bool IsKeyDown(Keys key)
         {
             return KeyboardState.IsKeyDown(key);
         }
 
-        public static bool IsKeyUp(Keys key)
+        public bool IsKeyUp(Keys key)
         {
             return KeyboardState.IsKeyUp(key);
         }

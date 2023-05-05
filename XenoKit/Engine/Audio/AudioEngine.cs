@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using XenoKit.Editor;
+using XenoKit.Engine.Scripting;
 using Xv2CoreLib.ACB;
 using Xv2CoreLib.Resource.App;
 
@@ -47,23 +48,25 @@ namespace XenoKit.Engine.Audio
         {
             Action action = new Action(() =>
             {
-                var cue = new CueInstance(this, acbFile, cueId, null, true);
+                var cue = new CueInstance(this, acbFile, cueId, null, true, null, false);
                 cue.CueEnded += CueEnded_Event;
                 Cues.Add(cue);
+                cue.Init();
             });
 
             DeferredTasks.Add(new Task(action));
         }
 
-        public void PlayCue(int cueId, ACB_Wrapper acbFile, Entity entity)
+        public void PlayCue(int cueId, ACB_Wrapper acbFile, Entity entity, ScriptEntity scriptEntity = null, bool terminateWhenOutOfScope = false)
         {
             if (!SettingsManager.settings.XenoKit_AudioSimulation) return;
 
             Action action = new Action(() =>
             {
-                var cue = new CueInstance(this, acbFile, cueId, entity, false);
+                var cue = new CueInstance(this, acbFile, cueId, entity, false, scriptEntity, terminateWhenOutOfScope);
                 cue.CueEnded += CueEnded_Event;
                 Cues.Add(cue);
+                cue.Init();
 
                 //Log.Add($"AudioEngine: Playing cue {cueId} in  {acbFile.AcbFile.Name}");
             });
@@ -77,7 +80,7 @@ namespace XenoKit.Engine.Audio
 
             if (targetType == TargetType.SpecificAcb && acbName == thisAcb.AcbFile.Name)
             {
-                PlayCue(targetId.TableIndex_Int, thisAcb, entity);
+                PlayCue((int)thisAcb.AcbFile.GetCueId(targetId.TableGuid), thisAcb, entity);
             }
             else if(targetType == TargetType.SpecificAcb)
             {
@@ -94,18 +97,10 @@ namespace XenoKit.Engine.Audio
         #region Stop
         public void StopCues()
         {
-            Action action = new Action(() =>
+            foreach(var cue in Cues)
             {
-                foreach (var cue in Cues)
-                {
-                    cue.CueEnded -= CueEnded_Event;
-                    cue.Terminate();
-                }
-
-                Cues.Clear();
-            });
-
-            DeferredTasks.Add(new Task(action));
+                StopCue(cue.CueId);
+            }
         }
 
         /// <summary>
@@ -117,7 +112,7 @@ namespace XenoKit.Engine.Audio
             {
                 foreach (var cue in Cues.Where(x => x.CueId == cueId))
                 {
-                    cue.CueEnded -= CueEnded_Event;
+                    //cue.CueEnded -= CueEnded_Event;
                     cue.Terminate();
                 }
             });
@@ -135,7 +130,7 @@ namespace XenoKit.Engine.Audio
             {
                 foreach (var cue in Cues.Where(x => x.CueId == cueId && x.AcbName == acbName))
                 {
-                    cue.CueEnded -= CueEnded_Event;
+                    //cue.CueEnded -= CueEnded_Event;
                     cue.Terminate();
                 }
             });

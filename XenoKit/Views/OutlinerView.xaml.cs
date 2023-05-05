@@ -1,21 +1,8 @@
-﻿using GalaSoft.MvvmLight.CommandWpf;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows.Controls;
 using XenoKit.Editor;
 using XenoKit.Engine;
 using XenoKit.Windows;
+using GalaSoft.MvvmLight.CommandWpf;
 
 namespace XenoKit.Controls
 {
@@ -33,10 +20,11 @@ namespace XenoKit.Controls
             DataContext = this;
         }
 
+        #region Commands
         public RelayCommand PropertiesCommand => new RelayCommand(Properties, CanLoadProperties);
         private void Properties()
         {
-            OutlinerItemProperties window = new OutlinerItemProperties(Files.Instance.SelectedMove.Files);
+            OutlinerItemProperties window = new OutlinerItemProperties(Files.Instance.SelectedItem);
             window.ShowDialog();
         }
 
@@ -63,7 +51,33 @@ namespace XenoKit.Controls
 
         private bool CanSetActor()
         {
+            if (files.SelectedItem == null) return false;
             return files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character;
+        }
+
+        private bool CanSetStage()
+        {
+            if (files.SelectedItem == null) return false;
+            return files.SelectedItem.Type == OutlinerItem.OutlinerItemType.STAGE_MANUAL;
+        }
+        #endregion
+
+        private void listBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if(CanSetActor())
+                SetActorPrimary();
+
+            if (CanSetStage())
+            {
+                if(SceneManager.MainGameInstance.ActiveStage == files.SelectedItem.ManualFiles)
+                {
+                    SceneManager.MainGameInstance.ActiveStage = null;
+                }
+                else
+                {
+                    SceneManager.MainGameInstance.ActiveStage = files.SelectedItem.ManualFiles;
+                }
+            }
         }
     }
 }

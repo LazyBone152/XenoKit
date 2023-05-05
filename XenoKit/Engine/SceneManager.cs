@@ -2,51 +2,84 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Timers;
+using XenoKit.Editor;
+using XenoKit.Engine.Audio;
+using XenoKit.Engine.Gizmo;
 using XenoKit.Engine.View;
-using XenoKit.Engine;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EAN;
-using xv2 = Xv2CoreLib.Xenoverse2;
-using XenoKit.Editor;
-using XenoKit.Engine.Gizmo;
 using Xv2CoreLib.Resource.App;
-using XenoKit.Engine.Audio;
 
 namespace XenoKit.Engine
 {
-    public enum EditorTabs
+    public enum MainEditorTabs
     {
         //Must match up with Tab Index!
         Nothing = -1,
-        Animation = 0,
-        Camera = 1,
-        Action = 2, //bac
-        State = 3, //bcm
-        Projectile = 4,
-        Hitbox = 5,
-        Effect = 6,
-        Audio = 7,
-        System = 8
+        BCS = 0,
+        Animation = 1,
+        Camera = 2,
+        Action = 3, //bac
+        State = 4, //bcm
+        Projectile = 5,
+        Hitbox = 6,
+        Effect = 7,
+        Audio = 8,
+        System = 9
+    }
+
+    public enum BcsEditorTabs
+    {
+        //Must match up with Tab Index!
+        Nothing = -1,
+        PartSet = 0,
+        Colors = 1,
+        Bodies = 2,
+        Header = 3,
+        SkeletonData1 = 4,
+        SkeletonData2 = 5,
+        Files = 6
+    }
+
+    public enum EditorTabs
+    {
+        //Not related to Tab Index
+        Nothing,
+        BCS_PartSet,
+        BCS_Colors,
+        BCS_Bodies,
+        BCS_Header,
+        BCS_SkeletonData1,
+        BCS_SkeletonData2,
+        BCS_Files,
+        Animation,
+        Camera,
+        Action,
+        State,
+        Projectile,
+        Hitbox,
+        Effect,
+        Audio_VOX,
+        Audio_SE,
+        System
     }
 
     public static class SceneManager
     {
-        
-        public static Game gameInstance = null;
-        public static Camera CameraInstance { get { return gameInstance?.camera; } }
-        public static AudioEngine AudioEngine { get { return gameInstance?.audioEngine; } }
-        public static SpriteBatch spriteBatch { get { return gameInstance?.spriteBatch; } }
-        public static AnimatorGizmo AnimatorGizmo { get { return gameInstance?.animGizmo; } }
-        public static GraphicsDevice GraphicsDeviceRef { get { return gameInstance?.GraphicsDevice; } }
-        public static Matrix ViewMatrix { get { return gameInstance.camera.ViewMatrix; } }
-        public static Matrix ProjectionMatrix { get { return gameInstance.camera.ProjectionMatrix; } }
+        public static GameBase MainGameBase => MainGameInstance;
+        public static Game MainGameInstance = null;
 
+        public static Camera MainCamera => MainGameInstance != null ? MainGameInstance.camera : null;
+        public static AudioEngine AudioEngine { get { return MainGameInstance?.AudioEngine; } }
+        public static AnimatorGizmo AnimatorGizmo { get { return MainGameInstance?.GetAnimatorGizmo(); } }
+        public static GraphicsDevice GraphicsDeviceRef = null;
+
+        //Matrix
+        public static Matrix ViewMatrix { get { return MainGameInstance.camera.ViewMatrix; } }
+        public static Matrix ProjectionMatrix { get { return MainGameInstance.camera.ProjectionMatrix; } }
 
         //Game loop
         private static bool forceUpdateCamera = false;
@@ -57,27 +90,95 @@ namespace XenoKit.Engine
         /// </summary>
         public static string CurrentSelectedBoneName = "";
 
+        static SceneManager()
+        {
+            UpdateTimer = new Timer(SettingsManager.Instance.Settings.XenoKit_DelayedUpdateInterval);
+            UpdateTimer.Elapsed += UpdateTimer_Elapsed;
+            UpdateTimer.Start();
+        }
+
         #region SceneState
         public static EditorTabs PrevSceneState = EditorTabs.Nothing;
         public static EditorTabs CurrentSceneState = 0;
         public static bool IsPlaying = false;
-
+        public static Vector4 SystemTime; //Seconds elsapsed while "IsPlaying". For use in DBXV2 Shaders.
+        public static Vector4 ScreenSize;
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="state"></param>
+        /// <param name="mainTabIdx"></param>
         /// <returns></returns>
-        public static bool SetSceneState(int state)
+        public static bool SetSceneState(int mainTabIdx, int bcsTabIdx, int audioTabIdx)
         {
-            EditorTabs prevState = CurrentSceneState;
-            CurrentSceneState = (EditorTabs)state;
+            EditorTabs prevTab = CurrentSceneState;
+            MainEditorTabs mainTab = (MainEditorTabs)mainTabIdx;
+            BcsEditorTabs bcsTab = (BcsEditorTabs)bcsTabIdx;
+
+            switch (mainTab)
+            {
+                case MainEditorTabs.Action:
+                    CurrentSceneState = EditorTabs.Action;
+                    break;
+                case MainEditorTabs.Animation:
+                    CurrentSceneState = EditorTabs.Animation;
+                    break;
+                case MainEditorTabs.Audio:
+                    CurrentSceneState = audioTabIdx == 0 ? EditorTabs.Audio_VOX : EditorTabs.Audio_SE;
+                    break;
+                case MainEditorTabs.BCS:
+                    switch (bcsTab)
+                    {
+                        case BcsEditorTabs.Bodies:
+                            CurrentSceneState = EditorTabs.BCS_Bodies;
+                            break;
+                        case BcsEditorTabs.Colors:
+                            CurrentSceneState = EditorTabs.BCS_Colors;
+                            break;
+                        case BcsEditorTabs.Files:
+                            CurrentSceneState = EditorTabs.BCS_Files;
+                            break;
+                        case BcsEditorTabs.Header:
+                            CurrentSceneState = EditorTabs.BCS_Header;
+                            break;
+                        case BcsEditorTabs.PartSet:
+                            CurrentSceneState = EditorTabs.BCS_PartSet;
+                            break;
+                        case BcsEditorTabs.SkeletonData1:
+                            CurrentSceneState = EditorTabs.BCS_SkeletonData1;
+                            break;
+                        case BcsEditorTabs.SkeletonData2:
+                            CurrentSceneState = EditorTabs.BCS_SkeletonData2;
+                            break;
+                    }
+                    break;
+                case MainEditorTabs.Camera:
+                    CurrentSceneState = EditorTabs.Camera;
+                    break;
+                case MainEditorTabs.Effect:
+                    CurrentSceneState = EditorTabs.Effect;
+                    break;
+                case MainEditorTabs.Hitbox:
+                    CurrentSceneState = EditorTabs.Hitbox;
+                    break;
+                case MainEditorTabs.Projectile:
+                    CurrentSceneState = EditorTabs.Projectile;
+                    break;
+                case MainEditorTabs.State:
+                    CurrentSceneState = EditorTabs.State;
+                    break;
+                case MainEditorTabs.System:
+                    CurrentSceneState = EditorTabs.System;
+                    break;
+            }
+
+            EditorTabChanged?.Invoke(null, EventArgs.Empty);
 
             //Return false if state hasn't actually changed
-            if (gameInstance == null || (PrevSceneState == CurrentSceneState)) return false;
+            if (MainGameInstance == null || (PrevSceneState == CurrentSceneState)) return false;
 
             //State has changed, so update PrevSceneState
-            PrevSceneState = prevState;
+            PrevSceneState = prevTab;
 
             return true;
         }
@@ -102,7 +203,7 @@ namespace XenoKit.Engine
 
         private static void ResetState(bool resetAnims)
         {
-            gameInstance.ResetState(resetAnims);
+            MainGameInstance.ResetState(resetAnims);
             BacTimeScale = 1f;
         }
         #endregion
@@ -110,58 +211,54 @@ namespace XenoKit.Engine
         #region Settings
 
         public static bool ShowDebugBones = false;
-        public static bool WireframeModeCharacters = false;
         public static bool ShowWorldAxis = true;
-        public static bool ResolveLeftHandSymetry = true; //https://stackoverflow.com/questions/29370361/does-xna-opengl-use-left-handed-matrices
-        public static bool Loop { get { return SettingsManager.settings.XenoKit_Loop; } }
-        public static bool AutoPlay { get { return SettingsManager.settings.XenoKit_AutoPlay; } }
-        public static bool UseCameras { get { return SettingsManager.settings.XenoKit_EnableCameraAnimations; } }
-        public static bool ShowVisualSkeleton { get { return SettingsManager.settings.XenoKit_EnableVisualSkeleton; } }
+        public static bool ResolveLeftHandSymetry = true; //https://stackoverflow.com/questions/29370361/does-xna-opengl-use-left-handed-matrices //Legacy option. Disabling this will break stuff, as older code will respect it, while newer code wont (auto-resolved is the default now - because why not?).
+        public static bool WireframeModeCharacters => SettingsManager.settings.XenoKit_WireframeMode;
+        public static bool Loop => SettingsManager.settings.XenoKit_Loop;
+        public static bool AutoPlay => SettingsManager.settings.XenoKit_AutoPlay;
+        public static bool UseCameras => SettingsManager.settings.XenoKit_EnableCameraAnimations;
+        public static bool ShowVisualSkeleton => SettingsManager.settings.XenoKit_EnableVisualSkeleton;
 
         public static float BacTimeScale = 1f; //TimeScale specified by a TimeScale bacType
         public static float MainAnimTimeScale = 1f;
         #endregion
-        
-        #region Characters & Objects
+
+        #region Actors
+        public const int NumActors = 3;
         /// <summary>
         /// All characters active in the current scene. (0 = Primary, 1 = Target, 2 = Partner)
         /// </summary>
-        public static Character[] Actors = new Character[3];
+        public static Actor[] Actors = new Actor[NumActors];
 
         public static bool[] ActorsEnable = new bool[3] { true, false, false };
 
-        /// <summary>
-        /// All entities active in the current scene (excluding Actors). 
-        /// </summary>
-        public static List<IEntity> Entities = new List<IEntity>();
-        
 
         /// <summary>
         /// Checks if the specified character index is loaded, and if its not then loads a default character.
         /// </summary>
-        /// <param name="idx">An index in ActiveCharacters (0 - 2).</param>
-        private static void EnsureCharacterIsSet(int idx = 0)
+        /// <param name="actorSlot">An index in ActiveCharacters (0 - 2).</param>
+        public static void EnsureActorIsSet(int actorSlot = 0)
         {
-            if (idx >= Actors.Length) throw new InvalidOperationException($"SceneManager.EnsureCharacterIsSet: idx {idx} is greater than the maximum amount of Actors.");
+            if (actorSlot >= Actors.Length) throw new InvalidOperationException($"SceneManager.EnsureActorIsSet: idx {actorSlot} is greater than the maximum amount of Actors.");
             
-            if(Actors[idx] == null)
+            if(Actors[actorSlot] == null)
             {
                 var characters = Files.Instance.GetLoadedCharacters();
-                Character chara = characters.FirstOrDefault(x => !Actors.Contains(x));
+                Actor chara = characters.FirstOrDefault(x => !Actors.Contains(x));
 
                 if(chara != null)
                 {
-                    Log.Add($"{GetActorName(idx)} Actor was not set. Defaulting to the first free loaded character ({characters[0].Name}).", LogType.Info);
-                    Actors[idx] = characters[0];
+                    Log.Add($"{GetActorName(actorSlot)} Actor was not set. Defaulting to the first free loaded character ({characters[0].Name}).", LogType.Info);
+                    Actors[actorSlot] = characters[0];
                 }
                 else
                 {
-                    Log.Add($"{GetActorName(idx)} Actor was not set. Loading the default...", LogType.Info);
+                    Log.Add($"{GetActorName(actorSlot)} Actor was not set. Loading the default...", LogType.Info);
 
                     //Select a character based on idx. This way we dont populate the scene with multiple Gokus.
                     int charId = 0;
 
-                    switch (idx)
+                    switch (actorSlot)
                     {
                         case 1: //Target
                             charId = 16;
@@ -169,9 +266,17 @@ namespace XenoKit.Engine
                     }
 
                     //Load character
-                    chara = Files.Instance.LoadCharacter(charId, 0, null, true);
-                    Actors[idx] = chara;
+                    Actor defaultActor = Files.Instance.LoadCharacter(charId, 0, null, true);
+                    SetActor(defaultActor, actorSlot);
                 }
+            }
+        }
+
+        private static void WaitUntilActorIsSet(int actorSlot)
+        {
+            while(Actors[actorSlot] == null)
+            {
+                Task.Delay(100);
             }
         }
         
@@ -180,29 +285,22 @@ namespace XenoKit.Engine
             return Actors[index] != null;
         }
 
-        public static int IndexOfCharacter(Character character)
+        public static int IndexOfCharacter(Actor character, bool allowNull)
         {
             for(int i = 0; i < Actors.Length; i++)
                 if (Actors[i] == character) return i;
+
+            if (allowNull)
+                return -1;
 
             Log.Add("SceneManager.IndexOfCharacter: Cannot find character in the active scene.", LogType.Warning);
 
             return 0;
         }
         
-        public static void DestroyEntity(IEntity entity)
+        public static void SetActor(Actor character, int actorSlot)
         {
-            Entities.Remove(entity);
-        }
-
-        public static void DestroyAllEntities()
-        {
-            Entities.Clear();
-        }
-       
-        public static void SetActor(Character character, int charaIdx)
-        {
-            if (Actors[charaIdx] == character)
+            if (Actors[actorSlot] == character)
                 return;
 
             for(int i = 0; i < Actors.Length; i++)
@@ -211,12 +309,37 @@ namespace XenoKit.Engine
                     Actors[i] = null;
             }
 
-            Actors[charaIdx] = character;
+            Actors[actorSlot] = character;
+            character.ActorSlot = actorSlot;
+            character.ResetPosition();
             Stop();
 
-            Log.Add($"{character.Name} set as the {GetActorName(charaIdx)} actor.");
+            //Remove all current bone indices for this actorSlots character models. This is required because the skeletons are different and bone idx wont point to the same thing.
+            CompiledObjectManager.Instance.UnsetActorOnModels(actorSlot);
+
+            Log.Add($"{character.Name} set as the {GetActorName(actorSlot)} actor.");
+
+            ActorChanged?.Invoke(character, new ActorChangedEventArgs(character, actorSlot));
         }
         
+        public static void UnsetActor(Actor actor)
+        {
+            if (actor == null) return;
+            int actorSlot = IndexOfCharacter(actor, true);
+
+            if(actorSlot != -1)
+            {
+                Actors[actorSlot] = null;
+
+                //Remove all current bone indices for this actorSlots character models. This is required because the skeletons are different and bone idx wont point to the same thing.
+                CompiledObjectManager.Instance.UnsetActorOnModels(actorSlot);
+
+                Log.Add($"{actor.Name} removed as the {GetActorName(actorSlot)} actor.");
+
+                ActorChanged?.Invoke(null, new ActorChangedEventArgs(null, actorSlot));
+            }
+        }
+
         private static string GetActorName(int charaIdx)
         {
             switch (charaIdx)
@@ -229,19 +352,23 @@ namespace XenoKit.Engine
                     return charaIdx.ToString();
             }
         }
+
         #endregion
 
         #region Events
 
-        public static event EventHandler BacValuesChanged;
-
+        public static event EventHandler PlayStateChanged;
         public static event EventHandler CameraCurrentFrameChanged;
+        public static event EventHandler AnimationDataChanged;
+        public static event EventHandler CameraDataChanged;
+        public static event EventHandler BacDataChanged;
+        public static event EventHandler SeekOccurred;
+        public static event EventHandler EditorTabChanged;
+        public static event ActorChangedEventHandler ActorChanged;
 
-        public static event EventHandler AnimationDurationChanged;
-
-        public static void InvokeBacValuesChangedEvent()
+        public static void InvokeBacDataChangedEvent()
         {
-            BacValuesChanged?.Invoke(null, null);
+            BacDataChanged?.Invoke(null, null);
         }
 
         public static void InvokeCameraCurrentFrameChangedEvent()
@@ -249,25 +376,52 @@ namespace XenoKit.Engine
             CameraCurrentFrameChanged?.Invoke(null, null);
         }
 
-        public static void InvokeAnimationDurationChangedEvent()
+        public static void InvokeAnimationDataChangedEvent()
         {
-            AnimationDurationChanged?.Invoke(null, null);
+            AnimationDataChanged?.Invoke(null, null);
+        }
+
+        public static void InvokeCameraDataChangedEvent()
+        {
+            CameraDataChanged?.Invoke(null, null);
+        }
+
+        public static void InvokeSeekOccurredEvent()
+        {
+            SeekOccurred?.Invoke(null, null);
         }
 
         #endregion
 
+        #region Update
+        public static event EventHandler DelayedUpdate;
+        private static Timer UpdateTimer;
+
+        private static void UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            DelayedUpdate?.Invoke(null, EventArgs.Empty);
+        }
 
         public static void Update(GameTime time)
         {
+            //Set screen size. This is used by shaders.
+            ScreenSize.X = (float)MainGameInstance.ActualWidth;
+            ScreenSize.Y = (float)MainGameInstance.ActualHeight;
+
             //Force update camera this frame
-            if (forceUpdateCamera && CameraInstance.cameraInstance != null && !SceneManager.IsPlaying)
+            if (forceUpdateCamera && MainCamera.cameraInstance != null && !SceneManager.IsPlaying)
             {
-                CameraInstance.UpdateCameraAnimation(false);
+                MainCamera.UpdateCameraAnimation(false);
                 forceUpdateCamera = false;
             }
 
 
+            if (IsPlaying)
+                SystemTime.X += 0.0166f; //Hardcoded timestep (1 second / 60 frames)
         }
+
+        #endregion
+
 
         public static void SetBacTimeScale(float timeScale, bool reset)
         {
@@ -285,39 +439,54 @@ namespace XenoKit.Engine
                 for (int i = 0; i < Actors.Length; i++)
                 {
                     if (Actors[i] != null)
-                        Actors[i].bacPlayer.Resume();
+                        Actors[i].ActionControl.Resume();
                 }
             }
-            
+            else if(CurrentSceneState == EditorTabs.Animation)
+            {
+                for (int i = 0; i < Actors.Length; i++)
+                {
+                    if (Actors[i] != null)
+                        Actors[i].AnimationPlayer.Resume();
+                }
+            }
+            else if (CurrentSceneState == EditorTabs.Camera)
+            {
+                MainCamera.Resume();
+            }
+
             IsPlaying = true;
+            PlayStateChanged?.Invoke(null, EventArgs.Empty);
         }
 
         public static void Pause()
         {
             IsPlaying = false;
+            PlayStateChanged?.Invoke(null, EventArgs.Empty);
         }
 
         public static void Stop()
         {
-            AudioEngine.StopCues();
-            AnimatorGizmo.Disbable();
+            if(MainGameInstance != null)
+            {
+                MainGameInstance.VfxManager.StopEffects();
+                MainGameInstance.AudioEngine.StopCues();
+                MainGameInstance.camera.Stop();
+                MainGameInstance.DestroyAllEntities();
+            }
 
             //Goto first frame of animation
             for (int i = 0; i < Actors.Length; i++)
             {
                 if (Actors[i] != null)
                 {
-                    Actors[i].animationPlayer.FirstFrame();
-                    Actors[i].bacPlayer.Stop();
+                    Actors[i].AnimationPlayer.FirstFrame();
+                    Actors[i].ActionControl.Stop();
                 }
             }
 
-            //Do same for camera
-            gameInstance.camera.Stop();
-
-            DestroyAllEntities();
-
             IsPlaying = false;
+            PlayStateChanged?.Invoke(null, EventArgs.Empty);
         }
 
         #region SceneControl
@@ -327,9 +496,9 @@ namespace XenoKit.Engine
         public static void PlayAnimation(EAN_File eanFile, int eanIndex, int charIndex, bool forceAutoPlay)
         {
             ResetSceneCheck();
-            EnsureCharacterIsSet(charIndex);
+            EnsureActorIsSet(charIndex);
 
-            Actors[charIndex].animationPlayer.PlayPrimaryAnimation(eanFile, eanIndex, 0, ushort.MaxValue, 1, 0, 0, false, 1f, true);
+            Actors[charIndex].AnimationPlayer.PlayPrimaryAnimation(eanFile, eanIndex, 0, ushort.MaxValue, 1, 0, 0, false, 1f, true);
 
             if (forceAutoPlay)
                 IsPlaying = true;
@@ -338,19 +507,19 @@ namespace XenoKit.Engine
         public static void PlayBacEntry(BAC_File bacFile, BAC_Entry bacEntry, Move move, int charIndex, bool resetPosition)
         {
             ResetSceneCheck();
-            EnsureCharacterIsSet(charIndex);
+            EnsureActorIsSet(charIndex);
             ResetState(true);
 
             if (resetPosition)
                 Actors[charIndex].ResetPosition();
 
-            Actors[charIndex].bacPlayer.PlayBacEntry(bacFile, bacEntry, move);
+            Actors[charIndex].ActionControl.PreviewBacEntry(bacFile, bacEntry, move, Actors[charIndex]);
             IsPlaying = AutoPlay;
         }
 
         public static void PlayCameraAnimation(EAN_Animation animation, BAC_Type10 bacCamEntry, int targetCharaIndex, bool autoTerminate = true)
         {
-            gameInstance.camera.PlayCameraAnimation(animation, bacCamEntry, targetCharaIndex, autoTerminate);
+            MainGameInstance.camera.PlayCameraAnimation(animation, bacCamEntry, targetCharaIndex, autoTerminate);
         }
 
         /// <summary>
@@ -360,8 +529,8 @@ namespace XenoKit.Engine
         public static void PlayCameraAnimation(EAN_Animation camera)
         {
             ResetSceneCheck();
-            EnsureCharacterIsSet(0);
-            gameInstance.camera.PlayCameraAnimation(camera, null, 0, false, false);
+            EnsureActorIsSet(0);
+            MainGameInstance.camera.PlayCameraAnimation(camera, null, 0, false, false);
 
             if (AutoPlay)
                 IsPlaying = true;
@@ -370,7 +539,7 @@ namespace XenoKit.Engine
         public static void ForceStopBacPlayer()
         {
             foreach (var chara in Actors)
-                if (chara != null) chara.bacPlayer.ClearBacEntry();
+                if (chara != null) chara.ActionControl.ClearBacPlayer();
         }
         
         public static bool IsOnTab(params EditorTabs[] tabs)
@@ -384,12 +553,12 @@ namespace XenoKit.Engine
         public static void CameraSelectionChanged(EAN_Animation camera)
         {
             if(AutoPlay)
-                gameInstance.camera.PlayCameraAnimation(camera, null, 0, false);
+                MainGameInstance.camera.PlayCameraAnimation(camera, null, 0, false);
         }
         
         public static void CameraChangeCurrentFrame(int frame)
         {
-            gameInstance.camera.SkipToFrame(frame);
+            MainGameInstance.camera.SkipToFrame(frame);
         }
 
         /// <summary>
@@ -401,9 +570,21 @@ namespace XenoKit.Engine
         }
         #endregion
 
-        public static void RefreshVisualSkeletonVisibility()
+    
+    }
+
+
+    public delegate void ActorChangedEventHandler(object source, ActorChangedEventArgs e);
+
+    public class ActorChangedEventArgs : EventArgs
+    {
+        public Actor Actor { get; private set; }
+        public int ActorIndex { get; private set; }
+
+        public ActorChangedEventArgs(Actor actor, int actorIndex)
         {
-            Actors[0]?.visualSkeleton?.RefreshVisibilities();
+            Actor = actor;
+            ActorIndex = actorIndex;
         }
     }
 }

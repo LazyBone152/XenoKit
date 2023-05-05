@@ -23,6 +23,7 @@ namespace XenoKit.ViewModel.BAC
                     UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type9>(nameof(bacType.BsaType), bacType, bacType.BsaType, (BAC_Type9.BsaTypeEnum)value, "Projectile BsaType"));
                     bacType.BsaType = (BAC_Type9.BsaTypeEnum)value;
                     RaisePropertyChanged(() => BsaType);
+                    bacType.RefreshType();
                 }
             }
         }
@@ -80,15 +81,16 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return bacType.Bone;
+                return bacType.BoneLink;
             }
             set
             {
-                if (bacType.Bone != value)
+                if (bacType.BoneLink != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type9>(nameof(bacType.Bone), bacType, bacType.Bone, value, "Projectile Bone"));
-                    bacType.Bone = value;
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type9>(nameof(bacType.BoneLink), bacType, bacType.BoneLink, value, "Projectile Bone"), UndoGroup.Action, "BoneLink");
+                    bacType.BoneLink = value;
                     RaisePropertyChanged(() => Bone);
+                    UndoManager.Instance.ForceEventCall(UndoGroup.Action, "BoneLink");
                 }
             }
         }

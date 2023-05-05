@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         mc:Ignorable="d"
-        Title="EanModiferForm" Height="Auto" Width="300" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" SizeToContent="Height">
+        Title="EanModiferForm" Height="Auto" Width="300" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" SizeToContent="Height" Name="Window" Activated="Window_Activated" TitleCharacterCasing="Normal">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="boolToVisibility" />
         <ObjectDataProvider x:Key="componentTypes" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
@@ -17,35 +17,96 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Key="Return" Command="{Binding ElementName=Window, Path=DoneCommand}"/>
+    </Window.InputBindings>
     <Grid>
         <StackPanel Margin="0, 2">
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding StartFrameEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="Start Frame"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding StartFrame, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding StartFrameMaxConstraint}" Minimum="0"/>
+                <controls:NumericUpDown x:Name="startFrame" Grid.Column="1" Value="{Binding StartFrame, UpdateSourceTrigger=PropertyChanged}" Maximum="{Binding StartFrameMaxConstraint}" Minimum="0"/>
             </Grid>
-            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding StartFrameEnabled, Converter={StaticResource boolToVisibility}}">
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding EndFrameEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="End Frame"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding EndFrame}" Maximum="65535" Minimum="{Binding EndFrameMinConstraint}"/>
+                <controls:NumericUpDown x:Name="endFrame"  Grid.Column="1" Value="{Binding EndFrame}" Maximum="65535" Minimum="{Binding EndFrameMinConstraint}"/>
+            </Grid>
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding ShakeFactorEnabled, Converter={StaticResource boolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Factor"/>
+                <controls:NumericUpDown x:Name="factor"  Grid.Column="1" Value="{Binding ShakeFactor}" Maximum="50" Minimum="0"/>
+            </Grid>
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding BlendFactorEnabled, Converter={StaticResource boolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Blend Factor"/>
+                <controls:NumericUpDown x:Name="blendFactor"  Grid.Column="1" Value="{Binding BlendFactor}" Maximum="1" Minimum="0"/>
+            </Grid>
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding BlendFactorEnabled, Converter={StaticResource boolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Blend Factor Step" FontSize="11"/>
+                <controls:NumericUpDown x:Name="blendFactorStep"  Grid.Column="1" Value="{Binding BlendFactorStep}" Maximum="1" Minimum="0"/>
+            </Grid>
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding InsertEnabled, Converter={StaticResource boolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="70"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Insert Frame"/>
+                <controls:NumericUpDown x:Name="insertFrame"  Grid.Column="1" Value="{Binding InsertFrame}" IsEnabled="{Binding NotAppend}" Maximum="65535" Minimum="0" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True"/>
+                <CheckBox Margin="3, 0" Grid.Column="2" Content="Append" IsChecked="{Binding Append, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" ToolTip="Append to the end of the animation."/>
             </Grid>
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding SmoothFrameEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Label Content="Smooth Frames"/>
+                <Label Content="Blend Frames"/>
                 <controls:NumericUpDown Grid.Column="1" Value="{Binding SmoothFrame}" Maximum="65535" Minimum="0"/>
+            </Grid>
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding RemoveCollisionsEnabled, Converter={StaticResource boolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Remove Collisions" FontSize="11" ToolTip="Remove any keyframes that are within the range of those being pasted (only on bones with pasted keyframes).&#x0a;&#x0a;If Rebase is enabled, this value does nothing."/>
+                <CheckBox Grid.Column="1" IsChecked="{Binding RemoveCollisions}" VerticalAlignment="Center"/>
+            </Grid>
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding RebaseKeyframesEnabled, Converter={StaticResource boolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Rebase Keyframes" FontSize="11" ToolTip="Rebase any keyframes after EndFrame or InsertFrame.&#x0a;&#x0a;Example: When using Remove Keyframe Range, modify all keyframes after End Frame to now follow on after Start Frame. "/>
+                <CheckBox Grid.Column="1" IsChecked="{Binding RebaseKeyframes}" VerticalAlignment="Center"/>
+            </Grid>
+            <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding RebaseAmountEnabled, Converter={StaticResource boolToVisibility}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Rebase Amount"/>
+                <controls:NumericUpDown x:Name="rebaseAmount" Grid.Column="1" Value="{Binding RebaseAmount, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding ComponentEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="Type"/>
@@ -54,7 +115,7 @@
             
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding PosEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="X"/>
@@ -62,7 +123,7 @@
             </Grid>
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding PosEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="Y"/>
@@ -70,7 +131,7 @@
             </Grid>
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding PosEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="Z"/>
@@ -78,7 +139,7 @@
             </Grid>
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding PosEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="W"/>
@@ -86,23 +147,23 @@
             </Grid>
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding ScaleFactorEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="Scale Factor"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding ScaleFactor, UpdateSourceTrigger=PropertyChanged}" Interval="0.05" StringFormat="0.00"/>
+                <controls:NumericUpDown x:Name="scaleFactor" Grid.Column="1" Value="{Binding ScaleFactor, UpdateSourceTrigger=PropertyChanged}" Interval="0.05" StringFormat="0.00"/>
             </Grid>
             <Grid Margin="2,2,0,0" Width="250" Visibility="{Binding NewDurationEnabled, Converter={StaticResource boolToVisibility}}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="New Duration"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding NewDuration, UpdateSourceTrigger=PropertyChanged}" Minimum="1"/>
+                <controls:NumericUpDown x:Name="newDuration" Grid.Column="1" Value="{Binding NewDuration, UpdateSourceTrigger=PropertyChanged}" Minimum="1"/>
             </Grid>
 
             <Grid Margin="2,2" Height="50">
-                <Button Content="Ok" HorizontalAlignment="Left" Margin="105,10,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+                <Button Content="Ok" HorizontalAlignment="Left" Margin="105,10,0,0" VerticalAlignment="Top" Width="75" Command="{Binding ElementName=Window, Path=DoneCommand}"/>
             </Grid>
 
 

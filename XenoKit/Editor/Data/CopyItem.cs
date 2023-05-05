@@ -34,16 +34,18 @@ namespace XenoKit.Editor
     [Serializable]
     public class CopyItem
     {
+        public Guid MoveGuid;
+
         public FileType fileType;
         public EntryType entryType;
         public Move.Type MoveType;
         public int SkillID;
 
-        CopyEntries Primary = new CopyEntries(); //Includes all entries directly copied
-        CopyEntries Secondary = new CopyEntries(); //Includes all entries referenced in Primary (Optional)
+        private readonly CopyEntries Primary = new CopyEntries(); //Includes all entries directly copied
+        private readonly CopyEntries Secondary = new CopyEntries(); //Includes all entries referenced in Primary (Optional)
         
         //ID References, used for changing IDs before pasting
-        private List<ValueReference> ValueRefs = new List<ValueReference>();
+        private readonly List<ValueReference> ValueRefs = new List<ValueReference>();
 
         public CopyItem(IList<BAC_Entry> bacEntries, Move move)
         {
@@ -51,6 +53,7 @@ namespace XenoKit.Editor
             entryType = EntryType.Main;
             MoveType = move.MoveType;
             SkillID = move.SkillID;
+            MoveGuid = move.MoveGuid;
 
             //Copy references into Secondary
             foreach(var bacEntry in bacEntries)
@@ -70,6 +73,7 @@ namespace XenoKit.Editor
             entryType = EntryType.Sub;
             MoveType = move.MoveType;
             SkillID = move.SkillID;
+            MoveGuid = move.MoveGuid;
 
             BAC_Entry temp = new BAC_Entry();
             temp.IBacTypes = new AsyncObservableCollection<IBacType>(bacTypes);
@@ -114,15 +118,16 @@ namespace XenoKit.Editor
         {
             if(bacType.EanIndex != ushort.MaxValue)
             {
-                var animation = move.TryGetAnimation(bacType.Ean_Type, bacType.EanIndex);
+                var ean = Files.Instance.GetEanFile(bacType.EanType, move, null, false, false);
+                var animation = move.TryGetAnimation(bacType.EanType, bacType.EanIndex);
 
-                if (animation != null && !Secondary.Animations.Any(x => x.ID_UShort == animation?.ID_UShort))
-                    Secondary.Animations.Add(animation);
+                if (animation != null && !Secondary.Animations.Any(x => x.ID == animation?.ID_UShort))
+                    Secondary.Animations.Add(new SerializedAnimation(animation, ean.Skeleton));
 
                 if(animation != null)
                 {
                     ValueRefs.Add(new ValueReference(bacType, nameof(bacType.EanIndex), ValueReference.InstanceRefType.Ean));
-                    ValueRefs.Add(new ValueReference(bacType, nameof(bacType.Ean_Type), ValueReference.InstanceRefType.Ean, ValueReference.Mode.Type));
+                    ValueRefs.Add(new ValueReference(bacType, nameof(bacType.EanType), ValueReference.InstanceRefType.Ean, ValueReference.Mode.Type));
                 }
             }
         }
@@ -161,7 +166,7 @@ namespace XenoKit.Editor
         {
             if (bacType.EanIndex != ushort.MaxValue)
             {
-                var camera = move.TryGetCamera(bacType.Ean_Type, bacType.EanIndex);
+                var camera = move.TryGetCamera(bacType.EanType, bacType.EanIndex);
 
                 if (camera != null && !Secondary.Cameras.Any(x => x.ID_UShort == camera?.ID_UShort))
                     Secondary.Cameras.Add(camera);
@@ -169,7 +174,7 @@ namespace XenoKit.Editor
                 if(camera != null)
                 {
                     ValueRefs.Add(new ValueReference(bacType, nameof(bacType.EanIndex), ValueReference.InstanceRefType.Cam));
-                    ValueRefs.Add(new ValueReference(bacType, nameof(bacType.Ean_Type), ValueReference.InstanceRefType.Cam, ValueReference.Mode.Type));
+                    ValueRefs.Add(new ValueReference(bacType, nameof(bacType.EanType), ValueReference.InstanceRefType.Cam, ValueReference.Mode.Type));
                 }
             }
         }
@@ -421,7 +426,7 @@ namespace XenoKit.Editor
                 var acbFile = move.TryGetAcbFile(acbType);
 
                 if (acbFile != null && !Secondary.SeAcbFile.Cues.Any(x => x.ID == cueId))
-                    Secondary.SeAcbFile.CopyCue(cueId, acbFile.AcbFile);
+                    Secondary.SeAcbFile.CopyCue(cueId, acbFile.AcbFile, true);
 
                 return acbFile != null;
             }
@@ -452,18 +457,20 @@ namespace XenoKit.Editor
             RemoveDuplicates();
             List<IUndoRedo> undos = new List<IUndoRedo>();
             
-            undos.AddRange(PasteReferences(move, copyReferences));
+            if(move.MoveGuid != MoveGuid)
+                undos.AddRange(PasteReferences(move, copyReferences));
             
             foreach(var bacEntry in Primary.BacEntries[0].IBacTypes)
             {
-                mainEntry.IBacTypes.Add(bacEntry);
-                undos.Add(new UndoableListAdd<IBacType>(mainEntry.IBacTypes, bacEntry));
+                undos.Add(mainEntry.AddEntry(bacEntry));
+                //mainEntry.IBacTypes.Add(bacEntry);
+                //undos.Add(new UndoableListAdd<IBacType>(mainEntry.IBacTypes, bacEntry));
             }
 
             return undos;
         }
 
-        public List<IUndoRedo> PasteIntoMove_Main(Move move, bool copyReferences)
+        public List<IUndoRedo> PasteIntoMove_Main(Move move, bool copyReferences, BAC_Entry bacEntryToReplace = null)
         {
             if (entryType != EntryType.Main)
                 throw new InvalidOperationException($"{nameof(CopyItem)}.{nameof(PasteIntoMove_Main)}: function can only be called with entryType = Main!");
@@ -471,8 +478,10 @@ namespace XenoKit.Editor
             RemoveDuplicates();
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
-            undos.AddRange(PasteReferences(move, copyReferences));
-            undos.AddRange(PasteEntries(move, Primary));
+            if(move.MoveGuid != MoveGuid)
+                undos.AddRange(PasteReferences(move, copyReferences));
+
+            undos.AddRange(PasteEntries(move, Primary, bacEntryToReplace));
 
             return undos;
         }
@@ -498,21 +507,24 @@ namespace XenoKit.Editor
             return undos;
         }
 
-        private List<IUndoRedo> PasteEntries(Move move, CopyEntries entries)
+        private List<IUndoRedo> PasteEntries(Move move, CopyEntries entries, BAC_Entry bacEntryToReplace = null)
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
             //BAC
-            PasteBacEntries(entries.BacEntries, move);
+            undos.AddRange(PasteBacEntries(entries.BacEntries, move, bacEntryToReplace));
 
             //BDM
-            PasteBdmEntries(entries.BdmEntries, move);
+            undos.AddRange(PasteBdmEntries(entries.BdmEntries, move));
 
-            //SHOT.BDM
-            PasteShotBdmEntries(entries.ShotBdmEntries, move);
+            if(move.MoveType == Move.Type.Skill || move.MoveType == Move.Type.CMN)
+            {
+                //SHOT.BDM
+                undos.AddRange(PasteShotBdmEntries(entries.ShotBdmEntries, move));
 
-            //BSA
-            PasteBsaEntries(entries.BsaEntries, move);
+                //BSA
+                undos.AddRange(PasteBsaEntries(entries.BsaEntries, move));
+            }
 
             //EEPK
             foreach (var effect in entries.Effects)
@@ -527,14 +539,32 @@ namespace XenoKit.Editor
             //SE ACB
             foreach (var cue in entries.SeAcbFile.Cues)
             {
+                //If CUE already exists in any of the SE files, then skip add and use that ID
+                if (move.Files.SeAcbFile.Any(x => x.File.AcbFile.GetCueId(cue.InstanceGuid) != uint.MaxValue))
+                {
+                    var seFile = move.Files.SeAcbFile.FirstOrDefault(x => x.File.AcbFile.GetCueId(cue.InstanceGuid) != uint.MaxValue);
+                    ReplaceIdReference(ValueReference.InstanceRefType.SeAcb, (int)cue.ID, (int)seFile.File.AcbFile.GetCueId(cue.InstanceGuid));
+                    continue;
+                }
+
+                //Copy cue
                 int oldId = (int)cue.ID;
                 int newId = GeneralHelpers.AssignCommonCueId(move.Files.SeAcbFile);
                 cue.ID = (uint)newId;
 
                 foreach(var acb in move.Files.SeAcbFile)
-                    undos.AddRange(acb.File.AcbFile.CopyCue(oldId, entries.SeAcbFile));
+                {
+                    undos.AddRange(acb.File.AcbFile.CopyCue(newId, entries.SeAcbFile, true));
+                }
 
                 ReplaceIdReference(ValueReference.InstanceRefType.SeAcb, oldId, newId);
+
+            }
+
+            foreach (var acb in move.Files.SeAcbFile)
+            {
+                acb.File.Refresh();
+                undos.Add(new UndoActionDelegate(acb.File, nameof(acb.File.Refresh), true));
             }
 
             //EAN
@@ -544,10 +574,12 @@ namespace XenoKit.Editor
 
                 if(ean != null)
                 {
-                    int oldId = animation.SortID;
-                    int newId = ean.AddEntry(animation);
+                    EAN_Animation newAnimation = animation.Deserialize(ean.Skeleton);
+
+                    int oldId = animation.ID;
+                    int newId = ean.AddEntry(newAnimation);
                     ReplaceIdReference(ValueReference.InstanceRefType.Ean, oldId, newId);
-                    undos.Add(new UndoableListAdd<EAN_Animation>(ean.Animations, animation));
+                    undos.Add(new UndoableListAdd<EAN_Animation>(ean.Animations, newAnimation));
                 }
                 else
                 {
@@ -578,16 +610,24 @@ namespace XenoKit.Editor
             return undos;
         }
 
-        private List<IUndoRedo> PasteBacEntries(IList<BAC_Entry> bacEntries, Move move)
+        private List<IUndoRedo> PasteBacEntries(IList<BAC_Entry> bacEntries, Move move, BAC_Entry bacEntryToReplace = null)
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
-            foreach (var bacEntry in bacEntries)
+            if(bacEntryToReplace != null)
             {
-                int oldId = bacEntry.SortID;
-                int newId = move.Files.BacFile.File.AddEntry(bacEntry);
-                ReplaceIdReference(ValueReference.InstanceRefType.Bac, oldId, newId);
-                undos.Add(new UndoableListAdd<BAC_Entry>(move.Files.BacFile.File.BacEntries, bacEntry));
+                undos.Add(new UndoableProperty<BAC_Entry>(nameof(BAC_Entry.IBacTypes), bacEntryToReplace, bacEntryToReplace.IBacTypes, bacEntries[0].IBacTypes));
+                bacEntryToReplace.IBacTypes = bacEntries[0].IBacTypes;
+            }
+            else
+            {
+                foreach (var bacEntry in bacEntries)
+                {
+                    int oldId = bacEntry.SortID;
+                    int newId = move.Files.BacFile.File.AddEntry(bacEntry);
+                    ReplaceIdReference(ValueReference.InstanceRefType.Bac, oldId, newId);
+                    undos.Add(new UndoableListAdd<BAC_Entry>(move.Files.BacFile.File.BacEntries, bacEntry));
+                }
             }
 
             return undos;
@@ -688,7 +728,9 @@ namespace XenoKit.Editor
                     valueRef.ReplaceValue(move.SkillID);
                 else if (move.MoveType == Move.Type.Moveset)
                     valueRef.ReplaceValue(-1);
-                
+                else if (move.MoveType == Move.Type.CMN)
+                    valueRef.ReplaceValue(0);
+
             }
 
             //Remove skill ID references
@@ -710,9 +752,9 @@ namespace XenoKit.Editor
                     else if (refType == ValueReference.InstanceRefType.SeAcb)
                         valueRef.SetEnum((int)Xv2CoreLib.BAC.AcbType.Skill_SE);
                     else if (refType == ValueReference.InstanceRefType.Ean)
-                        valueRef.SetEnum((int)BAC_Type0.EanType.Skill);
+                        valueRef.SetEnum((int)BAC_Type0.EanTypeEnum.Skill);
                     else if (refType == ValueReference.InstanceRefType.Cam)
-                        valueRef.SetEnum((int)BAC_Type10.EanType.Skill);
+                        valueRef.SetEnum((int)BAC_Type10.EanTypeEnum.Skill);
                 }
                 else if(move.MoveType == Move.Type.Moveset)
                 {
@@ -723,9 +765,9 @@ namespace XenoKit.Editor
                     else if (refType == ValueReference.InstanceRefType.SeAcb)
                         valueRef.SetEnum((int)Xv2CoreLib.BAC.AcbType.Character_SE);
                     else if (refType == ValueReference.InstanceRefType.Ean)
-                        valueRef.SetEnum((int)BAC_Type0.EanType.Character);
+                        valueRef.SetEnum((int)BAC_Type0.EanTypeEnum.Character);
                     else if (refType == ValueReference.InstanceRefType.Cam)
-                        valueRef.SetEnum((int)BAC_Type10.EanType.Character);
+                        valueRef.SetEnum((int)BAC_Type10.EanTypeEnum.Character);
                 }
                 
             }
@@ -766,26 +808,26 @@ namespace XenoKit.Editor
             if(entryType == EntryType.Main)
             {
                 if (fileType == FileType.Bac)
-                    return $"{Primary.BacEntries.Count} Bac Entries";
+                    return $"{Primary.BacEntries.Count} BAC Entries";
                 else if (fileType == FileType.Bsa)
-                    return $"{Primary.BsaEntries.Count} Bsa Entries";
+                    return $"{Primary.BsaEntries.Count} BSA Entries";
                 else if (fileType == FileType.Bdm)
-                    return $"{Primary.BdmEntries.Count} Bdm Entries";
+                    return $"{Primary.BdmEntries.Count} BDM Entries";
                 else if (fileType == FileType.ShotBdm)
-                    return $"{Primary.ShotBdmEntries.Count} Shot.Bdm Entries";
+                    return $"{Primary.ShotBdmEntries.Count} Shot.BDM Entries";
             }
             else if(entryType == EntryType.Sub)
             {
                 try
                 {
                     if (fileType == FileType.Bac)
-                        return $"{Primary.BacEntries[0].IBacTypes.Count} Bac Types";
+                        return $"{Primary.BacEntries[0].IBacTypes.Count} BAC Types";
                     else if (fileType == FileType.Bsa)
-                        return $"{Primary.BsaEntries[0].IBsaTypes.Count} Bsa Types";
+                        return $"{Primary.BsaEntries[0].IBsaTypes.Count} BSA Types";
                     else if (fileType == FileType.Bdm)
-                        return $"{Primary.BdmEntries[0].Type0Entries.Count} Bdm SubEntries";
+                        return $"{Primary.BdmEntries[0].Type0Entries.Count} BDM SubEntries";
                     else if (fileType == FileType.ShotBdm)
-                        return $"{Primary.ShotBdmEntries[0].Type0Entries.Count} Shot.Bdm SubEntries";
+                        return $"{Primary.ShotBdmEntries[0].Type0Entries.Count} Shot.BDM SubEntries";
                 }
                 catch
                 {
@@ -797,10 +839,10 @@ namespace XenoKit.Editor
 
         public string ReferencesDetails()
         {
-            return $"Bac Entries: {Secondary.BacEntries.Count}\n" +
-                $"Bdm Entries: {Secondary.BdmEntries.Count}\n" +
-                $"Bsa Entries: {Secondary.BsaEntries.Count}\n" +
-                $"Shot.Bdm Entries: {Secondary.ShotBdmEntries.Count}\n" +
+            return $"BAC Entries: {Secondary.BacEntries.Count}\n" +
+                $"BDM Entries: {Secondary.BdmEntries.Count}\n" +
+                $"BSA Entries: {Secondary.BsaEntries.Count}\n" +
+                $"Shot.BDM Entries: {Secondary.ShotBdmEntries.Count}\n" +
                 $"Animations: {Secondary.Animations.Count}\n" +
                 $"Cameras: {Secondary.Cameras.Count}\n" +
                 $"SE Cues: {Secondary.SeAcbFile.Cues.Count}\n" +
@@ -816,7 +858,9 @@ namespace XenoKit.Editor
         public List<BDM_Entry> BdmEntries { get; set; } = new List<BDM_Entry>();
         public List<BDM_Entry> ShotBdmEntries { get; set; } = new List<BDM_Entry>();
         public List<BSA_Entry> BsaEntries { get; set; } = new List<BSA_Entry>();
-        public List<EAN_Animation> Animations { get; set; } = new List<EAN_Animation>();
+        //public List<EAN_Animation> Animations { get; set; } = new List<EAN_Animation>();
+        public List<SerializedAnimation> Animations { get; set; } = new List<SerializedAnimation>();
+
         public List<EAN_Animation> Cameras { get; set; } = new List<EAN_Animation>();
         public List<Effect> Effects { get; set; } = new List<Effect>();
         public ACB_File SeAcbFile { get; set; } = ACB_File.NewXv2Acb();
@@ -825,7 +869,7 @@ namespace XenoKit.Editor
     }
 
     [Serializable]
-    struct ReplacedId
+    internal struct ReplacedId
     {
         public object IdObject { get; set; }
         public int IdIndex { get; set; } //For use when there are multiple references on an object (such as BDM Entries whcib have an acb, 3 effects, another bdm entry...)
@@ -847,7 +891,7 @@ namespace XenoKit.Editor
     }
 
     [Serializable]
-    class ValueReference
+    internal class ValueReference
     {
         internal enum Mode
         {
@@ -892,14 +936,14 @@ namespace XenoKit.Editor
         {
             if (Instance.GetType().GetProperty(propName).PropertyType == typeof(BAC_Type1.BdmType))
                 Instance.GetType().GetProperty(propName).SetValue(Instance, (BAC_Type1.BdmType)newValue, null);
-            else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(BAC_Type0.EanType))
-                Instance.GetType().GetProperty(propName).SetValue(Instance, (BAC_Type0.EanType)newValue, null);
+            else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(BAC_Type0.EanTypeEnum))
+                Instance.GetType().GetProperty(propName).SetValue(Instance, (BAC_Type0.EanTypeEnum)newValue, null);
             else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(BAC_Type8.EepkTypeEnum))
                 Instance.GetType().GetProperty(propName).SetValue(Instance, (BAC_Type8.EepkTypeEnum)newValue, null);
             else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(BAC_Type9.BsaTypeEnum))
                 Instance.GetType().GetProperty(propName).SetValue(Instance, (BAC_Type9.BsaTypeEnum)newValue, null);
-            else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(BAC_Type10.EanType))
-                Instance.GetType().GetProperty(propName).SetValue(Instance, (BAC_Type10.EanType)newValue, null);
+            else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(BAC_Type10.EanTypeEnum))
+                Instance.GetType().GetProperty(propName).SetValue(Instance, (BAC_Type10.EanTypeEnum)newValue, null);
             else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(Xv2CoreLib.BAC.AcbType))
                 Instance.GetType().GetProperty(propName).SetValue(Instance, (Xv2CoreLib.BAC.AcbType)newValue, null);
             else if (Instance.GetType().GetProperty(propName).PropertyType == typeof(Xv2CoreLib.BDM.AcbType))

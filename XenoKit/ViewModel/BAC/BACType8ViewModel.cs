@@ -25,6 +25,7 @@ namespace XenoKit.ViewModel.BAC
                 RaisePropertyChanged(() => EepkType);
                 RaisePropertyChanged(() => UseCmnList);
                 RaisePropertyChanged(() => SkillIdVisibile);
+                bacType.RefreshType();
             }
         }
         public ushort SkillID
@@ -51,6 +52,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type8>(nameof(bacType.EffectID), bacType, bacType.EffectID, value, "Effect EffectID"));
                 bacType.EffectID = value;
                 RaisePropertyChanged(() => EffectID);
+                bacType.RefreshType();
             }
         }
         public int EffectState
@@ -74,9 +76,10 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type8>(nameof(bacType.BoneLink), bacType, bacType.BoneLink, value, "Effect BoneLink"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type8>(nameof(bacType.BoneLink), bacType, bacType.BoneLink, value, "Effect BoneLink"), UndoGroup.Action, "BoneLink");
                 bacType.BoneLink = value;
                 RaisePropertyChanged(() => BoneLink);
+                UndoManager.Instance.ForceEventCall(UndoGroup.Action, "BoneLink");
             }
         }
         public bool UseSkillId
@@ -201,6 +204,7 @@ namespace XenoKit.ViewModel.BAC
                     UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type8>(nameof(bacType.EffectFlags), bacType, bacType.EffectFlags, flags, "EffectFlags Off"));
                     bacType.EffectFlags = flags;
                     RaisePropertyChanged(() => EffectFlag_Off);
+                    bacType.RefreshType();
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
+using Xv2CoreLib;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.Resource.UndoRedo;
 using static Xv2CoreLib.BAC.BAC_Type20;
@@ -27,12 +28,12 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (ushort)bacType.HomingArcDirection;
+                return (ushort)bacType.HomingFlags;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type20>(nameof(bacType.HomingArcDirection), bacType, bacType.HomingArcDirection, (HomingArcDirectionEnum)value, "HomingArcDirection"));
-                bacType.HomingArcDirection = (HomingArcDirectionEnum)value;
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type20>(nameof(bacType.HomingFlags), bacType, bacType.HomingFlags, (HomingFlagsEnum)value, "HomingArcDirection"));
+                bacType.HomingFlags = (HomingFlagsEnum)value;
                 RaisePropertyChanged(() => HomingArcDirection);
             }
         }
@@ -101,30 +102,104 @@ namespace XenoKit.ViewModel.BAC
                 RaisePropertyChanged(() => DisplacementZ);
             }
         }
-        public int I_32
+        public BoneLinks UserBone
         {
             get
             {
-                return bacType.I_32;
+                return bacType.BoneLink;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type20>(nameof(bacType.I_32), bacType, bacType.I_32, value, "HomingMovement I_32"));
-                bacType.I_32 = value;
-                RaisePropertyChanged(() => I_32);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type20>(nameof(bacType.BoneLink), bacType, bacType.BoneLink, value, "HomingMovement UserBone"));
+                bacType.BoneLink = value;
+                RaisePropertyChanged(() => UserBone);
             }
         }
-        public int I_36
+        public BoneLinks TargetBone
         {
             get
             {
-                return bacType.I_36;
+                return bacType.TargetBone;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type20>(nameof(bacType.I_36), bacType, bacType.I_36, value, "HomingMovement I_36"));
-                bacType.I_36 = value;
-                RaisePropertyChanged(() => I_36);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type20>(nameof(bacType.TargetBone), bacType, bacType.TargetBone, value, "HomingMovement TargetBone"));
+                bacType.TargetBone = value;
+                RaisePropertyChanged(() => TargetBone);
+            }
+        }
+
+        //Flags
+        public bool Flag_Left
+        {
+            get
+            {
+                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.Left);
+            }
+            set
+            {
+                SetHomingFlags(HomingFlagsEnum.Left, value);
+                RaisePropertyChanged(() => Flag_Left);
+            }
+        }
+        public bool Flag_Float
+        {
+            get
+            {
+                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.UseFloatSpeedModifier);
+            }
+            set
+            {
+                SetHomingFlags(HomingFlagsEnum.UseFloatSpeedModifier, value);
+                RaisePropertyChanged(() => Flag_Float);
+            }
+        }
+        public bool Flag_Unk3
+        {
+            get
+            {
+                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.Unk3);
+            }
+            set
+            {
+                SetHomingFlags(HomingFlagsEnum.Unk3, value);
+                RaisePropertyChanged(() => Flag_Unk3);
+            }
+        }
+        public bool Flag_UseBones
+        {
+            get
+            {
+                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.UseBones);
+            }
+            set
+            {
+                SetHomingFlags(HomingFlagsEnum.UseBones, value);
+                RaisePropertyChanged(() => Flag_UseBones);
+            }
+        }
+        public bool Flag_Unk5
+        {
+            get
+            {
+                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.Unk5);
+            }
+            set
+            {
+                SetHomingFlags(HomingFlagsEnum.Unk5, value);
+                RaisePropertyChanged(() => Flag_Unk5);
+            }
+        }
+        public bool Flag_Unk6
+        {
+            get
+            {
+                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.Unk6);
+            }
+            set
+            {
+                SetHomingFlags(HomingFlagsEnum.Unk6, value);
+                RaisePropertyChanged(() => Flag_Unk6);
             }
         }
 
@@ -158,10 +233,27 @@ namespace XenoKit.ViewModel.BAC
             RaisePropertyChanged(() => DisplacementX);
             RaisePropertyChanged(() => DisplacementY);
             RaisePropertyChanged(() => DisplacementZ);
-            RaisePropertyChanged(() => I_32);
-            RaisePropertyChanged(() => I_36);
+            RaisePropertyChanged(() => UserBone);
+            RaisePropertyChanged(() => TargetBone);
+
+            RaisePropertyChanged(() => Flag_Left);
+            RaisePropertyChanged(() => Flag_Float);
+            RaisePropertyChanged(() => Flag_Unk3);
+            RaisePropertyChanged(() => Flag_UseBones);
+            RaisePropertyChanged(() => Flag_Unk5);
+            RaisePropertyChanged(() => Flag_Unk6);
         }
 
+        private void SetHomingFlags(HomingFlagsEnum flag, bool state)
+        {
+            var newFlag = bacType.HomingFlags.SetFlag(flag, state);
+
+            if (bacType.HomingFlags != newFlag)
+            {
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type20>(nameof(BAC_Type20.HomingFlags), bacType, bacType.HomingFlags, newFlag, "HomingFlags"));
+                bacType.HomingFlags = newFlag;
+            }
+        }
 
     }
 }

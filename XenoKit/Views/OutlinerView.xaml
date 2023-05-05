@@ -9,7 +9,15 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="200">
     <Grid>
-        <ListBox x:Name="listBox" ItemsSource="{Binding files.OutlinerItems.Binding}" SelectedItem="{Binding files.SelectedItem}" HorizontalAlignment="Stretch" Margin="10,26,9.855,10.327" VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Outliner" VerticalAlignment="Top" Width="60"/>
+        <Separator Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent2}"/>
+
+        <ListBox Grid.Row="2" x:Name="listBox" ItemsSource="{Binding files.OutlinerItems.Binding}" SelectedItem="{Binding files.SelectedItem}" Margin="10, 10" MouseDoubleClick="listBox_MouseDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid Margin="0,2">
@@ -31,10 +39,11 @@
                                     <Setter Property="Margin" Value="2,0,0,0"/>
                                 </Style>
                             </StackPanel.Resources>
-                            <iconPacks:PackIconMaterial Visibility="{Binding IsSkill}" Kind="Karate" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                            <iconPacks:PackIconMaterial Visibility="{Binding IsMoveset}" Kind="Walk" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                            <iconPacks:PackIconMaterialDesign Visibility="{Binding IsCharacter}" Kind="Accessibility" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-                            <iconPacks:PackIconMaterial Visibility="{Binding IsCommon}" Kind="AlphaCCircleOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsManual}" Kind="Fish" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsSkill}" Kind="Karate" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsMoveset}" Kind="Walk" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterialDesign Visibility="{Binding Visibilities.IsCharacter}" Kind="Accessibility" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsCommon}" Kind="AlphaCCircleOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
 
                             <Separator HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
                                 <Separator.RenderTransform>
@@ -46,7 +55,7 @@
                                     </TransformGroup>
                                 </Separator.RenderTransform>
                             </Separator>
-                            <TextBlock Text="{Binding DisplayType}"/>
+                            <TextBlock Text="{Binding DisplayType}" FontSize="11"/>
                             <Separator HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
                                 <Separator.RenderTransform>
                                     <TransformGroup>
@@ -58,26 +67,26 @@
                                 </Separator.RenderTransform>
                             </Separator>
 
-                            <TextBlock Text="{Binding DisplayName}"/>
+                            <TextBlock Text="{Binding DisplayName}" FontSize="11" ToolTip="{Binding DisplayName}"/>
                         </StackPanel>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
             <ListBox.ContextMenu>
                 <ContextMenu FontSize="12" FocusManager.IsFocusScope="False">
-                    <MenuItem Header="Set as Actor" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.IsCharacter}">
+                    <MenuItem Header="Set as Actor" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsCharacter}">
                         <MenuItem Header="Primary" Command="{Binding SetActorPrimaryCommand}"/>
                         <MenuItem Header="Target" Command="{Binding SetActorTargetCommand}"/>
                     </MenuItem>
-                    <Separator Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.IsCharacter}" />
+                    <Separator Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsCharacter}" />
                     <MenuItem Header="Save" Command="{Binding Source={x:Static editor:Files.Instance}, Path=SaveSelectedItemCommand}"/>
+                    <MenuItem Header="Remove" Command="{Binding Source={x:Static editor:Files.Instance}, Path=RemoveSelectedItemCommand}"/>
                     <MenuItem Header="Read Only" IsCheckable="True" IsChecked="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.ReadOnly, UpdateSourceTrigger=PropertyChanged}"/>
                     <Separator/>
                     <MenuItem Header="Properties" Command="{Binding PropertiesCommand}"/>
                 </ContextMenu>
             </ListBox.ContextMenu>
         </ListBox>
-        <TextBlock HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Outliner" VerticalAlignment="Top" Width="60"/>
 
     </Grid>
 </UserControl>

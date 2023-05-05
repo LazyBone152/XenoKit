@@ -5,15 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:XenoKit.Views.BAC"
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
-             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary"
+             xmlns:bacDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
         <StackPanel>
-            <Expander x:Name="expander" Margin="0, 5, 0, 0" Header="General" IsExpanded="True">
+            <Expander x:Name="expander" Margin="0, 3, 0, 0" Header="General" IsExpanded="True">
                 <StackPanel Margin="0, 5">
                     <WrapPanel>
-                        <Grid Margin="3,5,0,0" Width="250">
+                        <Grid Margin="3,3,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -21,7 +21,7 @@
                             <Label Content="Start Time"/>
                             <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacTypeBaseView}}, Path=BacViewModel.StartTime, UpdateSourceTrigger=Default}" Minimum="0"/>
                         </Grid>
-                        <Grid Margin="3,5,0,0" Width="250">
+                        <Grid Margin="3,3,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -29,7 +29,7 @@
                             <Label Content="Duration"/>
                             <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacTypeBaseView}}, Path=BacViewModel.Duration, UpdateSourceTrigger=Default}" Minimum="0"/>
                         </Grid>
-                        <Grid Margin="3,5,0,0" Width="250">
+                        <Grid Margin="3,3,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>

@@ -1,11 +1,5 @@
-﻿using MahApps.Metro.Controls.Dialogs;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
+using XenoKit.Editor;
 
 namespace XenoKit
 {
@@ -15,5 +9,12 @@ namespace XenoKit
     public partial class App : Application
     {
 
+        private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+#if !DEBUG
+            Log.Add($"Unhandled Exception: {e.Exception.Message}", e.Exception.ToString(), LogType.Error);
+            e.Handled = true;
+#endif
+        }
     }
 }

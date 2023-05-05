@@ -1,19 +1,10 @@
 ﻿using MahApps.Metro.Controls;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using XenoKit.Engine;
+using XenoKit.Engine.Shader;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Windows
@@ -37,10 +28,46 @@ namespace XenoKit.Windows
         #endregion
 
         private MainWindow _parent;
-        public Xv2CoreLib.Resource.App.Settings settings { get; set; }
+        public Settings settings { get; set; }
 
         public Visibility LightAccentVisibility { get { return (settings.GetCurrentTheme() == AppTheme.Light) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility DarkAccentVisibility { get { return (settings.GetCurrentTheme() == AppTheme.Dark) ? Visibility.Visible : Visibility.Collapsed; } }
+
+        public bool EnableRimlight
+        {
+            get => SettingsManager.settings.XenoKit_RimLightingEnabled;
+            set
+            {
+                if (SettingsManager.settings.XenoKit_RimLightingEnabled != value)
+                {
+                    SettingsManager.settings.XenoKit_RimLightingEnabled = value;
+                    ShaderManager.Instance.ClearGlobalSampler(15);
+                }
+            }
+        }
+        public bool WireframeMode
+        {
+            get => SettingsManager.settings.XenoKit_WireframeMode;
+            set
+            {
+                if(SettingsManager.settings.XenoKit_WireframeMode != value)
+                {
+                    SettingsManager.settings.XenoKit_WireframeMode = value;
+                    CompiledObjectManager.Instance.ForceShaderUpdate();
+                }
+            }
+        }
+        public bool DynamicLighting
+        {
+            get => SettingsManager.settings.XenoKit_EnableDynamicLighting;
+            set
+            {
+                if (SettingsManager.settings.XenoKit_EnableDynamicLighting != value)
+                {
+                    SettingsManager.settings.XenoKit_EnableDynamicLighting = value;
+                }
+            }
+        }
 
         public SettingsWindow(MainWindow parent)
         {

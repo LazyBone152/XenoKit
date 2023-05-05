@@ -1,53 +1,24 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Xv2CoreLib.EAN;
+using Xv2CoreLib.ESK;
+using static Xv2CoreLib.BAC.BAC_Type0;
 using XenoKit.Editor;
 using XenoKit.Helper;
-using static Xv2CoreLib.BAC.BAC_Type0;
-using Xv2CoreLib.ESK;
+using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Engine.Animation
 {
-    /// <summary>
-    /// The animation player is in charge of decoding bone position matrices from an animation clip.
-    /// </summary>
-    public class AnimationPlayer
+    public class AnimationPlayer : AnimationPlayerBase
     {
-        //Mostly Olga's handywork, except the world positioning, TimeScale and Blending parts
-
-        #region Fields
-        // Backlink to the bind pose and skeleton hierarchy data.
-        private CharacterSkeleton skeleton;
-        private Character character;
+        private readonly Actor Character;
 
         public AnimationInstance PrimaryAnimation = null;
         public List<AnimationInstance> SecondaryAnimations = new List<AnimationInstance>();
 
-        //private float timeScaleNextFrame = 1f;
-        private bool isUsingAnimation
-        {
-            get
-            {
-                return (PrimaryAnimation != null);
-            }
-        }
-       
-        // Current animation transform matrices.
-        private Matrix[] boneBindPoseMatrices_inv;
-        private Matrix[] relativeMatrices;                                                  //TPose
-        private Matrix[] relativeAnimationTransformMatrices;                                //animations's values are relative to current bone (not animated)
-        private Matrix[] currentAbsoluteMatrices;
-        private Matrix[] skinningMatrices;
-        private Matrix[] debugBones;
-
-        private int bcBase;
-        #endregion
-
-        #region Properties
-        public Matrix[] GetSkinningMatrices() { return skinningMatrices; }          // current matrix to update vertex, about bone move (from initiaState for link skin)
-        public Matrix[] GetDebugBoneMatrices() { return debugBones; }          // current matrix to update vertex, about bone move (from initiaState for link skin)
-        public Matrix[] SkinningMatrices { get { return skinningMatrices; } }
+        protected override bool IsUsingAnimation => PrimaryAnimation != null;
 
         public float PrimaryCurrentFrame
         {
@@ -55,6 +26,15 @@ namespace XenoKit.Engine.Animation
             {
                 if (PrimaryAnimation != null)
                     return PrimaryAnimation.CurrentFrame_Int;
+                return 0;
+            }
+        }
+        public float PrimaryPrevFrame
+        {
+            get
+            {
+                if (PrimaryAnimation != null)
+                    return PrimaryAnimation.PreviousFrame;
                 return 0;
             }
         }
@@ -68,56 +48,63 @@ namespace XenoKit.Engine.Animation
             }
         }
 
-        #endregion
 
-
-        public AnimationPlayer(CharacterSkeleton skeleton, Character chara)
+        public AnimationPlayer(Xv2Skeleton skeleton, Actor chara)
         {
-            this.skeleton = skeleton ?? throw new ArgumentNullException("skeleton", "AnimationPlayer: skeleton was null. Cannot construct an AnimationPlayer.");
-            character = chara;
+            Skeleton = skeleton ?? throw new ArgumentNullException("skeleton", "AnimationPlayer: skeleton was null. Cannot construct an AnimationPlayer.");
+            Character = chara;
 
-            int nbBones = skeleton.Bones.Length;
-            skinningMatrices = new Matrix[nbBones];
-            relativeAnimationTransformMatrices = new Matrix[nbBones];
-            currentAbsoluteMatrices = new Matrix[nbBones];
-            debugBones = new Matrix[nbBones];
-            
-            for (int i = 0; i < nbBones; i++)
-            {
-                skinningMatrices[i] = Matrix.Identity;
-                debugBones[i] = Matrix.Identity;
-            }
-
-            boneBindPoseMatrices_inv = this.skeleton != null ? this.skeleton.BoneBindPoseMatrices_inv : null;
-            relativeMatrices = this.skeleton != null ? this.skeleton.BoneRelativeMatrices : null;
-
-            bcBase = skeleton.GetBoneIndex("b_C_Base");
-            SceneManager.AnimationDurationChanged += SceneManager_AnimationDurationChanged;
+            SceneManager.AnimationDataChanged += SceneManager_AnimationDataChanged;
+            UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
+            SceneManager.SeekOccurred += SceneManager_SeekOccurred;
         }
 
-        private void SceneManager_AnimationDurationChanged(object sender, EventArgs e)
+
+        private void SceneManager_SeekOccurred(object sender, EventArgs e)
+        {
+            //When Seek happens the FrameIndex caches are no longer valid and need to be reset.
+
+            if (PrimaryAnimation != null)
+                PrimaryAnimation.ResetFrameIndex();
+
+            foreach (var anim in SecondaryAnimations)
+                anim.ResetFrameIndex();
+        }
+
+        private void Instance_UndoOrRedoCalled(object sender, UndoEventRaisedEventArgs e)
+        {
+            if (e.UndoGroup == UndoGroup.Animation)
+                UpdateAnimationData();
+        }
+
+        private void SceneManager_AnimationDataChanged(object sender, EventArgs e)
+        {
+            UpdateAnimationData();
+        }
+
+        private void UpdateAnimationData()
         {
             //Update EndFrame to match Animation.FrameCount
-            if(SceneManager.CurrentSceneState == EditorTabs.Animation && PrimaryAnimation != null)
+            if (PrimaryAnimation != null)
             {
-                PrimaryAnimation.EndFrame = PrimaryAnimation.Animation.FrameCount;
+                PrimaryAnimation.EndFrame = (PrimaryAnimation.Animation.FrameCount > 0) ? PrimaryAnimation.Animation.FrameCount - 1 : 0;
+                PrimaryAnimation.AnimationDataChanged();
             }
         }
 
         #region FrameUpdating
-        public void Update(Matrix rootTransform) 
+        public void Update(Matrix rootTransform)
         {
             ClearPreviousFrame();
 
             //Update Matrices
-            //Do Secondary first, as they have lower priority than PrimaryAnimation
-            for (int i = 0; i < SecondaryAnimations.Count; i++)
-                UpdateAnimation(SecondaryAnimations[i]);
-
             //todo: Test ingame and see if secondary face anims take priority over primary face anims when started on same frame, or later
             if (PrimaryAnimation != null)
                 UpdateAnimation(PrimaryAnimation);
 
+            //Do Secondary first, as they have lower priority than PrimaryAnimation
+            for (int i = 0; i < SecondaryAnimations.Count; i++)
+                UpdateAnimation(SecondaryAnimations[i]);
 
             //resulting of animation/relativetransform
             UpdateAbsoluteMatrix(rootTransform);
@@ -129,7 +116,7 @@ namespace XenoKit.Engine.Animation
             HandleFinishedAnimations();
 
             //Advance frame
-            if (SceneManager.IsPlaying && isUsingAnimation && PrimaryAnimation?.CurrentFrame < PrimaryAnimation?.EndFrame && 
+            if (SceneManager.IsPlaying && IsUsingAnimation && PrimaryAnimation?.CurrentFrame < PrimaryAnimation?.EndFrame &&
                 SceneManager.IsOnTab(EditorTabs.Animation, EditorTabs.Action))
             {
                 AdvanceFrame();
@@ -148,7 +135,7 @@ namespace XenoKit.Engine.Animation
             }
 
             //Advance frame
-            if (advance && isUsingAnimation)
+            if (advance && IsUsingAnimation)
             {
                 AdvanceFrame(false);
             }
@@ -160,7 +147,7 @@ namespace XenoKit.Engine.Animation
             {
                 if (PrimaryAnimation.CurrentFrame >= PrimaryAnimation.EndFrame)
                 {
-                    if (SceneManager.Loop && PrimaryAnimation.AutoTerminate)
+                    if (SceneManager.Loop && PrimaryAnimation.AutoTerminate && ((SceneManager.IsPlaying && SceneManager.IsOnTab(EditorTabs.Animation) || !SceneManager.IsOnTab(EditorTabs.Animation))))
                     {
                         PrimaryAnimation.CurrentFrame = PrimaryAnimation.StartFrame;
                     }
@@ -190,7 +177,7 @@ namespace XenoKit.Engine.Animation
         {
             if (PrimaryAnimation != null)
             {
-                if(PrimaryAnimation.CurrentFrame < PrimaryAnimation.EndFrame)
+                if (PrimaryAnimation.CurrentFrame < PrimaryAnimation.EndFrame)
                 {
                     PrimaryAnimation.PreviousFrame = PrimaryAnimation.CurrentFrame;
 
@@ -198,10 +185,10 @@ namespace XenoKit.Engine.Animation
                     float timeScale = (useTimeScale) ? SceneManager.BacTimeScale * PrimaryAnimation.timeScale : 1f;
                     PrimaryAnimation.CurrentFrame += 1f * timeScale;
                 }
-                
+
             }
 
-            for(int i = 0; i < SecondaryAnimations.Count; i++)
+            for (int i = 0; i < SecondaryAnimations.Count; i++)
             {
                 if (SecondaryAnimations[i].CurrentFrame < SecondaryAnimations[i].EndFrame)
                 {
@@ -210,7 +197,7 @@ namespace XenoKit.Engine.Animation
                     float timeScale = (useTimeScale) ? SceneManager.BacTimeScale * SecondaryAnimations[i].timeScale : 1f;
                     SecondaryAnimations[i].CurrentFrame += 1f * timeScale;
                 }
-                
+
             }
         }
 
@@ -227,7 +214,7 @@ namespace XenoKit.Engine.Animation
 
             if (undoAll)
             {
-                character.animatedTransform = Matrix.Identity;
+                Character.animatedTransform = Matrix.Identity;
                 return;
             }
 
@@ -235,7 +222,7 @@ namespace XenoKit.Engine.Animation
             //Undo the positions (as required by flags)
             //Redo the rotation
 
-            var node = PrimaryAnimation.Animation.GetNode("b_C_Base");
+            var node = PrimaryAnimation.Animation.GetNode(ESK_File.BaseBone);
             if (node == null) return;
 
             var pos = node.GetComponent(EAN_AnimationComponent.ComponentType.Position);
@@ -281,13 +268,13 @@ namespace XenoKit.Engine.Animation
                 {
                     transformSum *= (PrimaryAnimation.AnimFlags.HasFlag(AnimationFlags.UseRootMotion)) ? Matrix.CreateTranslation(0, 0, -PosZ) : Matrix.CreateTranslation(0, 0, -(PosZ - firstPosZ));
                 }
-                
+
             }
 
-            character.animatedTransform *= transformSum;
-            character.MergeTransforms();
+            Character.animatedTransform *= transformSum;
+            Character.MergeTransforms();
         }
-        
+
         #endregion
 
         #region Public Methods
@@ -296,12 +283,12 @@ namespace XenoKit.Engine.Animation
         /// </summary>
         public void ClearCurrentAnimation(bool removeSecondary = false, bool undoPosition = false)
         {
-            if (PrimaryAnimation != null && undoPosition)
+            if (PrimaryAnimation != null && undoPosition && Character != null)
                 UndoBasePosition(PrimaryAnimation.CurrentFrame, true);
 
             PrimaryAnimation = null;
 
-            if(removeSecondary)
+            if (removeSecondary)
                 SecondaryAnimations.Clear();
         }
 
@@ -317,16 +304,23 @@ namespace XenoKit.Engine.Animation
         {
             if (_eanFile == null) throw new ArgumentNullException("eanFile");
 
-            if(PrimaryAnimation != null)
-                UndoBasePosition(PrimaryAnimation.CurrentFrame, false);
+            if (_eanFile.AnimationExists(eanIndex))
+            {
+                if (PrimaryAnimation != null && Character != null)
+                    UndoBasePosition(PrimaryAnimation.CurrentFrame, false);
 
-            Matrix[] prevMatrices = (PrimaryAnimation != null) ? (Matrix[])(relativeAnimationTransformMatrices.Clone()) : null;
+                Matrix[] prevMatrices = (PrimaryAnimation != null) ? Skeleton.GetAnimationMatrices() : null;
 
-            PrimaryAnimation = new AnimationInstance(_eanFile, eanIndex, startFrame, endFrame, blendWeight, blendWeightIncrease, prevMatrices, _animFlags, useTransform, timeScale, autoTerminate);
+                PrimaryAnimation = new AnimationInstance(_eanFile, eanIndex, startFrame, endFrame, blendWeight, blendWeightIncrease, prevMatrices, _animFlags, useTransform, timeScale, autoTerminate);
 
-            //Render first frame if not auto playing
-            if (!SceneManager.IsPlaying)
-                UpdateAnimation(PrimaryAnimation);
+                //Render first frame if not auto playing
+                if (!SceneManager.IsPlaying)
+                    UpdateAnimation(PrimaryAnimation);
+            }
+            else
+            {
+                Log.Add($"An animation could not be found at index: {eanIndex}", LogType.Error);
+            }
         }
 
         /// <summary>
@@ -341,44 +335,38 @@ namespace XenoKit.Engine.Animation
         {
             if (_eanFile == null) throw new ArgumentNullException("eanFile");
 
-            Matrix[] prevMatrices = (PrimaryAnimation != null) ? (Matrix[])(relativeAnimationTransformMatrices.Clone()) : null;
+
+            Matrix[] prevMatrices = (PrimaryAnimation != null) ? Skeleton.GetAnimationMatrices() : null;
 
             SecondaryAnimations.Add(new AnimationInstance(_eanFile, eanIndex, startFrame, endFrame, blendWeight, blendWeightIncrease, prevMatrices, 0, true, timeScale, autoTerminate));
         }
-        
+
         #endregion
 
         #region BoneUpdating
-        private void ClearPreviousFrame()
-        {
-            for (int i = 0, nbBones = relativeAnimationTransformMatrices.Length; i < nbBones; i++)  //first clean previous animations:
-                relativeAnimationTransformMatrices[i] = Matrix.Identity;
-        }
-
         private void UpdateAnimation(AnimationInstance animation)
         {
             if (animation.Animation == null) return;
 
-            foreach (var node in animation.Animation.Nodes)
+            for (int i = 0; i < animation.Animation.Nodes.Count; i++)
             {
-                int boneIdx = skeleton.GetBoneIndex(node.BoneName);
-                if (boneIdx == -1)                                                      //If it is -1 then that bone doesn't exist in the character skeleton, so we wont be animating it.
+                var node = animation.Animation.Nodes[i];
+                int boneIdx = Skeleton.GetBoneIndex(node.BoneName);
+                if (boneIdx == -1) //Bone doesn't exist in character ESK, so skip
                     continue;
 
-
-                ESK_Bone bone = animation.eanFile.Skeleton.GetBone(node.BoneName);                        // bone from Ean file, we have to revert the relative Transform before apply animation values (because animations values are for the inside ean file skeleton first)
+                ESK_Bone bone = animation.eanFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
                 ESK_RelativeTransform transform = bone.RelativeTransform;
 
-                Vector3 ean_initialBonePosition = new Vector3(transform.F_00, transform.F_04, transform.F_08) * transform.F_12;
-                Vector3 ean_initialBonePosition_inv = -ean_initialBonePosition;
+                Vector3 ean_initialBonePosition = new Vector3(transform.PositionX, transform.PositionY, transform.PositionZ) * transform.PositionW;
+                Quaternion ean_initialBoneOrientation = new Quaternion(transform.RotationX, transform.RotationY, transform.RotationZ, transform.RotationW);
+                Vector3 ean_initialBoneScale = new Vector3(transform.ScaleX, transform.ScaleY, transform.ScaleZ) * transform.ScaleW;
 
-                Quaternion ean_initialBoneOrientation = new Quaternion(transform.F_16, transform.F_20, transform.F_24, transform.F_28);
-                Quaternion ean_initialBoneOrientation_inv = Quaternion.Inverse(ean_initialBoneOrientation);
-
-                Vector3 ean_initialBoneScale = new Vector3(transform.F_32, transform.F_36, transform.F_40) * transform.F_44;
+                /*
                 Vector3 ean_initialBoneScale_inv = ean_initialBoneScale;
                 if ((!ean_initialBoneScale_inv.Equals(Vector3.Zero)) && (!ean_initialBoneScale_inv.Equals(Vector3.One)))           //test Vector3(1,1,1) to avoid approximations
                     ean_initialBoneScale_inv = new Vector3(1.0f / ean_initialBoneScale_inv.X, 1.0f / ean_initialBoneScale_inv.Y, 1.0f / ean_initialBoneScale_inv.Z);
+                */
 
                 Matrix relativeMatrix_EanBone_inv = Matrix.Identity;
                 relativeMatrix_EanBone_inv *= Matrix.CreateScale(ean_initialBoneScale);
@@ -386,17 +374,22 @@ namespace XenoKit.Engine.Animation
                 relativeMatrix_EanBone_inv *= Matrix.CreateTranslation(ean_initialBonePosition);
                 relativeMatrix_EanBone_inv = Matrix.Invert(relativeMatrix_EanBone_inv);
 
-                if (node.BoneName == "b_C_Base" && animation.useTransform)
+                if (i == animation.b_C_Base_Index && animation.useTransform)
                 {
                     UpdateBasePosition(node, relativeMatrix_EanBone_inv, ean_initialBoneScale, ean_initialBoneOrientation, ean_initialBonePosition);
-                    relativeAnimationTransformMatrices[boneIdx] = Matrix.Identity;
+                    Skeleton.Bones[boneIdx].AnimationMatrix = Matrix.Identity;
                 }
-                else if (node.BoneName == "b_C_Pelvis" && animation.AnimFlags.HasFlag(AnimationFlags.UseRootMotion))
+                else if (i == animation.b_C_Pelvis_Index && animation.AnimFlags.HasFlag(AnimationFlags.UseRootMotion))
                 {
-                    relativeAnimationTransformMatrices[boneIdx] = Matrix.Identity;
+                    Skeleton.Bones[boneIdx].AnimationMatrix = Matrix.Identity;
                 }
                 else
                 {
+                    //Return values for current frame index
+                    int frameIndex_Pos = 0;
+                    int frameIndex_Rot = 0;
+                    int frameIndex_Scale = 0;
+
                     //Read components
 
                     var pos = node.GetComponent(EAN_AnimationComponent.ComponentType.Position);
@@ -405,103 +398,67 @@ namespace XenoKit.Engine.Animation
 
                     Matrix transformAnimation = Matrix.Identity;
 
+                    //Scale:
+                    Vector3 scale_tmp = ean_initialBoneScale;
+
+                    if (scale?.Keyframes.Count > 0)
                     {
-                        Vector3 scale_tmp = ean_initialBoneScale;
+                        float x = scale.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
+                        float y = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
+                        float z = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
+                        float w = scale.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
 
-                        if (scale?.Keyframes.Count > 0)
-                        {
-                            float x = scale.GetKeyframeValue(animation.CurrentFrame, Axis.X);
-                            float y = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Y);
-                            float z = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Z);
-                            float w = scale.GetKeyframeValue(animation.CurrentFrame, Axis.W);
-
-                            scale_tmp = new Vector3(x, y, z) * w;
-                        }
-
-                        transformAnimation *= Matrix.CreateScale(scale_tmp);
+                        scale_tmp = new Vector3(x, y, z) * w;
                     }
 
+                    transformAnimation *= Matrix.CreateScale(scale_tmp);
+
+                    //Rotation:
+                    Quaternion quat_tmp = ean_initialBoneOrientation;
+                    if (rot?.Keyframes.Count > 0)
                     {
-                        Quaternion quat_tmp = ean_initialBoneOrientation;
-                        if (rot?.Keyframes.Count > 0)
-                        {
-                            float x = rot.GetKeyframeValue(animation.CurrentFrame, Axis.X);
-                            float y = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Y);
-                            float z = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Z);
-                            float w = rot.GetKeyframeValue(animation.CurrentFrame, Axis.W);
+                        float x = rot.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
+                        float y = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
+                        float z = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
+                        float w = rot.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
 
-                            quat_tmp = new Quaternion(x, y, z, w);
-                        }
-
-                        transformAnimation *= Matrix.CreateFromQuaternion(quat_tmp);
+                        quat_tmp = new Quaternion(x, y, z, w);
                     }
 
+                    transformAnimation *= Matrix.CreateFromQuaternion(quat_tmp);
+
+                    //Position:
+                    Vector3 pos_tmp = ean_initialBonePosition;
+                    if (pos?.Keyframes.Count > 0)
                     {
-                        Vector3 pos_tmp = ean_initialBonePosition;
-                        if (pos?.Keyframes.Count > 0)
-                        {
-                            float x = pos.GetKeyframeValue(animation.CurrentFrame, Axis.X);
-                            float y = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Y);
-                            float z = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Z);
-                            float w = pos.GetKeyframeValue(animation.CurrentFrame, Axis.W);
+                        float x = pos.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
+                        float y = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
+                        float z = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
+                        float w = pos.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
 
-                            pos_tmp = new Vector3(x, y, z) * w;
-                        }
-
-                        transformAnimation *= Matrix.CreateTranslation(pos_tmp);
+                        pos_tmp = new Vector3(x, y, z) * w;
                     }
 
-                    if (animation.PreviousAnimRelativeMatrices == null || animation.CurrentBlendWeight >= 1f || boneIdx == bcBase)
+                    transformAnimation *= Matrix.CreateTranslation(pos_tmp);
+
+                    //Previous animation blending:
+                    if (animation.PreviousAnimRelativeMatrices == null || animation.CurrentBlendWeight >= 1f || boneIdx == Skeleton.BaseBoneIndex)
                     {
                         //No blending if blendWeight is 1, is on b_C_Base or if no previous matrices data is present
-                        relativeAnimationTransformMatrices[boneIdx] = transformAnimation * relativeMatrix_EanBone_inv;
+                        Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation * relativeMatrix_EanBone_inv;
                     }
                     else
                     {
                         //Enable animation blending with previous animation matrices
-                        relativeAnimationTransformMatrices[boneIdx] = GeneralHelpers.SlerpMatrix(animation.PreviousAnimRelativeMatrices[boneIdx], transformAnimation * relativeMatrix_EanBone_inv, animation.CurrentBlendWeight);
+                        Skeleton.Bones[boneIdx].AnimationMatrix = GeneralHelpers.SlerpMatrix(animation.PreviousAnimRelativeMatrices[boneIdx], transformAnimation * relativeMatrix_EanBone_inv, animation.CurrentBlendWeight);
                     }
+
+                    //Update saved frame index.
+                    animation.CurrentNodeFrameIndex_Pos[i] = frameIndex_Pos;
+                    animation.CurrentNodeFrameIndex_Rot[i] = frameIndex_Rot;
+                    animation.CurrentNodeFrameIndex_Scale[i] = frameIndex_Scale;
                 }
-                
-            }
-        }
-        
-        private void UpdateAbsoluteMatrix(Matrix rootTransform)
-        {
-            int parentBone = -1;
-            for (int i = 0, nbBones = currentAbsoluteMatrices.Length; i < nbBones; i++)
-            {
-                parentBone = i;
-                currentAbsoluteMatrices[i] = Matrix.Identity;
 
-                while (parentBone != -1)
-                {
-                    currentAbsoluteMatrices[i] *= (relativeAnimationTransformMatrices[parentBone] * relativeMatrices[parentBone]);
-                    parentBone = skeleton.SkeletonHierarchy[parentBone];
-                }
-            }
-        }
-        
-        private void UpdateSkinningMatrices()
-        {
-            if (!isUsingAnimation)
-            {
-                for (int i = 0, nb = skinningMatrices.Length; i < nb; i++)
-                {
-                    skinningMatrices[i] = Matrix.Identity;
-
-                    debugBones[i] = skeleton.BoneAbsoluteMatrices[i];
-                }   
-
-            }
-            else
-            {
-                for (int i = 0, nb = skinningMatrices.Length; i < nb; i++)
-                {
-                    skinningMatrices[i] = boneBindPoseMatrices_inv[i] * currentAbsoluteMatrices[i];
-
-                    debugBones[i] = currentAbsoluteMatrices[i];
-                }
             }
         }
 
@@ -510,7 +467,7 @@ namespace XenoKit.Engine.Animation
             //Update character.Transform
             var pos = _base.GetComponent(EAN_AnimationComponent.ComponentType.Position);
             var rot = _base.GetComponent(EAN_AnimationComponent.ComponentType.Rotation);
-            
+
             float firstPosX = 0;
             float firstPosY = 0;
             float firstPosZ = 0;
@@ -552,7 +509,7 @@ namespace XenoKit.Engine.Animation
                 PrevPosW = pos.GetKeyframeValue(PrimaryAnimation.PreviousFrame, Axis.W);
             }
 
-            if(rot != null)
+            if (rot != null)
             {
                 firstRotX = rot.GetKeyframeValue(PrimaryAnimation.StartFrame, Axis.X);
                 firstRotY = rot.GetKeyframeValue(PrimaryAnimation.StartFrame, Axis.Y);
@@ -567,7 +524,7 @@ namespace XenoKit.Engine.Animation
                 PrevRotZ = rot.GetKeyframeValue(PrimaryAnimation.PreviousFrame, Axis.Z);
                 PrevRotW = rot.GetKeyframeValue(PrimaryAnimation.PreviousFrame, Axis.W);
             }
-            
+
             Matrix transformSum = Matrix.Identity;
             //UndoBasePosition(PrimaryAnimation.PreviousFrame, true);
 
@@ -578,8 +535,8 @@ namespace XenoKit.Engine.Animation
                 //Use full b_C_Base position
                 //transformSum *= Matrix.CreateFromQuaternion(new Quaternion(RotX - PrevRotX, RotY - PrevRotY, RotZ - PrevRotZ, RotW - PrevRotW));
                 //transformSum *= Matrix.CreateTranslation(new Vector3(PosX - PrevPosX, PosY - PrevPosY, PosZ - PrevPosZ) * PosW);
-                
-                transformSum *= Matrix.CreateFromQuaternion(new Quaternion(RotX, RotY, RotZ , RotW));
+
+                transformSum *= Matrix.CreateFromQuaternion(new Quaternion(RotX, RotY, RotZ, RotW));
                 transformSum *= Matrix.CreateTranslation(new Vector3(PosX, PosY, PosZ) * PosW);
             }
             else
@@ -602,22 +559,25 @@ namespace XenoKit.Engine.Animation
 
             //character.Transform = ((transformSum * relativeMatrix_EanBone_inv) * boneBindPoseMatrices_inv[bcBase]);
             //character.Transform *= ((transformSum * relativeMatrix_EanBone_inv) * boneBindPoseMatrices_inv[bcBase]);
-            character.animatedTransform = transformSum;
+            Character.animatedTransform = transformSum;
             PrimaryAnimation.hasMoved = true;
         }
         #endregion
 
         #region Helpers
-        
-        public Matrix GetCurrentAbsoluteMatrix(string boneName)
+
+        public void Resume()
         {
-            return currentAbsoluteMatrices[skeleton.GetBoneIndex(boneName)];
+            if (PrimaryCurrentFrame >= PrimaryDuration && PrimaryAnimation != null && SceneManager.IsOnTab(EditorTabs.Animation))
+            {
+                PrimaryAnimation.CurrentFrame_Int = 0;
+            }
         }
-        
+
         public void NextFrame()
         {
             if (PrimaryAnimation == null) return;
-            if(PrimaryAnimation.CurrentFrame_Int < PrimaryAnimation.EndFrame)
+            if (PrimaryAnimation.CurrentFrame_Int < PrimaryAnimation.EndFrame)
             {
                 PrimaryAnimation.PreviousFrame = PrimaryAnimation.CurrentFrame;
                 PrimaryAnimation.CurrentFrame_Int++;
@@ -639,7 +599,7 @@ namespace XenoKit.Engine.Animation
                 PrimaryAnimation.PreviousFrame = PrimaryAnimation.CurrentFrame;
                 PrimaryAnimation.CurrentFrame_Int--;
             }
-            else if(PrimaryAnimation.CurrentFrame_Int <= PrimaryAnimation.StartFrame)
+            else if (PrimaryAnimation.CurrentFrame_Int <= PrimaryAnimation.StartFrame)
             {
                 PrimaryAnimation.PreviousFrame = PrimaryAnimation.CurrentFrame;
                 PrimaryAnimation.CurrentFrame_Int = PrimaryAnimation.EndFrame;
@@ -647,14 +607,13 @@ namespace XenoKit.Engine.Animation
 
             Update(Matrix.Identity);
         }
-        
+
         public void FirstFrame()
         {
             if (PrimaryAnimation?.CurrentFrame > PrimaryAnimation?.StartFrame)
                 PrimaryAnimation.CurrentFrame = PrimaryAnimation.StartFrame;
         }
-        
-        
+
         #endregion
     }
 
@@ -710,6 +669,29 @@ namespace XenoKit.Engine.Animation
             }
         }
 
+        //Optimizations:
+        //Here some animation-state values are saved for use in a later frame, instead of needlessly (and expensively) computing them each frame.
+        /// <summary>
+        /// Per animation node. This is the Keyframe index in the keyframe list (not actual frame)
+        /// </summary>
+        public int[] CurrentNodeFrameIndex_Pos;
+        /// <summary>
+        /// Per animation node. This is the Keyframe index in the keyframe list (not actual frame)
+        /// </summary>
+        public int[] CurrentNodeFrameIndex_Rot;
+        /// <summary>
+        /// Per animation node. This is the Keyframe index in the keyframe list (not actual frame)
+        /// </summary>
+        public int[] CurrentNodeFrameIndex_Scale;
+
+        /// <summary>
+        /// Index of b_C_Base node.
+        /// </summary>
+        public int b_C_Base_Index;
+        /// <summary>
+        /// Index of b_C_Pelvis node.
+        /// </summary>
+        public int b_C_Pelvis_Index;
 
         public AnimationInstance(EAN_File _eanFile, int index, int startFrame = 0, int endFrame = -1, float blendWeight = 1f, float blendWeightIncrease = 0f, Matrix[] previousMatrices = null, AnimationFlags _animFlags = 0, bool _useTransform = true, float timeScale = 1f, bool autoTerminate = false)
         {
@@ -729,11 +711,46 @@ namespace XenoKit.Engine.Animation
             AutoTerminate = autoTerminate;
 
             if (Animation == null)
-                Log.Add($"An animation could be found at index: {index}", LogType.Error);
+                Log.Add($"An animation could not be found at index: {index}", LogType.Error);
 
             if ((EndFrame == -1 || EndFrame == ushort.MaxValue) && Animation != null)
                 EndFrame = Animation.FrameCount - 1;
+
+            AnimationDataChanged();
         }
 
+        public void AnimationDataChanged()
+        {
+            //Set indexes
+            b_C_Base_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.BaseBone));
+            b_C_Pelvis_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.PelvisBone));
+
+            //Nodes:
+            //Always recreate the arrays here as the node count may change
+            CurrentNodeFrameIndex_Pos = new int[Animation.Nodes.Count];
+            CurrentNodeFrameIndex_Rot = new int[Animation.Nodes.Count];
+            CurrentNodeFrameIndex_Scale = new int[Animation.Nodes.Count];
+
+        }
+
+        public void ResetFrameIndex()
+        {
+            //Use loops instead of recreating the arrays
+
+            for (int i = 0; i < CurrentNodeFrameIndex_Pos.Length; i++)
+                CurrentNodeFrameIndex_Pos[i] = 0;
+
+            for (int i = 0; i < CurrentNodeFrameIndex_Rot.Length; i++)
+                CurrentNodeFrameIndex_Rot[i] = 0;
+
+            for (int i = 0; i < CurrentNodeFrameIndex_Scale.Length; i++)
+                CurrentNodeFrameIndex_Scale[i] = 0;
+        }
+
+        public void SkipToFrame(int frame)
+        {
+            PreviousFrame = frame;
+            CurrentFrame = frame;
+        }
     }
 }

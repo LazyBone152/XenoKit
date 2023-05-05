@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCM;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.BDM;
-using Xv2CoreLib.EffectContainer;
 using Xv2CoreLib.EAN;
-using Xv2CoreLib.Resource;
-using System.IO;
 using Xv2CoreLib.CUS;
 using static Xv2CoreLib.CUS.CUS_File;
 using System.ComponentModel;
@@ -28,20 +22,8 @@ using Xv2CoreLib.CMS;
 namespace XenoKit.Editor 
 {
     [Serializable]
-    public class Move : INotifyPropertyChanged
+    public class Move
     {
-        #region NotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-        #endregion
-
         public enum Type
         {
             Skill,
@@ -87,6 +69,7 @@ namespace XenoKit.Editor
         };
 
         //Metadata
+        public Guid MoveGuid = Guid.NewGuid();
         public Type MoveType = Type.Skill;
         public SkillType SkillType = SkillType.Super;
         public int SkillID = 47818;
@@ -137,6 +120,11 @@ namespace XenoKit.Editor
 
         #region Constructors
         public Move() { }
+
+        public Move(Xv2MoveFiles moveFiles) 
+        {
+            Files = moveFiles;
+        }
 
         public Move(Xv2Skill skill, SkillType skillType)
         {
@@ -315,12 +303,12 @@ namespace XenoKit.Editor
             return null;
         }
 
-        //Try Gets
+        //Get Entry:
         /// <summary>
         /// Try to get the specified animation, if it belongs to this Move.
         /// </summary>
         /// <returns></returns>
-        public EAN_Animation TryGetAnimation(BAC_Type0.EanType eanType, ushort eanIndex)
+        public EAN_Animation TryGetAnimation(BAC_Type0.EanTypeEnum eanType, ushort eanIndex)
         {
             if (!BacType0_IsEanTypeSelfReference(MoveType, eanType)) return null;
             var ean = Editor.Files.Instance.GetEanFile(eanType, this, null, false, false);
@@ -364,7 +352,7 @@ namespace XenoKit.Editor
         /// Try to get the specified camera, if it belongs to this Move.
         /// </summary>
         /// <returns></returns>
-        public EAN_Animation TryGetCamera(BAC_Type10.EanType eanType, ushort eanIndex)
+        public EAN_Animation TryGetCamera(BAC_Type10.EanTypeEnum eanType, ushort eanIndex)
         {
             if (!BacType10_IsEanTypeSelfReference(MoveType, eanType)) return null;
             var ean = Editor.Files.Instance.GetCamEanFile(eanType, this, null, false, false);
@@ -394,10 +382,10 @@ namespace XenoKit.Editor
 
 
         //Self Reference Check
-        public static bool BacType0_IsEanTypeSelfReference(Type MoveType, BAC_Type0.EanType eanType)
+        public static bool BacType0_IsEanTypeSelfReference(Type MoveType, BAC_Type0.EanTypeEnum eanType)
         {
-            if (MoveType == Type.Moveset && eanType == BAC_Type0.EanType.Character) return true;
-            if (MoveType == Type.Skill && eanType == BAC_Type0.EanType.Skill) return true;
+            if (MoveType == Type.Moveset && eanType == BAC_Type0.EanTypeEnum.Character) return true;
+            if (MoveType == Type.Skill && eanType == BAC_Type0.EanTypeEnum.Skill) return true;
             //if (MoveType == Type.CMN && eanType == BAC_Type0.EanType.Common) return true;
             return false;
         }
@@ -425,10 +413,10 @@ namespace XenoKit.Editor
             return false;
         }
 
-        public static bool BacType10_IsEanTypeSelfReference(Type MoveType, BAC_Type10.EanType eanType)
+        public static bool BacType10_IsEanTypeSelfReference(Type MoveType, BAC_Type10.EanTypeEnum eanType)
         {
-            if (MoveType == Type.Moveset && eanType == BAC_Type10.EanType.Character) return true;
-            if (MoveType == Type.Skill && eanType == BAC_Type10.EanType.Skill) return true;
+            if (MoveType == Type.Moveset && eanType == BAC_Type10.EanTypeEnum.Character) return true;
+            if (MoveType == Type.Skill && eanType == BAC_Type10.EanTypeEnum.Skill) return true;
             return false;
         }
 

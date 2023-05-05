@@ -11,8 +11,15 @@
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              Dialog:DialogParticipation.Register="{Binding}"
-             d:DesignHeight="500" d:DesignWidth="600">
+             d:DesignHeight="500" d:DesignWidth="600" Name="UserControl">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="accentBrush" Color="{DynamicResource MahApps.Colors.Accent2}"/>
+        <SolidColorBrush x:Key="backgroundBrush" Color="{DynamicResource MahApps.Colors.ThemeBackground}"/>
+    </UserControl.Resources>
     <Grid Controls:ControlsHelper.ContentCharacterCasing="Normal">
+        <Grid.Resources>
+            <lbUtils:BindingProxy x:Key="Proxy" Data="{Binding}" />
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="44"/>
             <RowDefinition Height="1"/>
@@ -38,54 +45,277 @@
         <Grid Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent}"/>
         <Grid Grid.Row="3" Background="{DynamicResource MahApps.Brushes.Accent}"/>
 
-        <DataGrid Grid.Row="2" x:Name="animListBox" MouseDoubleClick="AnimListBox_MouseDoubleClick" SelectedItem="{Binding files.SelectedItem.SelectedAnimation}" ItemsSource="{Binding SelectedItem.File.Animations.Binding, ElementName=filesComboBox}"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectionChanged="AnimListBox_SelectionChanged" Margin="10,3.667,237,9">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Width="Auto" MinWidth="40" Binding="{Binding Index}" IsReadOnly="True" SortMemberPath="SortID"/>
-                <DataGridTextColumn Header="Duration" Width="Auto" MinWidth="50" Binding="{Binding FrameCount}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}" IsReadOnly="True"/>
-            </DataGrid.Columns>
-            <DataGrid.ContextMenu>
-                <ContextMenu FontSize="12">
-                    <MenuItem Header="Play Animation" Command="{Binding PlayAnimationCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="Edit ID" Command="{Binding ChangeAnimIdCommand}"/>
-                    <MenuItem Header="Edit Name" Command="{Binding ChangeAnimNameCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="Remove Keyframes" Command="{Binding RemoveKeyframesCommand}"/>
-                    <MenuItem Header="Rescale" Command="{Binding RescaleAnimationCommand}"/>
-                </ContextMenu>
-            </DataGrid.ContextMenu>
-        </DataGrid>
-
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="50"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="0" Margin="5, 25">
+                <StackPanel VerticalAlignment="Center">
+                    <Button Command="{Binding ElementName=UserControl, Path=NewAnimationCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25">
+                        <iconPacks:PackIconMaterialLight Kind="Plus" />
+                    </Button>
+                    <TextBlock Text="New" HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+                <StackPanel VerticalAlignment="Center">
+                    <Button Command="{Binding ElementName=UserControl, Path=DeleteAnimationsCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25">
+                        <iconPacks:PackIconMaterialLight Kind="Plus" />
+                    </Button>
+                    <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+            </StackPanel>
 
-            <DataGrid Grid.Column="0" x:Name="boneDataGrid" Controls:ControlsHelper.ContentCharacterCasing="Normal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding files.SelectedItem.SelectedAnimation.Nodes.Binding}" SelectedItem="{Binding SelectedBone, UpdateSourceTrigger=PropertyChanged}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="10,5,5,9.667">
+            <DataGrid Grid.Column="1" x:Name="animListBox" MouseDoubleClick="AnimListBox_MouseDoubleClick" SelectedItem="{Binding files.SelectedItem.SelectedAnimation}" ItemsSource="{Binding SelectedItem.File.Animations.Binding, ElementName=filesComboBox}"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectionChanged="AnimListBox_SelectionChanged" Style="{DynamicResource MahApps.Styles.DataGrid.Azure}" Margin="5, 0">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyAnimationCommand}"/>
+                    <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteAnimationCommand}"/>
+                    <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DuplicateAnimationCommand}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteAnimationsCommand}"/>
+                </DataGrid.InputBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Bone" Binding="{Binding BoneName}" IsReadOnly="True" Width="*"/>
-                </DataGrid.Columns>
+                    <DataGridTemplateColumn Header="ID" MinWidth="40" SortMemberPath="SortID">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Index}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <Controls:NumericUpDown Value="{Binding ElementName=UserControl, Path=SelectedAnimationID, UpdateSourceTrigger=LostFocus}" Minimum="0" Maximum="30000" TextAlignment="Left" HideUpDownButtons="True"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Duration" Width="Auto" MinWidth="50" Binding="{Binding FrameCount}" IsReadOnly="True"/>
 
+                    <DataGridTemplateColumn Header="Name" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding ElementName=UserControl, Path=SelectedAnimationName, UpdateSourceTrigger=LostFocus}" VerticalContentAlignment="Center" TextAlignment="Left"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu FontSize="12">
-                        <MenuItem Header="Copy" Command="{Binding CopyBoneCommand}"/>
-                        <MenuItem Header="Paste" Command="{Binding PasteBoneCommand}"/>
-                        <MenuItem Header="Delete" Command="{Binding DeleteBoneCommand}"/>
+                        <MenuItem Header="Play Animation" Command="{Binding PlayAnimationCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Extend Animation" Command="{Binding ExtendAnimationCommand}"/>
+                        <MenuItem Header="Rescale Animation" Command="{Binding RescaleAnimationCommand}"/>
+                        <MenuItem Header="Reverse Animation" Command="{Binding ReverseAnimationCommand}"/>
+                        <MenuItem Header="Remove Keyframe Range" Command="{Binding RemoveKeyframeRangeCommand}"/>
+                        <MenuItem Header="Copy Keyframe Range" Command="{Binding CopyKeyframeRangeCommand}"/>
+                        <MenuItem Header="Paste Keyframe Range" Command="{Binding PasteKeyframeCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Copy" Command="{Binding CopyAnimationCommand}"/>
+                        <MenuItem Header="Paste" Command="{Binding PasteAnimationCommand}"/>
+                        <MenuItem Header="Duplicate" Command="{Binding DuplicateAnimationCommand}"/>
+                        <MenuItem Header="Delete" Command="{Binding DeleteAnimationsCommand}"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
             </DataGrid>
-            <DataGrid Grid.Column="1" x:Name="keyframeDataGrid" Controls:ControlsHelper.ContentCharacterCasing="Normal" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch"  ItemsSource="{Binding CurrentKeyframes}" SelectionChanged="KeyframeDataGrid_SelectionChanged" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="0,5,5,9.667" >
+
+            <Grid Grid.Column="2" IsEnabled="{Binding ElementName=UserControl, Path=KeyframeValuesEnabled}">
+                <StackPanel MaxWidth="335" HorizontalAlignment="Left">
+                    <TextBlock Text="Position" HorizontalAlignment="Center"/>
+                    <Grid Margin="3,10,0,0" Width="338" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="X"/>
+                        <Controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=PosX, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=PosBrush}"/>
+
+                        <Label Grid.Column="2" Content="Y"/>
+                        <Controls:NumericUpDown Grid.Column="3" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=PosY, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=PosBrush}"/>
+
+                        <Label Grid.Column="4" Content="Z"/>
+                        <Controls:NumericUpDown Grid.Column="5" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=PosZ, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=PosBrush}"/>
+
+                        <Label Grid.Column="6" Content="W"/>
+                        <Controls:NumericUpDown Grid.Column="7" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=PosW, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=PosBrush}"/>
+
+                    </Grid>
+                    
+                    <TextBlock Text="Rotation" HorizontalAlignment="Center"/>
+                    <Grid Margin="3,10,0,0" Width="335" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="X"/>
+                        <Controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=RotX, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=RotBrush}"/>
+
+                        <Label Grid.Column="2" Content="Y"/>
+                        <Controls:NumericUpDown Grid.Column="3" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=RotY, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=RotBrush}"/>
+
+                        <Label Grid.Column="4" Content="Z"/>
+                        <Controls:NumericUpDown Grid.Column="5" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=RotZ, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=RotBrush}"/>
+
+                        <Label Grid.Column="6" Content="W"/>
+                        <Controls:NumericUpDown Grid.Column="7" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=RotW, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=RotBrush}"/>
+
+                    </Grid>
+
+                    <TextBlock Text="Scale" HorizontalAlignment="Center"/>
+                    <Grid Margin="3,10,0,0" Width="335" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                            <ColumnDefinition Width="21"/>
+                            <ColumnDefinition Width="62"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="X"/>
+                        <Controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=ScaleX, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=ScaleBrush}"/>
+
+                        <Label Grid.Column="2" Content="Y"/>
+                        <Controls:NumericUpDown Grid.Column="3" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=ScaleY, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=ScaleBrush}"/>
+
+                        <Label Grid.Column="4" Content="Z"/>
+                        <Controls:NumericUpDown Grid.Column="5" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=ScaleZ, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=ScaleBrush}"/>
+
+                        <Label Grid.Column="6" Content="W"/>
+                            <Controls:NumericUpDown Grid.Column="7" StringFormat="0.00" Interval="0.05" Value="{Binding ElementName=UserControl, Path=ScaleW, UpdateSourceTrigger=Default}" HideUpDownButtons="True" TrackMouseWheelWhenMouseOver="True" Background="{Binding ElementName=UserControl, Path=ScaleBrush}"/>
+
+                    </Grid>
+
+
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="4" Margin="0, 2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="3, 3" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center">
+                <TextBlock Text="Components: " ToolTip="Toggle the individual keyframe components. Direct keyframe editing will only occur on the selected components."/>
+                <CheckBox Content="Position" IsChecked="{Binding ElementName=UserControl, Path=PositionComponentEnabled}" Margin="2, 0" ToolTip="Allow editing of the position component of the selected keyframes."/>
+                <CheckBox Content="Rotation" IsChecked="{Binding ElementName=UserControl, Path=RotationComponentEnabled}" Margin="2, 0" ToolTip="Allow editing of the rotation component of the selected keyframes."/>
+                <CheckBox Content="Scale" IsChecked="{Binding ElementName=UserControl, Path=ScaleComponentEnabled}" Margin="2, 0" ToolTip="Allow editing the scale component of the selected keyframes."/>
+            </StackPanel>
+
+            <StackPanel Grid.RowSpan="2" Grid.Column="0" Margin="5, 25">
+                <StackPanel VerticalAlignment="Center">
+                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                        <Button.ContextMenu>
+                            <ContextMenu Opened="Bone_ContextMenu_Opened">
+                                <MenuItem Header="Bones" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AddBones}" Click="AddBone_Click">
+                                    <MenuItem.ItemContainerStyle>
+                                        <Style>
+                                            <Setter Property="MenuItem.Header" Value="{Binding}" />
+                                        </Style>
+                                    </MenuItem.ItemContainerStyle>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                        <iconPacks:PackIconMaterialLight Kind="Plus" />
+                    </Button>
+                    <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+                <StackPanel VerticalAlignment="Center">
+                    <Button Command="{Binding ElementName=UserControl, Path=DeleteBoneCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25">
+                        <iconPacks:PackIconMaterialLight Kind="Delete" />
+                    </Button>
+                    <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+            </StackPanel>
+
+            <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <!-- TODO: Add search feature for bones -->
+                
+                <DataGrid Grid.Row="1" x:Name="boneDataGrid" Controls:ControlsHelper.ContentCharacterCasing="Normal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding files.SelectedItem.SelectedAnimation.Nodes.Binding}" SelectedItem="{Binding SelectedBone, UpdateSourceTrigger=PropertyChanged}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5, 5" SelectionChanged="boneDataGrid_SelectionChanged" >
+                    <DataGrid.InputBindings>
+                        <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBoneCommand}"/>
+                        <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteBoneCommand}"/>
+                        <KeyBinding Key="Delete" Command="{Binding DeleteBoneCommand}"/>
+                    </DataGrid.InputBindings>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Bone" Binding="{Binding BoneName}" IsReadOnly="True" Width="*" SortMemberPath="BoneName"/>
+                    </DataGrid.Columns>
+
+                    <DataGrid.ContextMenu>
+                        <ContextMenu FontSize="12" Opened="Bone_ContextMenu_Opened">
+                            <MenuItem Header="Add Component" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AddBoneComponent}" Click="AddBoneComponent_Click"/>
+                            <MenuItem Header="Remove Component" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.RemoveBoneComponent}" Click="RemoveBoneComponent_Click"/>
+                            <Separator/>
+                            <MenuItem Header="Rebase" Command="{Binding RebaseBoneCommand}"/>
+                            <MenuItem Header="Rescale" Command="{Binding RescaleBoneCommand}"/>
+                            <MenuItem Header="Apply Offset" Command="{Binding ApplyBoneOffsetCommand}"/>
+                            <Separator/>
+                            <MenuItem Header="Copy" Command="{Binding CopyBoneCommand}"/>
+                            <MenuItem Header="Paste" Command="{Binding PasteBoneCommand}"/>
+                            <MenuItem Header="Delete" Command="{Binding DeleteBoneCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+
+            </Grid>
+            
+            <DataGrid Grid.Row="1" Grid.Column="2" x:Name="keyframeDataGrid" Controls:ControlsHelper.ContentCharacterCasing="Normal" HorizontalAlignment="Stretch"  VerticalAlignment="Stretch"  ItemsSource="{Binding CurrentKeyframes}" SelectionChanged="KeyframeDataGrid_SelectionChanged" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5, 5" >
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyKeyframeCommand}"/>
+                    <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteKeyframeCommand}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteKeyframeCommand}"/>
+                </DataGrid.InputBindings>
+                
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Keyframe" Binding="{Binding}" IsReadOnly="True" Width="*"/>
+                    <DataGridTemplateColumn Header="Keyframes" Width="150">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <Controls:NumericUpDown Value="{Binding ElementName=UserControl, Path=SelectedFrameEdit, UpdateSourceTrigger=LostFocus}" TextAlignment="Left"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
 
                 <DataGrid.ContextMenu>
                     <ContextMenu FontSize="12">
+                        <MenuItem Header="Rescale" Command="{Binding RescaleKeyframeCommand}"/>
+                        <MenuItem Header="Rebase" Command="{Binding RebaseKeyframeCommand}"/>
+                        <MenuItem Header="Apply Shake" Command="{Binding ShakeKeyframeCommand}"/>
+                        <Separator/>
                         <MenuItem Header="Copy" Command="{Binding CopyKeyframeCommand}"/>
                         <MenuItem Header="Paste" Command="{Binding PasteKeyframeCommand}"/>
+                        <MenuItem Header="Paste Values" Command="{Binding PasteKeyframeValuesCommand}"/>
                         <MenuItem Header="Delete" Command="{Binding DeleteKeyframeCommand}"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>

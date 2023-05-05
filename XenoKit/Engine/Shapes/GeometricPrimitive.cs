@@ -17,7 +17,7 @@ using XenoKit.Engine.Vertex;
 
 namespace XenoKit.Engine.Shapes
 {
-    public abstract class GeometricPrimitive : IDisposable
+    public abstract class GeometricPrimitive : Entity, IDisposable
     {
         #region Fields
 
@@ -34,6 +34,10 @@ namespace XenoKit.Engine.Shapes
         #endregion
 
         #region Initialization
+        public GeometricPrimitive(GameBase gameBase) : base(gameBase)
+        {
+            GameBase = gameBase;
+        }
 
         protected void AddVertex(Vector3 position, Vector3 normal)
         {
@@ -129,12 +133,10 @@ namespace XenoKit.Engine.Shapes
         /// </summary>
         public void Draw(Effect effect)
         {
-            GraphicsDevice graphicsDevice = effect.GraphicsDevice;
-
             // Set our vertex declaration, vertex buffer, and index buffer.
-            graphicsDevice.SetVertexBuffer(vertexBuffer);
+            GraphicsDevice.SetVertexBuffer(vertexBuffer);
 
-            graphicsDevice.Indices = indexBuffer;
+            GraphicsDevice.Indices = indexBuffer;
 
 
             foreach (EffectPass effectPass in effect.CurrentTechnique.Passes)
@@ -143,7 +145,7 @@ namespace XenoKit.Engine.Shapes
 
                 int primitiveCount = indices.Count / 3;
 
-                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Count, 0, primitiveCount);
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Count, 0, primitiveCount);
 
             }
         }

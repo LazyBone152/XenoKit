@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         mc:Ignorable="d"
-        Title="Settings" Height="300" Width="532.444" WindowStyle="ToolWindow" ShowInTaskbar="False" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Closing="Window_Closing">
+        Title="Settings" Height="300" Width="532.444" WindowStyle="ToolWindow" ShowInTaskbar="False" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Closing="Window_Closing" TitleCharacterCasing="Normal">
     <Window.Resources>
         <ObjectDataProvider x:Key="accents" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -44,7 +44,34 @@
 
                 </Grid>
             </Controls:MetroTabItem>
-            
+            <Controls:MetroTabItem Header="Rendering" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <StackPanel HorizontalAlignment="Left">
+                    <Grid Margin="3,5,0,0" Width="200" ToolTip="Enable or disable rimlighting.">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Rimlight"/>
+                        <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EnableRimlight, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="200" ToolTip="Enable dynamic lighting based on camera position.&#x0a;&#x0a;Very experiential and not game accurate right now!">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Dynamic Lighting*" FontWeight="SemiBold"/>
+                        <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding DynamicLighting, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="200">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Wireframe"/>
+                        <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding WireframeMode, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+                </StackPanel>
+            </Controls:MetroTabItem>
             
             <Controls:MetroTabItem Header="Game Directory" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <Grid Background="Transparent">

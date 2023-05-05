@@ -2,6 +2,7 @@
 using MahApps.Metro.IconPacks;
 using System;
 using System.ComponentModel;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.Engine;
@@ -25,6 +26,14 @@ namespace XenoKit.Controls
         }
 
         public Game MonoGame;
+        private int DelayedSeekFrame = -1;
+        public PackIconMaterialLightKind PlayPauseButtonBinding
+        {
+            get
+            {
+                return SceneManager.IsPlaying ? PackIconMaterialLightKind.Pause : PackIconMaterialLightKind.Play;
+            }
+        }
 
         #region UI Properties
         public string CurrentFramePreview
@@ -34,11 +43,11 @@ namespace XenoKit.Controls
                 switch (SceneManager.CurrentSceneState)
                 {
                     case EditorTabs.Animation:
-                        return (SceneManager.Actors[0] != null) ? $"{SceneManager.Actors[0].animationPlayer.PrimaryCurrentFrame}/{SceneManager.Actors[0].animationPlayer.PrimaryDuration}" : "--/--";
+                        return (SceneManager.Actors[0] != null) ? $"{SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame}/{SceneManager.Actors[0].AnimationPlayer.PrimaryDuration}" : "--/--";
                     case EditorTabs.Camera:
                         return (monoGame.camera.cameraInstance != null) ? $"{(int)MonoGame.camera.cameraInstance.CurrentFrame}/{MonoGame.camera.cameraInstance.CurrentAnimDuration}" : "--/--";
                     case EditorTabs.Action:
-                        return (SceneManager.Actors[0] != null) ? $"{SceneManager.Actors[0].bacPlayer.CurrentFrame}/{SceneManager.Actors[0].bacPlayer.CurrentDuration}" : "--/--";
+                        return (SceneManager.Actors[0] != null) ? $"{SceneManager.Actors[0].ActionControl.BacPlayer.CurrentFrame}/{SceneManager.Actors[0].ActionControl.BacPlayer.CurrentDuration}" : "--/--";
                 }
                 return "--/--";
             }
@@ -50,7 +59,14 @@ namespace XenoKit.Controls
                 switch (SceneManager.CurrentSceneState)
                 {
                     case EditorTabs.Action:
-                        return $"(TimeScale: {(SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale).ToString("0.00####")})";
+                        if (SceneManager.Actors[0].ActionControl.BacPlayer.IsScaled)
+                        {
+                            return $"(TimeScale: {(SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale).ToString("0.00####")} -> {SceneManager.Actors[0].ActionControl.BacPlayer.ScaledDuration})";
+                        }
+                        else
+                        {
+                            return $"(TimeScale: {(SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale).ToString("0.00####")})";
+                        }
                 }
                 return "";
             }
@@ -59,14 +75,16 @@ namespace XenoKit.Controls
         {
             get
             {
-                if (MonoGame.camera == null) return null;
-                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}", 
-                    MonoGame.camera.FieldOfView, 
-                    MonoGame.camera.Roll,
-                    MonoGame.camera.ActualPosition, 
-                    MonoGame.camera.ActualTargetPosition, 
+                if (MonoGame?.camera == null) return null;
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
+                    MonoGame.camera.CameraState.FieldOfView,
+                    MonoGame.camera.CameraState.Roll,
+                    MonoGame.camera.CameraState.ActualPosition,
+                    MonoGame.camera.CameraState.ActualTargetPosition,
                     (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
-                    String.IsNullOrWhiteSpace(SceneManager.CurrentSelectedBoneName) ? "No bone selected" : SceneManager.CurrentSelectedBoneName);
+                    GetSelectedBoneName(),
+                    MonoGame.LightSource.GetLightPosition(),
+                    MonoGame.LightSource.GetLightDirection());
             }
         }
         public int MaxFrameValue
@@ -76,11 +94,11 @@ namespace XenoKit.Controls
                 switch (SceneManager.CurrentSceneState)
                 {
                     case EditorTabs.Animation:
-                        return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].animationPlayer.PrimaryDuration : 0;
+                        return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].AnimationPlayer.PrimaryDuration : 0;
                     case EditorTabs.Camera:
                         return (monoGame.camera.cameraInstance != null) ? MonoGame.camera.cameraInstance.CurrentAnimDuration - 1 : 0;
                     case EditorTabs.Action:
-                        return (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].bacPlayer.CurrentDuration : 0;
+                        return (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].ActionControl.BacPlayer.CurrentDuration : 0;
                     default:
                         return 0;
                 }
@@ -93,11 +111,15 @@ namespace XenoKit.Controls
                 switch (SceneManager.CurrentSceneState)
                 {
                     case EditorTabs.Animation:
-                        return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].animationPlayer.PrimaryCurrentFrame : 0;
+                        return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame : 0;
                     case EditorTabs.Camera:
                         return (monoGame.camera.cameraInstance != null) ? (int)MonoGame.camera.cameraInstance.CurrentFrame : 0;
                     case EditorTabs.Action:
-                        return (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].bacPlayer.CurrentFrame : 0;
+                            if(SceneManager.Actors[0] != null)
+                            {
+                                return DelayedSeekFrame != -1 ? DelayedSeekFrame : SceneManager.Actors[0].ActionControl.BacPlayer.CurrentFrame;
+                            }
+                        return 0;
                     default:
                         return 0;
                 }
@@ -108,8 +130,8 @@ namespace XenoKit.Controls
                 switch (SceneManager.CurrentSceneState)
                 {
                     case EditorTabs.Animation:
-                        if (SceneManager.Actors[0]?.animationPlayer?.PrimaryAnimation != null)
-                            SceneManager.Actors[0].animationPlayer.PrimaryAnimation.CurrentFrame_Int = value;
+                        if (SceneManager.Actors[0]?.AnimationPlayer?.PrimaryAnimation != null)
+                            SceneManager.Actors[0].AnimationPlayer.PrimaryAnimation.CurrentFrame_Int = value;
                         break;
                     case EditorTabs.Camera:
                         if (monoGame.camera.cameraInstance != null)
@@ -119,9 +141,12 @@ namespace XenoKit.Controls
                         }
                         break;
                     case EditorTabs.Action:
-                        //Set in DragComplete event so that Seek calls dont get spammed when dragging
+                        DelayedSeekFrame = SceneManager.IsPlaying ? -1 : value;
                         break;
                 }
+
+                //Consider moving to DragComplete
+                SceneManager.InvokeSeekOccurredEvent();
 
                 if (SceneManager.CurrentSceneState != EditorTabs.Action)
                     NotifyPropertyChanged(nameof(CurrentFrame));
@@ -203,15 +228,63 @@ namespace XenoKit.Controls
                 }
             }
         }
-
-        #endregion
-
-        #region Buttons
-        public PackIconMaterialLightKind PlayPauseButtonBinding
+        public bool HitboxSimulation
         {
             get
             {
-                return SceneManager.IsPlaying ? PackIconMaterialLightKind.Pause : PackIconMaterialLightKind.Play;
+                return SettingsManager.settings.XenoKit_HitboxSimulation;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_HitboxSimulation != value)
+                {
+                    SettingsManager.settings.XenoKit_HitboxSimulation = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
+        public bool ProjectileSimulation
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_ProjectileSimulation;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_ProjectileSimulation != value)
+                {
+                    SettingsManager.settings.XenoKit_ProjectileSimulation = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
+        public bool VfxSimulation
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_VfxSimulation;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_VfxSimulation != value)
+                {
+                    SettingsManager.settings.XenoKit_VfxSimulation = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
+        public bool RenderCharacters
+        {
+            get
+            {
+                return (SceneManager.MainGameInstance != null) ? SceneManager.MainGameInstance.RenderCharacters : true;
+            }
+            set
+            {
+                if (SceneManager.MainGameInstance != null)
+                {
+                    SceneManager.MainGameInstance.RenderCharacters = value;
+                }
             }
         }
 
@@ -224,6 +297,28 @@ namespace XenoKit.Controls
             DataContext = this;
             Game.GameUpdate += new EventHandler(UpdateUI);
             SettingsManager.SettingsReloaded += SettingsManager_SettingsReloaded;
+            SceneManager.DelayedUpdate += DelayedUpdate;
+            SceneManager.EditorTabChanged += SceneManager_EditorTabChanged;
+        }
+
+        private void SceneManager_EditorTabChanged(object sender, EventArgs e)
+        {
+            UpdateOptions();
+        }
+
+        private void DelayedUpdate(object sender, EventArgs e)
+        {
+            if(DelayedSeekFrame != -1 && SceneManager.Actors[0] != null)
+            {
+                switch (SceneManager.CurrentSceneState)
+                {
+                    case EditorTabs.Action:
+                        SceneManager.Actors[0].ActionControl.BacPlayer.Seek(CurrentFrame);
+                        break;
+                }
+
+                DelayedSeekFrame = -1;
+            }
         }
 
         private void SettingsManager_SettingsReloaded(object sender, EventArgs e)
@@ -241,24 +336,60 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(PlayPauseButtonBinding));
         }
 
+        private void UpdateOptions()
+        {
+            cameraCheckBox.Visibility = Visibility.Collapsed;
+            audioCheckBox.Visibility = Visibility.Collapsed;
+            bonesCheckBox.Visibility = Visibility.Collapsed;
+            hitboxCheckBox.Visibility = Visibility.Collapsed;
+            effectCheckBox.Visibility = Visibility.Collapsed;
+
+            if (SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Camera))
+            {
+                cameraCheckBox.Visibility = Visibility.Visible;
+            }
+
+            if (SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Animation, EditorTabs.BCS_Bodies))
+            {
+                bonesCheckBox.Visibility = Visibility.Visible;
+            }
+
+            if (SceneManager.IsOnTab(EditorTabs.Action))
+            {
+                audioCheckBox.Visibility = Visibility.Visible;
+                hitboxCheckBox.Visibility = Visibility.Visible;
+            }
+
+            if (SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Effect))
+            {
+                effectCheckBox.Visibility = Visibility.Visible;
+            }
+        }
+
         public void UpdateSettings()
         {
             NotifyPropertyChanged(nameof(Loop));
             NotifyPropertyChanged(nameof(AutoPlay));
             NotifyPropertyChanged(nameof(UseCameras));
             NotifyPropertyChanged(nameof(ShowVisualSkeleton));
+            NotifyPropertyChanged(nameof(AudioSimulation));
+            NotifyPropertyChanged(nameof(HitboxSimulation));
+            NotifyPropertyChanged(nameof(ProjectileSimulation));
+            NotifyPropertyChanged(nameof(VfxSimulation));
         }
 
         #region Commands
         public RelayCommand SeekNextCommand => new RelayCommand(SeekNextFrame, CanSeek);
         private void SeekNextFrame()
         {
+            SceneManager.InvokeSeekOccurredEvent();
             MonoGame.NextFrame();
         }
 
         public RelayCommand SeekPrevCommand => new RelayCommand(SeekPrevFrame, CanSeek);
         private void SeekPrevFrame()
         {
+            SceneManager.InvokeSeekOccurredEvent();
             MonoGame.PrevFrame();
         }
 
@@ -303,6 +434,26 @@ namespace XenoKit.Controls
                 gameOverlay.Visibility = Visibility.Hidden;
             else
                 gameOverlay.Visibility = Visibility.Visible;
+        }
+
+        private string GetSelectedBoneName()
+        {
+            string boneName = "N/A";
+
+            if(SceneManager.CurrentSceneState == EditorTabs.Animation)
+            {
+                boneName = SceneManager.CurrentSelectedBoneName;
+            }
+            if(SceneManager.CurrentSceneState == EditorTabs.Action)
+            {
+                boneName = BacTab.SelectedIBacBone != null ? BacTab.SelectedIBacBone.BoneLink.ToString() : null;
+            }
+            if (SceneManager.CurrentSceneState == EditorTabs.BCS_Bodies)
+            {
+                boneName = Views.BcsBodyView.CurrentBoneScale != null ? Views.BcsBodyView.CurrentBoneScale.BoneName : null;
+            }
+
+            return string.IsNullOrWhiteSpace(boneName) ? "None selected" : boneName;
         }
     }
 }

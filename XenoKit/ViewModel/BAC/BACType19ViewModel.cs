@@ -22,6 +22,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type19>(nameof(bacType.AuraType), bacType, bacType.AuraType, (AuraType)value, "AuraType"));
                 bacType.AuraType = (AuraType)value;
                 RaisePropertyChanged(() => AuraType);
+                bacType.RefreshType();
             }
         }
         public bool Flag_DisableAura

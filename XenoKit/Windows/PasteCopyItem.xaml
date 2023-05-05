@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:XenoKit.Windows"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        Title="Paste" Height="160" Width="300" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False">
+        Title="Paste" Height="160" Width="300" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" TitleCharacterCasing="Normal" Loaded="MetroWindow_Loaded">
 
     <Grid>
         <StackPanel>
@@ -30,7 +30,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding PasteReferences, UpdateSourceTrigger=PropertyChanged}" Content="Paste References?" ToolTip="Should the references on the data also be copied over?&#x0a;&#x0a;Note: Uncheck this when pasting in the move that you originally copied from or duplicate entries will be created!"/>
+                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding PasteReferences, UpdateSourceTrigger=PropertyChanged}" Content="Paste References?" ToolTip="Should the references (such as animations, effects, cameras...) on the data also be copied over?&#x0a;&#x0a;Automatically unchecked when pasting into the same object that was copied from to prevent duplicates from being created (you would only want to re-enable this if these references have been deleted since the initial copy)."/>
             </Grid>
             <Grid Margin="0,15,0,0">
                 <Grid.ColumnDefinitions>

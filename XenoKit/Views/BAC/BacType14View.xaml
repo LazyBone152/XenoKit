@@ -6,11 +6,11 @@
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:local="clr-namespace:XenoKit.Views.BAC"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType14View}"
+             xmlns:bacDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib" d:DataContext="{d:DesignInstance Type=local:BacType14View}"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
-        <Expander Header="Animation Modification" IsExpanded="True">
+        <Expander Header="Bone Modification" IsExpanded="True">
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
                 <StackPanel Margin="20, 5" Width="200">
                     <CheckBox Content="Head" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType14View}}, Path=BacViewModel.Flag_Head, UpdateSourceTrigger=Default}"/>

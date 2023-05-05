@@ -188,7 +188,7 @@ namespace XenoKit.ViewModel.BAC
 
         private void UpdateBacPlayer()
         {
-            SceneManager.InvokeBacValuesChangedEvent();
+            SceneManager.InvokeBacDataChangedEvent();
         }
 
     }

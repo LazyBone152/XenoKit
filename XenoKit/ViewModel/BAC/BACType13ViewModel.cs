@@ -19,6 +19,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type13>(nameof(bacType.Part), bacType, bacType.Part, (BcsPartId)value, "BcsPartVisibility"));
                 bacType.Part = (BcsPartId)value;
                 RaisePropertyChanged(() => Part);
+                bacType.RefreshType();
             }
         }
         public bool Hidden
@@ -36,6 +37,7 @@ namespace XenoKit.ViewModel.BAC
                     UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type13>(nameof(bacType.Visibility), bacType, bacType.Visibility, visiblity, "BcsPartVisibility"));
                     bacType.Visibility = visiblity;
                     RaisePropertyChanged(() => Hidden);
+                    bacType.RefreshType();
                 }
             }
         }

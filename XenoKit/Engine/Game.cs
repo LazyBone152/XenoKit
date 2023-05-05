@@ -1,151 +1,165 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Framework.WpfInterop;
 using MonoGame.Framework.WpfInterop.Input;
-using System;
+using SpriteFontPlus;
 using XenoKit.Engine.View;
 using XenoKit.Engine.Objects;
 using XenoKit.Engine.Gizmo;
 using XenoKit.Engine.Audio;
+using XenoKit.Engine.Shader;
+using XenoKit.Engine.Vfx;
+using XenoKit.Engine.Text;
+using XenoKit.Editor;
+using XenoKit.Engine.Model;
+using XenoKit.Engine.Vfx.Particle;
 
 namespace XenoKit.Engine
 {
 
-    public class Game : WpfGame
+    public class Game : GameBase
     {
-        private IGraphicsDeviceService _graphicsDeviceManager;
-        public WpfKeyboard _keyboard;
-        public WpfMouse _mouse;
+        public override ICameraBase ActiveCameraBase { get => camera; }
 
-        //Scene Objects:
+        //Objects:
         public Camera camera;
-        public AudioEngine audioEngine;
-        public AnimatorGizmo animGizmo;
+        public AudioEngine AudioEngine;
 
-        //Axis stuff:
-        WorldAxis worldAxis;
-        ObjectAxis worldAxis_b;
-        Grid worldGrid;
+        //Gizmos
+        public GizmoBase CurrentGizmo = null;
+        public AnimatorGizmo AnimatorGizmo;
+        public BoneScaleGizmo BoneScaleGizmo;
+        public BacMatrixGizmo BacMatrixGizmo;
+        public HitboxGizmo BacHitboxGizmo;
 
-        //Scene Settings:
-        public bool loopAnimations = false;
-        public bool loopCameras = false;
-        public Color backgroundColor = Color.Black;
-
-        public SpriteBatch spriteBatch;
+        //Stage. Not final design just a quick hacky way to get stages into the application.
+        public ManualFiles ActiveStage = null;
 
         protected override void Initialize()
-        { 
-            // must be initialized. required by Content loading and rendering (will add itself to the Services)
-            // note that MonoGame requires this to be initialized in the constructor, while WpfInterop requires it to
-            // be called inside Initialize (before base.Initialize())
-            _graphicsDeviceManager = new WpfGraphicsDeviceService(this);
-            spriteBatch = new SpriteBatch(_graphicsDeviceManager.GraphicsDevice);
-
-            // wpf and keyboard need reference to the host control in order to receive input
-            // this means every WpfGame control will have it's own keyboard & mouse manager which will only react if the mouse is in the control
-            _keyboard = new WpfKeyboard(this);
-            _mouse = new WpfMouse(this);
-
-            // must be called after the WpfGraphicsDeviceService instance was created
+        {
+            //Initalize all base elements first
             base.Initialize();
 
             //Set game instace in SceneManager - this is required for most objects to function correctly
-            SceneManager.gameInstance = this;
+            SceneManager.MainGameInstance = this;
+
+            //Required for global samplers, currently. Everything else uses Entity.GraphicsDevice. Will eventually remove entirely
+            SceneManager.GraphicsDeviceRef = GraphicsDevice;
 
             //Now initialize objects
-            animGizmo = new AnimatorGizmo();
-            camera = new Camera(GraphicsDevice, this);
-            audioEngine = new AudioEngine();
+            AnimatorGizmo = new AnimatorGizmo(this);
+            BoneScaleGizmo = new  BoneScaleGizmo(this);
+            BacMatrixGizmo = new BacMatrixGizmo(this);
+            BacHitboxGizmo = new HitboxGizmo(this);
+            CurrentGizmo = AnimatorGizmo;
 
+            camera = new Camera(this);
+            AudioEngine = new AudioEngine();
+            VfxManager = new VfxManager(this);
         }
 
         protected override void LoadContent()
         {
-            worldAxis = new WorldAxis(GraphicsDevice);
-            worldAxis_b = new ObjectAxis(GraphicsDevice);
-            worldGrid = new Grid(GraphicsDevice);
+            AddEntity(new WorldAxis(this), false);
+            AddEntity(new ObjectAxis(true, this), false);
+            AddEntity(new WorldGrid(this), false);
 
             base.LoadContent();
         }
 
         protected override void Update(GameTime time)
         {
-            Input.Update(_mouse, _keyboard);
-            animGizmo.Update(time);
+            base.Update(time);
+            CurrentGizmo.Update();
+            BacHitboxGizmo.Update();
 
-            //Audio
-            audioEngine.Update();
+            AudioEngine.Update();
+            VfxManager.Update();
+
+            //Stage
+            if (ActiveStage != null)
+            {
+                foreach (StageModel model in ActiveStage.StageModels)
+                {
+                    model.Update();
+                }
+            }
 
             //Actors
             for (int i = 0; i < SceneManager.Actors.Length; i++)
             {
-                if(SceneManager.ActorsEnable[i])
-                    UpdateCharacter(i, time);
-            }
-
-            //Entities
-            for (int i = 0; i < SceneManager.Entities.Count; i++)
-            {
-                SceneManager.Entities[i].Update(time);
+                if(SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
+                {
+                    SceneManager.Actors[i].Update();
+                }
             }
             
             //Update camera last - this way it has the lowest priority for mouse click events
-            camera.Update(time, _mouse.GetState(), _keyboard.GetState());
+            camera.Update(time);
+
 
             if (GameUpdate != null)
                 GameUpdate.Invoke(this, null);
 
             SceneManager.Update(time);
+
+            if (particle != null)
+                particle.Update();
+        }
+
+        protected override void DelayedUpdate()
+        {
+            base.DelayedUpdate();
+            CurrentGizmo.DelayedUpdate();
+            BacHitboxGizmo.DelayedUpdate();
+
+
+            for (int i = 0; i < SceneManager.Actors.Length; i++)
+            {
+                if (SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
+                    SceneManager.Actors[i].DelayedUpdate();
+            }
+
+            camera.DelayedUpdate();
         }
 
         protected override void Draw(GameTime time)
         {
-            GraphicsDevice.Clear(backgroundColor);
+            //ShaderManager.Instance.SetAllGlobalSamplers();
+            base.Draw(time);
 
-            DrawWorldAxis();
+            //Stage:
+            if (ActiveStage != null)
+            {
+                foreach(StageModel model in ActiveStage.StageModels)
+                {
+                    model.Draw();
+                }
+            }
 
             //Actors
             for (int i = 0; i < SceneManager.Actors.Length; i++)
             {
-                if (SceneManager.ActorsEnable[i])
-                    DrawCharacter(i);
+                if (SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
+                {
+                    SceneManager.Actors[i].Draw();
+                }
             }
 
-            //Entities
-            for (int i = 0; i < SceneManager.Entities.Count; i++)
-            {
-                SceneManager.Entities[i].Draw(camera);
-            }
+            VfxManager.Draw();
+
+            //Sprite:
+            TextRenderer.Draw();
 
             //Draw last and over everything else
-            animGizmo.Draw();
-        }
+            CurrentGizmo.Draw();
+            BacHitboxGizmo.Draw();
 
-        private void DrawWorldAxis()
-        {
-            if (SceneManager.ShowWorldAxis)
-            {
-                worldAxis.Draw(camera);
-                worldAxis_b.Draw(GraphicsDevice, camera, Matrix.Identity);
-                worldGrid.Draw(camera);
-            }
-        }
-
-        private void UpdateCharacter(int charIndex, GameTime time)
-        {
-            if(SceneManager.Actors[charIndex] != null)
-            {
-                SceneManager.Actors[charIndex].Update(time);
-            }
-        }
-
-        private void DrawCharacter(int charIndex)
-        {
-            if (SceneManager.Actors[charIndex] != null)
-            {
-                SceneManager.Actors[charIndex].Draw(camera);
-            }
+            if (particle != null)
+                particle.Draw();
         }
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)
@@ -163,7 +177,25 @@ namespace XenoKit.Engine
             }
         }
 
-        //UI Interaction
+        public AnimatorGizmo GetAnimatorGizmo()
+        {
+            CurrentGizmo = AnimatorGizmo;
+            return AnimatorGizmo;
+        }
+
+        public BoneScaleGizmo GetBoneScaleGizmo()
+        {
+            CurrentGizmo = BoneScaleGizmo;
+            return BoneScaleGizmo;
+        }
+
+        public BacMatrixGizmo GetBacMatrixGizmo()
+        {
+            CurrentGizmo = BacMatrixGizmo;
+            return BacMatrixGizmo;
+        }
+
+
         #region UiButtons
         public void StartPlayback()
         {
@@ -188,14 +220,14 @@ namespace XenoKit.Engine
             {
                 case EditorTabs.Animation:
                     if (SceneManager.Actors[0] != null)
-                        SceneManager.Actors[0].animationPlayer.PrevFrame();
+                        SceneManager.Actors[0].AnimationPlayer.PrevFrame();
                     break;
                 case EditorTabs.Camera:
                     camera.PrevFrame();
                     break;
                 case EditorTabs.Action:
                     if (SceneManager.Actors[0] != null)
-                        SceneManager.Actors[0].bacPlayer.SeekPrevFrame();
+                        SceneManager.Actors[0].ActionControl.SeekPrevFrame();
                     break;
             }
         }
@@ -206,7 +238,7 @@ namespace XenoKit.Engine
             {
                 case EditorTabs.Animation:
                     if (SceneManager.Actors[0] != null)
-                        SceneManager.Actors[0].animationPlayer.NextFrame();
+                        SceneManager.Actors[0].AnimationPlayer.NextFrame();
                     break;
                 case EditorTabs.Camera:
                     camera.NextFrame();
@@ -214,7 +246,7 @@ namespace XenoKit.Engine
                 case EditorTabs.Action:
                     if (SceneManager.Actors[0] != null)
                     {
-                        SceneManager.Actors[0].bacPlayer.SeekNextFrame();
+                        SceneManager.Actors[0].ActionControl.SeekNextFrame();
                     }
                     break;
             }
@@ -226,6 +258,28 @@ namespace XenoKit.Engine
         public static EventHandler GameUpdate;
 
         #endregion
+
+        Particle particle = null;
+
+        public void TestParticlePlay(Xv2CoreLib.EEPK.Effect effect)
+        {
+            Xv2CoreLib.EMP_NEW.ParticleNode node = null;
+            Xv2CoreLib.EEPK.EffectPart effectPart = null;
+
+            foreach (var asset in effect.EffectParts)
+            {
+                if(asset.AssetRef?.Files[0]?.EmpFile?.ParticleNodes[0].Name == "TEST")
+                {
+                    effectPart = asset;
+                    node = asset.AssetRef?.Files[0]?.EmpFile?.ParticleNodes[0];
+                }
+            }
+
+            if(node != null)
+            {
+                //particle = new Particle(node, effectPart, this);
+            }
+        }
     }
 
 }

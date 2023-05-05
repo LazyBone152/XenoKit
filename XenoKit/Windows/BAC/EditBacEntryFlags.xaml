@@ -1,0 +1,26 @@
+﻿<controls:MetroWindow x:Class="XenoKit.Windows.BAC.EditBacEntryFlags"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:undoRedo="clr-namespace:Xv2CoreLib.Resource.UndoRedo;assembly=Xv2CoreLib"
+        xmlns:local="clr-namespace:XenoKit.Windows.BAC"
+        mc:Ignorable="d"
+        Title="BAC Flags" TitleCharacterCasing="Normal" Height="150" Width="300" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+    <Window.InputBindings>
+        <KeyBinding Key="Z" Modifiers="Ctrl"  Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
+        <KeyBinding Key="Y" Modifiers="Ctrl"  Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
+    </Window.InputBindings>
+    <Grid>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel Margin="20, 10" Width="170">
+                <CheckBox Content="Unk1" IsChecked="{Binding Flag_Unk1}"/>
+                <CheckBox Content="Unk2" IsChecked="{Binding Flag_Unk2}" />
+                <CheckBox Content="Unk3" IsChecked="{Binding Flag_Unk3}" />
+                <CheckBox Content="Unk7" IsChecked="{Binding Flag_Unk7}"/>
+                <CheckBox Content="Empty" IsChecked="{Binding Flag_Unk32}"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</controls:MetroWindow>

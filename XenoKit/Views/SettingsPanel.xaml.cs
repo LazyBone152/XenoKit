@@ -1,18 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Views
@@ -48,7 +36,82 @@ namespace XenoKit.Views
                 }
             }
         }
-
+        public BacTypeSortMode BacTypeSortMode
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_BacTypeSortModeEnum;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_BacTypeSortModeEnum != value)
+                {
+                    SettingsManager.settings.XenoKit_BacTypeSortModeEnum = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
+        public bool RenderBoneNames
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_RenderBoneNames;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_RenderBoneNames != value)
+                {
+                    SettingsManager.settings.XenoKit_RenderBoneNames = value;
+                    SettingsManager.Instance.SaveSettings();
+                    NotifyPropertyChanged(nameof(RenderBoneNames));
+                }
+            }
+        }
+        public bool RenderBoneNamesMouseOver
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_RenderBoneNamesMouseOverOnly;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_RenderBoneNamesMouseOverOnly != value)
+                {
+                    SettingsManager.settings.XenoKit_RenderBoneNamesMouseOverOnly = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
+        public bool AutoResolvePasteReferences
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_AutoResolvePasteReferences;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_AutoResolvePasteReferences != value)
+                {
+                    SettingsManager.settings.XenoKit_AutoResolvePasteReferences = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
+        public bool FocusedBoneView
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_HideLessImportantBones;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_HideLessImportantBones != value)
+                {
+                    SettingsManager.settings.XenoKit_HideLessImportantBones = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
 
         public SettingsPanel()
         {
@@ -60,6 +123,13 @@ namespace XenoKit.Views
         private void SettingsManager_SettingsReloaded(object sender, EventArgs e)
         {
             NotifyPropertyChanged(nameof(HideEmptryBacEntries));
+            NotifyPropertyChanged(nameof(BacTypeSortMode));
+            NotifyPropertyChanged(nameof(RenderBoneNames));
+            NotifyPropertyChanged(nameof(RenderBoneNamesMouseOver));
+            NotifyPropertyChanged(nameof(AutoResolvePasteReferences));
+            NotifyPropertyChanged(nameof(FocusedBoneView));
         }
+    
+    
     }
 }

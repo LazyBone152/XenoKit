@@ -15,12 +15,12 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return bacType.UserBone;
+                return bacType.BoneLink;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type17>(nameof(bacType.UserBone), bacType, bacType.UserBone, value, "ThrowHandler UserBone"));
-                bacType.UserBone = value;
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type17>(nameof(bacType.BoneLink), bacType, bacType.BoneLink, value, "ThrowHandler UserBone"));
+                bacType.BoneLink = value;
                 RaisePropertyChanged(() => UserBone);
             }
         }

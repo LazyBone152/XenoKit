@@ -1,10 +1,13 @@
-﻿using ControlzEx.Theming;
+﻿using AutoUpdater;
+using ControlzEx.Theming;
 using GalaSoft.MvvmLight.CommandWpf;
 using MahApps.Metro;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -81,7 +84,27 @@ namespace XenoKit
 
             if (SettingsManager.Instance.Settings.XenoKit_WindowSizeY > MinHeight && SystemParameters.FullPrimaryScreenHeight >= SettingsManager.Instance.Settings.XenoKit_WindowSizeY)
                 Height = SettingsManager.Instance.Settings.XenoKit_WindowSizeY;
-            
+
+            //Main Tab visibility. It should be invisible when nothing in the outliner is selected.
+            mainTabControl.Visibility = Visibility.Hidden;
+            Files.SelectedItemChanged += Files_SelectedMoveChanged;
+
+            //Update title
+            Title += $" ({SettingsManager.Instance.CurrentVersionString})";
+
+            mainTabControl.SelectedIndex = 1;
+
+            Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            Environment.Exit(0);
+        }
+
+        private void Files_SelectedMoveChanged(object sender, EventArgs e)
+        {
+            mainTabControl.Visibility = Files.Instance.SelectedItem != null ? Visibility.Visible : Visibility.Hidden;
         }
 
         #region Init
@@ -101,6 +124,11 @@ namespace XenoKit
         private async Task AsyncInit()
         {
             Files.Instance.Initialize(this);
+
+            //Check for updates silently
+#if !DEBUG
+            CheckForUpdate(false);
+#endif
         }
 
         private void RegisterEvents()
@@ -170,31 +198,31 @@ namespace XenoKit
         public RelayCommand LoadSuperSkillCommand => new RelayCommand(LoadSuperSkill);
         private void LoadSuperSkill()
         {
-            Files.Instance.LoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Super);
+            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Super);
         }
 
         public RelayCommand LoadUltimateSkillCommand => new RelayCommand(LoadUltimateSkill);
         private void LoadUltimateSkill()
         {
-            Files.Instance.LoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Ultimate);
+            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Ultimate);
         }
 
         public RelayCommand LoadEvasiveSkillCommand => new RelayCommand(LoadEvasiveSkill);
         private void LoadEvasiveSkill()
         {
-            Files.Instance.LoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Evasive);
+            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Evasive);
         }
 
         public RelayCommand LoadBlastSkillCommand => new RelayCommand(LoadBlastSkill);
         private void LoadBlastSkill()
         {
-            Files.Instance.LoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Blast);
+            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Blast);
         }
 
         public RelayCommand LoadAwokenSkillCommand => new RelayCommand(LoadAwokenSkill);
         private void LoadAwokenSkill()
         {
-            Files.Instance.LoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Awoken);
+            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Awoken);
         }
 
         public RelayCommand LoadMovesetCommand => new RelayCommand(LoadMoveset);
@@ -206,7 +234,7 @@ namespace XenoKit
         public RelayCommand LoadCharacterCommand => new RelayCommand(LoadCharacter);
         private void LoadCharacter()
         {
-            Files.Instance.LoadCharacter();
+            Files.Instance.AsyncLoadCharacter();
         }
         #endregion
 
@@ -218,9 +246,12 @@ namespace XenoKit
         }
 
         public RelayCommand SaveAllCommand => new RelayCommand(SaveAll, CanSaveAll);
-        private void SaveAll()
+        private async void SaveAll()
         {
-            Files.Instance.SaveAll();
+            var result = await this.ShowMessageAsync("Save All", "Save all files currently loaded in the outliner (except those marked as \"Read Only\"?", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
+
+            if(result == MessageDialogResult.Affirmative)
+                Files.Instance.SaveAll();
         }
 
         private bool CanSaveAll()
@@ -256,6 +287,106 @@ namespace XenoKit
             }
         }
 
+        public RelayCommand FindReplaceCommand => new RelayCommand(FindReplace);
+        private void FindReplace()
+        {
+            //Check if window is already open, and bring it into focus if it is.
+            foreach (var window in App.Current.Windows)
+            {
+                if (window is FindAndReplace)
+                {
+                    ((FindAndReplace)window).Focus();
+                    return;
+                }
+            }
+
+            //Open a new one
+            FindAndReplace find = new FindAndReplace(this);
+            find.Show();
+        }
+
+        public RelayCommand CheckForUpdatesCommand => new RelayCommand(CheckForUpdates);
+        private async void CheckForUpdates()
+        {
+            CheckForUpdate(true);
+        }
+
+        public RelayCommand GitHubCommand => new RelayCommand(GotoGitHub);
+        private void GotoGitHub()
+        {
+            Process.Start("https://github.com/LazyBone152/XenoKit");
+        }
+
+        private async void CheckForUpdate(bool userInitiated)
+        {
+            //Check for update
+            AppUpdate appUpdate = default;
+
+            await Task.Run(() =>
+            {
+                appUpdate = Update.CheckForUpdate(AutoUpdater.App.XenoKit);
+            });
+
+            await Task.Delay(1000);
+
+            if (Update.UpdateState == UpdateState.XmlDownloadFailed && userInitiated)
+            {
+                await this.ShowMessageAsync("Update Failed", "The AppUpdate XML file failed to download.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                return;
+            }
+
+            if (Update.UpdateState == UpdateState.XmlParseFailed && userInitiated)
+            {
+                await this.ShowMessageAsync("Update Failed", $"The AppUpdate XML file could not be parsed.\n\n{Update.FailedErrorMessage}", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                return;
+            }
+
+            if (!appUpdate.ForceUpdate && !SettingsManager.settings.UpdateNotifications && !userInitiated)
+            {
+                return;
+            }
+
+            if (appUpdate.HasUpdate)
+            {
+                //Update is forced to appear even if notifications are disabled. Only to be used for the most vital updates.
+                bool updateIsForced = appUpdate.ForceUpdate && !SettingsManager.settings.UpdateNotifications;
+
+                var messageResult = await this.ShowMessageAsync(updateIsForced ? "Update Available (Forced)" : "Update Available", $"An update is available ({appUpdate.Version}). Do you want to download and install it?\n\nNote: All instances of the application will be closed and any unsaved work will be lost.\n\nChangelog:\n{appUpdate.Changelog}", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.ScrollDialog);
+
+                if (messageResult == MessageDialogResult.Affirmative)
+                {
+                    var controller = await this.ShowProgressAsync("Update Available", "Downloading...", false, DialogSettings.Default);
+                    controller.SetIndeterminate();
+
+                    try
+                    {
+                        await Task.Run(() =>
+                        {
+                            Update.DownloadUpdate();
+                        });
+                    }
+                    finally
+                    {
+                        await controller.CloseAsync();
+                    }
+
+                    if (Update.UpdateState == UpdateState.DownloadSuccess)
+                    {
+                        Update.UpdateApplication();
+                    }
+                    else if (Update.UpdateState == UpdateState.DownloadFail)
+                    {
+                        await this.ShowMessageAsync("Download Failed", Update.FailedErrorMessage, MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    }
+
+                }
+            }
+            else if (userInitiated)
+            {
+                await this.ShowMessageAsync("Update", $"No update is available.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+            }
+        }
+
         #endregion
 
         #region Exit
@@ -288,7 +419,7 @@ namespace XenoKit
 
         private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            bool changed = SceneManager.SetSceneState(((TabControl)sender).SelectedIndex);
+            bool changed = SceneManager.SetSceneState(mainTabControl.SelectedIndex, bcsTabControl.SelectedIndex, audioControl.audioTabControl.SelectedIndex);
 
             if (!changed) return;
 
@@ -308,6 +439,38 @@ namespace XenoKit
         {
             SettingsManager.Instance.Settings.XenoKit_WindowSizeX = (int)e.NewSize.Width;
             SettingsManager.Instance.Settings.XenoKit_WindowSizeY = (int)e.NewSize.Height;
+        }
+
+        private async void MetroWindow_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] droppedFilePaths = e.Data.GetData(DataFormats.FileDrop, true) as string[];
+
+                if(Path.GetExtension(droppedFilePaths[0]) == ".nsk")
+                {
+                    Files.Instance.ManualLoad(droppedFilePaths);
+                    return;
+                }
+
+                bool error = false;
+                foreach(var drop in droppedFilePaths)
+                {
+                    switch (Path.GetExtension(drop))
+                    {
+                        case ".ean":
+                        case ".acb":
+                        case ".eepk":
+                            Files.Instance.ManualLoad(drop);
+                            break;
+                        default:
+                            if(!error)
+                                await this.ShowMessageAsync("File Drop", $"The filetype of \"{drop}\" is not supported.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                            error = true;
+                            break;
+                    }
+                }
+            }
         }
     }
 }

@@ -17,16 +17,17 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (ushort)bacType.Ean_Type;
+                return (ushort)bacType.EanType;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.Ean_Type), bacType, bacType.Ean_Type, (BAC_Type0.EanType)value, "Animation EanType"));
-                bacType.Ean_Type = (BAC_Type0.EanType)value;
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.EanType), bacType, bacType.EanType, (BAC_Type0.EanTypeEnum)value, "Animation EanType"));
+                bacType.EanType = (BAC_Type0.EanTypeEnum)value;
                 RaisePropertyChanged(() => EanType);
                 RaisePropertyChanged(() => SpecifiedEan);
                 RaisePropertyChanged(() => UseEanList);
                 RaisePropertyChanged(() => EanIndex);
+                bacType.RefreshType();
                 UpdateBacPlayer();
             }
         }
@@ -42,7 +43,7 @@ namespace XenoKit.ViewModel.BAC
                 bacType.EanIndex = value;
                 RaisePropertyChanged(() => EanIndex);
                 UpdateBacPlayer();
-
+                bacType.RefreshType();
             }
         }
         public ushort StartFrame
@@ -305,7 +306,7 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.Unk4, value);
+                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.Unk9, value);
 
                 if (bacType.AnimFlags != flags)
                 {
@@ -447,8 +448,8 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                if ((BAC_Type0.EanType)EanType == BAC_Type0.EanType.Skill && Files.Instance.SelectedMove.MoveType != Move.Type.Skill) return null;
-                return Files.Instance.GetEanFile((BAC_Type0.EanType)EanType, Files.Instance.SelectedMove, SceneManager.Actors[0], false, true);
+                if ((BAC_Type0.EanTypeEnum)EanType == BAC_Type0.EanTypeEnum.Skill && Files.Instance.SelectedMove.MoveType != Move.Type.Skill) return null;
+                return Files.Instance.GetEanFile((BAC_Type0.EanTypeEnum)EanType, Files.Instance.SelectedMove, SceneManager.Actors[0], false, true);
             }
         }
 
@@ -509,7 +510,7 @@ namespace XenoKit.ViewModel.BAC
 
         private void UpdateBacPlayer()
         {
-            SceneManager.InvokeBacValuesChangedEvent();
+            SceneManager.InvokeBacDataChangedEvent();
         }
     }
 }

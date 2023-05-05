@@ -7,7 +7,7 @@
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         mc:Ignorable="d"
-        Title="Set Game Directory" Height="150" Width="450" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" ShowIconOnTitleBar="False" ShowInTaskbar="True">
+        Title="Set Game Directory" Height="150" Width="450" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" ShowIconOnTitleBar="False" ShowInTaskbar="True" TitleCharacterCasing="Normal">
     <Grid>
         <TextBox HorizontalAlignment="Left" Height="23" Margin="21,47,0,0" TextWrapping="NoWrap" Text="{Binding GameDir, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="327"/>
         <Button Click="Button_Browse_Click" Content="Browse" HorizontalAlignment="Left" Margin="353,47,0,0" VerticalAlignment="Top" Width="75" Height="26"/>

@@ -34,6 +34,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type21>(nameof(bacType.EyeDirectionNext), bacType, bacType.EyeDirectionNext, (EyeDirection)value, "EyeDirectionNext"));
                 bacType.EyeDirectionNext = (EyeDirection)value;
                 RaisePropertyChanged(() => EyeDirectionNext);
+                bacType.RefreshType();
             }
         }
         public int EyeRotationFrames

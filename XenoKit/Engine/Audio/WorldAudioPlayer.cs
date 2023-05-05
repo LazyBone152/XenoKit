@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using AudioCueEditor.Audio;
 using Microsoft.Xna.Framework;
@@ -37,12 +38,13 @@ namespace XenoKit.Engine.Audio
         {
             if (wavePlayer == null || CurrentWav == null) return;
 
-            if (_3d_Def)
+            if (_3d_Def && entity != null)
             {
                 //Stupid approximation for now
-                float distance = Vector3.Distance(SceneManager.CameraInstance.Position, entity.Transform.Translation);
+                float distance = Vector3.Distance(SceneManager.MainCamera.CameraState.Position, entity.Transform.Translation);
 
-                if(distance < 1f)
+                //BUG: This sets the devices output volume, which causes the choppy audio with multiple sounds playing
+                if (distance < 1f)
                 {
                     if(wavePlayer.Volume != 1f)
                         wavePlayer.Volume = volume;
@@ -88,6 +90,7 @@ namespace XenoKit.Engine.Audio
 
             //Load wav
             await Task.Run(() => wavePlayer.Init(wav.waveStream));
+            
 
             //Initial volume
             wavePlayer.Volume = volume;
@@ -102,7 +105,7 @@ namespace XenoKit.Engine.Audio
             wavePlayer.Play();
         }
 
-        private void SetLoop(float start, float end)
+        private void SetLoop(uint start, uint end)
         {
             CurrentWav?.waveStream.SetLoop(start, end);
         }

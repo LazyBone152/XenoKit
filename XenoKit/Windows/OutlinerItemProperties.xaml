@@ -6,27 +6,47 @@
         xmlns:local="clr-namespace:XenoKit.Windows"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        Title="Properties" TitleCharacterCasing="Normal" MinHeight="100" MinWidth="150" Height="450" Width="600" ShowInTaskbar="True" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False">
+        Title="File Manager" TitleCharacterCasing="Normal" MinHeight="100" MinWidth="150" Height="450" Width="600" ShowInTaskbar="True" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" x:Name="Window">
     <Grid>
-        <DataGrid x:Name="dataGrid" ItemsSource="{Binding Files}" SelectionMode="Single" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="File" Width="*" Binding="{Binding FileType}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="CharaCode" Width="*" Binding="{Binding Arg0_Wrapper}"/>
-                <DataGridCheckBoxColumn Header="IsEnglish" Width="*" Binding="{Binding IsEnglish}"/>
-                <DataGridTextColumn Header="Path" Width="*" Binding="{Binding PathString}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Shared" Width="*" Binding="{Binding BorrowString}" IsReadOnly="True"/>
-            </DataGrid.Columns>
-            <DataGrid.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Break Share Link" Command="{Binding BreakShareLinkCommand}"/>
-                    <MenuItem Header="Replace" Command="{Binding ReplaceFileCommand}"/>
-                    <MenuItem Header="Delete" Command="{Binding RemoveFileCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="New VOX ACB"/>
-                    <MenuItem Header="New EAN"/>
-                    <MenuItem Header="New CAM.EAN"/>
-                </ContextMenu>
-            </DataGrid.ContextMenu>
-        </DataGrid>
-    </Grid>
+        <Controls:MetroTabControl Controls:TabControlHelper.Underlined="TabItems">
+            <Controls:MetroTabItem Header="Main" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <Grid>
+                    <DataGrid x:Name="dataGrid" ItemsSource="{Binding ElementName=Window, Path=MainFiles}" SelectionMode="Single" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Width="70" Binding="{Binding FileType}" IsReadOnly="True"/>
+                            <DataGridTextColumn x:Name="charaCodeColumn_Main" Header="Chara" Width="60" Binding="{Binding UndoableCharaCode}"/>
+                            <DataGridTextColumn Header="Path" Width="*" Binding="{Binding PathString}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Shared" Width="70" Binding="{Binding BorrowString}" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Break Share Link" Command="{Binding BreakShareLinkCommand}"/>
+                                <MenuItem Header="Replace" Command="{Binding ReplaceFileCommand}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+
+                </Grid>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Audio" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <Grid>
+                    <DataGrid x:Name="audioDataGrid" ItemsSource="{Binding ElementName=Window, Path=AcbFiles}" SelectionMode="Single" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Width="70" Binding="{Binding FileType}" IsReadOnly="True"/>
+                            <DataGridTextColumn x:Name="charaCodeColumn_Audio" Header="Chara" Width="60" Binding="{Binding UndoableCharaCode}"/>
+                            <DataGridTextColumn Header="Details" Width="Auto" Binding="{Binding DisplayName}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Path" Width="*" Binding="{Binding PathString}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Shared" Width="70" Binding="{Binding BorrowString}" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Break Share Link" Command="{Binding AcbBreakShareLinkCommand}"/>
+                                <MenuItem Header="Replace" Command="{Binding AcbReplaceFileCommand}"/>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                </Grid>
+            </Controls:MetroTabItem>
+        </Controls:MetroTabControl>
+        </Grid>
 </Controls:MetroWindow>

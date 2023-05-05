@@ -13,18 +13,18 @@ namespace XenoKit.Engine
     {
 
         //Mouse Picking
-        public static Ray CalculateRay(Vector2 mouseLocation)
+        public static Ray CalculateRay(Vector2 mouseLocation, GameBase gameBase)
         {
-            Vector3 nearPoint = SceneManager.GraphicsDeviceRef.Viewport.Unproject(new Vector3(mouseLocation.X,
+            Vector3 nearPoint = gameBase.GraphicsDevice.Viewport.Unproject(new Vector3(mouseLocation.X,
                     mouseLocation.Y, 0.0f),
-                    SceneManager.ProjectionMatrix,
-                    SceneManager.ViewMatrix,
+                    gameBase.ActiveCameraBase.ProjectionMatrix,
+                    gameBase.ActiveCameraBase.ViewMatrix,
                     Matrix.Identity);
 
-            Vector3 farPoint = SceneManager.GraphicsDeviceRef.Viewport.Unproject(new Vector3(mouseLocation.X,
+            Vector3 farPoint = gameBase.GraphicsDevice.Viewport.Unproject(new Vector3(mouseLocation.X,
                     mouseLocation.Y, 0.5f),
-                    SceneManager.ProjectionMatrix,
-                    SceneManager.ViewMatrix,
+                    gameBase.ActiveCameraBase.ProjectionMatrix,
+                    gameBase.ActiveCameraBase.ViewMatrix,
                     Matrix.Identity);
 
             Vector3 direction = farPoint - nearPoint;
@@ -35,15 +35,15 @@ namespace XenoKit.Engine
             return new Ray(nearPoint, direction);
         }
 
-        public static float? IntersectDistance(BoundingSphere sphere, Vector2 mouseLocation)
+        public static float? IntersectDistance(BoundingSphere sphere, Vector2 mouseLocation, GameBase gameBase)
         {
-            Ray mouseRay = CalculateRay(mouseLocation);
+            Ray mouseRay = CalculateRay(mouseLocation, gameBase);
             return mouseRay.Intersects(sphere);
         }
 
-        public static float? IntersectDistance(BoundingBox box, Vector2 mouseLocation)
+        public static float? IntersectDistance(BoundingBox box, Vector2 mouseLocation, GameBase gameBase)
         {
-            Ray mouseRay = CalculateRay(mouseLocation);
+            Ray mouseRay = CalculateRay(mouseLocation, gameBase);
             return mouseRay.Intersects(box);
         }
 

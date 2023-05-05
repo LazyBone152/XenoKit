@@ -1,0 +1,546 @@
+﻿<UserControl x:Class="XenoKit.Views.BcsPartSetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:XenoKit.Views"
+             xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:bcs="clr-namespace:Xv2CoreLib.BCS;assembly=Xv2CoreLib"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:bcsDir="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib"
+             Dialog:DialogParticipation.Register="{Binding}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="Window">
+    <Grid>
+        <Grid.Resources>
+            <lbUtils:BindingProxy x:Key="Proxy" Data="{Binding}" />
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition MinWidth="200" MaxWidth="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TreeView x:Name="treeView" Grid.Column="0" ItemsSource="{Binding ElementName=Window, Path=BcsFile.PartSets.Binding}" SelectedItemChanged="TreeView_SelectedItemChanged" Loaded="treeView_Loaded" TreeViewItem.Selected="TreeViewItem_Selected">
+            <TreeView.Resources>
+                
+                <HierarchicalDataTemplate DataType="{x:Type bcs:PartSet}" ItemsSource="{Binding Parts.Binding}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding ID, UpdateSourceTrigger=PropertyChanged}" MinWidth="100" Tag="{Binding DataContext, ElementName=Window}">
+
+                        </TextBlock>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu Opened="AddPartType_SubmenuOpened">
+                                <MenuItem Header="Equip" Command="{Binding Source={StaticResource Proxy}, Path=Data.EquipPartSetCommand}"/>
+                                <MenuItem Header="Apply Transformation" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationCommand}"/>
+                                <MenuItem Header="Remove Transformation" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveTransformationCommand}"/>
+                                <MenuItem Header="Force Dyt Change" IsEnabled="{Binding Source={StaticResource Proxy}, Path=Data.IsActorCurrent}">
+                                    <MenuItem Header="None" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="-1"/>
+                                    <MenuItem Header="0" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="0"/>
+                                    <MenuItem Header="2" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="2"/>
+                                    <MenuItem Header="4" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="4"/>
+                                    <MenuItem Header="5" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="5"/>
+                                    <MenuItem Header="8" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="8"/>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="Add Part Set" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddPartSetCommand}"/>
+                                <MenuItem Header="Add Part" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AddPartTypes}" Click="AddPartTypes_Click"/>
+                                <MenuItem Header="Duplicate" Command="{Binding Source={StaticResource Proxy}, Path=Data.DuplicatePartSetCommand}"/>
+                                <MenuItem Header="Delete" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemovePartSetCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Copy" Command="{Binding Source={StaticResource Proxy}, Path=Data.CopyPartSetCommand}"/>
+                                <MenuItem Header="Paste" Command="{Binding Source={StaticResource Proxy}, Path=Data.PastePartSetCommand}"/>
+                                <MenuItem Header="Paste (Part)" Command="{Binding Source={StaticResource Proxy}, Path=Data.PastePartCommand}"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate DataType="{x:Type bcs:Part}" ItemsSource="{Binding MergedList.Binding}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding PartType, UpdateSourceTrigger=PropertyChanged}" MinWidth="100" Tag="{Binding DataContext, ElementName=Window}">
+
+                        </TextBlock>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu Opened="AddPartType_SubmenuOpened">
+                                <MenuItem Header="Add Part" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AddPartTypes}" Click="AddPartTypes_Click"/>
+                                <MenuItem Header="Add Physics Part" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddPhysicsPartCommand}"/>
+                                <MenuItem Header="Add Color Selector" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddColorSelectorCommand}"/>
+                                <MenuItem Header="Delete" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemovePartCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Copy" Command="{Binding Source={StaticResource Proxy}, Path=Data.CopyPartCommand}"/>
+                                <MenuItem Header="Paste" Command="{Binding Source={StaticResource Proxy}, Path=Data.PastePartCommand}"/>
+                                <MenuItem Header="Paste (Physics Part)" Command="{Binding Source={StaticResource Proxy}, Path=Data.PastePhysicsPartCommand}"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate DataType="{x:Type bcs:PhysicsPart}">
+                    <StackPanel>
+                        <TextBlock Text="PhysicsPart" MinWidth="100" Tag="{Binding DataContext, ElementName=Window}">
+
+                        </TextBlock>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Physics Part" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddPhysicsPartCommand}"/>
+                                <MenuItem Header="Add Color Selector" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddColorSelectorCommand}"/>
+                                <MenuItem Header="Duplicate" Command="{Binding Source={StaticResource Proxy}, Path=Data.DuplicatePhysicsPartCommand}"/>
+                                <MenuItem Header="Delete" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemovePhysicsPartCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Copy" Command="{Binding Source={StaticResource Proxy}, Path=Data.CopyPhysicsPartCommand}"/>
+                                <MenuItem Header="Paste" Command="{Binding Source={StaticResource Proxy}, Path=Data.PastePhysicsPartCommand}"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate DataType="{x:Type bcs:ColorSelector}">
+                    <StackPanel>
+                        <TextBlock Text="ColorSelector" MinWidth="100" Tag="{Binding DataContext, ElementName=Window}">
+
+                        </TextBlock>
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Physics Part" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddPhysicsPartCommand}"/>
+                                <MenuItem Header="Add Color Selector" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddColorSelectorCommand}"/>
+                                <MenuItem Header="Delete" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveColorSelectorCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Copy" Command="{Binding Source={StaticResource Proxy}, Path=Data.CopyColorSelectorCommand}"/>
+                                <MenuItem Header="Paste" Command="{Binding Source={StaticResource Proxy}, Path=Data.PasteColorSelectorCommand}"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                
+            </TreeView.Resources>
+
+            <TreeView.InputBindings>
+                <KeyBinding Key="E" Command="{Binding ElementName=Window, Path=EquipPartSetCommand}"/>
+                <KeyBinding Key="T" Command="{Binding ElementName=Window, Path=ApplyTransformationCommand}"/>
+                <KeyBinding Key="R" Command="{Binding ElementName=Window, Path=RemoveTransformationCommand}"/>
+                <KeyBinding Key="OemMinus" Command="{Binding ElementName=Window, Path=ApplyTransformationCommand}" CommandParameter="-1"/>
+                <KeyBinding Key="NumPad0" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="0"/>
+                <KeyBinding Key="NumPad2" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="1"/>
+                <KeyBinding Key="NumPad2" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="2"/>
+                <KeyBinding Key="NumPad3" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="3"/>
+                <KeyBinding Key="NumPad4" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="4"/>
+                <KeyBinding Key="NumPad5" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="5"/>
+                <KeyBinding Key="NumPad6" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="6"/>
+                <KeyBinding Key="NumPad7" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="7"/>
+                <KeyBinding Key="NumPad8" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="8"/>
+                <KeyBinding Key="NumPad9" Command="{Binding ElementName=Window, Path=ApplyTransformationDytCommand}" CommandParameter="9"/>
+                
+                <KeyBinding Key="Delete" Command="{Binding ElementName=Window, Path=RemoveInputCommand}"/>
+                <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding ElementName=Window, Path=CopyInputCommand}"/>
+                <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding ElementName=Window, Path=PasteInputCommand}"/>
+                <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding ElementName=Window, Path=DuplicateInputCommand}"/>
+            </TreeView.InputBindings>
+        </TreeView>
+
+        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding PartSetVisibility, ElementName=Window}">
+            <StackPanel>
+                <Expander Header="Part Set" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
+                    <StackPanel>
+                        <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="ID"/>
+                            <controls:NumericUpDown Grid.Column="1" Minimum="0" Value="{Binding Path=SelectedPartSetID, UpdateSourceTrigger=LostFocus, ElementName=Window}"/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding Path=PartVisibility, ElementName=Window}">
+            <StackPanel>
+                <Expander Header="Model" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
+                    <StackPanel>
+                        <WrapPanel>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Model"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PartViewModel.Model, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Model 2"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PartViewModel.Model2, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Dyt Index"/>
+                                <controls:NumericUpDown Grid.Column="1" Value="{Binding Path=PartViewModel.Texture, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Character Code" ToolTip="The character folder (in data/chara) to use for this part."/>
+                                <TextBox Grid.Column="1" Text="{Binding Path=PartViewModel.CharaCode, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EMD Path" ToolTip="Defines a specific EMD file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emd)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmdFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EmdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EMB Path" ToolTip="Defines a specific EMB file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emb)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmbFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EmbPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EMM Path" ToolTip="Defines a specific EMM file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emm)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmmFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EmmPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EAN Path" ToolTip="Defines a specific FCE.EAN (facial animations) file to be used when this part is equipped, relative to character folder defined in Chara Code. Does NOT include the file extension (.ean)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EanFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EanPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                        </WrapPanel>
+
+                    </StackPanel>
+                </Expander>
+                <Expander Header="Flags" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
+                    <StackPanel>
+                        <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                            <Label Content="Misc Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                            <Separator/>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Unk1"  IsChecked="{Binding Path=PartViewModel.Flag_Unk1, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Use Texture Dyt Path" IsChecked="{Binding Path=PartViewModel.Flag_DytFromTextureEmb, UpdateSourceTrigger=Default, ElementName=Window}" ToolTip="The dyt file will be loaded based on the main EMB file path (Model 2 or EmbPath), rather than the EMD path."/>
+                                    <CheckBox Content="Use Dyt Ramps From Texture EMB" IsChecked="{Binding Path=PartViewModel.Flag_DytRampsFromTextureEmb, UpdateSourceTrigger=Default, ElementName=Window}" ToolTip="Dyt ramps will be loaded from the main (texture) EMB file."/>
+                                    <CheckBox Content="Green Scouter Overlay" IsChecked="{Binding Path=PartViewModel.Flag_GreenScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Red Scouter Overlay"  IsChecked="{Binding Path=PartViewModel.Flag_RedScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Blue Scouter Overlay" IsChecked="{Binding Path=PartViewModel.Flag_BlueScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Purple Scouter Overlay" IsChecked="{Binding Path=PartViewModel.Flag_PurpleScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Unk8" IsChecked="{Binding Path=PartViewModel.Flag_Unk8, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Unk9" IsChecked="{Binding Path=PartViewModel.Flag_Unk9, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Orange Scouter Overlay" IsChecked="{Binding Path=PartViewModel.Flag_OrangeScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                            <Label Content="Hide Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold" ToolTip="Allows another part to be hidden whenever this part is equipped."/>
+                            <Separator/>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="FaceBase"  IsChecked="{Binding Path=PartViewModel.Hide_FaceBase, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Forehead" IsChecked="{Binding Path=PartViewModel.Hide_Forehead, UpdateSourceTrigger=Default, ElementName=Window}" />
+                                    <CheckBox Content="Eyes" IsChecked="{Binding Path=PartViewModel.Hide_Eye, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Nose" IsChecked="{Binding Path=PartViewModel.Hide_Nose, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Ears"  IsChecked="{Binding Path=PartViewModel.Hide_Ear, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Hair" IsChecked="{Binding Path=PartViewModel.Hide_Hair, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Bust" IsChecked="{Binding Path=PartViewModel.Hide_Bust, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Pants" IsChecked="{Binding Path=PartViewModel.Hide_Pants, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Rist" IsChecked="{Binding Path=PartViewModel.Hide_Rist, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Boots" IsChecked="{Binding Path=PartViewModel.Hide_Boots, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                            <Label Content="Hide Mat Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                            <Separator/>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="FaceBase"  IsChecked="{Binding Path=PartViewModel.HideMat_FaceBase, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Forehead" IsChecked="{Binding Path=PartViewModel.HideMat_Forehead, UpdateSourceTrigger=Default, ElementName=Window}" />
+                                    <CheckBox Content="Eyes" IsChecked="{Binding Path=PartViewModel.HideMat_Eye, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Nose" IsChecked="{Binding Path=PartViewModel.HideMat_Nose, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Ears"  IsChecked="{Binding Path=PartViewModel.HideMat_Ear, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Hair" IsChecked="{Binding Path=PartViewModel.HideMat_Hair, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Bust" IsChecked="{Binding Path=PartViewModel.HideMat_Bust, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Pants" IsChecked="{Binding Path=PartViewModel.HideMat_Pants, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Rist" IsChecked="{Binding Path=PartViewModel.HideMat_Rist, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Boots" IsChecked="{Binding Path=PartViewModel.HideMat_Boots, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Expander>
+                <Expander Header="Unknown" IsExpanded="False">
+                    <StackPanel>
+                        <WrapPanel>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Light Dir" ToolTip="Not understoof well, but appears to affect the light vector/dir that the shaders use (?)."/>
+                                <controls:NumericUpDown Grid.Column="1" Value="{Binding Path=PartViewModel.Shader, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_F_36"/>
+                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.1" Value="{Binding Path=PartViewModel.F_36, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_F_40"/>
+                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.1" Value="{Binding Path=PartViewModel.F_40, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_I_44"/>
+                                <controls:NumericUpDown Grid.Column="1" Value="{Binding Path=PartViewModel.I_44, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_I_48"/>
+                                <controls:NumericUpDown Grid.Column="1" Value="{Binding Path=PartViewModel.I_48, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                        </WrapPanel>
+                    </StackPanel>
+                </Expander>
+
+            </StackPanel>
+            
+        </Grid>
+
+        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding PhysicsPartVisibility, ElementName=Window}">
+            <StackPanel>
+                <Expander Header="Model" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
+                    <StackPanel>
+                        <WrapPanel>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Model"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PhysicsPartViewModel.Model, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Model 2"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PhysicsPartViewModel.Model2, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Dyt Index"/>
+                                <controls:NumericUpDown Grid.Column="1" Value="{Binding Path=PhysicsPartViewModel.Texture, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <Grid Margin="3,5,0,0" Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_Character Code" ToolTip="The character folder (in data/chara) to use for this part."/>
+                                <TextBox Grid.Column="1" Text="{Binding Path=PhysicsPartViewModel.CharaCode, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="250">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="SCD Bone" ToolTip="Used by the physics SCD for something (?)&#x0a;&#x0a;Note: Was previously called BoneToAttach and was understood to be the attach bone for the physics part, but that is false. The actual attach point is determined entirely by the skeleton (ESK) and is not affected by this value."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{x:Static bcsDir:BCS.CommonAttachBones}" Text="{Binding Path=PhysicsPartViewModel.Bone, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EMD Path" ToolTip="Defines a specific EMD file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emd)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmdFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EmdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EMB Path" ToolTip="Defines a specific EMB file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emb)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmbFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EmbPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EMM Path" ToolTip="Defines a specific EMM file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emm)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmmFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EmmPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_EAN Path" ToolTip="Defines a specific FCE.EAN (facial animations) file to be used when this part is equipped, relative to character folder defined in Chara Code. Does NOT include the file extension (.ean)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EanFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EanPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                            <Grid Margin="3,5,0,0" Width="300">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Content="_SCD Path" ToolTip="Defines a specific SCD file to be used when this part is equipped, relative to character folder defined in Chara Code. Does NOT include the file extension (.scd)."/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=ScdFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.ScdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                            </Grid>
+                        </WrapPanel>
+
+                    </StackPanel>
+                </Expander>
+                <Expander Header="Flags" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
+                    <StackPanel>
+                        <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                            <Label Content="Misc Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                            <Separator/>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Unk1"  IsChecked="{Binding Path=PhysicsPartViewModel.Flag_Unk1, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Use Texture Dyt Path" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_DytFromTextureEmb, UpdateSourceTrigger=Default, ElementName=Window}" ToolTip="The dyt file will be loaded based on the main EMB file path (Model 2 or EmbPath), rather than the EMD path."/>
+                                    <CheckBox Content="Use Dyt Ramps From Texture EMB" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_DytRampsFromTextureEmb, UpdateSourceTrigger=Default, ElementName=Window}" ToolTip="Dyt ramps will be loaded from the main (texture) EMB file."/>
+                                    <CheckBox Content="Green Scouter Overlay" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_GreenScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Red Scouter Overlay"  IsChecked="{Binding Path=PhysicsPartViewModel.Flag_RedScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Blue Scouter Overlay" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_BlueScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Purple Scouter Overlay" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_PurpleScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Unk8" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_Unk8, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Unk9" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_Unk9, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Orange Scouter Overlay" IsChecked="{Binding Path=PhysicsPartViewModel.Flag_OrangeScouterOverlay, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                            <Label Content="Hide Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold" ToolTip="Allows another part to be hidden whenever this part is equipped."/>
+                            <Separator/>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="FaceBase"  IsChecked="{Binding Path=PhysicsPartViewModel.Hide_FaceBase, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Forehead" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Forehead, UpdateSourceTrigger=Default, ElementName=Window}" />
+                                    <CheckBox Content="Eyes" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Eye, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Nose" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Nose, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Ears"  IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Ear, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Hair" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Hair, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Bust" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Bust, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Pants" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Pants, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Rist" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Rist, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Boots" IsChecked="{Binding Path=PhysicsPartViewModel.Hide_Boots, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                            <Label Content="Hide Mat Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                            <Separator/>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="FaceBase"  IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_FaceBase, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Forehead" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Forehead, UpdateSourceTrigger=Default, ElementName=Window}" />
+                                    <CheckBox Content="Eyes" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Eye, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Nose" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Nose, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Ears"  IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Ear, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                                <StackPanel Margin="20, 5" Width="200">
+                                    <CheckBox Content="Hair" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Hair, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Bust" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Bust, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Pants" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Pants, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Rist" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Rist, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                    <CheckBox Content="Boots" IsChecked="{Binding Path=PhysicsPartViewModel.HideMat_Boots, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+
+        </Grid>
+
+        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding ColorSelectorVisibility, ElementName=Window}">
+            <StackPanel>
+                <Expander Header="Color Selector" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
+                    <StackPanel>
+                        <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Color Group"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=BcsFile.PartColors.Binding}" DisplayMemberPath="Name" SelectedValuePath="ID" SelectedValue="{Binding Path=ColorSelectorViewModel.PartColorGroup, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                        </Grid>
+                        <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="50"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Color Index"/>
+                            <controls:NumericUpDown Grid.Column="1" Minimum="0" MaxHeight="65535" Value="{Binding Path=ColorSelectorViewModel.ColorIndex, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                            <Border Grid.Column="2" Margin="2">
+                                <Button Background="{Binding Path=ColorSelectorViewModel.SelectedColorSelectorPreview.ColorPreview, ElementName=Window}" Width="40" Height="20" Command="{Binding ElementName=Window, Path=GetColorCommand}"/>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+
+        </Grid>
+
+    </Grid>
+</UserControl>

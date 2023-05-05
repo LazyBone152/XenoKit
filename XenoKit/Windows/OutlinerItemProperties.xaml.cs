@@ -17,7 +17,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using XenoKit.Editor;
 using Xv2CoreLib;
+using Xv2CoreLib.ACB;
 using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Windows
@@ -39,77 +41,121 @@ namespace XenoKit.Windows
         }
         #endregion
 
-        Xv2MoveFiles moveFiles;
+        private Xv2MoveFiles moveFiles;
+        private OutlinerItem outlinerItem;
 
-        public ObservableCollection<object> Files { get; set; } = new ObservableCollection<object>();
-        
+        public ObservableCollection<object> MainFiles { get; set; } = new ObservableCollection<object>();
+        public ObservableCollection<Xv2File<ACB_Wrapper>> AcbFiles { get; set; } = new ObservableCollection<Xv2File<ACB_Wrapper>>();
 
-        public OutlinerItemProperties(Xv2MoveFiles moveFiles)
+        public OutlinerItemProperties(OutlinerItem item)
         {
-            this.moveFiles = moveFiles;
+            moveFiles = item.GetMove().Files;
+            outlinerItem = item;
             Owner = Application.Current.MainWindow;
             InitializeComponent();
             DataContext = this;
             InitFiles();
+
+            if(outlinerItem.Type == OutlinerItem.OutlinerItemType.Character)
+            {
+                //Hide charaCode column when item is a character
+                charaCodeColumn_Main.Visibility = Visibility.Collapsed;
+
+                //Hide it on the audio tab only if not a CaC, since the code is used there for the different cac voices
+                if (!(outlinerItem.character.CharacterData.CmsEntry.ID >= 100 && outlinerItem.character.CharacterData.CmsEntry.ID <= 107))
+                {
+                    charaCodeColumn_Audio.Visibility = Visibility.Collapsed;
+                }
+            }
         }
 
         public void InitFiles()
         {
-            Files.Clear();
+            MainFiles.Clear();
             moveFiles.UpdateTypeStrings();
 
-            if(moveFiles.BacFile != null) Files.Add(moveFiles.BacFile);
-            if (moveFiles.BdmFile != null) Files.Add(moveFiles.BdmFile);
-            if (moveFiles.ShotBdmFile != null) Files.Add(moveFiles.ShotBdmFile);
-            if (moveFiles.BsaFile != null) Files.Add(moveFiles.BsaFile);
-            if (moveFiles.EepkFile != null) Files.Add(moveFiles.EepkFile);
-            if (moveFiles.SeAcbFile != null) Files.Add(moveFiles.SeAcbFile);
-            if (moveFiles.BcmFile != null) Files.Add(moveFiles.BcmFile);
+            if(moveFiles.BacFile != null) MainFiles.Add(moveFiles.BacFile);
+            if (moveFiles.BdmFile != null) MainFiles.Add(moveFiles.BdmFile);
+            if (moveFiles.ShotBdmFile != null) MainFiles.Add(moveFiles.ShotBdmFile);
+            if (moveFiles.BsaFile != null) MainFiles.Add(moveFiles.BsaFile);
+            if (moveFiles.EepkFile != null) MainFiles.Add(moveFiles.EepkFile);
+            if (moveFiles.BcmFile != null) MainFiles.Add(moveFiles.BcmFile);
 
             foreach (var file in moveFiles.EanFile)
-                Files.Add(file);
+                MainFiles.Add(file);
 
             foreach (var file in moveFiles.CamEanFile)
-                Files.Add(file);
-            
+                MainFiles.Add(file);
+
+            foreach (var file in moveFiles.SeAcbFile)
+                AcbFiles.Add(file);
+
             foreach (var file in moveFiles.VoxAcbFile)
-                Files.Add(file);
-            
+                AcbFiles.Add(file);
+
         }
 
-        //Commands
-        public RelayCommand BreakShareLinkCommand => new RelayCommand(BreakShareLink);
-        private void BreakShareLink()
+        private void BreakShareLinkBase(object file)
         {
-            if (dataGrid.SelectedItem != null)
+            if (outlinerItem?.character?.CharacterData?.IsCaC == true)
             {
-                var undos = moveFiles.UnborrowFile(dataGrid.SelectedItem);
+                MessageBox.Show("Operation not available for CACs!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-                if(undos.Count > 0)
+            if (file != null)
+            {
+                if(MessageBox.Show("This will create a new unique copy of this file, ensuring that any further edits will not affect its original instance.\n\n(This is only for files that are \"borrowed\" from other skills or characters, does nothing otherwise)", "Break Share Link", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+
+                List<IUndoRedo> undos = moveFiles.UnborrowFile(file);
+
+                if (undos.Count > 0)
                     UndoManager.Instance.AddUndo(new CompositeUndo(undos, "Break Share Link"));
             }
 
         }
 
-        public RelayCommand ReplaceFileCommand => new RelayCommand(ReplaceFile);
-        private void ReplaceFile()
+        private void ReplaceFileBase(object file, bool isAcb)
         {
-
-            if (dataGrid.SelectedItem != null)
+            if (file != null)
             {
                 OpenFileDialog openFile = new OpenFileDialog();
                 openFile.Title = "Replace file...";
-                openFile.Filter = "XV2 File | *.bac; *bcm; *bsa; *bdm; *eepk; *acb; *bas; *ean";
+
+                if (isAcb)
+                {
+                    openFile.Filter = "ACB Files | *acb";
+                }
+                else
+                {
+                    openFile.Filter = "XV2 File | *.bac; *bcm; *bsa; *bdm; *eepk; *bas; *ean";
+                }
 
                 if (openFile.ShowDialog() == true && File.Exists(openFile.FileName))
                 {
 
-                    var undos = moveFiles.ReplaceFile(dataGrid.SelectedItem, openFile.FileName);
+                    var undos = moveFiles.ReplaceFile(file, openFile.FileName);
 
                     if (undos.Count > 0)
                         UndoManager.Instance.AddUndo(new CompositeUndo(undos, "Replace File"));
                 }
             }
+        }
+
+        #region MainCommands
+        public RelayCommand BreakShareLinkCommand => new RelayCommand(BreakShareLink);
+        private void BreakShareLink()
+        {
+            BreakShareLinkBase(dataGrid.SelectedItem);
+        }
+
+        public RelayCommand ReplaceFileCommand => new RelayCommand(ReplaceFile);
+        private void ReplaceFile()
+        {
+            ReplaceFileBase(dataGrid.SelectedItem, false);
         }
 
         public RelayCommand RemoveFileCommand => new RelayCommand(RemoveFile, CanRemoveFile);
@@ -128,6 +174,21 @@ namespace XenoKit.Windows
         {
             return (dataGrid.SelectedItem != null) ? moveFiles.CanRemoveFile(dataGrid.SelectedItem) : false;
         }
+        #endregion
 
+        #region AcbCommands
+        public RelayCommand AcbBreakShareLinkCommand => new RelayCommand(AcbBreakShareLink);
+        private void AcbBreakShareLink()
+        {
+            BreakShareLinkBase(audioDataGrid.SelectedItem);
+        }
+
+        public RelayCommand AcbReplaceFileCommand => new RelayCommand(AcbReplaceFile);
+        private void AcbReplaceFile()
+        {
+            ReplaceFileBase(audioDataGrid.SelectedItem, true);
+        }
+
+        #endregion
     }
 }

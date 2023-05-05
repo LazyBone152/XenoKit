@@ -19,6 +19,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type12>(nameof(bacType.Axis), bacType, bacType.Axis, (TargetingAxis)value, "Targetting Assistance"));
                 bacType.Axis = (TargetingAxis)value;
                 RaisePropertyChanged(() => Axis);
+                bacType.RefreshType();
 
             }
         }

@@ -34,6 +34,7 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type27>(nameof(bacType.SkillType), bacType, bacType.SkillType, (EepkTypeEnum)value, "SkillType"));
                 bacType.SkillType = (EepkTypeEnum)value;
                 RaisePropertyChanged(() => SkillType);
+                bacType.RefreshType();
             }
         }
         public ushort EffectID

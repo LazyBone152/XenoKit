@@ -6,32 +6,35 @@
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:local="clr-namespace:XenoKit.Views.BAC"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:bacDic="clr-namespace:XenoKit.Editor.ValuesDictionary" d:DataContext="{d:DesignInstance Type=local:BacType18View}"
+             xmlns:bacDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib" d:DataContext="{d:DesignInstance Type=local:BacType18View}"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
-        <StackPanel>
+        <Expander Header="Aura" IsExpanded="True">
+            <StackPanel>
 
-            <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Content="Aura Type"/>
-                <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.AuraType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.AuraType}"/>
-            </Grid>
+                <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Aura Type"/>
+                    <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.AuraType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.AuraType}"/>
+                </Grid>
 
-            <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
-                <Label Content="Aura Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
-                <Separator/>
-                <StackPanel Margin="20, 5" Width="200" HorizontalAlignment="Left">
-                    <CheckBox Content="Disable Effect" ToolTip="Disable the aura (if active)." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_DisableAura, UpdateSourceTrigger=Default}"/>
-                    <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk2, UpdateSourceTrigger=Default}"/>
-                    <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
-                    <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}"/>
+                <StackPanel Margin="10, 2" Width="500" MaxWidth="500" HorizontalAlignment="Left">
+                    <Label Content="Aura Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
+                    <Separator/>
+                    <StackPanel Margin="20, 5" Width="200" HorizontalAlignment="Left">
+                        <CheckBox Content="Disable Effect" ToolTip="Disable the aura (if active)." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_DisableAura, UpdateSourceTrigger=Default}"/>
+                        <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk2, UpdateSourceTrigger=Default}"/>
+                        <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
+                        <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}"/>
 
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
-        </StackPanel>
+
+        </Expander>    
     </Grid>
 </UserControl>

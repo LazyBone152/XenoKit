@@ -18,62 +18,63 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.BpeIndex), bacType, bacType.BpeIndex, value, "ScreenEffect BpeID"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.BpeIndex), bacType, bacType.BpeIndex, value, "PostEffect BpeID"));
                 bacType.BpeIndex = value;
                 RaisePropertyChanged(() => BpeID);
+                bacType.RefreshType();
             }
         }
         public BoneLinks Bone
         {
             get
             {
-                return bacType.Bone;
+                return bacType.BoneLink;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.Bone), bacType, bacType.Bone, value, "ScreenEffect Bone"));
-                bacType.Bone = value;
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.BoneLink), bacType, bacType.BoneLink, value, "PostEffect Bone"));
+                bacType.BoneLink = value;
                 RaisePropertyChanged(() => Bone);
             }
         }
 
-        public float F_20
+        public float PositionX
         {
             get
             {
-                return bacType.F_20;
+                return bacType.PositionX;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.F_20), bacType, bacType.F_20, value, "ScreenEffect F_20"));
-                bacType.F_20 = value;
-                RaisePropertyChanged(() => F_20);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.PositionX), bacType, bacType.PositionX, value, "PostEffect F_20"));
+                bacType.PositionX = value;
+                RaisePropertyChanged(() => PositionX);
             }
         }
-        public float F_24
+        public float PositionY
         {
             get
             {
-                return bacType.F_24;
+                return bacType.PositionY;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.F_24), bacType, bacType.F_24, value, "ScreenEffect F_24"));
-                bacType.F_24 = value;
-                RaisePropertyChanged(() => F_24);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.PositionY), bacType, bacType.PositionY, value, "PostEffect F_24"));
+                bacType.PositionY = value;
+                RaisePropertyChanged(() => PositionY);
             }
         }
-        public float F_28
+        public float PositionZ
         {
             get
             {
-                return bacType.F_28;
+                return bacType.PositionZ;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.F_28), bacType, bacType.F_28, value, "ScreenEffect F_28"));
-                bacType.F_28 = value;
-                RaisePropertyChanged(() => F_28);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(bacType.PositionZ), bacType, bacType.PositionZ, value, "PostEffect F_28"));
+                bacType.PositionZ = value;
+                RaisePropertyChanged(() => PositionZ);
             }
         }
 
@@ -152,9 +153,9 @@ namespace XenoKit.ViewModel.BAC
             //Needed for updating properties when undo/redo is called
             RaisePropertyChanged(() => BpeID);
             RaisePropertyChanged(() => Bone);
-            RaisePropertyChanged(() => F_20);
-            RaisePropertyChanged(() => F_24);
-            RaisePropertyChanged(() => F_28);
+            RaisePropertyChanged(() => PositionX);
+            RaisePropertyChanged(() => PositionY);
+            RaisePropertyChanged(() => PositionZ);
             RaisePropertyChanged(() => Flag_Unk1);
             RaisePropertyChanged(() => Flag_Unk4);
             RaisePropertyChanged(() => Flag_Unk5);
@@ -167,7 +168,7 @@ namespace XenoKit.ViewModel.BAC
 
             if (bacType.ScreenEffectFlags != newFlag)
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(BAC_Type16.ScreenEffectFlags), bacType, bacType.ScreenEffectFlags, newFlag, "ScreenEffectFlags"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type16>(nameof(BAC_Type16.ScreenEffectFlags), bacType, bacType.ScreenEffectFlags, newFlag, "PostEffectFlags"));
                 bacType.ScreenEffectFlags = newFlag;
             }
         }
