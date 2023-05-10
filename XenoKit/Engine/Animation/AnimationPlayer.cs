@@ -362,17 +362,18 @@ namespace XenoKit.Engine.Animation
                 Quaternion ean_initialBoneOrientation = new Quaternion(transform.RotationX, transform.RotationY, transform.RotationZ, transform.RotationW);
                 Vector3 ean_initialBoneScale = new Vector3(transform.ScaleX, transform.ScaleY, transform.ScaleZ) * transform.ScaleW;
 
-                /*
-                Vector3 ean_initialBoneScale_inv = ean_initialBoneScale;
-                if ((!ean_initialBoneScale_inv.Equals(Vector3.Zero)) && (!ean_initialBoneScale_inv.Equals(Vector3.One)))           //test Vector3(1,1,1) to avoid approximations
-                    ean_initialBoneScale_inv = new Vector3(1.0f / ean_initialBoneScale_inv.X, 1.0f / ean_initialBoneScale_inv.Y, 1.0f / ean_initialBoneScale_inv.Z);
-                */
+                //Scale animations to fit current actor size
+                if (!animation.eanFile.IsCharaUnique && i == animation.b_C_Pelvis_Index)
+                {
+                    ean_initialBonePosition.Y -= (SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[0] - 1f) / 2f;
+                }
 
                 Matrix relativeMatrix_EanBone_inv = Matrix.Identity;
                 relativeMatrix_EanBone_inv *= Matrix.CreateScale(ean_initialBoneScale);
                 relativeMatrix_EanBone_inv *= Matrix.CreateFromQuaternion(ean_initialBoneOrientation);
                 relativeMatrix_EanBone_inv *= Matrix.CreateTranslation(ean_initialBonePosition);
                 relativeMatrix_EanBone_inv = Matrix.Invert(relativeMatrix_EanBone_inv);
+
 
                 if (i == animation.b_C_Base_Index && animation.useTransform)
                 {

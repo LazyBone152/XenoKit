@@ -50,7 +50,7 @@
                                 <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Position Y (Skill)" ToolTip="Modifies the position of the character during skill usgae.&#x0a;&#x0a;Default value is 1. Higher values increase the b_C_Base position Y-axis, while lower ones decrease it."/>
+                            <Label Content="Position Y (CMN)" ToolTip="Modifies the position of the character during common animations.&#x0a;&#x0a;Default value is 1. Higher values increase the b_C_Base position Y-axis, while lower ones decrease it."/>
                             <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.01" Value="{Binding Path=ViewModel.PositionY_Skill, UpdateSourceTrigger=LostFocus, ElementName=UserControl}"/>
                         </Grid>
                         <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
@@ -66,7 +66,7 @@
                                 <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="_F_56"/>
+                            <Label Content="Tracking Offset"/>
                             <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.01" Value="{Binding Path=ViewModel.F_56, UpdateSourceTrigger=LostFocus, ElementName=UserControl}"/>
                         </Grid>
                     </WrapPanel>
@@ -84,7 +84,7 @@
                                 <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="_F_64"/>
+                            <Label Content="Collision Scale"/>
                             <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.01" Value="{Binding Path=ViewModel.F_64, UpdateSourceTrigger=LostFocus, ElementName=UserControl}"/>
                         </Grid>
                         <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">

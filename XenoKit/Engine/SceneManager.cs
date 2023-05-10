@@ -172,6 +172,13 @@ namespace XenoKit.Engine
                     break;
             }
 
+            //Changing tabs with an active bac entry will put the simulation in a bac state, best to stop it
+            if(prevTab == EditorTabs.Action && IsPlaying)
+            {
+                Stop();
+                IsPlaying = true;
+            }
+
             EditorTabChanged?.Invoke(null, EventArgs.Empty);
 
             //Return false if state hasn't actually changed
@@ -517,20 +524,20 @@ namespace XenoKit.Engine
             IsPlaying = AutoPlay;
         }
 
-        public static void PlayCameraAnimation(EAN_Animation animation, BAC_Type10 bacCamEntry, int targetCharaIndex, bool autoTerminate = true)
+        public static void PlayCameraAnimation(EAN_File eanFile, EAN_Animation animation, BAC_Type10 bacCamEntry, int targetCharaIndex, bool autoTerminate = true)
         {
-            MainGameInstance.camera.PlayCameraAnimation(animation, bacCamEntry, targetCharaIndex, autoTerminate);
+            MainGameInstance.camera.PlayCameraAnimation(eanFile, animation, bacCamEntry, targetCharaIndex, autoTerminate);
         }
 
         /// <summary>
         /// Plays a camera with default settings, focused on Actor[0].
         /// </summary>
         /// <param name="camera"></param>
-        public static void PlayCameraAnimation(EAN_Animation camera)
+        public static void PlayCameraAnimation(EAN_File eanFile, EAN_Animation camera)
         {
             ResetSceneCheck();
             EnsureActorIsSet(0);
-            MainGameInstance.camera.PlayCameraAnimation(camera, null, 0, false, false);
+            MainGameInstance.camera.PlayCameraAnimation(eanFile, camera, null, 0, false, false);
 
             if (AutoPlay)
                 IsPlaying = true;
@@ -550,10 +557,10 @@ namespace XenoKit.Engine
         #endregion
 
         #region CameraControl
-        public static void CameraSelectionChanged(EAN_Animation camera)
+        public static void CameraSelectionChanged(EAN_File eanFile, EAN_Animation camera)
         {
             if(AutoPlay)
-                MainGameInstance.camera.PlayCameraAnimation(camera, null, 0, false);
+                MainGameInstance.camera.PlayCameraAnimation(eanFile, camera, null, 0, false);
         }
         
         public static void CameraChangeCurrentFrame(int frame)

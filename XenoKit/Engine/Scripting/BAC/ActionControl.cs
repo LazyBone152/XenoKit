@@ -11,7 +11,7 @@ namespace XenoKit.Engine.Scripting.BAC
     public enum SimulationType
     {
         ActionPreview, //Action Tab: previewing BAC entries
-        StatePreview, //State Tab: previewing BCM entry execution and input
+        StatePreview, //State Tab: previewing BCM entry execution and input (not implemented)
         None,
     }
 
@@ -77,15 +77,17 @@ namespace XenoKit.Engine.Scripting.BAC
             BacPlayer.PlayBacEntry(bacFile, bacEntry, (user != null) ? user : Character, move);
         }
 
-        #region ActionPreview
+        public bool IsBacEntryActive(BAC_Entry bacEntry)
+        {
+            return BacPlayer.BacEntryInstance?.BacEntry == bacEntry;
+        }
 
         private void SceneManager_BacValuesChanged(object sender, EventArgs e)
         {
             if (SimulationType == SimulationType.ActionPreview)
                 BacPlayer.ResimulateCurrentEntry();
         }
-        #endregion
-
+       
         #region PlaybackControl
         public void Resume () { BacPlayer.Resume(); }
         public void Stop() { BacPlayer.Stop(); }

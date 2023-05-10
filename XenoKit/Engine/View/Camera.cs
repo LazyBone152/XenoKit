@@ -29,7 +29,7 @@ namespace XenoKit.Engine.View
                     cameraInstance.CurrentFrame = value;
             }
         }
-        
+
 
         public Camera(GameBase gameInstance) : base(gameInstance)
         {
@@ -48,13 +48,13 @@ namespace XenoKit.Engine.View
             }
             */
             locked = true;
-            
+
             //Update camera animation only if playing
             if (cameraInstance != null && SceneManager.IsPlaying)
                 UpdateCameraAnimation(SceneManager.IsPlaying);
 
             //Enable manual camera controls (if no anim is playing)
-            if((SceneManager.IsPlaying && cameraInstance == null) || !SceneManager.IsPlaying || !SceneManager.UseCameras)
+            if ((SceneManager.IsPlaying && cameraInstance == null) || !SceneManager.IsPlaying || !SceneManager.UseCameras)
             {
                 BackupCameraState = null;
                 ValidateCamera();
@@ -76,7 +76,7 @@ namespace XenoKit.Engine.View
             locked = true;
             if (cameraInstance != null)
             {
-                if(updateCamAnim)
+                if (updateCamAnim)
                     UpdateCameraAnimation(false);
 
                 if (advance)
@@ -105,7 +105,7 @@ namespace XenoKit.Engine.View
                 {
                     CurrentFrame = cameraInstance.StartFrame;
                 }
-                else if(SceneManager.IsOnTab(EditorTabs.Camera))
+                else if (SceneManager.IsOnTab(EditorTabs.Camera))
                 {
                     SceneManager.Pause();
                 }
@@ -160,7 +160,7 @@ namespace XenoKit.Engine.View
                     CameraState.TargetPosition += bonePos;
                 }
             }
-            
+
             //Redraw last frame if above condition fails. otherwise, bac cameras will break.
 
             //Bac modifers
@@ -170,7 +170,7 @@ namespace XenoKit.Engine.View
                 Vector3 targetPosition = CameraState.ActualTargetPosition;
                 CameraState.ActualPosition += cameraInstance.bacCameraSettings.GetCurrentPosition(position, targetPosition, false);
 
-                if(cameraInstance.bacCameraSettings.CurrentPosZ > 0f)
+                if (cameraInstance.bacCameraSettings.CurrentPosZ > 0f)
                     CameraState.ActualTargetPosition += cameraInstance.bacCameraSettings.GetCurrentPosition(position, targetPosition, true);
                 else
                     CameraState.ActualTargetPosition += cameraInstance.bacCameraSettings.GetCurrentPosition(position, targetPosition, true);
@@ -180,6 +180,13 @@ namespace XenoKit.Engine.View
                 CameraState.ActualPosition += cameraInstance.bacCameraSettings.GetCurrentRotation(CameraState.ActualPosition, CameraState.ActualTargetPosition);
             }
 
+            //Scale animations to fit current actor size
+            if (!cameraInstance.EanFile.IsCharaUnique && SceneManager.Actors[0] != null)
+            {
+                CameraState.Position.Y += SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[1] - 1f;
+                CameraState.TargetPosition.Y += SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[1] - 1f;
+            }
+
             ResetViewerAngles();
 
             if (advance)
@@ -187,7 +194,7 @@ namespace XenoKit.Engine.View
                 AdvanceFrame();
             }
         }
-        
+
         public void ClearCameraAnimation()
         {
             if (!locked)
@@ -200,10 +207,10 @@ namespace XenoKit.Engine.View
 
         private void AdvanceFrame()
         {
-            if(cameraInstance != null)
+            if (cameraInstance != null)
                 cameraInstance.CurrentFrame += SceneManager.MainAnimTimeScale * SceneManager.BacTimeScale;
         }
-        
+
         public void RestoreCameraState(bool removeBackup = true)
         {
             if (BackupCameraState != null)
@@ -211,7 +218,7 @@ namespace XenoKit.Engine.View
                 CameraState.SetState(BackupCameraState);
                 ResetViewerAngles();
 
-                if(removeBackup)
+                if (removeBackup)
                     BackupCameraState = null;
             }
         }
@@ -219,14 +226,14 @@ namespace XenoKit.Engine.View
 
 
         #region PlaybackControl
-        public void PlayCameraAnimation(EAN_Animation camAnim, BAC_Type10 bacCamEntry, int targetCharaIndex, bool autoTerminate, bool alwaysShowFirstFrame = true)
+        public void PlayCameraAnimation(EAN_File eanFile, EAN_Animation camAnim, BAC_Type10 bacCamEntry, int targetCharaIndex, bool autoTerminate, bool alwaysShowFirstFrame = true)
         {
             if (camAnim == null) return;
 
             if (SettingsManager.Instance.Settings.XenoKit_PreserveCameraState && BackupCameraState == null)
                 BackupCameraState = CameraState.Copy();
 
-            cameraInstance = new CameraAnimInstance(camAnim, bacCamEntry, autoTerminate, targetCharaIndex);
+            cameraInstance = new CameraAnimInstance(eanFile, camAnim, bacCamEntry, autoTerminate, targetCharaIndex);
 
             //Render first frame if not auto playing
             if (!SceneManager.IsPlaying && alwaysShowFirstFrame)
@@ -235,7 +242,7 @@ namespace XenoKit.Engine.View
 
         public void Resume()
         {
-            if(cameraInstance?.CurrentFrame >= cameraInstance?.CurrentAnimDuration && SceneManager.IsOnTab(EditorTabs.Camera))
+            if (cameraInstance?.CurrentFrame >= cameraInstance?.CurrentAnimDuration && SceneManager.IsOnTab(EditorTabs.Camera))
             {
                 cameraInstance.CurrentFrame = 0;
             }
@@ -281,7 +288,7 @@ namespace XenoKit.Engine.View
 
         public void SkipToFrame(int frame)
         {
-            if(CurrentFrame != frame)
+            if (CurrentFrame != frame)
             {
                 CurrentFrame = frame;
                 UpdateCameraAnimation(false);

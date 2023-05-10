@@ -42,7 +42,7 @@ namespace XenoKit.Controls
         private BAC_Entry SelectedBacEntry { get { return bacEntryDataGrid.SelectedItem as BAC_Entry; } }
         private IList<BAC_Entry> SelectedBacEntries { get { return bacEntryDataGrid.SelectedItems.Cast<BAC_Entry>().ToList(); } }
         private IBacType SelectedBacType { get { return bacTypeDataGrid.SelectedItem as IBacType; } }
-        private IList<IBacType> SelectedBacTypes { get { return bacTypeDataGrid.SelectedItems.Cast<IBacType>().ToList();  } }
+        private IList<IBacType> SelectedBacTypes { get { return bacTypeDataGrid.SelectedItems.Cast<IBacType>().ToList(); } }
 
         //Selected BacTypes exposed as statics for gizmos to check against
         public static IBacBone SelectedIBacBone { get; private set; }
@@ -304,14 +304,14 @@ namespace XenoKit.Controls
 
         private void ReapplyBacFilter()
         {
-            if (ViewBacTypes != null) 
+            if (ViewBacTypes != null)
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     ViewBacTypes.Filter = new Predicate<object>(BacFilterCheck);
                     NotifyPropertyChanged(nameof(ViewBacTypes));
 
-                    if(bacEntryDataGrid.SelectedItem != null)
+                    if (bacEntryDataGrid.SelectedItem != null)
                         bacEntryDataGrid.ScrollIntoView(bacEntryDataGrid.SelectedItem);
                 }));
             }
@@ -319,7 +319,7 @@ namespace XenoKit.Controls
 
         private bool BacFilterCheck(object bacEntry)
         {
-            if(bacEntry is BAC_Entry entry)
+            if (bacEntry is BAC_Entry entry)
             {
                 return SettingsManager.settings.XenoKit_HideEmptyBacEntries ? !entry.IsIBacEntryEmpty() : true;
             }
@@ -344,7 +344,7 @@ namespace XenoKit.Controls
             get => SelectedBacEntry != null ? SelectedBacEntry.SortID : -1;
             set
             {
-                if(SelectedBacEntry != null && value >= 0)
+                if (SelectedBacEntry != null && value >= 0)
                 {
                     EditBacId(value);
                 }
@@ -358,7 +358,7 @@ namespace XenoKit.Controls
             List<IUndoRedo> undos = new List<IUndoRedo>();
             var existing = Files.Instance.SelectedMove.Files.BacFile.File.BacEntries.FirstOrDefault(a => a.SortID == newId && a != SelectedBacEntry);
 
-            if(existing?.IsIBacEntryEmpty() == true)
+            if (existing?.IsIBacEntryEmpty() == true)
             {
                 //An entry already exists with this ID but it is empty. We can safely remove it and just use the ID
                 undos.Add(new UndoableListRemove<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, existing));
@@ -398,6 +398,23 @@ namespace XenoKit.Controls
 
         #region Commands
         //Bac Entry
+        public RelayCommand PlayBacEntryCommand => new RelayCommand(PlayBacEntry, IsBacEntrySelected);
+        public void PlayBacEntry()
+        {
+            NotifyPropertyChanged(nameof(BacTypeListVisbility));
+            if (bacEntryDataGrid.SelectedItem is BAC_Entry bacEntry)
+            {
+                SceneManager.PlayBacEntry(files.SelectedMove.Files.BacFile.File, bacEntry, files.SelectedMove, 0, true);
+            }
+
+            //Default sorting:
+            bacTypeDataGrid.Items.SortDescriptions.Clear();
+            if (SettingsManager.Instance.Settings.XenoKit_BacTypeSortModeEnum == BacTypeSortMode.StartTime)
+            {
+                bacTypeDataGrid.Items.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Ascending));
+            }
+        }
+
         public RelayCommand AddBacEntryCommand => new RelayCommand(AddBacEntry, IsBacFileLoaded);
         private void AddBacEntry()
         {
@@ -410,16 +427,16 @@ namespace XenoKit.Controls
         private void RemoveBacEntry()
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
-            
-            foreach(var entry in SelectedBacEntries)
+
+            foreach (var entry in SelectedBacEntries)
             {
                 SceneManager.ForceStopBacPlayer();
                 undos.Add(new UndoableListRemove<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, entry));
                 Files.Instance.SelectedMove.Files.BacFile.File.BacEntries.Remove(entry);
             }
-            
+
             UndoManager.Instance.AddUndo(new CompositeUndo(undos, "Bac Entry Remove"));
-         }
+        }
 
         public RelayCommand CopyBacEntryCommand => new RelayCommand(CopyBacEntry, IsBacEntrySelected);
         private void CopyBacEntry()
@@ -458,7 +475,7 @@ namespace XenoKit.Controls
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
-            if(SelectedBacEntry != null)
+            if (SelectedBacEntry != null)
             {
                 EanModiferForm form = new EanModiferForm("Action Rebase");
                 form.StartFrameEnabled = true;
@@ -470,7 +487,7 @@ namespace XenoKit.Controls
                 {
                     foreach (var type in SelectedBacEntry.IBacTypes)
                     {
-                        if(type.StartTime >= form.StartFrame)
+                        if (type.StartTime >= form.StartFrame)
                         {
                             ushort newStartTime = (ushort)(type.StartTime + form.RebaseAmount);
                             undos.Add(new UndoableProperty<IBacType>(nameof(type.StartTime), type, type.StartTime, newStartTime));
@@ -520,7 +537,7 @@ namespace XenoKit.Controls
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
-            foreach(var type in SelectedBacTypes)
+            foreach (var type in SelectedBacTypes)
             {
                 undos.Add(SelectedBacEntry.AddEntry(type.Copy()));
             }
@@ -539,7 +556,7 @@ namespace XenoKit.Controls
         public RelayCommand MoveDownBacTypeCommand => new RelayCommand(MoveDownBacType, IsBacTypeSelected);
         private void MoveDownBacType()
         {
-            if(SelectedBacType != null)
+            if (SelectedBacType != null)
             {
                 int idx = SelectedBacEntry.IBacTypes.IndexOf(SelectedBacType);
 
@@ -570,7 +587,7 @@ namespace XenoKit.Controls
         //Bools
         private bool IsBacFileLoaded()
         {
-            if(Files.Instance.SelectedMove != null)
+            if (Files.Instance.SelectedMove != null)
             {
                 return Files.Instance.SelectedMove.Files.BacFile != null;
             }
@@ -579,17 +596,17 @@ namespace XenoKit.Controls
                 return false;
             }
         }
-        
+
         private bool IsBacEntrySelected()
         {
             return bacEntryDataGrid.SelectedItem is BAC_Entry;
         }
-        
+
         private bool IsBacTypeSelected()
         {
             return bacTypeDataGrid.SelectedItem is IBacType;
         }
-        
+
         private bool CanFocus()
         {
             return bacTypeDataGrid.SelectedItem is IBacType && SceneManager.Actors[0] != null;
@@ -599,7 +616,7 @@ namespace XenoKit.Controls
         {
             return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded();
         }
-        
+
         private bool CanPasteReplaceBacEntries()
         {
             return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded() && IsBacEntrySelected();
@@ -628,14 +645,14 @@ namespace XenoKit.Controls
         {
             if (SceneManager.IsOnTab(EditorTabs.Action) && SelectedIBacBone != null)
             {
-                if(sender is int boneIdx)
+                if (sender is int boneIdx)
                 {
                     string boneName = SceneManager.Actors[0].Skeleton.Bones[boneIdx].Name;
                     BoneLinks boneLink;
 
-                    if(Enum.TryParse(boneName, out boneLink))
+                    if (Enum.TryParse(boneName, out boneLink))
                     {
-                        if(SelectedIBacBone.BoneLink != boneLink)
+                        if (SelectedIBacBone.BoneLink != boneLink)
                         {
                             UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(nameof(IBacBone.BoneLink), SelectedIBacBone, SelectedIBacBone.BoneLink, boneLink, "Bone Link"), UndoGroup.Action, "BoneLink");
                             SelectedIBacBone.BoneLink = boneLink;
@@ -682,7 +699,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(MaximumBacID));
             CreateFilteredList();
 
-            if(files.SelectedItem?.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem?.Type == OutlinerItem.OutlinerItemType.Moveset)
+            if (files.SelectedItem?.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem?.Type == OutlinerItem.OutlinerItemType.Moveset)
             {
                 nameColumn.Visibility = Visibility.Visible;
             }
@@ -694,17 +711,9 @@ namespace XenoKit.Controls
 
         private void BacEntryDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            NotifyPropertyChanged(nameof(BacTypeListVisbility));
-            if (bacEntryDataGrid.SelectedItem is BAC_Entry bacEntry)
+            if (SceneManager.IsOnTab(EditorTabs.Action))
             {
-                SceneManager.PlayBacEntry(files.SelectedMove.Files.BacFile.File, bacEntry, files.SelectedMove, 0, true);
-            }
-
-            //Default sorting:
-            bacTypeDataGrid.Items.SortDescriptions.Clear();
-            if (SettingsManager.Instance.Settings.XenoKit_BacTypeSortModeEnum == BacTypeSortMode.StartTime)
-            {
-                bacTypeDataGrid.Items.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Ascending));
+                PlayBacEntry();
             }
         }
 
@@ -742,7 +751,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(BacType29ViewModel));
             NotifyPropertyChanged(nameof(BacTypeBaseViewModel));
         }
-        
+
         private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             NotifyPropertyChanged(nameof(BacTypeListVisbility));
@@ -757,7 +766,7 @@ namespace XenoKit.Controls
         {
             if (SceneManager.MainGameInstance == null) return;
 
-            if(SelectedBacType is BAC_Type1 hitbox)
+            if (SelectedBacType is BAC_Type1 hitbox)
             {
                 SceneManager.MainGameInstance.BacHitboxGizmo.SetContext(hitbox);
             }
@@ -789,7 +798,7 @@ namespace XenoKit.Controls
 
         private void SetStaticBacTypes()
         {
-            if(SelectedBacType is IBacBone bacBone)
+            if (SelectedBacType is IBacBone bacBone)
             {
                 SelectedIBacBone = bacBone;
             }
@@ -805,6 +814,19 @@ namespace XenoKit.Controls
         {
             bacEntryDataGrid.SelectedItem = entry;
             bacEntryDataGrid.ScrollIntoView(entry);
+        }
+
+        public void AutoPlayBacEntry()
+        {
+            //Auto plays selected bac entry IF its not already active. Used for swapping tabs.
+
+            if(SceneManager.Actors[0] != null)
+            {
+                if (!SceneManager.Actors[0].ActionControl.IsBacEntryActive(SelectedBacEntry))
+                {
+                    PlayBacEntry();
+                }
+            }
         }
     }
 }

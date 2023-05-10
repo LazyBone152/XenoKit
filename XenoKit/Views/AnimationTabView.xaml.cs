@@ -462,8 +462,8 @@ namespace XenoKit.Controls
                 return;
             }
 
-            var eanFile = new Xv2File<EAN_File>(EAN_File.DefaultFile(Xenoverse2.Instance.CmnEan.Skeleton), null, false, result.ToUpper(), false, Xenoverse2.MoveFileTypes.EAN, 0, false);
-            files.SelectedMove.Files.EanFile.Add(eanFile);
+            files.SelectedMove.Files.AddEanFile(EAN_File.DefaultFile(Xenoverse2.Instance.CmnEan.Skeleton), result.ToUpper(), null, false, false, Xenoverse2.MoveType.Skill);
+            var eanFile = files.SelectedMove.Files.EanFile[files.SelectedMove.Files.EanFile.Count - 1];
             files.SelectedItem.SelectedEanFile = eanFile;
 
             UndoManager.Instance.AddUndo(new UndoableListAdd<Xv2File<EAN_File>>(files.SelectedMove.Files.EanFile, eanFile, $"New EAN ({result})"));

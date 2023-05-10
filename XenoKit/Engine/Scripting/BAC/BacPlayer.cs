@@ -180,7 +180,7 @@ namespace XenoKit.Engine.Scripting.BAC
                         var cam = ean.GetAnimation(camera.EanIndex, true);
 
                         if (cam != null)
-                            SceneManager.PlayCameraAnimation(cam, camera, SceneManager.IndexOfCharacter(character, false), true);
+                            SceneManager.PlayCameraAnimation(ean, cam, camera, SceneManager.IndexOfCharacter(character, false), true);
                         else
                             Log.Add(string.Format("BacPlayer: Could not find the camera animation with the ID {0} in the {1} cam.ean.", camera.EanIndex, camera.EanType), LogType.Error);
                     }

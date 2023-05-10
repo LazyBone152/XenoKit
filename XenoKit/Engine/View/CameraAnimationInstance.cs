@@ -13,6 +13,7 @@ namespace XenoKit.Engine.View
         private float _currentFrame = 0;
         public int StartFrame = 0;
         public int EndFrame = 0;
+        public EAN_File EanFile;
         public readonly EAN_Animation Animation;
         public readonly CameraTarget cameraTarget;
         public readonly BacCameraSettings bacCameraSettings;
@@ -39,8 +40,9 @@ namespace XenoKit.Engine.View
             }
         }
 
-        public CameraAnimInstance(EAN_Animation anim, BAC_Type10 bacCamEntry, bool autoTerminate, int targetCharacterIndex)
+        public CameraAnimInstance(EAN_File eanFile, EAN_Animation anim, BAC_Type10 bacCamEntry, bool autoTerminate, int targetCharacterIndex)
         {
+            EanFile = eanFile;
             AutoTerminate = autoTerminate;
             Animation = anim;
             StartFrame = (bacCamEntry != null) ? bacCamEntry.StartFrame : 0;

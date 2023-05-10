@@ -421,11 +421,17 @@ namespace XenoKit
         {
             bool changed = SceneManager.SetSceneState(mainTabControl.SelectedIndex, bcsTabControl.SelectedIndex, audioControl.audioTabControl.SelectedIndex);
 
+            //Auto play bac entry if nothing is active
+            if (SceneManager.CurrentSceneState == EditorTabs.Action)
+            {
+                bacControlView.AutoPlayBacEntry();
+            }
+
             if (!changed) return;
 
             if(SceneManager.CurrentSceneState == EditorTabs.Camera)
             {
-                SceneManager.CameraSelectionChanged(cameraTabView.SelectedAnimation);
+                SceneManager.CameraSelectionChanged(cameraTabView.SelectedEanFile, cameraTabView.SelectedAnimation);
             }
         }
 

@@ -393,8 +393,8 @@ namespace XenoKit.Controls
                 return;
             }
 
-            var eanFile = new Xv2File<EAN_File>(EAN_File.DefaultCamFile(), null, false, result.ToUpper(), false, Xenoverse2.MoveFileTypes.CAM_EAN, 0, false);
-            files.SelectedMove.Files.CamEanFile.Add(eanFile);
+            files.SelectedMove.Files.AddCamEanFile(EAN_File.DefaultCamFile(), result.ToUpper(), null, false, false, Xenoverse2.MoveType.Skill);
+            var eanFile = files.SelectedMove.Files.CamEanFile[files.SelectedMove.Files.CamEanFile.Count - 1];
             files.SelectedItem.SelectedCamFile = eanFile;
 
             UndoManager.Instance.AddUndo(new UndoableListAdd<Xv2File<EAN_File>>(files.SelectedMove.Files.CamEanFile, eanFile, $"New CAM.EAN ({result})"));
@@ -988,7 +988,7 @@ namespace XenoKit.Controls
 
         private void AnimListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SceneManager.PlayCameraAnimation(SelectedAnimation);
+            SceneManager.PlayCameraAnimation(SelectedEanFile, SelectedAnimation);
             UpdateProperties();
         }
 

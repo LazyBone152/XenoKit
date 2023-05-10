@@ -214,8 +214,9 @@
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Add" Command="{Binding AddBacEntryCommand}"/>
+                    <MenuItem Header="Play" Command="{Binding PlayBacEntryCommand}"/>
                     <Separator/>
+                    <MenuItem Header="Add" Command="{Binding AddBacEntryCommand}"/>
                     <MenuItem Header="Copy" Command="{Binding CopyBacEntryCommand}"/>
                     <MenuItem Header="Paste (New)" Command="{Binding PasteBacEntryCommand}"/>
                     <MenuItem Header="Paste (Replace)" Command="{Binding PasteReplaceBacEntryCommand}"/>

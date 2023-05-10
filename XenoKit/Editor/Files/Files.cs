@@ -587,7 +587,7 @@ namespace XenoKit.Editor
                 case BAC_Type0.EanTypeEnum.Skill:
                     if (move == null)
                     {
-                        if (logErrors) Log.Add("Files.GetEanFile: Cannot use skill EAN file from this bac. No attached ean was found.", LogType.Warning);
+                        if (logErrors) Log.Add("Files.GetEanFile: Cannot use skill EAN file from this bac. No attached EAN was found.", LogType.Warning);
                         return null;
                     }
                     if (move.MoveType == Move.Type.Moveset)

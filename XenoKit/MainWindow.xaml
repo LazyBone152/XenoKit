@@ -59,7 +59,7 @@
                             <_views:BcsBodyView/>
                         </Grid>
                     </Controls:MetroTabItem>
-                    <Controls:MetroTabItem Header="Header" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                    <Controls:MetroTabItem Header="Properties" Controls:HeaderedControlHelper.HeaderFontSize="14">
                         <Grid>
                             <_views:BcsHeaderView/>
                         </Grid>
