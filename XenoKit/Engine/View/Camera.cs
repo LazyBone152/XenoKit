@@ -146,7 +146,7 @@ namespace XenoKit.Engine.View
             }
 
             //Bone Focus
-            if (SceneManager.CharacterExists(cameraInstance.cameraTarget.CharacterIndex))
+            if (SceneManager.CharacterExists(cameraInstance.cameraTarget.CharacterIndex) && !SceneManager.IsOnTab(EditorTabs.Camera))
             {
                 Vector3 bonePos = SceneManager.Actors[cameraInstance.cameraTarget.CharacterIndex].GetBoneCurrentAbsolutePosition(cameraInstance.cameraTarget.Bone);
                 if (SceneManager.ResolveLeftHandSymetry)

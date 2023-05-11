@@ -735,6 +735,13 @@ namespace XenoKit.Controls
             float scaleX = MathHelper.ToRadians(SceneManager.MainGameInstance.camera.CameraState.Roll);
             float scaleY = MathHelper.ToRadians(SceneManager.MainGameInstance.camera.CameraState.FieldOfView);
 
+            //"Unscale" the camera if the current EAN file is not chara unique
+            if (!SelectedEanFile.IsCharaUnique && SceneManager.Actors[0] != null)
+            {
+                posY -= SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[1] - 1f;
+                rotY -= SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[1] - 1f;
+            }
+
             List<IUndoRedo> undos = SelectedAnimation.AddKeyframe(EAN_Node.CAM_NODE, CurrentFrame, posX, posY, posZ, 1f, rotX, rotY, rotZ, 1f, scaleX, scaleY, 0f, 0f, PositionComponentEnabled, TargetPositionComponentEnabled, CameraComponentEnabled);
 
             UndoManager.Instance.AddCompositeUndo(undos, "Add Keyframe", UndoGroup.Camera);

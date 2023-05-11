@@ -216,8 +216,8 @@ namespace XenoKit.Engine.Scripting.BAC
             //Get camera state so it can be restored after resimulating the bac state. 
             CameraState originalCameraState = SceneManager.MainGameInstance.camera.CameraState.Copy();
 
-            //Calculate the number of "blending" frames between animations. With this we dont need to calculate every single animation frame, just what is needed. (big perf boost)
-            int numBlendingFrames = BAC_Type0.CalculateNumOfBlendingFrames(BacEntryInstance.BacEntry.IBacTypes, frame);
+            //Calculate the number of "blending" frames between animations. With this we dont need to calculate every single animation frame, just what is needed. (DISABLED for now, found a bug relating to this)
+            //int numBlendingFrames = BAC_Type0.CalculateNumOfBlendingFrames(BacEntryInstance.BacEntry.IBacTypes, frame);
 
             //Clean up
             RevertCharacterPosition(true);
@@ -248,7 +248,9 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
                 else
                 {
-                    character.Simulate(frame - i < numBlendingFrames, true); //Fully update anim positions for as long as required for accurate blending
+                    //character.Simulate(frame - i < numBlendingFrames, true); //Fully update anim positions for as long as required for accurate blending
+                    character.Simulate(true, true); //The above causes a problem when previous animations move the actor... since the animation wont ever be processed the movement is ignored, causing actors to jump back to their original position when seek (next/prev) is used. 
+
                     SceneManager.MainGameInstance.camera.Simulate(frame - i <= 1, true); //Only fully update camera on last frame
                 }
             }
