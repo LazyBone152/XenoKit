@@ -625,6 +625,7 @@
     <Compile Include="ViewModel\BAC\BACType28ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType29ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType2ViewModel.cs" />
+    <Compile Include="ViewModel\BAC\BACType30ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType3ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType4ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType5ViewModel.cs" />
@@ -715,6 +716,9 @@
     </Compile>
     <Compile Include="Views\BAC\BacType2View.xaml.cs">
       <DependentUpon>BacType2View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BAC\BacType30View.xaml.cs">
+      <DependentUpon>BacType30View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BAC\BacType3View.xaml.cs">
       <DependentUpon>BacType3View.xaml</DependentUpon>
@@ -1146,6 +1150,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\BAC\BacType30View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\BAC\BacType3View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1303,9 +1311,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="..\.editorconfig">
-      <Link>.editorconfig</Link>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

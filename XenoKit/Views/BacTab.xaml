@@ -76,6 +76,7 @@
                         <MenuItem Header="[27] Effect Property Control" Command="{Binding AddBacTypeCommand}" CommandParameter="27"/>
                         <MenuItem Header="[28] BAC_Type28" Command="{Binding AddBacTypeCommand}" CommandParameter="28"/>
                         <MenuItem Header="[29] BAC_Type29" Command="{Binding AddBacTypeCommand}" CommandParameter="29"/>
+                        <MenuItem Header="[30] BAC_Type30" Command="{Binding AddBacTypeCommand}" CommandParameter="30"/>
                     </MenuItem>
                     <Separator/>
                     <MenuItem Header="Copy" Command="{Binding CopyBacTypeCommand}"/>
@@ -136,6 +137,7 @@
                             <MenuItem Header="[27] Effect Property Control" Command="{Binding AddBacTypeCommand}" CommandParameter="27"/>
                             <MenuItem Header="[28] BAC_Type28" Command="{Binding AddBacTypeCommand}" CommandParameter="28"/>
                             <MenuItem Header="[29] BAC_Type29" Command="{Binding AddBacTypeCommand}" CommandParameter="29"/>
+                            <MenuItem Header="[30] BAC_Type30" Command="{Binding AddBacTypeCommand}" CommandParameter="30"/>
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
@@ -185,6 +187,7 @@
                 <bacView:BacType27View BacViewModel="{Binding BacType27ViewModel}"/>
                 <bacView:BacType28View BacViewModel="{Binding BacType28ViewModel}"/>
                 <bacView:BacType29View BacViewModel="{Binding BacType29ViewModel}"/>
+                <bacView:BacType30View BacViewModel="{Binding BacType30ViewModel}"/>
             </StackPanel>
         </ScrollViewer>
         <DataGrid x:Name="bacEntryDataGrid" SelectionChanged="BacEntryDataGrid_SelectionChanged" ItemsSource="{Binding ViewBacTypes}" Margin="10,64,10.364,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Controls:ControlsHelper.ContentCharacterCasing="Normal">

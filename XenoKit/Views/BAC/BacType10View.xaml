@@ -34,7 +34,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Label Content="EAN Entry"/>
+                                <Label Content="Camera"/>
                                 <ComboBox Grid.Column="1" ItemsSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.SpecifiedEan.Animations.Binding}" DisplayMemberPath="DisplayName" SelectedValuePath="ID_UShort" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.EanIndex, UpdateSourceTrigger=Default}"/>
                             </Grid>
                             <Grid Margin="3,3,0,0" Width="250">
@@ -42,7 +42,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Label Content="EAN Index"/>
+                                <Label Content="Camera ID"/>
                                 <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.EanIndex, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
                             </Grid>
                         </WrapPanel>

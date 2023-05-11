@@ -69,6 +69,7 @@ namespace XenoKit.Windows
             { typeof(BAC_Type27) , "EffectPropertyControl" },
             { typeof(BAC_Type28) , "BAC_Type28" },
             { typeof(BAC_Type29) , "BAC_Type29" },
+            { typeof(BAC_Type30) , "BAC_Type30" },
         };
 
         //When adding types, remember to edit ConvertToType method!
