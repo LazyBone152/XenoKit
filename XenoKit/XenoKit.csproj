@@ -1321,9 +1321,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="readme.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Content\" />
     <Folder Include="Engine\Scripting\BSA\" />
   </ItemGroup>
