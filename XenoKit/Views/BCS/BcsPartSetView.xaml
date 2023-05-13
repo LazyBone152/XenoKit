@@ -43,6 +43,7 @@
                                     <MenuItem Header="4" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="4"/>
                                     <MenuItem Header="5" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="5"/>
                                     <MenuItem Header="8" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="8"/>
+                                    <MenuItem Header="9" Command="{Binding Source={StaticResource Proxy}, Path=Data.ApplyTransformationDytCommand}" CommandParameter="9"/>
                                 </MenuItem>
                                 <Separator/>
                                 <MenuItem Header="Add Part Set" Command="{Binding Source={StaticResource Proxy}, Path=Data.AddPartSetCommand}"/>
@@ -204,7 +205,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EMD Path" ToolTip="Defines a specific EMD file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emd)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmdFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EmdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmdFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PartViewModel.EmdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>
@@ -212,7 +213,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EMB Path" ToolTip="Defines a specific EMB file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emb)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmbFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EmbPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmbFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PartViewModel.EmbPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>
@@ -220,7 +221,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EMM Path" ToolTip="Defines a specific EMM file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emm)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmmFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EmmPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmmFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PartViewModel.EmmPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>
@@ -228,7 +229,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EAN Path" ToolTip="Defines a specific FCE.EAN (facial animations) file to be used when this part is equipped, relative to character folder defined in Chara Code. Does NOT include the file extension (.ean)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EanFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PartViewModel.EanPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EanFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PartViewModel.EanPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                         </WrapPanel>
 
@@ -405,7 +406,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EMD Path" ToolTip="Defines a specific EMD file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emd)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmdFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EmdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmdFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PhysicsPartViewModel.EmdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>
@@ -413,7 +414,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EMB Path" ToolTip="Defines a specific EMB file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emb)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmbFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EmbPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmbFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PhysicsPartViewModel.EmbPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>
@@ -421,7 +422,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EMM Path" ToolTip="Defines a specific EMM file to use for this part, relative to character folder defined in Chara Code. Does NOT include the file extension (.emm)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmmFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EmmPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EmmFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PhysicsPartViewModel.EmmPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>
@@ -429,7 +430,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_EAN Path" ToolTip="Defines a specific FCE.EAN (facial animations) file to be used when this part is equipped, relative to character folder defined in Chara Code. Does NOT include the file extension (.ean)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EanFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.EanPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=EanFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PhysicsPartViewModel.EanPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>
@@ -437,7 +438,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_SCD Path" ToolTip="Defines a specific SCD file to be used when this part is equipped, relative to character folder defined in Chara Code. Does NOT include the file extension (.scd)."/>
-                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=ScdFiles}" DisplayMemberPath="NameNoExt" SelectedValuePath="NameNoExt" SelectedValue="{Binding Path=PhysicsPartViewModel.ScdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=ScdFiles}" DisplayMemberPath="NameNoExt" Text="{Binding Path=PhysicsPartViewModel.ScdPath, UpdateSourceTrigger=Default, ElementName=Window}" IsEditable="True"/>
                             </Grid>
                         </WrapPanel>
 

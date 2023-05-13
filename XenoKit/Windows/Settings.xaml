@@ -20,8 +20,9 @@
         <Controls:MetroTabControl HorizontalAlignment="Left" Height="273" VerticalAlignment="Top" Width="527" Margin="0,0,0,-0.333">
             <Controls:MetroTabItem Header="General" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <Grid Background="Transparent">
-                    
+
                     <CheckBox IsChecked="{Binding settings.UpdateNotifications, UpdateSourceTrigger=PropertyChanged}" Content="Check for updates on start-up" HorizontalAlignment="Left" Margin="18,36,0,0" VerticalAlignment="Top" Width="275"/>
+                    <CheckBox IsChecked="{Binding settings.XenoKit_SuppressErrorsToLogOnly, UpdateSourceTrigger=PropertyChanged}" Content="Suppress errors to log only" ToolTip="Disable the error dialog whenever an error happens.&#x0a;&#x0a;With this enabled, errors will only appear in the log and are more likely to be missed. Not recommended for the average user." HorizontalAlignment="Left" Margin="18,57,0,0" VerticalAlignment="Top" Width="275"/>
                     <GroupBox Header="Theme" HorizontalAlignment="Left" Margin="298,10,0,0" VerticalAlignment="Top" Width="219">
 
                         <StackPanel>

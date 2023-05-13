@@ -172,6 +172,11 @@ namespace XenoKit.Engine
                     break;
             }
 
+            if(CurrentSceneState == EditorTabs.Action)
+            {
+                EnsureActorIsSet(0);
+            }
+
             //Changing tabs with an active bac entry will put the simulation in a bac state, best to stop it
             if(prevTab == EditorTabs.Action && IsPlaying)
             {

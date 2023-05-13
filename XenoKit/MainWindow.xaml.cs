@@ -36,7 +36,7 @@ namespace XenoKit
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-        
+
 
         #region Properties UI
         private string _currentLogMessage = null;
@@ -57,7 +57,7 @@ namespace XenoKit
         }
 
         #endregion
-        
+
 
         public MainWindow()
         {
@@ -181,7 +181,7 @@ namespace XenoKit
         #region Events
         public void LogEntryAdded(object sender, EventArgs arg)
         {
-            if(sender is LogEntry logEntry)
+            if (sender is LogEntry logEntry)
             {
                 //Display it at bottom of screen
                 CurrentLogMessage = logEntry.Message;
@@ -191,7 +191,7 @@ namespace XenoKit
                 CurrentLogMessage = "";
             }
         }
-        
+
         #endregion
 
         #region LoadCommands
@@ -250,7 +250,7 @@ namespace XenoKit
         {
             var result = await this.ShowMessageAsync("Save All", "Save all files currently loaded in the outliner (except those marked as \"Read Only\"?", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
 
-            if(result == MessageDialogResult.Affirmative)
+            if (result == MessageDialogResult.Affirmative)
                 Files.Instance.SaveAll();
         }
 
@@ -397,7 +397,7 @@ namespace XenoKit
 
             var dialog = await this.ShowMessageAsync("Exit", "Do you wish to exit? Any unsaved data will be lost!", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
 
-            if(dialog == MessageDialogResult.Affirmative)
+            if (dialog == MessageDialogResult.Affirmative)
                 Environment.Exit(0);
 
         }
@@ -429,7 +429,7 @@ namespace XenoKit
 
             if (!changed) return;
 
-            if(SceneManager.CurrentSceneState == EditorTabs.Camera)
+            if (SceneManager.CurrentSceneState == EditorTabs.Camera)
             {
                 SceneManager.CameraSelectionChanged(cameraTabView.SelectedEanFile, cameraTabView.SelectedAnimation);
             }
@@ -453,14 +453,14 @@ namespace XenoKit
             {
                 string[] droppedFilePaths = e.Data.GetData(DataFormats.FileDrop, true) as string[];
 
-                if(Path.GetExtension(droppedFilePaths[0]) == ".nsk")
+                if (Path.GetExtension(droppedFilePaths[0]) == ".nsk")
                 {
                     Files.Instance.ManualLoad(droppedFilePaths);
                     return;
                 }
 
                 bool error = false;
-                foreach(var drop in droppedFilePaths)
+                foreach (var drop in droppedFilePaths)
                 {
                     switch (Path.GetExtension(drop))
                     {
@@ -470,12 +470,26 @@ namespace XenoKit
                             Files.Instance.ManualLoad(drop);
                             break;
                         default:
-                            if(!error)
+                            if (!error)
                                 await this.ShowMessageAsync("File Drop", $"The filetype of \"{drop}\" is not supported.", MessageDialogStyle.Affirmative, DialogSettings.Default);
                             error = true;
                             break;
                     }
                 }
+            }
+        }
+
+        public async void ShowException(Exception ex)
+        {
+            var dialogSettings = DialogSettings.Default;
+            dialogSettings.AffirmativeButtonText = "OK";
+            dialogSettings.NegativeButtonText = "OK (Copy Full Error)";
+
+            var dialog = await this.ShowMessageAsync("Unhandled Exception", string.Format("An error has occurred with the following message: {0}\n\nIf the error keeps occuring, consider opening an issue on GitHub and posting the details of the error (plus the full error message, using the copy button).\n\n(These error messages can be disabled in the settings menu, though that's not recommended. If disabled then they will still appear in the log, and can also be copied from there by right clicking)", ex.Message), MessageDialogStyle.AffirmativeAndNegative, dialogSettings);
+
+            if (dialog == MessageDialogResult.Negative)
+            {
+                Clipboard.SetText(ex.ToString());
             }
         }
     }

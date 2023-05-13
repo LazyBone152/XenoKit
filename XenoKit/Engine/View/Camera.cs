@@ -134,9 +134,9 @@ namespace XenoKit.Engine.View
             CameraState.TargetPosition.Y = targetPos.GetKeyframeValue(_drawFrame, Axis.Y);
             CameraState.TargetPosition.Z = targetPos.GetKeyframeValue(_drawFrame, Axis.Z);
 
-            if (camera != null)
+            if (camera != null && !cameraInstance.bacCameraSettings.Enabled)
             {
-                CameraState.Roll = MathHelper.ToDegrees(camera.GetKeyframeValue(_drawFrame, Axis.X));
+                CameraState.Roll = -MathHelper.ToDegrees(camera.GetKeyframeValue(_drawFrame, Axis.X));
                 CameraState.FieldOfView = MathHelper.ToDegrees(camera.GetKeyframeValue(_drawFrame, Axis.Y));
             }
             else

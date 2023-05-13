@@ -102,13 +102,13 @@ namespace XenoKit.Engine.Scripting.BAC
             ushort typeFlag = (ushort)(character.CharacterData.IsCaC ? 1 : 2);
 
             if (clearing) return;
-            var validEntries = BacEntryInstance.BacEntry.IBacTypes.Where
+            IOrderedEnumerable<IBacType> validEntries = BacEntryInstance.BacEntry.IBacTypes.Where
                 (b => BacEntryInstance.IsValidTime(b.StartTime, b.Duration, b.TypeID) && (b.Flags == typeFlag || b.Flags == 0))
                 .OrderBy(x => x.GetType() == typeof(BAC_Type4)); //TimeScale must be resolved before animation/camera
 
 
             //Read bac types
-            foreach (var type in validEntries)
+            foreach (IBacType type in validEntries)
             {
                 //Animation
                 if (type is BAC_Type0 animation)
@@ -258,8 +258,8 @@ namespace XenoKit.Engine.Scripting.BAC
             //Get camera state so it can be restored after resimulating the bac state. 
             CameraState originalCameraState = SceneManager.MainGameInstance.camera.CameraState.Copy();
 
-            //Calculate the number of "blending" frames between animations. With this we dont need to calculate every single animation frame, just what is needed. (DISABLED for now, found a bug relating to this)
-            //int numBlendingFrames = BAC_Type0.CalculateNumOfBlendingFrames(BacEntryInstance.BacEntry.IBacTypes, frame);
+            //Calculate the number of "blending" frames between animations. With this we dont need to calculate every single animation frame, just what is needed.
+            int numBlendingFrames = BAC_Type0.CalculateNumOfBlendingFrames(BacEntryInstance.BacEntry.IBacTypes, frame);
 
             //Clean up
             RevertCharacterPosition(true);
@@ -272,17 +272,21 @@ namespace XenoKit.Engine.Scripting.BAC
             ProcessedBacTypes.Clear();
             BacEntryInstance.ResetState();
 
-            float _frame = frame;
-
             for (int i = 0; i <= frame; i++)
             {
-                _frame = i;
-                UpdateBac(ref _frame);
+                BacEntryInstance.CurrentFrame = i;
+                UpdateBac(ref BacEntryInstance.CurrentFrame);
+
+                if(BacEntryInstance.CurrentFrame != i)
+                {
+                    i = (int)BacEntryInstance.CurrentFrame;
+                    continue;
+                }
 
                 if (i < frame)
                     BacEntryInstance.Simulate(true);
 
-                if (_frame > frame) //Frameskip shot us past the specified frame. End seek here.
+                if (BacEntryInstance.CurrentFrame > frame) //Frameskip shot us past the specified frame. End seek here.
                 {
                     character.Simulate(true, true);
                     SceneManager.MainGameInstance.camera.Simulate(true, true);
@@ -290,8 +294,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
                 else
                 {
-                    //character.Simulate(frame - i < numBlendingFrames, true); //Fully update anim positions for as long as required for accurate blending
-                    character.Simulate(true, true); //The above causes a problem when previous animations move the actor... since the animation wont ever be processed the movement is ignored, causing actors to jump back to their original position when seek (next/prev) is used. 
+                    character.Simulate(frame - i < numBlendingFrames, true); //Fully update anim positions for as long as required for accurate blending
 
                     SceneManager.MainGameInstance.camera.Simulate(frame - i <= 1, true); //Only fully update camera on last frame
                 }

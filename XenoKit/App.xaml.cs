@@ -13,6 +13,13 @@ namespace XenoKit
         {
 #if !DEBUG
             Log.Add($"Unhandled Exception: {e.Exception.Message}", e.Exception.ToString(), LogType.Error);
+
+            if (!Xv2CoreLib.Resource.App.SettingsManager.Instance.Settings.XenoKit_SuppressErrorsToLogOnly)
+            {
+                MainWindow window = (MainWindow)Application.Current.MainWindow;
+                window.ShowException(e.Exception);
+
+            }
             e.Handled = true;
 #endif
         }

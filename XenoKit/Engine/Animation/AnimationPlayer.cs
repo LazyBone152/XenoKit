@@ -131,6 +131,12 @@ namespace XenoKit.Engine.Animation
             }
             else
             {
+                //Update the base node only, skiping all other bones (not needed).
+                if(PrimaryAnimation != null)
+                {
+                    UpdateNode(PrimaryAnimation, PrimaryAnimation.b_C_Base_Index);
+                }
+
                 HandleFinishedAnimations();
             }
 
@@ -350,132 +356,136 @@ namespace XenoKit.Engine.Animation
 
             for (int i = 0; i < animation.Animation.Nodes.Count; i++)
             {
-                var node = animation.Animation.Nodes[i];
-                int boneIdx = Skeleton.GetBoneIndex(node.BoneName);
-                if (boneIdx == -1) //Bone doesn't exist in character ESK, so skip
-                    continue;
+                UpdateNode(animation, i);
+            }
+        }
 
-                ESK_Bone bone = animation.eanFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
-                ESK_RelativeTransform transform = bone.RelativeTransform;
+        private void UpdateNode(AnimationInstance animation, int i)
+        {
+            var node = animation.Animation.Nodes[i];
+            int boneIdx = Skeleton.GetBoneIndex(node.BoneName);
+            if (boneIdx == -1) //Bone doesn't exist in character ESK, so skip
+                return;
 
-                Vector3 ean_initialBonePosition = new Vector3(transform.PositionX, transform.PositionY, transform.PositionZ) * transform.PositionW;
-                Quaternion ean_initialBoneOrientation = new Quaternion(transform.RotationX, transform.RotationY, transform.RotationZ, transform.RotationW);
-                Vector3 ean_initialBoneScale = new Vector3(transform.ScaleX, transform.ScaleY, transform.ScaleZ) * transform.ScaleW;
+            ESK_Bone bone = animation.eanFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
+            ESK_RelativeTransform transform = bone.RelativeTransform;
 
-                //Scale animations to fit current actor size
-                if (!animation.eanFile.IsCharaUnique && i == animation.b_C_Pelvis_Index)
+            Vector3 ean_initialBonePosition = new Vector3(transform.PositionX, transform.PositionY, transform.PositionZ) * transform.PositionW;
+            Quaternion ean_initialBoneOrientation = new Quaternion(transform.RotationX, transform.RotationY, transform.RotationZ, transform.RotationW);
+            Vector3 ean_initialBoneScale = new Vector3(transform.ScaleX, transform.ScaleY, transform.ScaleZ) * transform.ScaleW;
+
+            //Scale animations to fit current actor size
+            if (!animation.eanFile.IsCharaUnique && i == animation.b_C_Pelvis_Index)
+            {
+                ean_initialBonePosition.Y -= (SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[0] - 1f) / 2f;
+            }
+
+            Matrix relativeMatrix_EanBone_inv = Matrix.Identity;
+            relativeMatrix_EanBone_inv *= Matrix.CreateScale(ean_initialBoneScale);
+            relativeMatrix_EanBone_inv *= Matrix.CreateFromQuaternion(ean_initialBoneOrientation);
+            relativeMatrix_EanBone_inv *= Matrix.CreateTranslation(ean_initialBonePosition);
+            relativeMatrix_EanBone_inv = Matrix.Invert(relativeMatrix_EanBone_inv);
+
+
+            if (i == animation.b_C_Base_Index && animation.useTransform)
+            {
+                UpdateBasePosition(node, relativeMatrix_EanBone_inv, ean_initialBoneScale, ean_initialBoneOrientation, ean_initialBonePosition);
+                Skeleton.Bones[boneIdx].AnimationMatrix = Matrix.Identity;
+            }
+            else if (i == animation.b_C_Pelvis_Index && animation.AnimFlags.HasFlag(AnimationFlags.UseRootMotion))
+            {
+                Skeleton.Bones[boneIdx].AnimationMatrix = Matrix.Identity;
+            }
+            else
+            {
+                //Return values for current frame index
+                int frameIndex_Pos = 0;
+                int frameIndex_Rot = 0;
+                int frameIndex_Scale = 0;
+
+                //Read components
+
+                var pos = node.GetComponent(EAN_AnimationComponent.ComponentType.Position);
+                var rot = node.GetComponent(EAN_AnimationComponent.ComponentType.Rotation);
+                var scale = node.GetComponent(EAN_AnimationComponent.ComponentType.Scale);
+
+                Matrix transformAnimation = Matrix.Identity;
+
+                //Scale:
+                Vector3 scale_tmp = ean_initialBoneScale;
+
+                if (scale?.Keyframes.Count > 0)
                 {
-                    ean_initialBonePosition.Y -= (SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[0] - 1f) / 2f;
+                    float x = scale.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
+                    float y = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
+                    float z = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
+                    float w = scale.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
+
+                    scale_tmp = new Vector3(x, y, z) * w;
                 }
 
-                Matrix relativeMatrix_EanBone_inv = Matrix.Identity;
-                relativeMatrix_EanBone_inv *= Matrix.CreateScale(ean_initialBoneScale);
-                relativeMatrix_EanBone_inv *= Matrix.CreateFromQuaternion(ean_initialBoneOrientation);
-                relativeMatrix_EanBone_inv *= Matrix.CreateTranslation(ean_initialBonePosition);
-                relativeMatrix_EanBone_inv = Matrix.Invert(relativeMatrix_EanBone_inv);
+                transformAnimation *= Matrix.CreateScale(scale_tmp);
 
-
-                if (i == animation.b_C_Base_Index && animation.useTransform)
+                //Rotation:
+                Quaternion quat_tmp = ean_initialBoneOrientation;
+                if (rot?.Keyframes.Count > 0)
                 {
-                    UpdateBasePosition(node, relativeMatrix_EanBone_inv, ean_initialBoneScale, ean_initialBoneOrientation, ean_initialBonePosition);
-                    Skeleton.Bones[boneIdx].AnimationMatrix = Matrix.Identity;
+                    float x = rot.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
+                    float y = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
+                    float z = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
+                    float w = rot.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
+
+                    quat_tmp = new Quaternion(x, y, z, w);
                 }
-                else if (i == animation.b_C_Pelvis_Index && animation.AnimFlags.HasFlag(AnimationFlags.UseRootMotion))
+
+                transformAnimation *= Matrix.CreateFromQuaternion(quat_tmp);
+
+                //Position:
+                Vector3 pos_tmp = ean_initialBonePosition;
+                if (pos?.Keyframes.Count > 0)
                 {
-                    Skeleton.Bones[boneIdx].AnimationMatrix = Matrix.Identity;
+                    float x = pos.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
+                    float y = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
+                    float z = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
+                    float w = pos.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
+
+                    pos_tmp = new Vector3(x, y, z) * w;
+                }
+
+                transformAnimation *= Matrix.CreateTranslation(pos_tmp);
+
+                //Previous animation blending:
+                if (animation.PreviousAnimRelativeMatrices == null || animation.CurrentBlendWeight >= 1f || boneIdx == Skeleton.BaseBoneIndex)
+                {
+                    //No blending if blendWeight is 1, is on b_C_Base or if no previous matrices data is present
+                    Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation * relativeMatrix_EanBone_inv;
                 }
                 else
                 {
-                    //Return values for current frame index
-                    int frameIndex_Pos = 0;
-                    int frameIndex_Rot = 0;
-                    int frameIndex_Scale = 0;
-
-                    //Read components
-
-                    var pos = node.GetComponent(EAN_AnimationComponent.ComponentType.Position);
-                    var rot = node.GetComponent(EAN_AnimationComponent.ComponentType.Rotation);
-                    var scale = node.GetComponent(EAN_AnimationComponent.ComponentType.Scale);
-
-                    Matrix transformAnimation = Matrix.Identity;
-
-                    //Scale:
-                    Vector3 scale_tmp = ean_initialBoneScale;
-
-                    if (scale?.Keyframes.Count > 0)
-                    {
-                        float x = scale.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
-                        float y = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
-                        float z = scale.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
-                        float w = scale.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Scale, animation.CurrentNodeFrameIndex_Scale[i]);
-
-                        scale_tmp = new Vector3(x, y, z) * w;
-                    }
-
-                    transformAnimation *= Matrix.CreateScale(scale_tmp);
-
-                    //Rotation:
-                    Quaternion quat_tmp = ean_initialBoneOrientation;
-                    if (rot?.Keyframes.Count > 0)
-                    {
-                        float x = rot.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
-                        float y = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
-                        float z = rot.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
-                        float w = rot.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Rot, animation.CurrentNodeFrameIndex_Rot[i]);
-
-                        quat_tmp = new Quaternion(x, y, z, w);
-                    }
-
-                    transformAnimation *= Matrix.CreateFromQuaternion(quat_tmp);
-
-                    //Position:
-                    Vector3 pos_tmp = ean_initialBonePosition;
-                    if (pos?.Keyframes.Count > 0)
-                    {
-                        float x = pos.GetKeyframeValue(animation.CurrentFrame, Axis.X, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
-                        float y = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Y, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
-                        float z = pos.GetKeyframeValue(animation.CurrentFrame, Axis.Z, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
-                        float w = pos.GetKeyframeValue(animation.CurrentFrame, Axis.W, ref frameIndex_Pos, animation.CurrentNodeFrameIndex_Pos[i]);
-
-                        pos_tmp = new Vector3(x, y, z) * w;
-                    }
-
-                    transformAnimation *= Matrix.CreateTranslation(pos_tmp);
-
-                    //Previous animation blending:
-                    if (animation.PreviousAnimRelativeMatrices == null || animation.CurrentBlendWeight >= 1f || boneIdx == Skeleton.BaseBoneIndex)
-                    {
-                        //No blending if blendWeight is 1, is on b_C_Base or if no previous matrices data is present
-                        Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation * relativeMatrix_EanBone_inv;
-                    }
-                    else
-                    {
-                        //Enable animation blending with previous animation matrices
-                        Skeleton.Bones[boneIdx].AnimationMatrix = GeneralHelpers.SlerpMatrix(animation.PreviousAnimRelativeMatrices[boneIdx], transformAnimation * relativeMatrix_EanBone_inv, animation.CurrentBlendWeight);
-                    }
-
-                    //Update saved frame index.
-                    animation.CurrentNodeFrameIndex_Pos[i] = frameIndex_Pos;
-                    animation.CurrentNodeFrameIndex_Rot[i] = frameIndex_Rot;
-                    animation.CurrentNodeFrameIndex_Scale[i] = frameIndex_Scale;
-
-                    //Handle EYE animations
-                    if (!Character.BacEyeMovementUsed)
-                    {
-                        if (i == animation.LeftEye_Index)
-                        {
-                            Character.EyeIrisLeft_UV[0] = -(pos_tmp.X * 10);
-                            Character.EyeIrisLeft_UV[1] = -(pos_tmp.Y * 10);
-                        }
-
-                        if (i == animation.RightEye_Index)
-                        {
-                            Character.EyeIrisRight_UV[0] = -(pos_tmp.X * 10);
-                            Character.EyeIrisRight_UV[1] = -(pos_tmp.Y * 10);
-                        }
-                    }
+                    //Enable animation blending with previous animation matrices
+                    Skeleton.Bones[boneIdx].AnimationMatrix = GeneralHelpers.SlerpMatrix(animation.PreviousAnimRelativeMatrices[boneIdx], transformAnimation * relativeMatrix_EanBone_inv, animation.CurrentBlendWeight);
                 }
 
+                //Update saved frame index.
+                animation.CurrentNodeFrameIndex_Pos[i] = frameIndex_Pos;
+                animation.CurrentNodeFrameIndex_Rot[i] = frameIndex_Rot;
+                animation.CurrentNodeFrameIndex_Scale[i] = frameIndex_Scale;
+
+                //Handle EYE animations
+                if (!Character.BacEyeMovementUsed)
+                {
+                    if (i == animation.LeftEye_Index)
+                    {
+                        Character.EyeIrisLeft_UV[0] = -(pos_tmp.X * 10);
+                        Character.EyeIrisLeft_UV[1] = -(pos_tmp.Y * 10);
+                    }
+
+                    if (i == animation.RightEye_Index)
+                    {
+                        Character.EyeIrisRight_UV[0] = -(pos_tmp.X * 10);
+                        Character.EyeIrisRight_UV[1] = -(pos_tmp.Y * 10);
+                    }
+                }
             }
         }
 
