@@ -554,6 +554,7 @@
     <Compile Include="Engine\Gizmo\TransformOperations\BoneScaleTransformOperation.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\ModelTransformOperation.cs" />
     <Compile Include="Engine\Lighting\DirLight.cs" />
+    <Compile Include="Engine\Scripting\BAC\Simulation\EyeMovementPositions.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\HitboxPreview.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\BacSimulationObject.cs" />
     <Compile Include="Engine\Shapes\GizmoGeometry.cs" />

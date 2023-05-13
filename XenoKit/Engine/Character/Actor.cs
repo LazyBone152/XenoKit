@@ -78,6 +78,11 @@ namespace XenoKit.Engine
         }
         public string ShortName => CharacterData?.CmsEntry?.ShortName;
 
+        //Eye UV Scroll. (These are sized 4 arrays because thats what the shaders expect, though we only need the first 2 values)
+        public float[] EyeIrisLeft_UV { get; set; } = new float[4];
+        public float[] EyeIrisRight_UV { get; set; } = new float[4];
+        public bool BacEyeMovementUsed = false;
+
         public Actor(GameBase gameBase, Xv2Character character, int initialPartSet = 0) : base(gameBase)
         {
             GameBase = gameBase;
@@ -140,6 +145,10 @@ namespace XenoKit.Engine
         #region GameLoop
         public override void Update()
         {
+            //Reset Eye positions to their defaults
+            EyeIrisLeft_UV[0] = EyeIrisLeft_UV[1] = EyeIrisRight_UV[0] = EyeIrisRight_UV[1] = 0;
+            BacEyeMovementUsed = false;
+
             ActionControl.Update();
 
             if (AnimationPlayer != null && Skeleton != null)

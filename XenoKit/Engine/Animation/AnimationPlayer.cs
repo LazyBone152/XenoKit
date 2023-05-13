@@ -458,6 +458,22 @@ namespace XenoKit.Engine.Animation
                     animation.CurrentNodeFrameIndex_Pos[i] = frameIndex_Pos;
                     animation.CurrentNodeFrameIndex_Rot[i] = frameIndex_Rot;
                     animation.CurrentNodeFrameIndex_Scale[i] = frameIndex_Scale;
+
+                    //Handle EYE animations
+                    if (!Character.BacEyeMovementUsed)
+                    {
+                        if (i == animation.LeftEye_Index)
+                        {
+                            Character.EyeIrisLeft_UV[0] = -(pos_tmp.X * 10);
+                            Character.EyeIrisLeft_UV[1] = -(pos_tmp.Y * 10);
+                        }
+
+                        if (i == animation.RightEye_Index)
+                        {
+                            Character.EyeIrisRight_UV[0] = -(pos_tmp.X * 10);
+                            Character.EyeIrisRight_UV[1] = -(pos_tmp.Y * 10);
+                        }
+                    }
                 }
 
             }
@@ -693,6 +709,14 @@ namespace XenoKit.Engine.Animation
         /// Index of b_C_Pelvis node.
         /// </summary>
         public int b_C_Pelvis_Index;
+        /// <summary>
+        /// Index of f_L_EyeIris
+        /// </summary>
+        public int LeftEye_Index;
+        /// <summary>
+        /// Index of f_R_EyeIris
+        /// </summary>
+        public int RightEye_Index;
 
         public AnimationInstance(EAN_File _eanFile, int index, int startFrame = 0, int endFrame = -1, float blendWeight = 1f, float blendWeightIncrease = 0f, Matrix[] previousMatrices = null, AnimationFlags _animFlags = 0, bool _useTransform = true, float timeScale = 1f, bool autoTerminate = false)
         {
@@ -725,6 +749,8 @@ namespace XenoKit.Engine.Animation
             //Set indexes
             b_C_Base_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.BaseBone));
             b_C_Pelvis_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.PelvisBone));
+            LeftEye_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.LeftEyeIrisBone));
+            RightEye_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.RightEyeIrisBone));
 
             //Nodes:
             //Always recreate the arrays here as the node count may change

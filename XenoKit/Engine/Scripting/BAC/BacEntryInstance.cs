@@ -48,6 +48,11 @@ namespace XenoKit.Engine.Scripting.BAC
         //Simulation Objects:
         public List<BacSimulationObject> SimulationEntities = new List<BacSimulationObject>(64);
 
+        /// <summary>
+        /// The currently active eye movement entry. Only one of these can be active at any given time.
+        /// </summary>
+        public BAC_Type21 ActiveEyeMovement = null;
+
         public BacEntryInstance(BAC_File bacFile, BAC_Entry bacEntry, Move currentMove, Actor user, bool revertPosition, Matrix originalMatrix)
         {
             BacFile = bacFile;
@@ -219,6 +224,7 @@ namespace XenoKit.Engine.Scripting.BAC
             ActionStoppedEvent?.Invoke(this, new ActionStoppedEventArgs(ActionSimulationState.SimulationEnded));
 
             SimulationState = ActionSimulationState.SimulationActive;
+            ActiveEyeMovement = null;
             CurrentFrame = 0;
             PreviousFrame = 0;
         }

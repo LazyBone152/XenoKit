@@ -78,6 +78,7 @@ namespace XenoKit.Engine.Shader
         private EffectParameter g_mMatrixPalette_VS;
         private EffectParameter g_bSkinning_VS;
 
+
         //Updating
         public bool IsShaderProgramDirty { get; set; }
         public bool IsDirty { get; set; }
@@ -981,7 +982,7 @@ namespace XenoKit.Engine.Shader
                 g_MaterialCol3_PS.SetVector4(materialAnimationNode.MatCol[3]);
             }
         }
-    
+
         //Animation
         public void SetSkinningMatrices(Matrix[] matrices)
         {
@@ -993,6 +994,19 @@ namespace XenoKit.Engine.Shader
             if (shaderProgram.UseVertexShaderBuffer[4])
             {
                 g_mMatrixPalette_VS.SetValue(matrices);
+            }
+        }
+
+        public void SetEyeMovement(float[] uvScroll)
+        {
+            if (shaderProgram.UsePixelShaderBuffer[2])
+            {
+                g_TexScroll0_PS.SetVector4(uvScroll);
+            }
+
+            if (shaderProgram.UseVertexShaderBuffer[3])
+            {
+                g_TexScroll0_VS.SetVector4(uvScroll);
             }
         }
     }

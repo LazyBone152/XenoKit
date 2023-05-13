@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using LB_Common.Numbers;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
         private void Instance_UndoOrRedoCalled(object source, Xv2CoreLib.Resource.UndoRedo.UndoEventRaisedEventArgs e)
         {
-            if(BacEntryInstance != null)
+            if (BacEntryInstance != null)
             {
                 BacEntryInstance.RefreshDetails();
             }
@@ -74,7 +75,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public void PlayBacEntry(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move = null, bool revertPosition = true)
         {
-            if(bacEntry == null)
+            if (bacEntry == null)
             {
                 Log.Add("BacPlayer.PlayBacEntry: bacEntry was null.");
                 return;
@@ -88,7 +89,7 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             if (clearing || BacEntryInstance == null) return;
 
-            if(BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
+            if (BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
                 UpdateBac(ref BacEntryInstance.CurrentFrame);
 
             BacEntryInstance.Update();
@@ -113,10 +114,10 @@ namespace XenoKit.Engine.Scripting.BAC
                 if (type is BAC_Type0 animation)
                 {
                     if (ProcessedBacTypes.Contains(type)) continue;
-                    
+
                     EAN_File eanFile;
 
-                    if(animation.EanType == BAC_Type0.EanTypeEnum.FaceA || animation.EanType == BAC_Type0.EanTypeEnum.FaceB)
+                    if (animation.EanType == BAC_Type0.EanTypeEnum.FaceA || animation.EanType == BAC_Type0.EanTypeEnum.FaceB)
                     {
                         //Face animations are always loaded from the character FCE EAN
                         eanFile = Files.Instance.GetEanFile(animation.EanType, BacEntryInstance.SkillMove, character, true, true);
@@ -152,7 +153,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
 
                 //Hitbox
-                if(type is BAC_Type1 hitbox)
+                if (type is BAC_Type1 hitbox)
                 {
                     if (ProcessedBacTypes.Contains(type)) continue;
 
@@ -169,13 +170,13 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
 
                 //Camera
-                if(type is BAC_Type10 camera)
+                if (type is BAC_Type10 camera)
                 {
                     if (ProcessedBacTypes.Contains(type)) continue;
-                    
+
                     var ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, true);
 
-                    if(ean != null && camera.EanIndex != ushort.MaxValue && SceneManager.UseCameras)
+                    if (ean != null && camera.EanIndex != ushort.MaxValue && SceneManager.UseCameras)
                     {
                         var cam = ean.GetAnimation(camera.EanIndex, true);
 
@@ -193,19 +194,60 @@ namespace XenoKit.Engine.Scripting.BAC
 
                     var acb = Files.Instance.GetAcbFile(sound.AcbType, BacEntryInstance.SkillMove, character, true);
 
-                    if(acb != null && sound.CueId != ushort.MaxValue && SceneManager.IsPlaying)
+                    if (acb != null && sound.CueId != ushort.MaxValue && SceneManager.IsPlaying)
                     {
                         SceneManager.AudioEngine.PlayCue(sound.CueId, acb, character, BacEntryInstance, sound.SoundFlags.HasFlag(SoundFlags.StopWhenParentEnds));
                     }
+                }
+
+                //Eye Movement
+                if (type is BAC_Type21 eyeMovement)
+                {
+                    if (ProcessedBacTypes.Contains(type)) continue;
+                    BacEntryInstance.ActiveEyeMovement = eyeMovement;
                 }
 
 
                 //Add type to processed list
                 ProcessedBacTypes.Add(type);
             }
-            
+
+            //Update Eye Movements
+            if (BacEntryInstance.ActiveEyeMovement != null)
+            {
+                BAC_Type21 eyeMovement = BacEntryInstance.ActiveEyeMovement;
+
+                if (eyeMovement.StartTime + eyeMovement.EyeMovementDuration < CurrentFrame)
+                {
+                    BacEntryInstance.ActiveEyeMovement = null;
+                }
+                else
+                {
+                    CustomVector4 prevEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionPrev];
+                    CustomVector4 nextEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionNext];
+
+                    CustomVector4 leftEyePosition = (nextEyePosition - prevEyePosition) * eyeMovement.LeftEyeRotationPercent;
+                    CustomVector4 rightEyePosition = (nextEyePosition - prevEyePosition) * eyeMovement.RightEyeRotationPercent;
+
+                    if (eyeMovement.StartTime + eyeMovement.EyeRotationFrames >= CurrentFrame)
+                    {
+                        leftEyePosition.X *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
+                        leftEyePosition.Y *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
+
+                        rightEyePosition.X *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
+                        rightEyePosition.Y *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
+                    }
+
+                    character.EyeIrisLeft_UV[0] = leftEyePosition.X;
+                    character.EyeIrisLeft_UV[1] = leftEyePosition.Y;
+                    character.EyeIrisRight_UV[0] = rightEyePosition.X;
+                    character.EyeIrisRight_UV[1] = rightEyePosition.Y;
+                    character.BacEyeMovementUsed = true;
+                }
+
+            }
         }
-        
+
         /// <summary>
         /// Simulate the bac entry up to the specified frame. This will also simulate any animations, cameras, hitboxes, projectiles and so on.
         /// </summary>
@@ -237,7 +279,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 _frame = i;
                 UpdateBac(ref _frame);
 
-                if(i < frame)
+                if (i < frame)
                     BacEntryInstance.Simulate(true);
 
                 if (_frame > frame) //Frameskip shot us past the specified frame. End seek here.
@@ -325,7 +367,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 ResetBacState();
 
             //If anything was edited, it will be re-simulated
-            Seek((int)BacEntryInstance.CurrentFrame, true); 
+            Seek((int)BacEntryInstance.CurrentFrame, true);
         }
 
         public void Stop()
@@ -366,9 +408,9 @@ namespace XenoKit.Engine.Scripting.BAC
         }
         #endregion
 
-        
+
     }
 
 
-    
+
 }

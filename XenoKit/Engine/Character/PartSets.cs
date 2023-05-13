@@ -331,6 +331,10 @@ namespace XenoKit.Engine
         //Dyt Sampler:
         private SamplerInfo DytSampler;
 
+        //Eye Material Index
+        private int LeftEyeIndex = -1;
+        private int RightEyeIndex = -1;
+
         //Auto-updating
         private bool IsMaterialsDirty = false;
 
@@ -458,6 +462,25 @@ namespace XenoKit.Engine
             if (Model != null)
             {
                 Materials = Model.InitializeMaterials(EmmFile);
+
+                //If part is an Eye, then set the Eye Indices. This is needed for eye UV scroll to be set to allow eye movement.
+                //This code assumes there is just one material per eye
+                LeftEyeIndex = RightEyeIndex = -1;
+
+                if (partType == PartType.FaceEye)
+                {
+                    for(int i = 0; i < Materials.Count; i++)
+                    {
+                        if (Materials[i].Material.Name.Contains("_L"))
+                        {
+                            LeftEyeIndex = i;
+                        }
+                        else if (Materials[i].Material.Name.Contains("_R"))
+                        {
+                            RightEyeIndex = i;
+                        }
+                    }
+                }
 
                 Model.ModelChanged += RefreshMaterialsOnEdit;
             }
@@ -902,6 +925,20 @@ namespace XenoKit.Engine
                 {
                     GraphicsDevice.Textures[4] = Dyts[texIdx].Texture;
                     GraphicsDevice.VertexTextures[4] = Dyts[texIdx].Texture;
+                }
+            }
+
+            //Set eye movement parameters in shaders
+            if(partType == PartType.FaceEye)
+            {
+                if(LeftEyeIndex != -1)
+                {
+                    Materials[LeftEyeIndex].SetEyeMovement(chara.EyeIrisLeft_UV);
+                }
+
+                if (RightEyeIndex != -1)
+                {
+                    Materials[RightEyeIndex].SetEyeMovement(chara.EyeIrisRight_UV);
                 }
             }
 
