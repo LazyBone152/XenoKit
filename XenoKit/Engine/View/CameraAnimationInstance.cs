@@ -128,7 +128,7 @@ namespace XenoKit.Engine.View
         {
             get
             {
-                return PosX * GetFactor(PosXDuration);
+                return (-PosX) * GetFactor(PosXDuration);
             }
         }
         public float CurrentPosY

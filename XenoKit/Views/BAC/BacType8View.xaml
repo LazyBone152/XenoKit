@@ -73,11 +73,12 @@
                                     <CheckBox Content="Disable Effect" ToolTip="Disable an already active effect with matching settings to this entry." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_Off, UpdateSourceTrigger=Default}"/>
                                     <CheckBox Content="Spawn On Target" ToolTip="The effect will spawn on the currently targeted opponent." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_SpawnOnTarget, UpdateSourceTrigger=Default}"/>
                                     <CheckBox Content="Loop With Bac" ToolTip="Allow the effect to loop with the bac entry." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_Loop, UpdateSourceTrigger=Default}"/>
+                                    <CheckBox Content="Display For User Only" ToolTip="The effect will only render for the user." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_UserOnly, UpdateSourceTrigger=Default}"/>
                                 </StackPanel>
                                 <StackPanel Margin="20, 5" Width="200">
-                                    <CheckBox Content="Display For User Only" ToolTip="The effect will only render for the user." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_UserOnly, UpdateSourceTrigger=Default}"/>
                                     <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_Unk2, UpdateSourceTrigger=Default}"/>
                                     <CheckBox Content="Unk6" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_Unk6, UpdateSourceTrigger=Default}"/>
+                                    <CheckBox Content="Unk8" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType8View}}, Path=BacViewModel.EffectFlag_Unk8, UpdateSourceTrigger=Default}"/>
                                 </StackPanel>
                             </WrapPanel>
                         </StackPanel>

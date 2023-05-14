@@ -298,6 +298,25 @@ namespace XenoKit.ViewModel.BAC
                 }
             }
         }
+        public bool EffectFlag_Unk8
+        {
+            get
+            {
+                return bacType.EffectFlags.HasFlag(BAC_Type8.EffectFlagsEnum.Unk8);
+            }
+            set
+            {
+                EffectFlagsEnum flags = bacType.EffectFlags.SetFlag(EffectFlagsEnum.Unk8, value);
+
+                if (flags != bacType.EffectFlags)
+                {
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type8>(nameof(bacType.EffectFlags), bacType, bacType.EffectFlags, flags, "EffectFlags Unk8"));
+                    bacType.EffectFlags = flags;
+                    RaisePropertyChanged(() => EffectFlag_Unk8);
+                }
+            }
+        }
+
 
         //UI
         public bool UseCmnList => EepkType == 0;
@@ -349,6 +368,7 @@ namespace XenoKit.ViewModel.BAC
             RaisePropertyChanged(() => EffectFlag_SpawnOnTarget);
             RaisePropertyChanged(() => EffectFlag_Unk2);
             RaisePropertyChanged(() => EffectFlag_Unk6);
+            RaisePropertyChanged(() => EffectFlag_Unk8);
             RaisePropertyChanged(() => EffectFlag_UserOnly);
         }
 

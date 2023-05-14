@@ -161,8 +161,6 @@ namespace XenoKit.Engine.View
                 }
             }
 
-            //Redraw last frame if above condition fails. otherwise, bac cameras will break.
-
             //Bac modifers
             if (cameraInstance.bacCameraSettings.Enabled)
             {

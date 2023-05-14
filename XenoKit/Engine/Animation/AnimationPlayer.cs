@@ -99,10 +99,10 @@ namespace XenoKit.Engine.Animation
 
             //Update Matrices
             //todo: Test ingame and see if secondary face anims take priority over primary face anims when started on same frame, or later
+
             if (PrimaryAnimation != null)
                 UpdateAnimation(PrimaryAnimation);
 
-            //Do Secondary first, as they have lower priority than PrimaryAnimation
             for (int i = 0; i < SecondaryAnimations.Count; i++)
                 UpdateAnimation(SecondaryAnimations[i]);
 
@@ -155,7 +155,7 @@ namespace XenoKit.Engine.Animation
                 {
                     if (SceneManager.Loop && PrimaryAnimation.AutoTerminate && ((SceneManager.IsPlaying && SceneManager.IsOnTab(EditorTabs.Animation) || !SceneManager.IsOnTab(EditorTabs.Animation))))
                     {
-                        PrimaryAnimation.CurrentFrame = PrimaryAnimation.StartFrame;
+                        PrimaryAnimation.CurrentFrame_Int = PrimaryAnimation.StartFrame;
                     }
                     else if (SceneManager.IsOnTab(EditorTabs.Animation))
                     {
@@ -183,27 +183,12 @@ namespace XenoKit.Engine.Animation
         {
             if (PrimaryAnimation != null)
             {
-                if (PrimaryAnimation.CurrentFrame < PrimaryAnimation.EndFrame)
-                {
-                    PrimaryAnimation.PreviousFrame = PrimaryAnimation.CurrentFrame;
-
-                    //We dont use TimeScale when simulating frames, so this is required
-                    float timeScale = (useTimeScale) ? SceneManager.BacTimeScale * PrimaryAnimation.timeScale : 1f;
-                    PrimaryAnimation.CurrentFrame += 1f * timeScale;
-                }
-
+                PrimaryAnimation.AdvanceFrame(useTimeScale);
             }
 
             for (int i = 0; i < SecondaryAnimations.Count; i++)
             {
-                if (SecondaryAnimations[i].CurrentFrame < SecondaryAnimations[i].EndFrame)
-                {
-                    SecondaryAnimations[i].PreviousFrame = SecondaryAnimations[i].CurrentFrame;
-
-                    float timeScale = (useTimeScale) ? SceneManager.BacTimeScale * SecondaryAnimations[i].timeScale : 1f;
-                    SecondaryAnimations[i].CurrentFrame += 1f * timeScale;
-                }
-
+                SecondaryAnimations[i].AdvanceFrame(useTimeScale);
             }
         }
 
@@ -367,7 +352,7 @@ namespace XenoKit.Engine.Animation
             if (boneIdx == -1) //Bone doesn't exist in character ESK, so skip
                 return;
 
-            ESK_Bone bone = animation.eanFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
+            ESK_Bone bone = animation.EanFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
             ESK_RelativeTransform transform = bone.RelativeTransform;
 
             Vector3 ean_initialBonePosition = new Vector3(transform.PositionX, transform.PositionY, transform.PositionZ) * transform.PositionW;
@@ -375,7 +360,7 @@ namespace XenoKit.Engine.Animation
             Vector3 ean_initialBoneScale = new Vector3(transform.ScaleX, transform.ScaleY, transform.ScaleZ) * transform.ScaleW;
 
             //Scale animations to fit current actor size
-            if (!animation.eanFile.IsCharaUnique && i == animation.b_C_Pelvis_Index)
+            if (!animation.EanFile.IsCharaUnique && i == animation.b_C_Pelvis_Index)
             {
                 ean_initialBonePosition.Y -= (SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[0] - 1f) / 2f;
             }
@@ -638,7 +623,9 @@ namespace XenoKit.Engine.Animation
         public void FirstFrame()
         {
             if (PrimaryAnimation?.CurrentFrame > PrimaryAnimation?.StartFrame)
-                PrimaryAnimation.CurrentFrame = PrimaryAnimation.StartFrame;
+            {
+                PrimaryAnimation.CurrentFrame_Int = PrimaryAnimation.StartFrame;
+            }
         }
 
         #endregion
@@ -646,27 +633,52 @@ namespace XenoKit.Engine.Animation
 
     public class AnimationInstance
     {
-        public EAN_File eanFile;
+        public EAN_File EanFile;
         public int EanIndex;
         public EAN_Animation Animation;
+        /// <summary>
+        /// The current frame of the animation. Being in float format allows for time scaled animations.
+        /// </summary>
         public float CurrentFrame;
+        /// <summary>
+        /// The absolute current frame of the animation, including any "frozen" frames (ex: happens when StartFrame + EndFrame are the same, or an animation with an EndFrame well beyond what it actually has keyframes for). This is used for calculating the proper blending amount.
+        /// </summary>
+        private float CurrentFrameAdjusted;
+        /// <summary>
+        /// Why does this exist? I cant remember...
+        /// </summary>
         public float PreviousFrame;
+        /// <summary>
+        /// The animation will start from this frame, and if looping will revert to this frame at the end of the loop.
+        /// </summary>
         public int StartFrame;
+        /// <summary>
+        /// The end frame of the animation. If this extends beyond what the animation has keyframes for, then the final keyframed pose will be held.
+        /// </summary>
         public int EndFrame;
-        public float timeScale;
+        /// <summary>
+        /// [BAC] The TimeScale value from the BAC entry that played this animation. 
+        /// </summary>
+        public float AnimationTimeScale;
+        /// <summary>
+        /// Used by Secondary Animations to automatically terminate once EndFrame is reached. Unused by the PrimaryAnimation.
+        /// </summary>
         public bool AutoTerminate;
 
-        //Blending
+        //These properties are for Animation Blending (previous animation frame + current animation). This is done when starting a new animation to create a more smoother transition.
+        /// <summary>
+        /// This is where the previous animations final pose is stored (if null, no blending will be done).
+        /// </summary>
         public Matrix[] PreviousAnimRelativeMatrices = null;
+        /// <summary>
+        /// The initial Blend Weight for this animation.
+        /// </summary>
         public float BlendWeight = 1f;
+        /// <summary>
+        /// The ammount to increase the Blend Weight by each frame.
+        /// </summary>
         public float BlendWeightIncreasePerFrame = 0f;
-        public float CurrentBlendWeight
-        {
-            get
-            {
-                return MathHelper.Clamp(BlendWeight + (BlendWeightIncreasePerFrame * (CurrentFrame - StartFrame)), 0f, 1f);
-            }
-        }
+        public float CurrentBlendWeight => MathHelper.Clamp(BlendWeight + (BlendWeightIncreasePerFrame * (CurrentFrameAdjusted - StartFrame)), 0f, 1f);
 
         //World Movement
         public AnimationFlags AnimFlags;
@@ -685,16 +697,11 @@ namespace XenoKit.Engine.Animation
                 if (CurrentFrame != value)
                 {
                     CurrentFrame = value;
+                    CurrentFrameAdjusted = value;
                 }
             }
         }
-        public int CurrentAnimDuration
-        {
-            get
-            {
-                return EndFrame - StartFrame;
-            }
-        }
+        public int CurrentAnimDuration => EndFrame - StartFrame;
 
         //Optimizations:
         //Here some animation-state values are saved for use in a later frame, instead of needlessly (and expensively) computing them each frame.
@@ -730,19 +737,20 @@ namespace XenoKit.Engine.Animation
 
         public AnimationInstance(EAN_File _eanFile, int index, int startFrame = 0, int endFrame = -1, float blendWeight = 1f, float blendWeightIncrease = 0f, Matrix[] previousMatrices = null, AnimationFlags _animFlags = 0, bool _useTransform = true, float timeScale = 1f, bool autoTerminate = false)
         {
-            eanFile = _eanFile;
+            EanFile = _eanFile;
             EanIndex = index;
             StartFrame = startFrame;
             EndFrame = endFrame;
             CurrentFrame = startFrame;
+            CurrentFrameAdjusted = startFrame;
             PreviousFrame = startFrame;
-            Animation = eanFile.GetAnimation(index, true);
+            Animation = EanFile.GetAnimation(index, true);
             BlendWeight = MathHelper.Clamp(blendWeight, 0f, 1f);
             BlendWeightIncreasePerFrame = MathHelper.Clamp(blendWeightIncrease, 0f, 1f);
             PreviousAnimRelativeMatrices = previousMatrices;
             AnimFlags = _animFlags;
             useTransform = _useTransform;
-            this.timeScale = timeScale;
+            AnimationTimeScale = timeScale;
             AutoTerminate = autoTerminate;
 
             if (Animation == null)
@@ -788,6 +796,24 @@ namespace XenoKit.Engine.Animation
         {
             PreviousFrame = frame;
             CurrentFrame = frame;
+            CurrentFrameAdjusted = frame;
+        }
+    
+        public void AdvanceFrame(bool useTimeScale)
+        {
+            if (CurrentFrame < EndFrame)
+            {
+                PreviousFrame = CurrentFrame;
+
+                //We dont use TimeScale when simulating frames, so this is required
+                float actualTimeScale = (useTimeScale) ? SceneManager.BacTimeScale * AnimationTimeScale : 1f;
+                CurrentFrame += 1f * actualTimeScale;
+                CurrentFrameAdjusted += 1f * actualTimeScale;
+            }
+            else
+            {
+                CurrentFrameAdjusted++;
+            }
         }
     }
 }
