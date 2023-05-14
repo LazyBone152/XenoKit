@@ -80,23 +80,23 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="20, 5" Width="170">
-                                        <CheckBox Content="Force All Players"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.EnableCameraForAllPlayers, UpdateSourceTrigger=Default}" ToolTip="Force the camera to appear for all players."/>
+                                        <CheckBox Content="Play to All Players"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.EnableCameraForAllPlayers, UpdateSourceTrigger=Default}" ToolTip="Force the camera to play for all players."/>
                                         <CheckBox Content="Focus On Target" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.FocusOnTarget, UpdateSourceTrigger=Default}" ToolTip="Focus the camera on the current target."/>
-                                        <CheckBox Content="Chara Unique CAM.EAN" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.UseCharacterSpecificCameraEan, UpdateSourceTrigger=Default}" ToolTip="Use a character unique EAN."/>
+                                        <CheckBox Content="Chara Unique CAM.EAN" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.UseCharacterSpecificCameraEan, UpdateSourceTrigger=Default}" ToolTip="Use a character unique camera EAN."/>
                                         <CheckBox Content="Secondary" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.DontOverrideActiveCameras, UpdateSourceTrigger=Default}" ToolTip="Only show this camera if there are no other cameras active (other than the default targetting camera)."/>
                                     </StackPanel>
                                     <StackPanel Margin="20, 5" Width="100">
                                         <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.Flag_74_1, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Unk5" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.Flag_74_4, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk6" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.Flag_74_5, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Enable Loop" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.Flag_74_5, UpdateSourceTrigger=Default}" ToolTip="When this is active, the camera is able to be looped when the skill uses a looping mechanic."/>
                                     </StackPanel>
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="20, 5" Width="170">
-                                        <CheckBox Content="Unk9" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.CameraFlags_Unk9, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk10" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.CameraFlags_Unk10, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk11" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.CameraFlags_Unk11, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Disable Photo Mode" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.CameraFlags_Unk9, UpdateSourceTrigger=Default}" ToolTip="Disables the ability to move the camera in photo mode when camera is active."/>
+                                        <CheckBox Content="Snap to Camera" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.CameraFlags_Unk10, UpdateSourceTrigger=Default}" ToolTip="When this is active, the previous camera instantly transitions (snaps) to this camera. No inbetween frames."/>
+                                        <CheckBox Content="Move to Camera" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.CameraFlags_Unk11, UpdateSourceTrigger=Default}" ToolTip="When this is active, the previous camera transitions to this camera."/>
                                         <CheckBox Content="Unk12" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.CameraFlags_Unk12, UpdateSourceTrigger=Default}"/>
                                     </StackPanel>
                                     <StackPanel Margin="20, 5" Width="100">

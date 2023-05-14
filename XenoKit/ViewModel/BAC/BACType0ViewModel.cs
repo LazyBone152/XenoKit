@@ -148,6 +148,24 @@ namespace XenoKit.ViewModel.BAC
                 }
             }
         }
+        public ushort I_14
+        {
+            get
+            {
+                return bacType.I_14;
+            }
+            set
+            {
+                if (bacType.I_14 != value)
+                {
+                    // For some reason the undo and redo don't work for this value, probably overlooking something but the old/new value doesn't get applied to the checkbox - Pandas
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.I_14), bacType, bacType.I_14, value, "Animation Face Animation from EAN"));
+                    bacType.I_14 = value;
+                    RaisePropertyChanged(() => I_14);
+                    UpdateBacPlayer();
+                }
+            }
+        }
 
         //Flags
         public bool MoveWithX
@@ -442,7 +460,7 @@ namespace XenoKit.ViewModel.BAC
                 }
             }
         }
-        
+
         //Ean
         public EAN_File SpecifiedEan
         {
