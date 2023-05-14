@@ -84,8 +84,8 @@
                                 </StackPanel>
                                 <StackPanel Margin="20, 5" Width="200">
                                     <CheckBox Content="Unk1" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType2View}}, Path=BacViewModel.MovementFlags_A_1, UpdateSourceTrigger=Default}"/>
-                                    <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType2View}}, Path=BacViewModel.MovementFlags_A_2, UpdateSourceTrigger=Default}"/>
-                                    <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType2View}}, Path=BacViewModel.MovementFlags_A_3, UpdateSourceTrigger=Default}"/>
+                                    <CheckBox Content="Teleport to Random Opponents" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType2View}}, Path=BacViewModel.MovementFlags_A_2, UpdateSourceTrigger=Default}"/>
+                                    <CheckBox Content="Teleport to Center of Stage" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType2View}}, Path=BacViewModel.MovementFlags_A_3, UpdateSourceTrigger=Default}" ToolTip="Teleports the player to the center of the stage.&#x0a;&#x0a;Note: The XYZ direction values are used as offset values in this case."/>
                                     <CheckBox Content="Orientation Follows Input" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType2View}}, Path=BacViewModel.MovementFlags_A_4, UpdateSourceTrigger=Default}"/>
                                 </StackPanel>
                             </StackPanel>
