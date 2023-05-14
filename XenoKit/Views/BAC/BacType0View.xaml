@@ -101,15 +101,21 @@
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="20, 5" Width="200">
                                         <CheckBox Content="Unk9" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk9, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk10" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk10, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Continue from Last Entry" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk10, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Unk11" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk11, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Unk12" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk12, UpdateSourceTrigger=Default}"/>
                                     </StackPanel>
                                     <StackPanel Margin="20, 5" Width="200">
-                                        <CheckBox Content="Unk13" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk13, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk14" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk14, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Ignore Root Motion" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk13, UpdateSourceTrigger=Default}" ToolTip="Ignore all root motion (b_C_Base). Any movement on the root bone will not be used."/>
+                                        <CheckBox Content="Specific per EAN type" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk14, UpdateSourceTrigger=Default}" ToolTip="Specific per EAN Type (Face Eye/Face Mouth). What this fully does is still unknown.&#x0a;&#x0a;Note: This is usually paired with face animation entries, usually the one with the 'Play animation from main ean' flag enabled."/>
                                         <CheckBox Content="Unk15" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk15, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Unk16" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.Flags_Unk16, UpdateSourceTrigger=Default}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel Margin="20, 5" Width="225">
+                                        <CheckBox Content="Play Face Animation from Main EAN" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.I_14, UpdateSourceTrigger=Default}" ToolTip="Plays the face animation that's baked into the chara / skill ean.&#x0a;&#x0a;Note: This is NOT recommended to do with CACs."/>
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>
