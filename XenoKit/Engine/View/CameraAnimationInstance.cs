@@ -248,12 +248,12 @@ namespace XenoKit.Engine.View
 
             //Rotate X
             Vector3 temp = position - targetPosition;
-            temp = Vector3.Transform(temp, Matrix.CreateRotationY(MathHelper.ToRadians(CurrentRotX)));
+            temp = Vector3.Transform(temp, Matrix.CreateRotationY(MathHelper.ToRadians(CurrentRotY)));
             newPosition = targetPosition + temp;
 
             //Rotate Y
             temp = newPosition - targetPosition;
-            temp = Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotY)));
+            temp = Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotX)));
             newPosition = targetPosition + temp;
 
             return (newPosition - position) * CurrentGlobalFactor();
