@@ -90,12 +90,6 @@ namespace XenoKit.Engine
         /// </summary>
         public static string CurrentSelectedBoneName = "";
 
-        static SceneManager()
-        {
-            UpdateTimer = new Timer(SettingsManager.Instance.Settings.XenoKit_DelayedUpdateInterval);
-            UpdateTimer.Elapsed += UpdateTimer_Elapsed;
-            UpdateTimer.Start();
-        }
 
         #region SceneState
         public static EditorTabs PrevSceneState = EditorTabs.Nothing;
@@ -407,12 +401,8 @@ namespace XenoKit.Engine
 
         #region Update
         public static event EventHandler DelayedUpdate;
-        private static Timer UpdateTimer;
+        private static int DelayedUpdateTimer = 0;
 
-        private static void UpdateTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            DelayedUpdate?.Invoke(null, EventArgs.Empty);
-        }
 
         public static void Update(GameTime time)
         {
@@ -427,9 +417,19 @@ namespace XenoKit.Engine
                 forceUpdateCamera = false;
             }
 
-
             if (IsPlaying)
                 SystemTime.X += 0.0166f; //Hardcoded timestep (1 second / 60 frames)
+
+            //Code for raising the DelayedUpdate event. This event fires off after a configurable interval and is used by some performance heavy UI operations.
+            if(DelayedUpdateTimer >= SettingsManager.Instance.Settings.XenoKit_DelayedUpdateFrameInterval)
+            {
+                DelayedUpdate?.Invoke(null, EventArgs.Empty);
+                DelayedUpdateTimer = 0;
+            }
+            else
+            {
+                DelayedUpdateTimer++;
+            }
         }
 
         #endregion
