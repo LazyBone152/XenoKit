@@ -29,8 +29,7 @@ namespace XenoKit.Engine.View
                     cameraInstance.CurrentFrame = value;
             }
         }
-
-
+        
         public Camera(GameBase gameInstance) : base(gameInstance)
         {
             SceneManager.CameraDataChanged += SceneManager_CameraDataChanged;
@@ -77,7 +76,7 @@ namespace XenoKit.Engine.View
             if (cameraInstance != null)
             {
                 if (updateCamAnim)
-                    UpdateCameraAnimation(false);
+                    ProcessCameraFrame();
 
                 if (advance)
                 {
@@ -120,6 +119,16 @@ namespace XenoKit.Engine.View
                 return;
             }
 
+            ProcessCameraFrame();
+
+            if (advance)
+            {
+                AdvanceFrame();
+            }
+        }
+
+        public void ProcessCameraFrame()
+        {
             float _drawFrame = (CurrentFrame <= cameraInstance.Animation.FrameCount) ? CurrentFrame : cameraInstance.Animation.FrameCount - 1;
 
             //If current frame is greater than animation duration, just leave the last frame playing
@@ -186,11 +195,6 @@ namespace XenoKit.Engine.View
             }
 
             ResetViewerAngles();
-
-            if (advance)
-            {
-                AdvanceFrame();
-            }
         }
 
         public void ClearCameraAnimation()
