@@ -573,7 +573,7 @@ namespace XenoKit.Engine.Animation
                 {
                     //Movement is enabled
                     transformSum *= Matrix.CreateTranslation(new Vector3(0, PosY, 0) * PosW);
-                    transformSum *= Matrix.CreateTranslation(new Vector3(0, firstPosY, 0) * firstPosW);
+                    transformSum *= Matrix.CreateTranslation(new Vector3(0, -firstPosY, 0) * firstPosW);
 
                 }
                 else if (!PrimaryAnimation.AnimFlags.HasFlag(AnimationFlags.IgnoreRootMotionY) || PrimaryAnimation.AnimFlags.HasFlag(AnimationFlags.ForceYRootMotion))
@@ -593,7 +593,7 @@ namespace XenoKit.Engine.Animation
                 {
                     //Movement is enabled
                     transformSum *= Matrix.CreateTranslation(new Vector3(0, 0, PosZ) * PosW);
-                    transformSum *= Matrix.CreateTranslation(new Vector3(0, 0, firstPosY) * firstPosW);
+                    transformSum *= Matrix.CreateTranslation(new Vector3(0, 0, -firstPosZ) * firstPosW);
 
                 }
                 else if (!PrimaryAnimation.AnimFlags.HasFlag(AnimationFlags.IgnoreRootMotionZ))
