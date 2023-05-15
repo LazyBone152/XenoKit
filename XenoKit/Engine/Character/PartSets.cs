@@ -632,7 +632,7 @@ namespace XenoKit.Engine
             if(path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if(chara.ShortName == owner)
+                if(chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -672,7 +672,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner)
+                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -708,7 +708,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner)
+                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -745,7 +745,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner)
+                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -785,7 +785,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner)
+                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -823,7 +823,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == physicsPart.CharaCode)
+                if (chara.ShortName == physicsPart.CharaCode && (path.Contains($"{physicsPart.CharaCode}/") || path.Contains($"{physicsPart.CharaCode}" + @"\")))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -984,7 +984,7 @@ namespace XenoKit.Engine
             {
                 //Matrix bone = Skeleton.BoneAbsoluteMatrices[Skeleton.GetBoneIndex(physicsPart.BoneToAttach)] * chara.Skeleton.BoneAbsoluteMatrices[chara.Skeleton.GetBoneIndex(physicsPart.BoneToAttach)];
                 Matrix charaBone = chara.AnimationPlayer.GetCurrentAbsoluteMatrix(physicsPart.BoneToAttach);
-                Matrix scdBone = Skeleton.Bones[Skeleton.GetBoneIndex(physicsPart.BoneToAttach)].AbsoluteMatrix;
+                //Matrix scdBone = Skeleton.Bones[Skeleton.GetBoneIndex(physicsPart.BoneToAttach)].AbsoluteMatrix;
 
                 if (Skeleton != null)
                     Skeleton.CopySkinningState(chara.Skeleton);

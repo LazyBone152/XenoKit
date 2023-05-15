@@ -45,6 +45,20 @@
 
                 </Grid>
             </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Performance" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <StackPanel HorizontalAlignment="Left">
+                    <Grid Margin="3,5,0,0" Width="250" ToolTip="The interval at which the internal Delayed Update function runs at. Lower values will result in some UI operations being more responsive (such as dragging the slider on BAC entries to change the current frame), but could cause performance issues on some PCs.">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Delayed Update Interval"/>
+                        <Controls:NumericUpDown Grid.Column="1" VerticalAlignment="Center" Value="{Binding settings.XenoKit_DelayedUpdateFrameInterval, UpdateSourceTrigger=PropertyChanged}" Minimum="1" Maximum="60"/>
+                    </Grid>
+                </StackPanel>
+
+            </Controls:MetroTabItem>
+            
             <Controls:MetroTabItem Header="Rendering" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <StackPanel HorizontalAlignment="Left">
                     <Grid Margin="3,5,0,0" Width="200" ToolTip="Enable or disable rimlighting.">
