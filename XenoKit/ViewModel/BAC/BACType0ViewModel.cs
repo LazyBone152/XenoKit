@@ -158,7 +158,6 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.I_14 != value)
                 {
-                    // For some reason the undo and redo don't work for this value, probably overlooking something but the old/new value doesn't get applied to the checkbox - Pandas
                     UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.I_14), bacType, bacType.I_14, value, "Animation Face Animation from EAN"));
                     bacType.I_14 = value;
                     RaisePropertyChanged(() => I_14);
@@ -183,6 +182,7 @@ namespace XenoKit.ViewModel.BAC
                     UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation MoveWithX"));
                     bacType.AnimFlags = flags;
                     RaisePropertyChanged(() => MoveWithX);
+                    RaisePropertyChanged(() => IgnoreRootXEnabled);
                     UpdateBacPlayer();
                 }
             }
@@ -202,6 +202,7 @@ namespace XenoKit.ViewModel.BAC
                     UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation MoveWithY"));
                     bacType.AnimFlags = flags;
                     RaisePropertyChanged(() => MoveWithY);
+                    RaisePropertyChanged(() => IgnoreRootYEnabled);
                     UpdateBacPlayer();
                 }
             }
@@ -221,6 +222,7 @@ namespace XenoKit.ViewModel.BAC
                     UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation MoveWithZ"));
                     bacType.AnimFlags = flags;
                     RaisePropertyChanged(() => MoveWithZ);
+                    RaisePropertyChanged(() => IgnoreRootZEnabled);
                     UpdateBacPlayer();
                 }
             }
@@ -259,6 +261,10 @@ namespace XenoKit.ViewModel.BAC
                     bacType.AnimFlags = flags;
                     RaisePropertyChanged(() => UseRootMotion);
                     RaisePropertyChanged(() => MoveWithFlagsEnabled);
+                    RaisePropertyChanged(() => IgnoreRootXEnabled);
+                    RaisePropertyChanged(() => IgnoreRootYEnabled);
+                    RaisePropertyChanged(() => IgnoreRootZEnabled);
+                    UpdateBacPlayer();
                 }
             }
         }
@@ -280,21 +286,22 @@ namespace XenoKit.ViewModel.BAC
                 }
             }
         }
-        public bool FullRootMotion
+        public bool ForceRootMotionY
         {
             get
             {
-                return bacType.AnimFlags.HasFlag(AnimationFlags.FullRootMotion);
+                return bacType.AnimFlags.HasFlag(AnimationFlags.ForceYRootMotion);
             }
             set
             {
-                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.FullRootMotion, value);
+                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.ForceYRootMotion, value);
 
                 if (bacType.AnimFlags != flags)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "AnimationFlags"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation Force Root Y"));
                     bacType.AnimFlags = flags;
-                    RaisePropertyChanged(() => FullRootMotion);
+                    RaisePropertyChanged(() => ForceRootMotionY);
+                    UpdateBacPlayer();
                 }
             }
         }
@@ -352,57 +359,60 @@ namespace XenoKit.ViewModel.BAC
                 }
             }
         }
-        public bool Flags_Unk11
+        public bool IgnoreRootMotionX
         {
             get
             {
-                return bacType.AnimFlags.HasFlag(AnimationFlags.Unk11);
+                return bacType.AnimFlags.HasFlag(AnimationFlags.IgnoreRootMotionX);
             }
             set
             {
-                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.Unk11, value);
+                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.IgnoreRootMotionX, value);
 
                 if (bacType.AnimFlags != flags)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "AnimationFlags"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation Ignore X"));
                     bacType.AnimFlags = flags;
-                    RaisePropertyChanged(() => Flags_Unk11);
+                    RaisePropertyChanged(() => IgnoreRootMotionX);
+                    UpdateBacPlayer();
                 }
             }
         }
-        public bool Flags_Unk12
+        public bool IgnoreRootMotionY
         {
             get
             {
-                return bacType.AnimFlags.HasFlag(AnimationFlags.Unk12);
+                return bacType.AnimFlags.HasFlag(AnimationFlags.IgnoreRootMotionY);
             }
             set
             {
-                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.Unk12, value);
+                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.IgnoreRootMotionY, value);
 
                 if (bacType.AnimFlags != flags)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "AnimationFlags1"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation Ignore Y"));
                     bacType.AnimFlags = flags;
-                    RaisePropertyChanged(() => Flags_Unk12);
+                    RaisePropertyChanged(() => IgnoreRootMotionY);
+                    UpdateBacPlayer();
                 }
             }
         }
-        public bool Flags_Unk13
+        public bool IgnoreRootMotionZ
         {
             get
             {
-                return bacType.AnimFlags.HasFlag(AnimationFlags.Unk13);
+                return bacType.AnimFlags.HasFlag(AnimationFlags.IgnoreRootMotionZ);
             }
             set
             {
-                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.Unk13, value);
+                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.IgnoreRootMotionZ, value);
 
                 if (bacType.AnimFlags != flags)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "AnimationFlags"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation Ignore Z"));
                     bacType.AnimFlags = flags;
-                    RaisePropertyChanged(() => Flags_Unk13);
+                    RaisePropertyChanged(() => IgnoreRootMotionZ);
+                    UpdateBacPlayer();
                 }
             }
         }
@@ -442,21 +452,22 @@ namespace XenoKit.ViewModel.BAC
                 }
             }
         }
-        public bool Flags_Unk16
+        public bool Rotate180Degrees
         {
             get
             {
-                return bacType.AnimFlags.HasFlag(AnimationFlags.Unk16);
+                return bacType.AnimFlags.HasFlag(AnimationFlags.Rotate180Degrees);
             }
             set
             {
-                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.Unk16, value);
+                AnimationFlags flags = bacType.AnimFlags.SetFlag(AnimationFlags.Rotate180Degrees, value);
 
                 if (bacType.AnimFlags != flags)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "AnimationFlags"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.AnimFlags), bacType, bacType.AnimFlags, flags, "Animation Rotate 180"));
                     bacType.AnimFlags = flags;
-                    RaisePropertyChanged(() => Flags_Unk16);
+                    RaisePropertyChanged(() => Rotate180Degrees);
+                    UpdateBacPlayer();
                 }
             }
         }
@@ -474,6 +485,9 @@ namespace XenoKit.ViewModel.BAC
         //UI
         public bool UseEanList { get { return SpecifiedEan != null; } }
         public bool MoveWithFlagsEnabled => !UseRootMotion;
+        public bool IgnoreRootXEnabled => !MoveWithX && !UseRootMotion;
+        public bool IgnoreRootYEnabled => !MoveWithY && !UseRootMotion;
+        public bool IgnoreRootZEnabled => !MoveWithZ && !UseRootMotion;
 
         public BACType0ViewModel(BAC_Type0 _bacType)
         {
@@ -511,18 +525,23 @@ namespace XenoKit.ViewModel.BAC
             RaisePropertyChanged(() => Flags_Unk4);
             RaisePropertyChanged(() => UseRootMotion);
             RaisePropertyChanged(() => Flags_Unk6);
-            RaisePropertyChanged(() => FullRootMotion);
+            RaisePropertyChanged(() => ForceRootMotionY);
             RaisePropertyChanged(() => Flags_Unk8);
             RaisePropertyChanged(() => Flags_Unk9);
             RaisePropertyChanged(() => Flags_Unk10);
-            RaisePropertyChanged(() => Flags_Unk11);
-            RaisePropertyChanged(() => Flags_Unk12);
-            RaisePropertyChanged(() => Flags_Unk13);
+            RaisePropertyChanged(() => IgnoreRootMotionX);
+            RaisePropertyChanged(() => IgnoreRootMotionY);
+            RaisePropertyChanged(() => IgnoreRootMotionZ);
             RaisePropertyChanged(() => Flags_Unk14);
             RaisePropertyChanged(() => Flags_Unk15);
-            RaisePropertyChanged(() => Flags_Unk16);
+            RaisePropertyChanged(() => Rotate180Degrees);
             RaisePropertyChanged(() => SpecifiedEan);
             RaisePropertyChanged(() => UseEanList);
+            RaisePropertyChanged(() => MoveWithFlagsEnabled);
+            RaisePropertyChanged(() => IgnoreRootXEnabled);
+            RaisePropertyChanged(() => IgnoreRootYEnabled);
+            RaisePropertyChanged(() => IgnoreRootZEnabled);
+            RaisePropertyChanged(() => I_14);
             UpdateBacPlayer();
         }
 

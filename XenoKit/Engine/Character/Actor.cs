@@ -89,7 +89,7 @@ namespace XenoKit.Engine
             //Skeleton = new Xv2Skeleton(character.EskFile.File);
             Skeleton = CompiledObjectManager.Instance.GetCompiledObject<Xv2Skeleton>(character.EskFile.File, GameBase);
             Name = character.Name[0];
-            baseTransform = Matrix.CreateWorld(DefaultPosition, Vector3.Forward, Vector3.Up);
+            BaseTransform = Matrix.CreateWorld(DefaultPosition, Vector3.Forward, Vector3.Up);
             ActionControl = new ActionControl(this, gameBase);
             Moveset = new Move(character);
             CharacterData = character;
@@ -105,27 +105,27 @@ namespace XenoKit.Engine
         }
 
         #region State
-        public new Matrix Transform
-        {
-            get
-            {
-                return animatedTransform * baseTransform;
-            }
-        }
+        public new Matrix Transform => RootMotionTransform * ActionMovementTransform * BaseTransform;
 
-        public Matrix animatedTransform = Matrix.Identity;
-        public Matrix baseTransform = Matrix.Identity;
+        public Matrix RootMotionTransform = Matrix.Identity;
+        public Matrix ActionMovementTransform = Matrix.Identity;
+        public Matrix BaseTransform = Matrix.Identity;
 
+        /// <summary>
+        /// Called when an BAC Animation is finished. All movement from that animation will be added onto the BaseTransform and preserved, while discarding all other Root Motion.
+        /// </summary>
         public void MergeTransforms()
         {
-            baseTransform *= animatedTransform;
-            animatedTransform = Matrix.Identity;
+            BaseTransform *= ActionMovementTransform;
+            ActionMovementTransform = Matrix.Identity;
+            RootMotionTransform = Matrix.Identity;
         }
 
         public void ResetPosition()
         {
-            baseTransform = Matrix.Identity * Matrix.CreateTranslation(DefaultPosition);
-            animatedTransform = Matrix.Identity;
+            BaseTransform = Matrix.Identity * Matrix.CreateTranslation(DefaultPosition);
+            ActionMovementTransform = Matrix.Identity;
+            RootMotionTransform = Matrix.Identity;
         }
 
         public void ResetState(bool resetAnimations = true)
@@ -134,7 +134,8 @@ namespace XenoKit.Engine
             if (resetAnimations)
             {
                 AnimationPlayer.ClearCurrentAnimation(true, true);
-                animatedTransform = Matrix.Identity;
+                ActionMovementTransform = Matrix.Identity;
+                RootMotionTransform = Matrix.Identity;
             }
 
             ResetPosition();

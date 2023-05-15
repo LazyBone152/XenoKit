@@ -82,7 +82,7 @@ namespace XenoKit.Engine.Scripting.BAC
             }
 
             ClearBacEntry();
-            BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, revertPosition, character.baseTransform);
+            BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, revertPosition, character.BaseTransform);
         }
 
         public override void Update()
@@ -315,8 +315,11 @@ namespace XenoKit.Engine.Scripting.BAC
         private void RevertCharacterPosition(bool alwaysRevert)
         {
             if (BacEntryInstance == null) return;
-            character.baseTransform = (BacEntryInstance.RevertPosition || alwaysRevert) ? BacEntryInstance.OriginalMatrix : character.Transform;
-            character.animatedTransform = Matrix.Identity;
+            character.BaseTransform = (BacEntryInstance.RevertPosition || alwaysRevert) ? BacEntryInstance.OriginalMatrix : character.Transform;
+            character.ActionMovementTransform = Matrix.Identity;
+
+            if(character.AnimationPlayer.PrimaryAnimation != null)
+                character.AnimationPlayer.PrimaryAnimation.hasMoved = false;
         }
 
         public void ResetBacState()
