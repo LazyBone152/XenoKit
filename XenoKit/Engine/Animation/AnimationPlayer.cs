@@ -352,6 +352,10 @@ namespace XenoKit.Engine.Animation
             if (boneIdx == -1) //Bone doesn't exist in character ESK, so skip
                 return;
 
+            //Skip face bones if face animations are not allowed on this animation. Used for BAC animations which by default dont use face bones.
+            if (Skeleton.Bones[boneIdx].IsFaceBone && !animation.EnableFaceBones)
+                return;
+
             ESK_Bone bone = animation.EanFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
             ESK_RelativeTransform transform = bone.RelativeTransform;
 
@@ -701,6 +705,10 @@ namespace XenoKit.Engine.Animation
         /// Used by Secondary Animations to automatically terminate once EndFrame is reached. Unused by the PrimaryAnimation.
         /// </summary>
         public bool AutoTerminate;
+        /// <summary>
+        /// [BAC] Enables the face bones of an animation.
+        /// </summary>
+        public bool EnableFaceBones = true;
 
         //These properties are for Animation Blending (previous animation frame + current animation). This is done when starting a new animation to create a more smoother transition.
         /// <summary>

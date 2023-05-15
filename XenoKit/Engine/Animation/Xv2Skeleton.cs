@@ -20,6 +20,7 @@ namespace XenoKit.Engine.Animation
         //Bone Scale:
         private Body CurrentBoneScale = null;
 
+
         public Xv2Skeleton(ESK_File eskFile)
         {
             //Init bone index cache
@@ -105,6 +106,7 @@ namespace XenoKit.Engine.Animation
                 Bones[i].Name = EskFile.Skeleton.NonRecursiveBones[i].Name;
                 Bones[i].Parent = (parentIdx != -1) ? Bones[parentIdx] : null;
                 Bones[i].ParentIndex = parentIdx;
+                Bones[i].IsFaceBone = EskFile.Skeleton.NonRecursiveBones[i].Name.StartsWith("f_");
 
                 Bones[i].RelativeMatrix = ConvertEskTransformToMatrix(EskFile.Skeleton.NonRecursiveBones[i].RelativeTransform);
 
@@ -320,5 +322,8 @@ namespace XenoKit.Engine.Animation
         //BoneScale Matrix:
         //This is set whenever a BCS bone scale is applied. AbsoluteAnimationMatrix will be scaled by this each frame when that is set
         public Matrix BoneScaleMatrix { get; set; } = Matrix.Identity;
+
+        //Face bone awareness:
+        public bool IsFaceBone { get; set; }
     }
 }

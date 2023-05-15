@@ -136,6 +136,7 @@ namespace XenoKit.Engine.Scripting.BAC
                             case BAC_Type0.EanTypeEnum.Common:
                             case BAC_Type0.EanTypeEnum.Skill:
                                 character.AnimationPlayer.PlayPrimaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.AnimFlags, true, animation.TimeScale);
+                                character.AnimationPlayer.PrimaryAnimation.EnableFaceBones = false;
                                 SceneManager.MainAnimTimeScale = animation.TimeScale;
 
                                 if (animation.StartFrame != 0 && _refFrame == 0f) //On first frame, skipping to startFrame on animations is allowed
@@ -143,7 +144,17 @@ namespace XenoKit.Engine.Scripting.BAC
                                 break;
                             case BAC_Type0.EanTypeEnum.FaceA:
                             case BAC_Type0.EanTypeEnum.FaceB:
-                                character.AnimationPlayer.PlaySecondaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, (ushort)(animation.Duration + 1), animation.BlendWeight, animation.BlendWeightFrameStep, animation.TimeScale, true);
+                                //I_14 tells the game to use the main animations face bones. In this case everything else on the entry is ignored.
+
+                                if(animation.I_14 == 1)
+                                {
+                                    BacEntryInstance.MainFaceAnimationEndTime = animation.StartTime + animation.Duration;
+                                }
+                                else
+                                {
+                                    character.AnimationPlayer.PlaySecondaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, (ushort)(animation.Duration + 1), animation.BlendWeight, animation.BlendWeightFrameStep, animation.TimeScale, true);
+                                }
+
                                 break;
                             case BAC_Type0.EanTypeEnum.CommonTail:
                                 character.AnimationPlayer.PlaySecondaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.TimeScale);
@@ -246,6 +257,10 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
 
             }
+
+            //Update face animation
+            if(character.AnimationPlayer.PrimaryAnimation != null)
+                character.AnimationPlayer.PrimaryAnimation.EnableFaceBones = BacEntryInstance.MainFaceAnimationEndTime > CurrentFrame;
         }
 
         /// <summary>

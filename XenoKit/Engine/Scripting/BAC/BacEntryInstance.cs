@@ -52,6 +52,10 @@ namespace XenoKit.Engine.Scripting.BAC
         /// The currently active eye movement entry. Only one of these can be active at any given time.
         /// </summary>
         public BAC_Type21 ActiveEyeMovement = null;
+        /// <summary>
+        /// Acts as the duration of how long the face animation in the currently active main animation can be played.
+        /// </summary>
+        public int MainFaceAnimationEndTime = -1;
 
         public BacEntryInstance(BAC_File bacFile, BAC_Entry bacEntry, Move currentMove, Actor user, bool revertPosition, Matrix originalMatrix)
         {
@@ -225,6 +229,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
             SimulationState = ActionSimulationState.SimulationActive;
             ActiveEyeMovement = null;
+            MainFaceAnimationEndTime = -1;
             CurrentFrame = 0;
             PreviousFrame = 0;
         }
