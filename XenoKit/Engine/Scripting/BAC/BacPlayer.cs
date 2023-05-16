@@ -117,7 +117,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
                     EAN_File eanFile;
 
-                    if (animation.EanType == BAC_Type0.EanTypeEnum.FaceA || animation.EanType == BAC_Type0.EanTypeEnum.FaceB)
+                    if (animation.EanType == BAC_Type0.EanTypeEnum.FaceBase || animation.EanType == BAC_Type0.EanTypeEnum.FaceForehead)
                     {
                         //Face animations are always loaded from the character FCE EAN
                         eanFile = Files.Instance.GetEanFile(animation.EanType, BacEntryInstance.SkillMove, character, true, true);
@@ -142,8 +142,8 @@ namespace XenoKit.Engine.Scripting.BAC
                                 if (animation.StartFrame != 0 && _refFrame == 0f) //On first frame, skipping to startFrame on animations is allowed
                                     _refFrame = animation.StartFrame;
                                 break;
-                            case BAC_Type0.EanTypeEnum.FaceA:
-                            case BAC_Type0.EanTypeEnum.FaceB:
+                            case BAC_Type0.EanTypeEnum.FaceBase:
+                            case BAC_Type0.EanTypeEnum.FaceForehead:
                                 //I_14 tells the game to use the main animations face bones. In this case everything else on the entry is ignored.
 
                                 if(animation.I_14 == 1)

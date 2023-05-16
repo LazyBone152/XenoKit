@@ -48,6 +48,18 @@ namespace XenoKit.Engine
                 return CharacterData?.MovesetFiles?.GetFaceEanFile();
             }
         }
+        public EAN_File FceEyeEanFile
+        {
+            get
+            {
+                //PartSet defined fce.ean file
+                if (PartSet?.FceForeheadEan != null)
+                    return PartSet.FceForeheadEan;
+
+                //Default fce.ean for this character
+                return CharacterData?.MovesetFiles?.GetFaceEanFile();
+            }
+        }
 
         //Visual Skeletons:
         private DebugSkeleton debugSkeleton;

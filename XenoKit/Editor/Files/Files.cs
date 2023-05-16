@@ -596,18 +596,30 @@ namespace XenoKit.Editor
                         return null;
                     }
                     return move.Files.GetEanFile(character?.ShortName, charaUnique);
-                case BAC_Type0.EanTypeEnum.FaceA:
-                case BAC_Type0.EanTypeEnum.FaceB:
-                    if (character == null) return null;
-                    //var faceEan = character.Moveset.Files.GetFaceEanFile();
-                    var faceEan = character.FceEanFile;
-
-                    if (faceEan == null && logErrors)
+                case BAC_Type0.EanTypeEnum.FaceBase:
                     {
-                        Log.Add($"Face Ean file was requested for {character.Name}, but none was loaded with the character!", LogType.Warning);
-                    }
+                        if (character == null) return null;
+                        var faceEan = character.CharacterData.IsCaC ? character.FceEanFile : character.FceEanFile;
 
-                    return faceEan;
+                        if (faceEan == null && logErrors)
+                        {
+                            Log.Add($"Face Ean file was requested for {character.Name}, but none was loaded with the character!", LogType.Warning);
+                        }
+
+                        return faceEan;
+                    }
+                case BAC_Type0.EanTypeEnum.FaceForehead:
+                    {
+                        if (character == null) return null;
+                        var faceEan = character.CharacterData.IsCaC ? character.FceEyeEanFile : character.FceEanFile;
+
+                        if (faceEan == null && logErrors)
+                        {
+                            Log.Add($"Face Ean file was requested for {character.Name}, but none was loaded with the character!", LogType.Warning);
+                        }
+
+                        return faceEan;
+                    }
                 case BAC_Type0.EanTypeEnum.CommonTail:
                     return Files.Instance.GetCmnMove().Files.GetTailEanFile();
             }

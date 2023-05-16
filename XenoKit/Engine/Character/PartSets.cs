@@ -28,6 +28,7 @@ namespace XenoKit.Engine
         private Actor chara;
 
         public EAN_File FceEan = null;
+        public EAN_File FceForeheadEan = null;
 
         public CharaPart[] Parts = new CharaPart[10];
         public CharaPart[] TransformedParts = new CharaPart[10];
@@ -161,36 +162,49 @@ namespace XenoKit.Engine
 
             HideMatFlags = flags;
         }
-        
+
         private void GetFceEan()
         {
-            //First, look on transformed parts for an EAN file
+            FceForeheadEan = null;
+            FceEan = null;
+
+            //Look on base parts first
+            for (int i = 0; i < Parts.Length; i++)
+            {
+                if (Parts[i] != null)
+                {
+                    if (Parts[i].GetEan() != null)
+                    {
+                        if (Parts[i].partType == PartType.FaceForehead)
+                        {
+                            FceForeheadEan = Parts[i].GetEan();
+                        }
+                        else if (Parts[i].partType == PartType.FaceBase)
+                        {
+                            FceEan = Parts[i].GetEan();
+                        }
+                    }
+                }
+            }
+
+            //Transformed parts have priority, so they come last
             for (int i = 0; i < TransformedParts.Length; i++)
             {
                 if (TransformedParts[i] != null)
                 {
-                    if (TransformedParts[i].GetFceEan() != null)
+                    if (TransformedParts[i].GetEan() != null)
                     {
-                        FceEan = TransformedParts[i].GetFceEan();
-                        return;
+                        if(TransformedParts[i].partType == PartType.FaceForehead)
+                        {
+                            FceForeheadEan = TransformedParts[i].GetEan();
+                        }
+                        else if (TransformedParts[i].partType == PartType.FaceBase)
+                        {
+                            FceEan = TransformedParts[i].GetEan();
+                        }
                     }
                 }
             }
-
-            //No transformed EAN was found, so look on base parts
-            for (int i = 0; i < Parts.Length; i++)
-            {
-                if(Parts[i] != null)
-                {
-                    if(Parts[i].GetFceEan() != null)
-                    {
-                        FceEan = Parts[i].GetFceEan();
-                        return;
-                    }
-                }
-            }
-
-            FceEan = null;
         }
         #endregion
 
@@ -304,7 +318,7 @@ namespace XenoKit.Engine
         private PartSet parentPartSet;
         private Part part;
         private PhysicsPart physicsPart;
-        private PartType partType;
+        public PartType partType;
         private PartTypeFlags partTypeFlag;
 
         //Physics Object stuff:
@@ -867,8 +881,8 @@ namespace XenoKit.Engine
 
             return file;
         }
-        
-        public EAN_File GetFceEan()
+
+        public EAN_File GetEan()
         {
             return EanFile;
         }
