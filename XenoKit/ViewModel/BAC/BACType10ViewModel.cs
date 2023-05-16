@@ -92,7 +92,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.I_16 != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_16", bacType, bacType.I_16, value, "Camera I_16"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.I_16), bacType, bacType.I_16, value, "Camera I_16"));
                     bacType.I_16 = value;
                     RaisePropertyChanged(() => I_16);
                     UpdateBacPlayer();
@@ -109,7 +109,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.GlobalModiferDuration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_18", bacType, bacType.GlobalModiferDuration, value, "Camera GlobalModiferDuration"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.GlobalModiferDuration), bacType, bacType.GlobalModiferDuration, value, "Camera GlobalModiferDuration"));
                     bacType.GlobalModiferDuration = value;
                     RaisePropertyChanged(() => GlobalModiferDuration);
                     UpdateBacPlayer();
@@ -126,7 +126,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.PositionX != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_40", bacType, bacType.PositionX, value, "Camera PositionX"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.PositionX), bacType, bacType.PositionX, value, "Camera PositionX"));
                     bacType.PositionX = value;
                     RaisePropertyChanged(() => PositionX);
                     UpdateBacPlayer();
@@ -143,7 +143,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.PositionY != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_44", bacType, bacType.PositionY, value, "Camera PositionY"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.PositionY), bacType, bacType.PositionY, value, "Camera PositionY"));
                     bacType.PositionY = value;
                     RaisePropertyChanged(() => PositionY);
                     UpdateBacPlayer();
@@ -160,7 +160,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.PositionZ != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_20", bacType, bacType.PositionZ, value, "Camera PositionZ"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.PositionZ), bacType, bacType.PositionZ, value, "Camera PositionZ"));
                     bacType.PositionZ = value;
                     RaisePropertyChanged(() => PositionZ);
                     UpdateBacPlayer();
@@ -177,7 +177,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.RotationX != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_32", bacType, bacType.RotationX, value, "Camera RotationX"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.RotationX), bacType, bacType.RotationX, value, "Camera RotationX"));
                     bacType.RotationX = value;
                     RaisePropertyChanged(() => RotationX);
                     UpdateBacPlayer();
@@ -194,7 +194,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.RotationY != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_36", bacType, bacType.RotationY, value, "Camera RotationY"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.RotationY), bacType, bacType.RotationY, value, "Camera RotationY"));
                     bacType.RotationY = value;
                     RaisePropertyChanged(() => RotationY);
                     UpdateBacPlayer();
@@ -211,7 +211,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.RotationZ != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_52", bacType, bacType.RotationZ, value, "Camera RotationZ"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.RotationZ), bacType, bacType.RotationZ, value, "Camera RotationZ"));
                     bacType.RotationZ = value;
                     RaisePropertyChanged(() => RotationZ);
                     UpdateBacPlayer();
@@ -228,7 +228,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.DisplacementXZ != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_24", bacType, bacType.DisplacementXZ, value, "Camera DisplacementXZ"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.DisplacementXZ), bacType, bacType.DisplacementXZ, value, "Camera DisplacementXZ"));
                     bacType.DisplacementXZ = value;
                     RaisePropertyChanged(() => DisplacementXZ);
                     UpdateBacPlayer();
@@ -245,7 +245,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.DisplacementZY != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_28", bacType, bacType.DisplacementZY, value, "Camera DisplacementZY"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.DisplacementZY), bacType, bacType.DisplacementZY, value, "Camera DisplacementZY"));
                     bacType.DisplacementZY = value;
                     RaisePropertyChanged(() => DisplacementZY);
                     UpdateBacPlayer();
@@ -262,7 +262,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.FieldOfView != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("F_48", bacType, bacType.FieldOfView, value, "Camera FieldOfView"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.FieldOfView), bacType, bacType.FieldOfView, value, "Camera FieldOfView"));
                     bacType.FieldOfView = value;
                     RaisePropertyChanged(() => FieldOfView);
                     UpdateBacPlayer();
@@ -279,7 +279,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.PositionX_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_66", bacType, bacType.PositionX_Duration, value, "Camera PositionDurationX"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.PositionX_Duration), bacType, bacType.PositionX_Duration, value, "Camera PositionDurationX"));
                     bacType.PositionX_Duration = value;
                     RaisePropertyChanged(() => PositionDurationX);
                     UpdateBacPlayer();
@@ -296,7 +296,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.PositionY_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_68", bacType, bacType.PositionY_Duration, value, "Camera PositionDurationY"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.PositionY_Duration), bacType, bacType.PositionY_Duration, value, "Camera PositionDurationY"));
                     bacType.PositionY_Duration = value;
                     RaisePropertyChanged(() => PositionDurationY);
                     UpdateBacPlayer();
@@ -313,7 +313,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.PositionZ_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_56", bacType, bacType.PositionZ_Duration, value, "Camera PositionDurationZ"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.PositionZ_Duration), bacType, bacType.PositionZ_Duration, value, "Camera PositionDurationZ"));
                     bacType.PositionZ_Duration = value;
                     RaisePropertyChanged(() => PositionDurationZ);
                     UpdateBacPlayer();
@@ -330,7 +330,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.RotationX_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_62", bacType, bacType.RotationX_Duration, value, "Camera RotationDurationX"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.RotationX_Duration), bacType, bacType.RotationX_Duration, value, "Camera RotationDurationX"));
                     bacType.RotationX_Duration = value;
                     RaisePropertyChanged(() => RotationDurationX);
                     UpdateBacPlayer();
@@ -347,7 +347,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.RotationY_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_64", bacType, bacType.RotationY_Duration, value, "Camera RotationDurationY"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.RotationY_Duration), bacType, bacType.RotationY_Duration, value, "Camera RotationDurationY"));
                     bacType.RotationY_Duration = value;
                     RaisePropertyChanged(() => RotationDurationY);
                     UpdateBacPlayer();
@@ -364,7 +364,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.RotationZ_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_72", bacType, bacType.RotationZ_Duration, value, "Camera RotationDurationZ"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.RotationZ_Duration), bacType, bacType.RotationZ_Duration, value, "Camera RotationDurationZ"));
                     bacType.RotationZ_Duration = value;
                     RaisePropertyChanged(() => RotationDurationZ);
                     UpdateBacPlayer();
@@ -381,7 +381,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.DisplacementXZ_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_58", bacType, bacType.DisplacementXZ_Duration, value, "Camera DisplacementDurationXZ"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.DisplacementXZ_Duration), bacType, bacType.DisplacementXZ_Duration, value, "Camera DisplacementDurationXZ"));
                     bacType.DisplacementXZ_Duration = value;
                     RaisePropertyChanged(() => DisplacementDurationXZ);
                     UpdateBacPlayer();
@@ -398,7 +398,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.DisplacementZY_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_60", bacType, bacType.DisplacementZY_Duration, value, "Camera DisplacementDurationZY"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.DisplacementZY_Duration), bacType, bacType.DisplacementZY_Duration, value, "Camera DisplacementDurationZY"));
                     bacType.DisplacementZY_Duration = value;
                     RaisePropertyChanged(() => DisplacementDurationZY);
                     UpdateBacPlayer();
@@ -415,7 +415,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.FieldOfView_Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_70", bacType, bacType.FieldOfView_Duration, value, "Camera FieldOfViewDuration"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.FieldOfView_Duration), bacType, bacType.FieldOfView_Duration, value, "Camera FieldOfViewDuration"));
                     bacType.FieldOfView_Duration = value;
                     RaisePropertyChanged(() => FieldOfViewDuration);
                     UpdateBacPlayer();
@@ -435,7 +435,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.EnableTransformModifiers != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_7", bacType, bacType.EnableTransformModifiers, value, "Camera EnableTransformModifers"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.EnableTransformModifiers), bacType, bacType.EnableTransformModifiers, value, "Camera EnableTransformModifers"));
                     bacType.EnableTransformModifiers = value;
                     RaisePropertyChanged(() => EnableTransformModifers);
                     UpdateBacPlayer();
@@ -452,7 +452,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.EnableCameraForAllPlayers != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_0", bacType, bacType.EnableCameraForAllPlayers, value, "Camera EnableCameraForAllPlayers"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.EnableCameraForAllPlayers), bacType, bacType.EnableCameraForAllPlayers, value, "Camera EnableCameraForAllPlayers"));
                     bacType.EnableCameraForAllPlayers = value;
                     RaisePropertyChanged(() => EnableCameraForAllPlayers);
                     UpdateBacPlayer();
@@ -469,7 +469,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.I_74_1 != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_1", bacType, bacType.I_74_1, value, "Camera Flag_74_1"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.I_74_1), bacType, bacType.I_74_1, value, "Camera Flag_74_1"));
                     bacType.I_74_1 = value;
                     RaisePropertyChanged(() => Flag_74_1);
                     UpdateBacPlayer();
@@ -486,7 +486,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.FocusOnTarget != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_2", bacType, bacType.FocusOnTarget, value, "Camera FocusOnTarget"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.FocusOnTarget), bacType, bacType.FocusOnTarget, value, "Camera FocusOnTarget"));
                     bacType.FocusOnTarget = value;
                     RaisePropertyChanged(() => FocusOnTarget);
                     UpdateBacPlayer();
@@ -503,7 +503,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.UseCharacterSpecificCameraEan != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_3", bacType, bacType.UseCharacterSpecificCameraEan, value, "Camera UseCharacterSpecificCameraEan"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.UseCharacterSpecificCameraEan), bacType, bacType.UseCharacterSpecificCameraEan, value, "Camera UseCharacterSpecificCameraEan"));
                     bacType.UseCharacterSpecificCameraEan = value;
                     RaisePropertyChanged(() => UseCharacterSpecificCameraEan);
                     UpdateBacPlayer();
@@ -520,7 +520,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.I_74_4 != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_4", bacType, bacType.I_74_4, value, "Camera Flag_74_4"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.I_74_4), bacType, bacType.I_74_4, value, "Camera Flag_74_4"));
                     bacType.I_74_4 = value;
                     RaisePropertyChanged(() => Flag_74_4);
                     UpdateBacPlayer();
@@ -537,7 +537,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.I_74_5 != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_5", bacType, bacType.I_74_5, value, "Camera Flag_74_5"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.I_74_5), bacType, bacType.I_74_5, value, "Camera Flag_74_5"));
                     bacType.I_74_5 = value;
                     RaisePropertyChanged(() => Flag_74_5);
                     UpdateBacPlayer();
@@ -554,7 +554,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.DontOverrideActiveCameras != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>("I_74_6", bacType, bacType.DontOverrideActiveCameras, value, "Camera DontOverrideActiveCameras"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type10>(nameof(bacType.DontOverrideActiveCameras), bacType, bacType.DontOverrideActiveCameras, value, "Camera DontOverrideActiveCameras"));
                     bacType.DontOverrideActiveCameras = value;
                     RaisePropertyChanged(() => DontOverrideActiveCameras);
                     UpdateBacPlayer();
