@@ -454,12 +454,6 @@ namespace XenoKit.Engine.Audio
                 return;
             }
 
-            //Update the audio players (3D Volume)
-            foreach(var audioPlayer in AudioPlayers)
-            {
-                audioPlayer.Update();
-            }
-
             //Play the next sequential track
             if(AudioPlayers.Count == 0 && Tracks.Count > 0 && !locked)
             {
