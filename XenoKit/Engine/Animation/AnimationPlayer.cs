@@ -537,6 +537,11 @@ namespace XenoKit.Engine.Animation
 
             //NOTE: Rotation seems a little off. Works fine when everything is movement, but breaks on root motion
 
+            if (PrimaryAnimation.AnimFlags.HasFlag(AnimationFlags.Rotate180Degrees))
+            {
+                transformSum *= Matrix.CreateRotationY(MathHelper.ToRadians(180f));
+            }
+
             //Root motion only. Ignores other flags.
             if (PrimaryAnimation.AnimFlags.HasFlag(AnimationFlags.UseRootMotion))
             {
