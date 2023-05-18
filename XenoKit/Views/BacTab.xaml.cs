@@ -293,6 +293,7 @@ namespace XenoKit.Controls
             }
         }
 
+
         private void CreateFilteredList()
         {
             if (files.SelectedMove?.Files?.BacFile?.File?.BacEntries != null)
@@ -393,8 +394,8 @@ namespace XenoKit.Controls
             {
                 if (Files.Instance.SelectedMove != null)
                 {
-                    if (Files.Instance.SelectedMove.MoveType == Move.Type.Skill) return BAC_Entry.MAX_ENTRIES_SKILL;
-                    if (Files.Instance.SelectedMove.MoveType == Move.Type.Moveset) return BAC_Entry.MAX_ENTRIES_CHARACTER;
+                    if (Files.Instance.SelectedMove.MoveType == Move.Type.Skill) return BAC_Entry.MAX_ENTRIES_SKILL - 1;
+                    if (Files.Instance.SelectedMove.MoveType == Move.Type.Moveset) return BAC_Entry.MAX_ENTRIES_CHARACTER - 1;
                 }
 
                 return 10000;
