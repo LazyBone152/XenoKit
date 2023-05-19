@@ -253,7 +253,9 @@ namespace XenoKit.Engine.View
 
             //Rotate Y
             temp = newPosition - targetPosition;
-            temp = Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(-CurrentRotX)));
+
+            //CurrentRotX needs to be inverted based on the cameras Z position, else the rotation will happen in the wrong direction if the camera is behind the target
+            temp = position.Z > 0f ? Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotX))) : Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(-CurrentRotX)));
             newPosition = targetPosition + temp;
 
             return (newPosition - position) * CurrentGlobalFactor();
