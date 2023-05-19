@@ -339,7 +339,11 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public void ResetBacState()
         {
-            RevertCharacterPosition(false);
+            if (!SceneManager.RetainActionMovement)
+            {
+                RevertCharacterPosition(false);
+            }
+
             CurrentFrame = 0;
             ProcessedBacTypes.Clear();
 

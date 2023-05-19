@@ -18,6 +18,9 @@
         <Separator Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent2}"/>
 
         <ListBox Grid.Row="2" x:Name="listBox" ItemsSource="{Binding files.OutlinerItems.Binding}" SelectedItem="{Binding files.SelectedItem}" Margin="10, 10" MouseDoubleClick="listBox_MouseDoubleClick">
+            <ListBox.InputBindings>
+                <KeyBinding Key="F" Command="{Binding FocusActorCommand}"/>
+            </ListBox.InputBindings>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid Margin="0,2">

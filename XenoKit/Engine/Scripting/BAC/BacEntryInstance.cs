@@ -232,6 +232,11 @@ namespace XenoKit.Engine.Scripting.BAC
             MainFaceAnimationEndTime = -1;
             CurrentFrame = 0;
             PreviousFrame = 0;
+
+            if (SceneManager.RetainActionMovement)
+            {
+                OriginalMatrix = User.Transform * Matrix.Invert(User.RootMotionTransform);
+            }
         }
 
         public void Dispose()

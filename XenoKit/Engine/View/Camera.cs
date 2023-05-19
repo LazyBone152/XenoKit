@@ -383,6 +383,13 @@ namespace XenoKit.Engine.View
             FieldOfView = state.FieldOfView;
             Roll = state.Roll;
         }
+
+        public void SetFocus(Actor actor)
+        {
+            Reset();
+            ActualPosition += actor.Transform.Translation;
+            ActualTargetPosition += actor.Transform.Translation;
+        }
     }
 
 }

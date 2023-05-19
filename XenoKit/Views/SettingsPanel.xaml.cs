@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows.Controls;
+using XenoKit.Engine;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Views
@@ -35,6 +36,11 @@ namespace XenoKit.Views
                     SettingsManager.Instance.SaveSettings();
                 }
             }
+        }
+        public bool RetainActionPosition
+        {
+            get => SceneManager.RetainActionMovement;
+            set => SceneManager.RetainActionMovement = value;
         }
         public BacTypeSortMode BacTypeSortMode
         {

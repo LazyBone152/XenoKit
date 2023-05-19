@@ -12,7 +12,7 @@ namespace XenoKit.Controls
     public partial class OutlinerView : UserControl
     {
         public Files files { get { return Files.Instance; } }
-        
+
 
         public OutlinerView()
         {
@@ -40,9 +40,16 @@ namespace XenoKit.Controls
             SceneManager.SetActor(files.SelectedItem.character, 1);
         }
 
+        public RelayCommand FocusActorCommand => new RelayCommand(FocusActor, IsActorSelected);
+        private void FocusActor()
+        {
+            SceneManager.FocusActor(files.SelectedItem.character);
+        }
+
+
         private bool CanLoadProperties()
         {
-            if(listBox.SelectedItem is OutlinerItem outlinerItem)
+            if (listBox.SelectedItem is OutlinerItem outlinerItem)
             {
                 return (outlinerItem.Type == OutlinerItem.OutlinerItemType.Skill || outlinerItem.Type == OutlinerItem.OutlinerItemType.Moveset || outlinerItem.Type == OutlinerItem.OutlinerItemType.Character);
             }
@@ -60,16 +67,25 @@ namespace XenoKit.Controls
             if (files.SelectedItem == null) return false;
             return files.SelectedItem.Type == OutlinerItem.OutlinerItemType.STAGE_MANUAL;
         }
+
+        private bool IsActorSelected()
+        {
+            if (listBox.SelectedItem is OutlinerItem outlinerItem)
+            {
+                return outlinerItem.Type == OutlinerItem.OutlinerItemType.Character;
+            }
+            return false;
+        }
         #endregion
 
         private void listBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if(CanSetActor())
+            if (CanSetActor())
                 SetActorPrimary();
 
             if (CanSetStage())
             {
-                if(SceneManager.MainGameInstance.ActiveStage == files.SelectedItem.ManualFiles)
+                if (SceneManager.MainGameInstance.ActiveStage == files.SelectedItem.ManualFiles)
                 {
                     SceneManager.MainGameInstance.ActiveStage = null;
                 }

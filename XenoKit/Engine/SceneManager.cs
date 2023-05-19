@@ -166,13 +166,19 @@ namespace XenoKit.Engine
                     break;
             }
 
-            if(CurrentSceneState == EditorTabs.Action)
+            if (CurrentSceneState == EditorTabs.Action)
             {
                 EnsureActorIsSet(0);
             }
 
+            //Needed because for SOME reason the tab changed event gets fired randomly when no change actually occured...
+            if (prevTab == CurrentSceneState)
+            {
+                return false;
+            }
+
             //Changing tabs with an active bac entry will put the simulation in a bac state, best to stop it
-            if(prevTab == EditorTabs.Action && IsPlaying)
+            if (prevTab == EditorTabs.Action && IsPlaying)
             {
                 Stop();
                 IsPlaying = true;
@@ -193,14 +199,14 @@ namespace XenoKit.Engine
         {
             //Reset the scene if PrevSceneState isn't equal to CurrentSceneState
             //This is called whenever a bac entry, anim, camera or something else is played, to clean up after whatever was going on beforehand.
-            
+
             //First, special case for Animation > Camera. Anims shouldn't be reset in this case.
-            if(PrevSceneState == EditorTabs.Animation && CurrentSceneState == EditorTabs.Camera)
+            if (PrevSceneState == EditorTabs.Animation && CurrentSceneState == EditorTabs.Camera)
             {
                 ResetState(false);
                 PrevSceneState = CurrentSceneState;
             }
-            else if((PrevSceneState != CurrentSceneState && PrevSceneState != EditorTabs.Nothing))
+            else if ((PrevSceneState != CurrentSceneState && PrevSceneState != EditorTabs.Nothing))
             {
                 ResetState(true);
                 PrevSceneState = CurrentSceneState;
@@ -219,6 +225,11 @@ namespace XenoKit.Engine
         public static bool ShowDebugBones = false;
         public static bool ShowWorldAxis = true;
         public static bool ResolveLeftHandSymetry = true; //https://stackoverflow.com/questions/29370361/does-xna-opengl-use-left-handed-matrices //Legacy option. Disabling this will break stuff, as older code will respect it, while newer code wont (auto-resolved is the default now - because why not?).
+        /// <summary>
+        /// Movement that occurs in a BAC entry is reverted by default when the entry ends. With this setting, that is disabled.
+        /// </summary>
+        public static bool RetainActionMovement = false;
+
         public static bool WireframeModeCharacters => SettingsManager.settings.XenoKit_WireframeMode;
         public static bool Loop => SettingsManager.settings.XenoKit_Loop;
         public static bool AutoPlay => SettingsManager.settings.XenoKit_AutoPlay;
@@ -246,13 +257,13 @@ namespace XenoKit.Engine
         public static void EnsureActorIsSet(int actorSlot = 0)
         {
             if (actorSlot >= Actors.Length) throw new InvalidOperationException($"SceneManager.EnsureActorIsSet: idx {actorSlot} is greater than the maximum amount of Actors.");
-            
-            if(Actors[actorSlot] == null)
+
+            if (Actors[actorSlot] == null)
             {
                 var characters = Files.Instance.GetLoadedCharacters();
                 Actor chara = characters.FirstOrDefault(x => !Actors.Contains(x));
 
-                if(chara != null)
+                if (chara != null)
                 {
                     Log.Add($"{GetActorName(actorSlot)} Actor was not set. Defaulting to the first free loaded character ({characters[0].Name}).", LogType.Info);
                     Actors[actorSlot] = characters[0];
@@ -280,12 +291,12 @@ namespace XenoKit.Engine
 
         private static void WaitUntilActorIsSet(int actorSlot)
         {
-            while(Actors[actorSlot] == null)
+            while (Actors[actorSlot] == null)
             {
                 Task.Delay(100);
             }
         }
-        
+
         public static bool CharacterExists(int index)
         {
             return Actors[index] != null;
@@ -293,7 +304,7 @@ namespace XenoKit.Engine
 
         public static int IndexOfCharacter(Actor character, bool allowNull)
         {
-            for(int i = 0; i < Actors.Length; i++)
+            for (int i = 0; i < Actors.Length; i++)
                 if (Actors[i] == character) return i;
 
             if (allowNull)
@@ -303,13 +314,14 @@ namespace XenoKit.Engine
 
             return 0;
         }
-        
+
         public static void SetActor(Actor character, int actorSlot)
         {
             if (Actors[actorSlot] == character)
                 return;
 
-            for(int i = 0; i < Actors.Length; i++)
+            //Unset actor if this character is already used, to prevent duplicate actors.
+            for (int i = 0; i < Actors.Length; i++)
             {
                 if (Actors[i] == character)
                     Actors[i] = null;
@@ -327,13 +339,13 @@ namespace XenoKit.Engine
 
             ActorChanged?.Invoke(character, new ActorChangedEventArgs(character, actorSlot));
         }
-        
+
         public static void UnsetActor(Actor actor)
         {
             if (actor == null) return;
             int actorSlot = IndexOfCharacter(actor, true);
 
-            if(actorSlot != -1)
+            if (actorSlot != -1)
             {
                 Actors[actorSlot] = null;
 
@@ -344,6 +356,12 @@ namespace XenoKit.Engine
 
                 ActorChanged?.Invoke(null, new ActorChangedEventArgs(null, actorSlot));
             }
+        }
+
+        public static void FocusActor(Actor actor)
+        {
+            MainCamera.CameraState.SetFocus(actor);
+            MainCamera.ResetViewerAngles();
         }
 
         private static string GetActorName(int charaIdx)
@@ -421,7 +439,7 @@ namespace XenoKit.Engine
                 SystemTime.X += 0.0166f; //Hardcoded timestep (1 second / 60 frames)
 
             //Code for raising the DelayedUpdate event. This event fires off after a configurable interval and is used by some performance heavy UI operations.
-            if(DelayedUpdateTimer >= SettingsManager.Instance.Settings.XenoKit_DelayedUpdateFrameInterval)
+            if (DelayedUpdateTimer >= SettingsManager.Instance.Settings.XenoKit_DelayedUpdateFrameInterval)
             {
                 DelayedUpdate?.Invoke(null, EventArgs.Empty);
                 DelayedUpdateTimer = 0;
@@ -445,7 +463,7 @@ namespace XenoKit.Engine
         {
             if (IsPlaying) return;
 
-            if(CurrentSceneState == EditorTabs.Action)
+            if (CurrentSceneState == EditorTabs.Action)
             {
                 //Resimulate bac entry (if loaded)
                 for (int i = 0; i < Actors.Length; i++)
@@ -454,7 +472,7 @@ namespace XenoKit.Engine
                         Actors[i].ActionControl.Resume();
                 }
             }
-            else if(CurrentSceneState == EditorTabs.Animation)
+            else if (CurrentSceneState == EditorTabs.Animation)
             {
                 for (int i = 0; i < Actors.Length; i++)
                 {
@@ -479,7 +497,7 @@ namespace XenoKit.Engine
 
         public static void Stop()
         {
-            if(MainGameInstance != null)
+            if (MainGameInstance != null)
             {
                 MainGameInstance.VfxManager.StopEffects();
                 MainGameInstance.AudioEngine.StopCues();
@@ -522,8 +540,10 @@ namespace XenoKit.Engine
             EnsureActorIsSet(charIndex);
             ResetState(true);
 
-            if (resetPosition)
+            if (resetPosition && !RetainActionMovement)
                 Actors[charIndex].ResetPosition();
+            else if (RetainActionMovement)
+                Actors[charIndex].MergeTransforms();
 
             Actors[charIndex].ActionControl.PreviewBacEntry(bacFile, bacEntry, move, Actors[charIndex]);
             IsPlaying = AutoPlay;
@@ -553,7 +573,7 @@ namespace XenoKit.Engine
             foreach (var chara in Actors)
                 if (chara != null) chara.ActionControl.ClearBacPlayer();
         }
-        
+
         public static bool IsOnTab(params EditorTabs[] tabs)
         {
             if (tabs == null) return false;
@@ -564,10 +584,10 @@ namespace XenoKit.Engine
         #region CameraControl
         public static void CameraSelectionChanged(EAN_File eanFile, EAN_Animation camera)
         {
-            if(AutoPlay)
+            if (AutoPlay)
                 MainGameInstance.camera.PlayCameraAnimation(eanFile, camera, null, 0, false);
         }
-        
+
         public static void CameraChangeCurrentFrame(int frame)
         {
             MainGameInstance.camera.SkipToFrame(frame);
@@ -582,7 +602,7 @@ namespace XenoKit.Engine
         }
         #endregion
 
-    
+
     }
 
 

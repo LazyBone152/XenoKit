@@ -39,6 +39,15 @@
                         <Label Content="Hide Empty BAC Entries" FontSize="8"/>
                         <CheckBox IsChecked="{Binding HideEmptryBacEntries}" VerticalContentAlignment="Center" Grid.Column="1"/>
                     </Grid>
+                    <Grid Margin="0,3,0,0" HorizontalAlignment="Stretch" ToolTip="Enable the BAC state to be preserved when a BAC entry ends or another one starts, keeping any movement that occurs in the entry.&#x0a;&#x0a;The actor position will be reset when the Stop button is used.">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Retain BAC State" FontSize="8"/>
+                        <CheckBox IsChecked="{Binding RetainActionPosition}" VerticalContentAlignment="Center" Grid.Column="1"/>
+                    </Grid>
                     <Grid Margin="0,3,0,0" HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="105"/>

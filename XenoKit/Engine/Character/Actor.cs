@@ -117,7 +117,7 @@ namespace XenoKit.Engine
         }
 
         #region State
-        public new Matrix Transform => RootMotionTransform * ActionMovementTransform * BaseTransform;
+        public override Matrix Transform => RootMotionTransform * ActionMovementTransform * BaseTransform;
 
         public Matrix RootMotionTransform = Matrix.Identity;
         public Matrix ActionMovementTransform = Matrix.Identity;
@@ -142,15 +142,26 @@ namespace XenoKit.Engine
 
         public void ResetState(bool resetAnimations = true)
         {
+            bool retainActionPosition = SceneManager.RetainActionMovement && SceneManager.IsOnTab(EditorTabs.Action);
+
             //In some cases we might not want to reset animations, such as Animation > Camera (and vice versa) tab changes.
             if (resetAnimations)
             {
-                AnimationPlayer.ClearCurrentAnimation(true, true);
-                ActionMovementTransform = Matrix.Identity;
-                RootMotionTransform = Matrix.Identity;
+                AnimationPlayer.ClearCurrentAnimation(true, !retainActionPosition);
+
+                if (retainActionPosition)
+                {
+                    MergeTransforms();
+                }
+                else
+                {
+                    ActionMovementTransform = Matrix.Identity;
+                    RootMotionTransform = Matrix.Identity;
+                }
             }
 
-            ResetPosition();
+            if(!retainActionPosition)
+                ResetPosition();
         }
 
         #endregion
