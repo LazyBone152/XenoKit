@@ -233,9 +233,9 @@ namespace XenoKit.Engine.View
             return CurrentFoV * CurrentGlobalFactor();
         }
 
-        public float GetCurrentRoll()
+        public float GetCurrentRoll(Vector3 cameraPosition)
         {
-            return CurrentRotZ * CurrentGlobalFactor();
+            return cameraPosition.Z > 0f ? (-CurrentRotZ) * CurrentGlobalFactor() : CurrentRotZ * CurrentGlobalFactor();
         }
 
         public Vector3 GetCurrentRotation(Vector3 position, Vector3 targetPosition)

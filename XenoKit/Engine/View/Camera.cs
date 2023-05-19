@@ -182,7 +182,7 @@ namespace XenoKit.Engine.View
                 else
                     CameraState.ActualTargetPosition += cameraInstance.bacCameraSettings.GetCurrentPosition(position, targetPosition, true);
 
-                CameraState.Roll += cameraInstance.bacCameraSettings.GetCurrentRoll();
+                CameraState.Roll += cameraInstance.bacCameraSettings.GetCurrentRoll(CameraState.ActualPosition);
                 CameraState.FieldOfView += cameraInstance.bacCameraSettings.GetCurrentFoV();
                 CameraState.ActualPosition += cameraInstance.bacCameraSettings.GetCurrentRotation(CameraState.ActualPosition, CameraState.ActualTargetPosition);
             }
