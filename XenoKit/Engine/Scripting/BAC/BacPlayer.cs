@@ -234,19 +234,18 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
                 else
                 {
-                    CustomVector4 prevEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionPrev];
-                    CustomVector4 nextEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionNext];
+                    CustomVector4 prevEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionPrev] * eyeMovement.LeftEyeRotationPercent;
+                    CustomVector4 nextEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionNext] * eyeMovement.RightEyeRotationPercent;
 
-                    CustomVector4 leftEyePosition = (nextEyePosition - prevEyePosition) * eyeMovement.LeftEyeRotationPercent;
-                    CustomVector4 rightEyePosition = (nextEyePosition - prevEyePosition) * eyeMovement.RightEyeRotationPercent;
+                    CustomVector4 leftEyePosition = nextEyePosition;
+                    CustomVector4 rightEyePosition = nextEyePosition;
+
 
                     if (eyeMovement.StartTime + eyeMovement.EyeRotationFrames >= CurrentFrame)
                     {
-                        leftEyePosition.X *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
-                        leftEyePosition.Y *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
-
-                        rightEyePosition.X *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
-                        rightEyePosition.Y *= 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
+                        float factor = 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
+                        leftEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition,factor);
+                        rightEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition, factor);
                     }
 
                     character.EyeIrisLeft_UV[0] = leftEyePosition.X;
