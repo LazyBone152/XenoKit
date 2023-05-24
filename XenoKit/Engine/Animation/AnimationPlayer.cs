@@ -818,6 +818,7 @@ namespace XenoKit.Engine.Animation
 
         public void AnimationDataChanged()
         {
+            if (Animation == null) return;
             //Set indexes
             b_C_Base_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.BaseBone));
             b_C_Pelvis_Index = Animation.Nodes.IndexOf(Animation.Nodes.FirstOrDefault(x => x.BoneName == ESK_File.PelvisBone));
