@@ -19,7 +19,7 @@
                             <ColumnDefinition Width="265"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="PostEffect ID" ToolTip="The ID of the Post Effect entry in the cmn.bpe file. "/>
+                        <Label Content="Post Effect ID" ToolTip="The ID of the Post Effect entry in the cmn.bpe file. "/>
                         <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.ScreenEffectIds}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.BpeID}"/>
                         <controls:NumericUpDown Margin="10, 0" Grid.Column="2" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.BpeID, UpdateSourceTrigger=Default}"/>
 
@@ -62,7 +62,7 @@
                     <StackPanel Orientation="Horizontal">
                         <StackPanel Margin="20, 5" Width="200">
                             <CheckBox Content="Disable Effect"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_DisableEffect, UpdateSourceTrigger=Default}"  ToolTip="Disable any active instances of this Post Effect."/>
-                            <CheckBox Content="Unk1" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk1, UpdateSourceTrigger=Default}" />
+                            <CheckBox Content="Visible for All" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk1, UpdateSourceTrigger=Default}" ToolTip="Should this Post Effect be visible to all players within the game?"/>
 
                         </StackPanel>
                         <StackPanel Margin="20, 5" Width="200">
