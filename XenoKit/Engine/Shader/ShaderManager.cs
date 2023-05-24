@@ -126,6 +126,26 @@ namespace XenoKit.Engine.Shader
                                                         });
                             break;
                         }
+                    case 10:
+                        //SamplerAlphaDepth
+                        {
+                            Texture2D texture = TextureLoader.ConvertToTexture2D(GetPathInShaderDir("Texture/ShadowMap.dds"), SceneManager.MainGameBase.GraphicsDevice);
+                            sampler = new GlobalSampler(slot, texture,
+                                                        new SamplerState()
+                                                        {
+                                                            AddressU = TextureAddressMode.Wrap,
+                                                            AddressV = TextureAddressMode.Wrap,
+                                                            AddressW = TextureAddressMode.Wrap,
+                                                            BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
+                                                            MaxAnisotropy = 1,
+                                                            ComparisonFunction = CompareFunction.LessEqual,
+                                                            Filter = TextureFilter.Point,
+                                                            MipMapLevelOfDetailBias = 0,
+                                                            Name = GetSamplerName(slot),
+                                                            FilterMode = TextureFilterMode.Comparison
+                                                        });
+                            break;
+                        }
                     case 14:
                         //General lighting
                         {
