@@ -135,8 +135,7 @@ namespace XenoKit.Engine.Scripting.BAC
                             case BAC_Type0.EanTypeEnum.Character:
                             case BAC_Type0.EanTypeEnum.Common:
                             case BAC_Type0.EanTypeEnum.Skill:
-                                character.AnimationPlayer.PlayPrimaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.AnimFlags, true, animation.TimeScale);
-                                character.AnimationPlayer.PrimaryAnimation.EnableFaceBones = false;
+                                character.AnimationPlayer.PlayPrimaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.AnimFlags, true, animation.TimeScale, false, true);
                                 SceneManager.MainAnimTimeScale = animation.TimeScale;
 
                                 if (animation.StartFrame != 0 && _refFrame == 0f) //On first frame, skipping to startFrame on animations is allowed

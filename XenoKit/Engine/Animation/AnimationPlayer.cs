@@ -291,7 +291,7 @@ namespace XenoKit.Engine.Animation
         /// <param name="startFrame">Frame to start playback from.</param>
         /// <param name="endFrame">Frame to end the animation at. Note: -1 = play until animation ends.</param>
         /// <param name="timeScale">Playback speed of the animation. A value of 1 means normal playback.</param>
-        public void PlayPrimaryAnimation(EAN_File _eanFile, int eanIndex, ushort startFrame = 0, ushort endFrame = ushort.MaxValue, float blendWeight = 1f, float blendWeightIncrease = 0f, AnimationFlags _animFlags = 0, bool useTransform = true, float timeScale = 1f, bool autoTerminate = false)
+        public void PlayPrimaryAnimation(EAN_File _eanFile, int eanIndex, ushort startFrame = 0, ushort endFrame = ushort.MaxValue, float blendWeight = 1f, float blendWeightIncrease = 0f, AnimationFlags _animFlags = 0, bool useTransform = true, float timeScale = 1f, bool autoTerminate = false, bool primaryBacAnimation = false)
         {
             if (_eanFile == null) throw new ArgumentNullException("eanFile");
 
@@ -307,6 +307,10 @@ namespace XenoKit.Engine.Animation
                 //Render first frame if not auto playing
                 if (!SceneManager.IsPlaying)
                     UpdateAnimation(PrimaryAnimation);
+
+                //IF a primary bac animation is playing, set face bones to disabled (they are not used by default)
+                if (PrimaryAnimation != null && primaryBacAnimation)
+                    PrimaryAnimation.EnableFaceBones = false;
             }
             else
             {
