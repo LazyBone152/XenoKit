@@ -182,7 +182,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="Rotation X"/>
-                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00##" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationX, UpdateSourceTrigger=Default}"/>
+                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00##" Interval="5" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationX, UpdateSourceTrigger=Default}"/>
 
                                 <Label Content="Blending" Grid.Column="2" Margin="10,0"  ToolTip="Amount of frames of interpolation to do between base camera and Rotation X."/>
                                 <controls:NumericUpDown Grid.Column="3" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationDurationX, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
@@ -196,7 +196,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="Rotation Y"/>
-                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00##" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationY, UpdateSourceTrigger=Default}"/>
+                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00##" Interval="5" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationY, UpdateSourceTrigger=Default}"/>
 
                                 <Label Content="Blending" Grid.Column="2" Margin="10,0"  ToolTip="Amount of frames of interpolation to do between base camera and Rotation Y."/>
                                 <controls:NumericUpDown Grid.Column="3" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationDurationY, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>
@@ -210,7 +210,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="Rotation Z"/>
-                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00##" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationZ, UpdateSourceTrigger=Default}"/>
+                                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00##" Interval="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationZ, UpdateSourceTrigger=Default}"/>
 
                                 <Label Content="Blending" Grid.Column="2" Margin="10,0"  ToolTip="Amount of frames of interpolation to do between base camera and Rotation Z."/>
                                 <controls:NumericUpDown Grid.Column="3" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType10View}}, Path=BacViewModel.RotationDurationZ, UpdateSourceTrigger=Default}" Maximum="65535" Minimum="0"/>

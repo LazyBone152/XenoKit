@@ -173,18 +173,14 @@ namespace XenoKit.Engine.View
             //Bac modifers
             if (cameraInstance.bacCameraSettings.Enabled)
             {
-                Vector3 position = CameraState.ActualPosition;
-                Vector3 targetPosition = CameraState.ActualTargetPosition;
-                CameraState.ActualPosition += cameraInstance.bacCameraSettings.GetCurrentPosition(position, targetPosition, false);
-
-                if (cameraInstance.bacCameraSettings.CurrentPosZ > 0f)
-                    CameraState.ActualTargetPosition += cameraInstance.bacCameraSettings.GetCurrentPosition(position, targetPosition, true);
-                else
-                    CameraState.ActualTargetPosition += cameraInstance.bacCameraSettings.GetCurrentPosition(position, targetPosition, true);
-
                 CameraState.Roll += cameraInstance.bacCameraSettings.GetCurrentRoll(CameraState.ActualPosition);
                 CameraState.FieldOfView += cameraInstance.bacCameraSettings.GetCurrentFoV();
                 CameraState.ActualPosition += cameraInstance.bacCameraSettings.GetCurrentRotation(CameraState.ActualPosition, CameraState.ActualTargetPosition);
+
+                //I think Position Z offsets are not 100% correct... the target position seems off
+                Vector3 positionDelta = cameraInstance.bacCameraSettings.GetCurrentPosition(CameraState.ActualPosition, CameraState.ActualTargetPosition);
+                CameraState.ActualPosition += positionDelta;
+                CameraState.ActualTargetPosition += positionDelta;
             }
 
             //Scale animations to fit current actor size

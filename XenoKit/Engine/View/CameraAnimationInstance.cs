@@ -128,7 +128,7 @@ namespace XenoKit.Engine.View
         {
             get
             {
-                return (-PosX) * GetFactor(PosXDuration);
+                return (PosX) * GetFactor(PosXDuration);
             }
         }
         public float CurrentPosY
@@ -167,6 +167,8 @@ namespace XenoKit.Engine.View
             }
         }
 
+        public bool IsRotationReversed;
+
         public BacCameraSettings(CameraAnimInstance camera)
         {
             ParentInstance = camera;
@@ -190,6 +192,9 @@ namespace XenoKit.Engine.View
             FovDuration = 0;
             DispXZDuration = 0;
             DispZYDuration = 0;
+
+            EAN_AnimationComponent pos = camera.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Position);
+            IsRotationReversed = pos.GetKeyframeValue(0, Axis.Z) > 0f;
         }
 
         public BacCameraSettings(CameraAnimInstance camera, BAC_Type10 bacCameraEntry)
@@ -215,16 +220,19 @@ namespace XenoKit.Engine.View
             FovDuration = bacCameraEntry.FieldOfView_Duration;
             DispXZDuration = bacCameraEntry.DisplacementXZ_Duration;
             DispZYDuration = bacCameraEntry.DisplacementZY_Duration;
+
+            EAN_AnimationComponent pos = camera.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Position);
+            IsRotationReversed = pos.GetKeyframeValue(0, Axis.Z) > 0f;
         }
 
-        public Vector3 GetCurrentPosition(Vector3 position, Vector3 targetPosition, bool isTargetPosition)
+        public Vector3 GetCurrentPosition(Vector3 position, Vector3 targetPosition)
         {
-            var forward = targetPosition - position;
+            Vector3 forward = targetPosition - position;
             forward.Normalize();
 
-            var posToMove = (isTargetPosition) ? new Vector3(CurrentPosX, CurrentPosY, 0) : new Vector3(CurrentPosX, CurrentPosY, CurrentPosZ);
-            //var posToMove = (CurrentPosZ > 0f && !isTargetPosition) ? new Vector3(CurrentPosX, CurrentPosY, CurrentPosZ) : new Vector3(CurrentPosX, CurrentPosY, 0);
+            Vector3 posToMove = new Vector3(CurrentPosX, CurrentPosY, CurrentPosZ);
             posToMove = Vector3.Transform(posToMove, Matrix.CreateWorld(position, forward, Vector3.Up));
+
             return (posToMove - position) * CurrentGlobalFactor();
         }
 
@@ -235,7 +243,7 @@ namespace XenoKit.Engine.View
 
         public float GetCurrentRoll(Vector3 cameraPosition)
         {
-            return cameraPosition.Z > 0f ? (-CurrentRotZ) * CurrentGlobalFactor() : CurrentRotZ * CurrentGlobalFactor();
+            return IsRotationReversed ? (-CurrentRotZ) * CurrentGlobalFactor() : CurrentRotZ * CurrentGlobalFactor();
         }
 
         public Vector3 GetCurrentRotation(Vector3 position, Vector3 targetPosition)
@@ -246,16 +254,16 @@ namespace XenoKit.Engine.View
 
             Vector3 newPosition;
 
-            //Rotate X
+            //Rotate Y
             Vector3 temp = position - targetPosition;
             temp = Vector3.Transform(temp, Matrix.CreateRotationY(MathHelper.ToRadians(CurrentRotY)));
             newPosition = targetPosition + temp;
 
-            //Rotate Y
+            //Rotate X
             temp = newPosition - targetPosition;
 
             //CurrentRotX needs to be inverted based on the cameras Z position, else the rotation will happen in the wrong direction if the camera is behind the target
-            temp = position.Z > 0f ? Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotX))) : Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(-CurrentRotX)));
+            temp = IsRotationReversed ? Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotX))) : Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(-CurrentRotX)));
             newPosition = targetPosition + temp;
 
             return (newPosition - position) * CurrentGlobalFactor();
