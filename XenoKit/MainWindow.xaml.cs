@@ -99,7 +99,8 @@ namespace XenoKit
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            Environment.Exit(0);
+            e.Cancel = true;
+            Exit();
         }
 
         private void Files_SelectedMoveChanged(object sender, EventArgs e)
