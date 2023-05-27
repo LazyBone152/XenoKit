@@ -47,25 +47,26 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="20, 5" Width="185">
-                                        <CheckBox Content="Stop"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_StopWhenParentEnds, UpdateSourceTrigger=Default}" ToolTip="Sound will cease playing when the parent bac entry ends."/>
                                         <CheckBox Content="Unk1" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk1, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk2, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Stop VOX On Matching ID (?)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk2, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Pitch and Reverb" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Stop With Parent Entry"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_StopWhenParentEnds, UpdateSourceTrigger=Default}" ToolTip="Sound will cease playing when the parent entry ends."/>
+
                                     </StackPanel>
                                     <StackPanel Margin="20, 5" Width="185">
                                         <CheckBox Content="Unk5" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk5, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Unk6" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk6, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk7" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk7, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Fade Out When Entry Ends (?)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk7, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Unk8" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk8, UpdateSourceTrigger=Default}"/>
                                     </StackPanel>
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="20, 5" Width="185">
-                                        <CheckBox Content="Unk9" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk9, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Mark For Fade Out (?)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk9, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Unk10" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk10, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk11" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk11, UpdateSourceTrigger=Default}"/>
-                                        <CheckBox Content="Unk12" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk12, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Fade Out Marked Sound (?)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk11, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Fade Out When Move Ends (?)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk12, UpdateSourceTrigger=Default}"/>
                                     </StackPanel>
                                     <StackPanel Margin="20, 5" Width="185">
                                         <CheckBox Content="Unk13" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType11View}}, Path=BacViewModel.Flag_Unk13, UpdateSourceTrigger=Default}"/>

@@ -115,7 +115,7 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="20, 5" Width="225">
-                                        <CheckBox Content="Play Face Animation from Main EAN" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.I_14, UpdateSourceTrigger=Default}" ToolTip="Plays the face animation that's baked into the main animation (Skill/Character).&#x0a;&#x0a;Note: This is NOT recommended to do with CACs."/>
+                                        <CheckBox Content="Play Primary Face Animation" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType0View}}, Path=BacViewModel.I_14, UpdateSourceTrigger=Default}" ToolTip="Plays the face animation thats baked into the primary animation (Skill/Character EANs). For use with a FaceBase EAN type only. &#x0a;&#x0a;Note: This is NOT recommended to do with CACs."/>
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>

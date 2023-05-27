@@ -94,15 +94,27 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
+                return bacType.SoundFlags.HasFlag(SoundFlags.Unk5);
+            }
+            set
+            {
+                SetSoundFlags(SoundFlags.Unk5, value);
+                RaisePropertyChanged(() => Flag_Unk5);
+            }
+        }
+        public bool Flag_Unk6
+        {
+            get
+            {
                 return bacType.SoundFlags.HasFlag(SoundFlags.Unk6);
             }
             set
             {
                 SetSoundFlags(SoundFlags.Unk6, value);
-                RaisePropertyChanged(() => Flag_Unk5);
+                RaisePropertyChanged(() => Flag_Unk6);
             }
         }
-        public bool Flag_Unk6
+        public bool Flag_Unk7
         {
             get
             {
@@ -111,10 +123,10 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk7, value);
-                RaisePropertyChanged(() => Flag_Unk6);
+                RaisePropertyChanged(() => Flag_Unk7);
             }
         }
-        public bool Flag_Unk7
+        public bool Flag_Unk8
         {
             get
             {
@@ -123,10 +135,10 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk8, value);
-                RaisePropertyChanged(() => Flag_Unk7);
+                RaisePropertyChanged(() => Flag_Unk8);
             }
         }
-        public bool Flag_Unk8
+        public bool Flag_Unk9
         {
             get
             {
@@ -135,10 +147,10 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk9, value);
-                RaisePropertyChanged(() => Flag_Unk8);
+                RaisePropertyChanged(() => Flag_Unk9);
             }
         }
-        public bool Flag_Unk9
+        public bool Flag_Unk10
         {
             get
             {
@@ -147,10 +159,10 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk10, value);
-                RaisePropertyChanged(() => Flag_Unk9);
+                RaisePropertyChanged(() => Flag_Unk10);
             }
         }
-        public bool Flag_Unk10
+        public bool Flag_Unk11
         {
             get
             {
@@ -159,10 +171,10 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk11, value);
-                RaisePropertyChanged(() => Flag_Unk10);
+                RaisePropertyChanged(() => Flag_Unk11);
             }
         }
-        public bool Flag_Unk11
+        public bool Flag_Unk12
         {
             get
             {
@@ -171,10 +183,10 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk12, value);
-                RaisePropertyChanged(() => Flag_Unk11);
+                RaisePropertyChanged(() => Flag_Unk12);
             }
         }
-        public bool Flag_Unk12
+        public bool Flag_Unk13
         {
             get
             {
@@ -183,10 +195,10 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk13, value);
-                RaisePropertyChanged(() => Flag_Unk12);
+                RaisePropertyChanged(() => Flag_Unk13);
             }
         }
-        public bool Flag_Unk13
+        public bool Flag_Unk14
         {
             get
             {
@@ -195,18 +207,6 @@ namespace XenoKit.ViewModel.BAC
             set
             {
                 SetSoundFlags(SoundFlags.Unk14, value);
-                RaisePropertyChanged(() => Flag_Unk13);
-            }
-        }
-        public bool Flag_Unk14
-        {
-            get
-            {
-                return bacType.SoundFlags.HasFlag(SoundFlags.Unk15);
-            }
-            set
-            {
-                SetSoundFlags(SoundFlags.Unk15, value);
                 RaisePropertyChanged(() => Flag_Unk14);
             }
         }
@@ -214,7 +214,7 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return bacType.SoundFlags.HasFlag(SoundFlags.Unk16);
+                return bacType.SoundFlags.HasFlag(SoundFlags.Unk15);
             }
             set
             {
