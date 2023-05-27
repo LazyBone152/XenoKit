@@ -134,7 +134,8 @@ namespace XenoKit.Engine.Animation
                 //Update the base node only, skiping all other bones (not needed).
                 if(PrimaryAnimation != null)
                 {
-                    UpdateNode(PrimaryAnimation, PrimaryAnimation.b_C_Base_Index);
+                    if (PrimaryAnimation.b_C_Base_Index != -1)
+                        UpdateNode(PrimaryAnimation, PrimaryAnimation.b_C_Base_Index);
                 }
 
                 HandleFinishedAnimations();
