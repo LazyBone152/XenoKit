@@ -233,18 +233,18 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
                 else
                 {
-                    CustomVector4 prevEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionPrev] * eyeMovement.LeftEyeRotationPercent;
-                    CustomVector4 nextEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionNext] * eyeMovement.RightEyeRotationPercent;
+                    CustomVector4 prevEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionPrev];
+                    CustomVector4 nextEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionNext];
 
-                    CustomVector4 leftEyePosition = nextEyePosition;
-                    CustomVector4 rightEyePosition = nextEyePosition;
+                    CustomVector4 leftEyePosition = nextEyePosition * eyeMovement.LeftEyeRotationPercent; 
+                    CustomVector4 rightEyePosition = nextEyePosition * eyeMovement.RightEyeRotationPercent;
 
 
                     if (eyeMovement.StartTime + eyeMovement.EyeRotationFrames >= CurrentFrame)
                     {
                         float factor = 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
-                        leftEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition,factor);
-                        rightEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition, factor);
+                        leftEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition,factor) * eyeMovement.LeftEyeRotationPercent;
+                        rightEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition, factor) * eyeMovement.RightEyeRotationPercent;
                     }
 
                     character.EyeIrisLeft_UV[0] = leftEyePosition.X;
