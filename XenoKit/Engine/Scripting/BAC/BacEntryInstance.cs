@@ -80,7 +80,7 @@ namespace XenoKit.Engine.Scripting.BAC
             int currentAnimDuration = 0;
 
             //Calulcate base duration
-            foreach (var type in BacEntry.IBacTypes.OrderBy(x => x.StartTime))
+            foreach (IBacType type in BacEntry.IBacTypes.OrderBy(x => x.StartTime))
             {
                 //Animations
                 if (type is BAC_Type0 type0)
@@ -129,10 +129,14 @@ namespace XenoKit.Engine.Scripting.BAC
             bool hasTimeScale = false;
             float scaledDuration = currentStartTime + currentAnimDuration;
 
-            foreach (var type in BacEntry.IBacTypes)
+            foreach (IBacType type in BacEntry.IBacTypes)
             {
                 if (type is BAC_Type0 type0)
                 {
+                    //Dont count this if its not a full body animation
+                    if (type0.EanType != BAC_Type0.EanTypeEnum.Character && type0.EanType != BAC_Type0.EanTypeEnum.Skill && type0.EanType != BAC_Type0.EanTypeEnum.Common)
+                        continue;
+
                     if (type0.TimeScale != 1f)
                     {
                         scaledDuration -= type0.CachedActualDuration;
