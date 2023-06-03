@@ -175,6 +175,8 @@ namespace XenoKit.Engine
                 if (SceneManager.Actors[i] != null)
                     SceneManager.Actors[i].ResetState(resetAnims);
             }
+
+            VfxManager.StopEffects();
         }
 
         public AnimatorGizmo GetAnimatorGizmo()

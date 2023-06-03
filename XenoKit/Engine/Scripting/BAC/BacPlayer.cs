@@ -8,6 +8,8 @@ using XenoKit.Engine.Scripting.BAC.Simulation;
 using XenoKit.Engine.View;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EAN;
+using Xv2CoreLib.EEPK;
+using Xv2CoreLib.EffectContainer;
 
 namespace XenoKit.Engine.Scripting.BAC
 {
@@ -106,7 +108,6 @@ namespace XenoKit.Engine.Scripting.BAC
                 (b => BacEntryInstance.IsValidTime(b.StartTime, b.Duration, b.TypeID) && (b.Flags == typeFlag || b.Flags == 0))
                 .OrderBy(x => x.GetType() == typeof(BAC_Type4)); //TimeScale must be resolved before animation/camera
 
-
             //Read bac types
             foreach (IBacType type in validEntries)
             {
@@ -179,16 +180,31 @@ namespace XenoKit.Engine.Scripting.BAC
                     SceneManager.SetBacTimeScale(timeScale.TimeScale, false);
                 }
 
+                //Effect
+                if (type is BAC_Type8 effect)
+                {
+                    if (ProcessedBacTypes.Contains(type)) continue;
+
+                    if (effect.EffectFlags.HasFlag(BAC_Type8.EffectFlagsEnum.Off))
+                    {
+                        VfxManager.StopEffect(effect, BacEntryInstance);
+                    }
+                    else
+                    {
+                        VfxManager.PlayEffect(effect, BacEntryInstance);
+                    }
+                }
+
                 //Camera
                 if (type is BAC_Type10 camera)
                 {
                     if (ProcessedBacTypes.Contains(type)) continue;
 
-                    var ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, true);
+                    EAN_File ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, true);
 
                     if (ean != null && camera.EanIndex != ushort.MaxValue && SceneManager.UseCameras)
                     {
-                        var cam = ean.GetAnimation(camera.EanIndex, true);
+                        EAN_Animation cam = ean.GetAnimation(camera.EanIndex, true);
 
                         if (cam != null)
                             SceneManager.PlayCameraAnimation(ean, cam, camera, SceneManager.IndexOfCharacter(character, false), true);
@@ -202,7 +218,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 {
                     if (ProcessedBacTypes.Contains(type)) continue;
 
-                    var acb = Files.Instance.GetAcbFile(sound.AcbType, BacEntryInstance.SkillMove, character, true);
+                    Xv2CoreLib.ACB.ACB_Wrapper acb = Files.Instance.GetAcbFile(sound.AcbType, BacEntryInstance.SkillMove, character, true);
 
                     if (acb != null && sound.CueId != ushort.MaxValue && SceneManager.IsPlaying)
                     {
@@ -280,6 +296,8 @@ namespace XenoKit.Engine.Scripting.BAC
             if (clearAnimations)
                 character.AnimationPlayer.ClearCurrentAnimation(true);
 
+            VfxManager.StopEffects();
+            VfxManager.ForceEffectUpdate = false;
             SceneManager.MainCamera.ClearCameraAnimation();
             SceneManager.MainAnimTimeScale = 1f;
             ProcessedBacTypes.Clear();
@@ -303,13 +321,21 @@ namespace XenoKit.Engine.Scripting.BAC
                 {
                     character.Simulate(true, true);
                     SceneManager.MainGameInstance.camera.Simulate(true, true);
+
+                    VfxManager.ForceEffectUpdate = true;
+                    VfxManager.Simulate();
                     break;
                 }
                 else
                 {
                     character.Simulate(frame - i < numBlendingFrames, true); //Fully update anim positions for as long as required for accurate blending
-
                     SceneManager.MainGameInstance.camera.Simulate(frame - i <= 1, true); //Only fully update camera on last frame
+
+                    //If this is the last seek frame, then set this to true so that effects fully update
+                    if (i == frame)
+                        VfxManager.ForceEffectUpdate = true;
+
+                    VfxManager.Simulate();
                 }
             }
 
@@ -344,6 +370,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
             CurrentFrame = 0;
             ProcessedBacTypes.Clear();
+            VfxManager.StopEffects();
 
             BacEntryInstance?.ResetState();
         }

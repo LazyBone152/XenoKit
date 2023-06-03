@@ -25,7 +25,7 @@ namespace XenoKit.Engine.Vfx.Asset
         private readonly int[] ColorKeyframeIndex = new int[4];
         private readonly int[] LightKeyframeIndex = new int[2];
 
-        public VfxLight(EMA_File emaFile, EffectPart effectPart, Actor actor, GameBase gameBase) : base(effectPart, actor, gameBase)
+        public VfxLight(EMA_File emaFile, EffectPart effectPart, Actor actor, GameBase gameBase) : base(Microsoft.Xna.Framework.Matrix.Identity, effectPart, actor, gameBase)
         {
             EmaFile = emaFile;
             SetDefaultValues();

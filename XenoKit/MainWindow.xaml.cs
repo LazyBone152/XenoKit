@@ -394,7 +394,7 @@ namespace XenoKit
         public RelayCommand ExitCommand => new RelayCommand(Exit);
         private async void Exit()
         {
-            SettingsManager.Instance.SaveSettings();
+            SettingsManager.Instance.SaveSettings(false);
 
             var dialog = await this.ShowMessageAsync("Exit", "Do you wish to exit? Any unsaved data will be lost!", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
 

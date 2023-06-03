@@ -86,7 +86,7 @@ namespace XenoKit.Engine
 
             base.LoadContent();
         }
-
+        
         protected override void Update(GameTime time)
         {
             base.Update(time);
@@ -133,7 +133,7 @@ namespace XenoKit.Engine
             }
 
             //Model = Xv2ModelFile.LoadCharaEmd(this, EmdFile);
-            Model = CompiledObjectManager.Instance.GetCompiledObject<Xv2ModelFile>(EmdFile, this);
+            Model = CompiledObjectManager.GetCompiledObject<Xv2ModelFile>(EmdFile, this);
             Materials = Model.InitializeMaterials(EmmFile);
 
             if (EmbFile != null)
@@ -143,7 +143,7 @@ namespace XenoKit.Engine
                 for(int i = 0; i < Textures.Length; i++)
                 {
                     //Textures[i] = new Xv2Texture(EmbFile.Entry[i], this);
-                    Textures[i] = CompiledObjectManager.Instance.GetCompiledObject<Xv2Texture>(EmbFile.Entry[i], this);
+                    Textures[i] = CompiledObjectManager.GetCompiledObject<Xv2Texture>(EmbFile.Entry[i], this);
                 }
             }
             else
@@ -155,7 +155,7 @@ namespace XenoKit.Engine
             {
                 DytTexture = new Xv2Texture[1];
                 //DytTexture[0] = new Xv2Texture(DytFile.Entry[0], this);
-                DytTexture[0] = CompiledObjectManager.Instance.GetCompiledObject<Xv2Texture>(DytFile.Entry[0], this);
+                DytTexture[0] = CompiledObjectManager.GetCompiledObject<Xv2Texture>(DytFile.Entry[0], this);
             }
             else
             {
@@ -182,6 +182,8 @@ namespace XenoKit.Engine
             {
                 DytTexture[0].Dispose();
             }
+
+            CompiledObjectManager.Dispose();
         }
     
         private void RefreshMaterialsEvent(object sender, EventArgs e)

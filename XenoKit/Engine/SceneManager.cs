@@ -333,7 +333,7 @@ namespace XenoKit.Engine
             Stop();
 
             //Remove all current bone indices for this actorSlots character models. This is required because the skeletons are different and bone idx wont point to the same thing.
-            CompiledObjectManager.Instance.UnsetActorOnModels(actorSlot);
+            MainGameBase.CompiledObjectManager.UnsetActorOnModels(actorSlot);
 
             Log.Add($"{character.Name} set as the {GetActorName(actorSlot)} actor.");
 
@@ -350,7 +350,7 @@ namespace XenoKit.Engine
                 Actors[actorSlot] = null;
 
                 //Remove all current bone indices for this actorSlots character models. This is required because the skeletons are different and bone idx wont point to the same thing.
-                CompiledObjectManager.Instance.UnsetActorOnModels(actorSlot);
+                MainGameBase.CompiledObjectManager.UnsetActorOnModels(actorSlot);
 
                 Log.Add($"{actor.Name} removed as the {GetActorName(actorSlot)} actor.");
 
@@ -419,7 +419,11 @@ namespace XenoKit.Engine
 
         #region Update
         public static event EventHandler DelayedUpdate;
+        public static event EventHandler SlowUpdate;
         private static int DelayedUpdateTimer = 0;
+
+        private static int SlowUpdateTimer = 0;
+        private const int SlowUpdateTimerAmount = 18000; //Every 5 minutes
 
 
         public static void Update(GameTime time)
@@ -448,6 +452,18 @@ namespace XenoKit.Engine
             {
                 DelayedUpdateTimer++;
             }
+
+            //A slow update timer for cleaning up dead objects. This needs to be done regularly, but not so often
+            if (SlowUpdateTimer >= SlowUpdateTimerAmount)
+            {
+                SlowUpdate?.Invoke(null, EventArgs.Empty);
+                SlowUpdateTimer = 0;
+            }
+            else
+            {
+                SlowUpdateTimer++;
+            }
+
         }
 
         #endregion

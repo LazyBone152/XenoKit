@@ -169,7 +169,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_Model"/>
-                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PartViewModel.Model, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Value="{Binding Path=PartViewModel.Model, UpdateSourceTrigger=Default, ElementName=Window}"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="200">
                                 <Grid.ColumnDefinitions>
@@ -177,7 +177,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_Model 2"/>
-                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PartViewModel.Model2, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Value="{Binding Path=PartViewModel.Model2, UpdateSourceTrigger=Default, ElementName=Window}"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="200">
                                 <Grid.ColumnDefinitions>
@@ -362,7 +362,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_Model"/>
-                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PhysicsPartViewModel.Model, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Value="{Binding Path=PhysicsPartViewModel.Model, UpdateSourceTrigger=Default, ElementName=Window}"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="200">
                                 <Grid.ColumnDefinitions>
@@ -370,7 +370,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Label Content="_Model 2"/>
-                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Maximum="999" Value="{Binding Path=PhysicsPartViewModel.Model2, UpdateSourceTrigger=Default, ElementName=Window}"/>
+                                <controls:NumericUpDown Grid.Column="1" Minimum="-1" Value="{Binding Path=PhysicsPartViewModel.Model2, UpdateSourceTrigger=Default, ElementName=Window}"/>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="200">
                                 <Grid.ColumnDefinitions>

@@ -79,16 +79,16 @@ namespace XenoKit.Engine.Model
         {
             List<Xv2ShaderEffect> materials = new List<Xv2ShaderEffect>();
 
-            foreach (var model in Models)
+            foreach (Xv2Model model in Models)
             {
-                foreach (var mesh in model.Meshes)
+                foreach (Xv2Mesh mesh in model.Meshes)
                 {
-                    foreach (var submesh in mesh.Submeshes)
+                    foreach (Xv2Submesh submesh in mesh.Submeshes)
                     {
                         EmmMaterial material = emmFile != null ? emmFile.GetMaterial(submesh.Name) : null;
-                        submesh.SetLodBias(material);
+                        //submesh.SetLodBias(material); //Slow
 
-                        var compiledMat = CompiledObjectManager.Instance.GetCompiledObject<Xv2ShaderEffect>(material, GameBase);
+                        Xv2ShaderEffect compiledMat = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(material, GameBase);
 
                         if (compiledMat == null)
                         {

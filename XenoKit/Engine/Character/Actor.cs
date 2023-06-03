@@ -99,7 +99,7 @@ namespace XenoKit.Engine
         {
             GameBase = gameBase;
             //Skeleton = new Xv2Skeleton(character.EskFile.File);
-            Skeleton = CompiledObjectManager.Instance.GetCompiledObject<Xv2Skeleton>(character.EskFile.File, GameBase);
+            Skeleton = CompiledObjectManager.GetCompiledObject<Xv2Skeleton>(character.EskFile.File, GameBase);
             Name = character.Name[0];
             BaseTransform = Matrix.CreateWorld(DefaultPosition, Vector3.Forward, Vector3.Up);
             ActionControl = new ActionControl(this, gameBase);

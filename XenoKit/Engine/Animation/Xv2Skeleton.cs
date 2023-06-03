@@ -12,6 +12,10 @@ namespace XenoKit.Engine.Animation
         private readonly Dictionary<string, int> BoneIndexCache;
         public int BaseBoneIndex { get; private set; }
         public int PelvisBoneIndex { get; private set; }
+        /// <summary>
+        /// Indices of the BAC bones. Cached here for better performance.
+        /// </summary>
+        public int[] BAC_BoneIndices = new int[24];
 
         public ESK_File EskFile { get; private set; }
         public Skeleton EmoSkeleton { get; private set; }
@@ -132,6 +136,7 @@ namespace XenoKit.Engine.Animation
             }
 
             UpdateBoneScale();
+            SetBacBoneIndices();
         }
 
         private void UpdateAbsoluteMatrixFromRelative()
@@ -174,6 +179,13 @@ namespace XenoKit.Engine.Animation
             return new Matrix(transform.M11, transform.M12, transform.M13, transform.M14, transform.M21, transform.M22, transform.M23, transform.M24, transform.M31, transform.M32, transform.M33, transform.M34, transform.M41, transform.M42, transform.M43, transform.M44);
         }
 
+        private void SetBacBoneIndices()
+        {
+            for(int i = 0; i < 24; i++)
+            {
+                BAC_BoneIndices[i] = GetBoneIndex(((Xv2CoreLib.BAC.BoneLinks)i).ToString());
+            }
+        }
         #endregion
 
         #region BoneScale

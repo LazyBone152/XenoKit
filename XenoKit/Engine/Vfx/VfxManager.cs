@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using XenoKit.Editor;
+using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.Vfx.Asset;
+using Xv2CoreLib.BAC;
 using Xv2CoreLib.EEPK;
+using Xv2CoreLib.EffectContainer;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Vfx
@@ -18,11 +21,17 @@ namespace XenoKit.Engine.Vfx
         //public List<Task> CurrentTasks { get; private set; } = new List<Task>();
         private List<VfxEffect> NewEffects = new List<VfxEffect>();
 
+        /// <summary>
+        /// Force effects to fully update on the next cycle, even if its via Simulate().
+        /// </summary>
+        public bool ForceEffectUpdate { get; set; }
+
         public VfxManager(GameBase gameBase) : base(gameBase)
         {
 
         }
 
+        #region PlayAndStop
         public async void PlayEffect(Effect effect, Actor actor)
         {
             if (Effects.Count >= MAX_EFFECTS)
@@ -31,8 +40,41 @@ namespace XenoKit.Engine.Vfx
                 return;
             }
 
-            await Task.Run(() => NewEffects.Add(new VfxEffect(actor, effect, GameBase)));
+            await Task.Run(() => NewEffects.Add(new VfxEffect(actor, effect, Matrix.Identity, GameBase)));
             //Effects.Add(new VfxEffect(actor, effect, GameBase));
+        }
+
+        public async void PlayEffect(BAC_Type8 bacEffect, BacEntryInstance bacInstance)
+        {
+            if (Effects.Count >= MAX_EFFECTS)
+            {
+                Log.Add("Maximum amount of effects that can be active at the same time reached. Cannot start new ones.", LogType.Warning);
+                return;
+            }
+
+            EffectContainerFile eepk = Files.Instance.GetEepkFile(bacEffect.EepkType, bacEffect.SkillID, bacInstance.SkillMove, bacInstance.User, true);
+
+            if (eepk != null)
+            {
+                Effect eepkEffect = eepk.GetEffect(bacEffect.EffectID);
+
+                if (eepkEffect != null)
+                {
+                    //Get spawn position from declared bone and position on the bac entry
+                    Matrix spawnPosition = Matrix.Identity;
+
+                    if(bacInstance.User != null && (int)bacEffect.BoneLink < 25)
+                    {
+                        spawnPosition = bacInstance.User.GetAbsoluteBoneMatrix(bacInstance.User.Skeleton.BAC_BoneIndices[(int)bacEffect.BoneLink]) * Matrix.CreateTranslation(new Vector3(bacEffect.PositionX, bacEffect.PositionY, bacEffect.PositionZ));
+                    }
+
+                    await Task.Run(() => NewEffects.Add(new VfxEffect(bacInstance.User, eepkEffect, spawnPosition, GameBase)));
+                }
+                else
+                {
+                    Log.Add($"No effect at ID {bacEffect.EffectID} could be found in EEPK {bacEffect.EepkType}.");
+                }
+            }
         }
 
         public void StopActorEffects(Actor actor)
@@ -69,6 +111,9 @@ namespace XenoKit.Engine.Vfx
             Effects.Clear();
         }
 
+        #endregion
+
+        #region UpdateAndRendering
         public override void Update()
         {
             Effects.AddRange(NewEffects);
@@ -85,10 +130,29 @@ namespace XenoKit.Engine.Vfx
                 Effects[i].Update();
             }
 
+            ForceEffectUpdate = false;
+
             //Task task = Task.WhenAll(CurrentTasks);
             //task.Wait();
 
             //CurrentTasks.Clear();
+        }
+
+        public void Simulate()
+        {
+            Effects.AddRange(NewEffects);
+            NewEffects.Clear();
+
+            for (int i = Effects.Count - 1; i >= 0; i--)
+            {
+                if (Effects[i]?.IsDestroyed == true || Effects[i] == null)
+                {
+                    Effects.RemoveAt(i);
+                    continue;
+                }
+
+                Effects[i].Simulate();
+            }
         }
 
         public override void Draw()
@@ -101,14 +165,26 @@ namespace XenoKit.Engine.Vfx
             }
         }
 
+        #endregion
+
+        public void SeekPrev()
+        {
+
+        }
+
+        public void SeekNext()
+        {
+
+        }
+
         /// <summary>
         /// Returns the first active <see cref="VfxColorFade"/> matching the conditions.
         /// </summary>
         public VfxColorFadeEntry GetActiveColorFade(string materialName, Actor actor)
         {
-            foreach(var effect in Effects.Where(x => x.Actor == actor))
+            foreach(VfxEffect effect in Effects.Where(x => x.Actor == actor))
             {
-                foreach(var asset in effect.Assets)
+                foreach(VfxAsset asset in effect.Assets)
                 {
                     if(asset is VfxColorFade colorFade)
                     {
@@ -125,9 +201,9 @@ namespace XenoKit.Engine.Vfx
 
         public VfxLight GetActiveLight(Matrix world)
         {
-            foreach (var effect in Effects)
+            foreach (VfxEffect effect in Effects)
             {
-                foreach (var asset in effect.Assets)
+                foreach (VfxAsset asset in effect.Assets)
                 {
                     if (asset is VfxLight light)
                     {

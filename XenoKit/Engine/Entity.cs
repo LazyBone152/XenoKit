@@ -28,6 +28,7 @@ namespace XenoKit.Engine
         /// </summary>
         public GameTime ElapsedTime => GameBase.GameTime;
         public VfxManager VfxManager => GameBase.VfxManager;
+        public CompiledObjectManager CompiledObjectManager => GameBase.CompiledObjectManager;
 
         public virtual string Name { get; set; }
         public virtual Matrix Transform { get; set; } = Matrix.Identity;

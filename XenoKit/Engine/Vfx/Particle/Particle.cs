@@ -45,7 +45,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public Particle(Matrix localEmitMatrix, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(localEmitMatrix, system, node, effectPart, gameBase)
         {
-            EmissionData = CompiledObjectManager.Instance.GetCompiledObject<ParticleEmissionData>(node, gameBase);
+            EmissionData = CompiledObjectManager.GetCompiledObject<ParticleEmissionData>(node, gameBase);
             SetValues();
         }
 

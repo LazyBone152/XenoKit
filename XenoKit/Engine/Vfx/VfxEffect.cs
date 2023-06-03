@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.EEPK;
@@ -11,10 +12,13 @@ namespace XenoKit.Engine.Vfx
         public Actor Actor { get; private set; }
         public List<VfxAsset> Assets { get; private set; }
 
-        public VfxEffect(Actor actor, Effect effect, GameBase gameBase) : base(gameBase)
+        private Matrix SpawnTransform;
+
+        public VfxEffect(Actor actor, Effect effect, Matrix world, GameBase gameBase) : base(gameBase)
         {
             Effect = effect;
             Actor = actor;
+            SpawnTransform = world;
 
             Initialize();
             effect.EffectParts.CollectionChanged += EffectParts_CollectionChanged;
@@ -47,7 +51,7 @@ namespace XenoKit.Engine.Vfx
                 }
                 else if (effectPart.AssetType == AssetType.EMO)
                 {
-                    Assets.Add(new VfxEmo(effectPart.AssetRef, effectPart, Actor, GameBase));
+                    Assets.Add(new VfxEmo(SpawnTransform, effectPart.AssetRef, effectPart, Actor, GameBase));
                 }
                 else if (effectPart.AssetType == AssetType.LIGHT)
                 {
@@ -88,13 +92,18 @@ namespace XenoKit.Engine.Vfx
 
         public override void Draw()
         {
-            foreach(VfxAsset asset in Assets)
+            foreach (VfxAsset asset in Assets)
             {
                 asset.Draw();
             }
         }
 
         public override void Update()
+        {
+            Update(false);
+        }
+
+        private void Update(bool simulate)
         {
             for (int i = Assets.Count - 1; i >= 0; i--)
             {
@@ -118,19 +127,33 @@ namespace XenoKit.Engine.Vfx
                 //VfxManager.CurrentTasks.Add(updateTask);
                 //updateTask.Start();
 
-                Assets[i].Update();
+                if (simulate)
+                    Assets[i].Simulate();
+                else
+                    Assets[i].Update();
             }
 
-            if(Assets.Count == 0)
+            if (Assets.Count == 0)
             {
-                if(SceneManager.Loop && Effect.EffectParts.Count > 0)
+                //Handle end of effect:
+                //--Restart the effect if editor loop option is enabled, and on Effects tab
+                //--Otherwise, destroy the effect
+
+                if (SceneManager.Loop && Effect.EffectParts.Count > 0 && SceneManager.IsOnTab(EditorTabs.Effect))
                 {
                     Initialize();
-                    return;
+                }
+                else
+                {
+                    Destroy();
                 }
 
-                Destroy();
             }
+        }
+
+        public void Simulate()
+        {
+            Update(true);
         }
     }
 }

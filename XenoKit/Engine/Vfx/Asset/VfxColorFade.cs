@@ -12,7 +12,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private List<VfxColorFadeEntry> Values;
 
-        public VfxColorFade(ECF_File ecfFile, EffectPart effectPart, Actor actor, GameBase gameBase) : base(effectPart, actor, gameBase)
+        public VfxColorFade(ECF_File ecfFile, EffectPart effectPart, Actor actor, GameBase gameBase) : base(Microsoft.Xna.Framework.Matrix.Identity, effectPart, actor, gameBase)
         {
             EcfFile = ecfFile;
             Values = new List<VfxColorFadeEntry>(ecfFile.Nodes.Count);

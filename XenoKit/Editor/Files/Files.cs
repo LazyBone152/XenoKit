@@ -638,6 +638,10 @@ namespace XenoKit.Editor
         /// <param name="charaUnique">Use character unique EAN if present.</param>
         public EAN_File GetCamEanFile(BAC_Type10.EanTypeEnum eanType, Move move, Actor character, bool logErrors, bool charaUnique)
         {
+            //Dont log errors for unknown/unimplemented cam.ean files (too much needless log spam)
+            if (eanType != BAC_Type10.EanTypeEnum.Character && eanType != BAC_Type10.EanTypeEnum.Common && eanType != BAC_Type10.EanTypeEnum.Skill)
+                logErrors = false;
+
             switch (eanType)
             {
                 case BAC_Type10.EanTypeEnum.Common:

@@ -32,6 +32,7 @@ namespace XenoKit.Engine
         public Input Input { get; private set; } = new Input();
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; protected set; }
+        public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
 
         //Entity
         protected List<Entity> Entities = new List<Entity>(1000);

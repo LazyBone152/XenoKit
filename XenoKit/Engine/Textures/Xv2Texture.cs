@@ -67,7 +67,7 @@ namespace XenoKit.Engine.Textures
 
             for (int i = 0; i < textures.Length; i++)
             {
-                textures[i] = CompiledObjectManager.Instance.GetCompiledObject<Xv2Texture>(embFile.Entry[i], gameBase);
+                textures[i] = gameBase.CompiledObjectManager.GetCompiledObject<Xv2Texture>(embFile.Entry[i], gameBase);
             }
 
             return textures;

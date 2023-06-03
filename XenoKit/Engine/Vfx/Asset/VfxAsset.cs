@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
+using XenoKit.Editor;
 using Xv2CoreLib;
 using Xv2CoreLib.EEPK;
+using Xv2CoreLib.Resource;
 
 namespace XenoKit.Engine.Vfx.Asset
 {
@@ -14,18 +16,21 @@ namespace XenoKit.Engine.Vfx.Asset
         protected virtual bool FinishAnimationBeforeTerminating => false;
         private int BoneIdx = -1;
         protected float Scale = 1f;
-        private Matrix StartingTransform;
+        private Matrix BacSpawnSource;
+        private Matrix InitialPosition;
+        private Matrix InitialRotation;
         protected bool DrawThisFrame = true;
 
         //Asset Type
         private AssetType AssetType;
         public bool AssetTypeChanged { get; private set; }
 
-        public VfxAsset(EffectPart effectPart, Actor actor, GameBase gameBase) : base(gameBase)
+        public VfxAsset(Matrix startWorld, EffectPart effectPart, Actor actor, GameBase gameBase) : base(gameBase)
         {
             EffectPart = effectPart;
             Actor = actor;
             AssetType = EffectPart.AssetType;
+            BacSpawnSource = startWorld;
 
             Initialize();
             EffectPart.PropertyChanged += EffectPart_PropertyChanged;
@@ -49,7 +54,22 @@ namespace XenoKit.Engine.Vfx.Asset
                 BoneIdx = Actor.Skeleton.GetBoneIndex(EffectPart.ESK);
             }
 
-            StartingTransform = BoneIdx != -1 ? Actor.Skeleton.Bones[BoneIdx].SkinningMatrix : Matrix.Identity;
+            //Set Transform to selected bone if on bone attachment, else use the StartingTransform (from BAC)
+            if (EffectPart.AttachementType == EffectPart.Attachment.Bone)
+            {
+                Transform = BoneIdx != -1 && Actor != null ? Actor.GetAbsoluteBoneMatrix(BoneIdx) : Matrix.Identity;
+            }
+            else
+            {
+                Transform = BacSpawnSource;
+            }
+
+            //Set initial position and rotation matrices. This is needed to properly support the Update Pos/Update Rot flags.
+            InitialPosition = Matrix.CreateTranslation(Transform.Translation);
+            InitialRotation = Transform * Matrix.Invert(InitialPosition);
+
+            //Apply Initial Position XYZ offsets
+            Transform *= Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
 
             Scale = Random.Range(EffectPart.ScaleMin, EffectPart.ScaleMax);
         }
@@ -77,34 +97,33 @@ namespace XenoKit.Engine.Vfx.Asset
 
         public override void Update()
         {
-            //TODO: Handle BoneDirection
-            Transform = Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
-
-            /*
-            if (Actor != null && BoneIdx != -1)
+            if(Actor != null && BoneIdx != -1 && EffectPart.AttachementType == EffectPart.Attachment.Bone)
             {
-                if(EffectPart.PositionUpdate)
-                    Transform *= Matrix.CreateTranslation(Actor.Skeleton.Bones[BoneIdx].SkinningMatrix.Translation);
-                else
-                    Transform *= Matrix.CreateTranslation(StartingTransform.Translation);
+                //TODO: implement BoneDirection
 
-
-                if (EffectPart.RotateUpdate)
-                    Transform *= Actor.Skeleton.Bones[BoneIdx].SkinningMatrix * Matrix.Invert(Matrix.CreateTranslation(Actor.Skeleton.Bones[BoneIdx].SkinningMatrix.Translation));
-                else
-                    Transform *= StartingTransform * Matrix.Invert(Matrix.CreateTranslation(StartingTransform.Translation));
+                if (EffectPart.PositionUpdate && EffectPart.RotateUpdate)
+                {
+                    Transform = Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ)) * Actor.GetAbsoluteBoneMatrix(BoneIdx);
+                }
+                else if (EffectPart.PositionUpdate)
+                {
+                    Transform = InitialRotation * Matrix.CreateTranslation(Actor.GetAbsoluteBoneMatrix(BoneIdx).Translation) * Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
+                }
+                else if (EffectPart.RotateUpdate)
+                {
+                    Transform = Actor.GetAbsoluteBoneMatrix(BoneIdx) * Matrix.Invert(Matrix.CreateTranslation(Actor.GetAbsoluteBoneMatrix(BoneIdx).Translation)) * InitialPosition;
+                }
             }
-            */
 
             //Near and Far fade distance
-            if (EffectPart.FarFadeDistance != 0)
+            if (MathHelpers.FloatEquals(EffectPart.FarFadeDistance, 0))
             {
-                float distanceToCamera = Vector3.Distance(GameBase.ActiveCameraBase.CameraState.Position, Transform.Translation);
-                DrawThisFrame = distanceToCamera > EffectPart.NearFadeDistance && distanceToCamera < EffectPart.FarFadeDistance;
+                DrawThisFrame = true;
             }
             else
             {
-                DrawThisFrame = true;
+                float distanceToCamera = System.Math.Abs(Vector3.Distance(GameBase.ActiveCameraBase.CameraState.Position, Transform.Translation));
+                DrawThisFrame = distanceToCamera >= EffectPart.NearFadeDistance && distanceToCamera < EffectPart.FarFadeDistance;
             }
 
         }
@@ -121,6 +140,30 @@ namespace XenoKit.Engine.Vfx.Asset
 
         public virtual void SeekPrevFrame()
         {
+
+        }
+
+        protected Matrix GetAdjustedTransform()
+        {
+            switch (EffectPart.Orientation)
+            {
+                case EffectPart.OrientationType.None:
+                    //Just uses position and no orientation
+                    //The game seems to always rotate it by 90 degrees on Y for some reason
+                    return Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(Transform.Translation);
+                case EffectPart.OrientationType.User:
+                    if (Actor == null) return Transform;
+                    //Effect Position + Orientation of base bone of actor, with an extra rotation on Y
+                    return Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(Transform.Translation) * (Actor.Transform * Matrix.Invert(Matrix.CreateTranslation(Actor.Transform.Translation)));
+                case EffectPart.OrientationType.Camera:
+                    //Effect Position + rotate to face camera.
+                    return Matrix.CreateBillboard(Transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.ActualPosition, Vector3.Up, Vector3.Forward) * Matrix.CreateTranslation(Transform.Translation);
+                case EffectPart.OrientationType.AttachmentBone:
+                default:
+                    //Use full rotation of the attachment bone
+                    return Transform;
+
+            }
 
         }
     }

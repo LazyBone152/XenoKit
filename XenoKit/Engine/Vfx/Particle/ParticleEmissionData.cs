@@ -53,7 +53,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
                     if (ParticleNode.EmissionNode.Texture.TextureEntryRef[i].TextureRef != null)
                     {
-                        Textures[i] = CompiledObjectManager.Instance.GetCompiledObject<Xv2Texture>(ParticleNode.EmissionNode.Texture.TextureEntryRef[i].TextureRef.TextureRef, GameBase);
+                        Textures[i] = CompiledObjectManager.GetCompiledObject<Xv2Texture>(ParticleNode.EmissionNode.Texture.TextureEntryRef[i].TextureRef.TextureRef, GameBase);
                     }
                 }
             }
@@ -61,7 +61,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         private void SetMaterial()
         {
-            var compiledMat = CompiledObjectManager.Instance.GetCompiledObject<Xv2ShaderEffect>(ParticleNode.EmissionNode.Texture.MaterialRef, GameBase);
+            var compiledMat = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(ParticleNode.EmissionNode.Texture.MaterialRef, GameBase);
 
             if (compiledMat == null)
             {

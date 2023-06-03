@@ -53,7 +53,7 @@ namespace XenoKit.Windows
                 if(SettingsManager.settings.XenoKit_WireframeMode != value)
                 {
                     SettingsManager.settings.XenoKit_WireframeMode = value;
-                    CompiledObjectManager.Instance.ForceShaderUpdate();
+                    SceneManager.MainGameBase.CompiledObjectManager.ForceShaderUpdate();
                 }
             }
         }

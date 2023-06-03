@@ -55,7 +55,7 @@ namespace XenoKit.Engine.Vfx.Asset
         public bool IsMaterialsAnimated => MaterialAnimation != null;
         public List<VfxEmaMaterialNode> MaterialNodes = new List<VfxEmaMaterialNode>();
 
-        public VfxEmo(Xv2CoreLib.EffectContainer.Asset asset, EffectPart effectPart, Actor actor, GameBase gameBase) : base(effectPart, actor, gameBase)
+        public VfxEmo(Matrix startWorld, Xv2CoreLib.EffectContainer.Asset asset, EffectPart effectPart, Actor actor, GameBase gameBase) : base(startWorld, effectPart, actor, gameBase)
         {
             Asset = asset;
             InitializeFiles();
@@ -75,19 +75,19 @@ namespace XenoKit.Engine.Vfx.Asset
             Skeleton = null;
             EmmFile = null;
 
-            foreach(EffectFile file in Asset.Files)
+            foreach (EffectFile file in Asset.Files)
             {
-                if(file.fileType == EffectFile.FileType.EMO)
+                if (file.fileType == EffectFile.FileType.EMO)
                 {
-                    Model = (file.EmoFile != null) ? CompiledObjectManager.Instance.GetCompiledObject<Xv2ModelFile>(file.EmoFile, GameBase) : null;
-                    Skeleton = CompiledObjectManager.Instance.GetCompiledObject<Xv2Skeleton>(file.EmoFile.Skeleton, GameBase);
+                    Model = (file.EmoFile != null) ? CompiledObjectManager.GetCompiledObject<Xv2ModelFile>(file.EmoFile, GameBase) : null;
+                    Skeleton = CompiledObjectManager.GetCompiledObject<Xv2Skeleton>(file.EmoFile.Skeleton, GameBase);
                     AnimationPlayer = new EmaAnimationPlayer(Skeleton);
                 }
                 else if (file.fileType == EffectFile.FileType.EMB)
                 {
                     Textures = (file.EmbFile != null) ? Xv2Texture.LoadTextureArray(file.EmbFile, GameBase) : null;
                 }
-                else if(file.fileType == EffectFile.FileType.EMM)
+                else if (file.fileType == EffectFile.FileType.EMM)
                 {
                     //Materials must be initialized after the EMO, so save this for later
                     EmmFile = file.EmmFile;
@@ -102,7 +102,7 @@ namespace XenoKit.Engine.Vfx.Asset
                 }
             }
 
-            if(Model != null)
+            if (Model != null)
             {
                 Materials = Model.InitializeMaterials(EmmFile);
             }
@@ -116,7 +116,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private void SetAnimation()
         {
-            if(MaterialAnimations != null)
+            if (MaterialAnimations != null)
             {
                 SetDefaultMaterialValues();
                 MaterialAnimation = MaterialAnimations.Animations.FirstOrDefault(x => x.Index == EffectPart.EMA_AnimationIndex);
@@ -135,7 +135,7 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             if (MaterialAnimation == null || EmmFile == null) return;
 
-            for(int i = 0; i < MaterialNodes.Count; i++)
+            for (int i = 0; i < MaterialNodes.Count; i++)
             {
                 EmmMaterial material = EmmFile.GetMaterial(MaterialAnimation.Nodes[i].BoneName);
                 if (material == null) continue;
@@ -202,61 +202,64 @@ namespace XenoKit.Engine.Vfx.Asset
             }
 
             //Update animations
-            if (!simulate)
+            if(Materials != null)
             {
-                AnimationPlayer?.Update(Transform);
-
-                if (MaterialAnimation != null)
+                if (!simulate || VfxManager.ForceEffectUpdate)
                 {
-                    for (int i = 0; i < MaterialAnimation.Nodes.Count; i++)
+                    AnimationPlayer?.Update(Transform);
+
+                    if (MaterialAnimation != null)
                     {
-                        if (MaterialNodes.Count <= i)
-                            MaterialNodes.Add(new VfxEmaMaterialNode());
-
-                        EmmMaterial material = EmmFile.GetMaterial(MaterialAnimation.Nodes[i].BoneName);
-                        if (material == null) continue;
-
-                        //Set default material values from EMM
-                        MaterialNodes[i].MatCol[0][0] = material.DecompiledParameters.MatCol0.R;
-                        MaterialNodes[i].MatCol[0][1] = material.DecompiledParameters.MatCol0.G;
-                        MaterialNodes[i].MatCol[0][2] = material.DecompiledParameters.MatCol0.B;
-                        MaterialNodes[i].MatCol[0][3] = material.DecompiledParameters.MatCol0.A;
-                        MaterialNodes[i].MatCol[1][0] = material.DecompiledParameters.MatCol1.R;
-                        MaterialNodes[i].MatCol[1][1] = material.DecompiledParameters.MatCol1.G;
-                        MaterialNodes[i].MatCol[1][2] = material.DecompiledParameters.MatCol1.B;
-                        MaterialNodes[i].MatCol[1][3] = material.DecompiledParameters.MatCol1.A;
-                        MaterialNodes[i].MatCol[2][0] = material.DecompiledParameters.MatCol2.R;
-                        MaterialNodes[i].MatCol[2][1] = material.DecompiledParameters.MatCol2.G;
-                        MaterialNodes[i].MatCol[2][2] = material.DecompiledParameters.MatCol2.B;
-                        MaterialNodes[i].MatCol[2][3] = material.DecompiledParameters.MatCol2.A;
-                        MaterialNodes[i].MatCol[3][0] = material.DecompiledParameters.MatCol3.R;
-                        MaterialNodes[i].MatCol[3][1] = material.DecompiledParameters.MatCol3.G;
-                        MaterialNodes[i].MatCol[3][2] = material.DecompiledParameters.MatCol3.B;
-                        MaterialNodes[i].MatCol[3][3] = material.DecompiledParameters.MatCol3.A;
-                        MaterialNodes[i].TexScrl[0][0] = material.DecompiledParameters.TexScrl0.U;
-                        MaterialNodes[i].TexScrl[0][1] = material.DecompiledParameters.TexScrl0.V;
-                        MaterialNodes[i].TexScrl[1][0] = material.DecompiledParameters.TexScrl1.U;
-                        MaterialNodes[i].TexScrl[1][1] = material.DecompiledParameters.TexScrl1.V;
-
-                        foreach (EMA_Command command in MaterialAnimation.Nodes[i].Commands)
+                        for (int i = 0; i < MaterialAnimation.Nodes.Count; i++)
                         {
-                            if (command.Parameter < 4)
-                            {
-                                //MatCol
-                                MaterialNodes[i].MatCol[command.Parameter][command.Component] = command.GetKeyframeValue(Time);
-                            }
-                            else if (command.Parameter < 6)
-                            {
-                                //TexScrl
-                                MaterialNodes[i].TexScrl[command.Parameter - 4][command.Component] = command.GetKeyframeValue(Time);
-                            }
-                        }
+                            if (MaterialNodes.Count <= i)
+                                MaterialNodes.Add(new VfxEmaMaterialNode());
 
-                        foreach(Xv2ShaderEffect compiledMaterial in Materials)
-                        {
-                            if(compiledMaterial.Material.Name == material.Name)
+                            EmmMaterial material = EmmFile.GetMaterial(MaterialAnimation.Nodes[i].BoneName);
+                            if (material == null) continue;
+
+                            //Set default material values from EMM
+                            MaterialNodes[i].MatCol[0][0] = material.DecompiledParameters.MatCol0.R;
+                            MaterialNodes[i].MatCol[0][1] = material.DecompiledParameters.MatCol0.G;
+                            MaterialNodes[i].MatCol[0][2] = material.DecompiledParameters.MatCol0.B;
+                            MaterialNodes[i].MatCol[0][3] = material.DecompiledParameters.MatCol0.A;
+                            MaterialNodes[i].MatCol[1][0] = material.DecompiledParameters.MatCol1.R;
+                            MaterialNodes[i].MatCol[1][1] = material.DecompiledParameters.MatCol1.G;
+                            MaterialNodes[i].MatCol[1][2] = material.DecompiledParameters.MatCol1.B;
+                            MaterialNodes[i].MatCol[1][3] = material.DecompiledParameters.MatCol1.A;
+                            MaterialNodes[i].MatCol[2][0] = material.DecompiledParameters.MatCol2.R;
+                            MaterialNodes[i].MatCol[2][1] = material.DecompiledParameters.MatCol2.G;
+                            MaterialNodes[i].MatCol[2][2] = material.DecompiledParameters.MatCol2.B;
+                            MaterialNodes[i].MatCol[2][3] = material.DecompiledParameters.MatCol2.A;
+                            MaterialNodes[i].MatCol[3][0] = material.DecompiledParameters.MatCol3.R;
+                            MaterialNodes[i].MatCol[3][1] = material.DecompiledParameters.MatCol3.G;
+                            MaterialNodes[i].MatCol[3][2] = material.DecompiledParameters.MatCol3.B;
+                            MaterialNodes[i].MatCol[3][3] = material.DecompiledParameters.MatCol3.A;
+                            MaterialNodes[i].TexScrl[0][0] = material.DecompiledParameters.TexScrl0.U;
+                            MaterialNodes[i].TexScrl[0][1] = material.DecompiledParameters.TexScrl0.V;
+                            MaterialNodes[i].TexScrl[1][0] = material.DecompiledParameters.TexScrl1.U;
+                            MaterialNodes[i].TexScrl[1][1] = material.DecompiledParameters.TexScrl1.V;
+
+                            foreach (EMA_Command command in MaterialAnimation.Nodes[i].Commands)
                             {
-                                compiledMaterial.SetMaterialAnimationValues(MaterialNodes[i]);
+                                if (command.Parameter < 4)
+                                {
+                                    //MatCol
+                                    MaterialNodes[i].MatCol[command.Parameter][command.Component] = command.GetKeyframeValue(Time);
+                                }
+                                else if (command.Parameter < 6)
+                                {
+                                    //TexScrl
+                                    MaterialNodes[i].TexScrl[command.Parameter - 4][command.Component] = command.GetKeyframeValue(Time);
+                                }
+                            }
+
+                            foreach (Xv2ShaderEffect compiledMaterial in Materials)
+                            {
+                                if (compiledMaterial.Material.Name == material.Name)
+                                {
+                                    compiledMaterial.SetMaterialAnimationValues(MaterialNodes[i]);
+                                }
                             }
                         }
                     }
@@ -264,7 +267,7 @@ namespace XenoKit.Engine.Vfx.Asset
             }
 
             //Update model (skinning)
-            if (SettingsManager.Instance.Settings.XenoKit_VfxSimulation)
+            if (SettingsManager.Instance.Settings.XenoKit_VfxSimulation && (!simulate || VfxManager.ForceEffectUpdate))
             {
                 Model?.Update(0, Skeleton);
             }
@@ -281,15 +284,20 @@ namespace XenoKit.Engine.Vfx.Asset
             AnimationPlayer?.SetFrame(Time);
         }
 
+        public override void Simulate()
+        {
+            Update(true);
+        }
+
         public override void Draw()
         {
             if (DrawThisFrame && Model != null)
             {
-                Model.Draw(Matrix.CreateScale(Scale) * Transform, 0, Materials, Textures, null, 0, Skeleton);
+                Model.Draw(Matrix.CreateScale(Scale) * GetAdjustedTransform(), 0, Materials, Textures, null, 0, Skeleton);
             }
         }
 
-        
+
     }
 
     public class VfxEmaMaterialNode
