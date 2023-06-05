@@ -190,7 +190,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
             //SetDefaultValues();
 
-            if (Time >= AnimationLoopEndFrame && EffectPart.EMA_Loop && !IsTerminating)
+            if (Time >= AnimationLoopEndFrame - 1 && EffectPart.EMA_Loop && !IsTerminating)
             {
                 Time = EffectPart.EMA_LoopStartFrame;
                 //ResetKeyframeIndex();

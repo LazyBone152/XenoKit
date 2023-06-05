@@ -210,11 +210,12 @@ namespace XenoKit.Engine.Model
             int submeshIndex = 0;
             int partIdx = 0;
 
-            foreach (var part in SourceEmoFile.Parts)
+            //Models are rendered in the OPPOSITE order of which they are defined in EMO, so we have to read this backwards
+            for (int a = SourceEmoFile.Parts.Count - 1; a >= 0; a--)
             {
-                foreach (var model in part.EmgFiles)
+                foreach (var model in SourceEmoFile.Parts[a].EmgFiles)
                 {
-                    Xv2Model xv2Model = new Xv2Model(part.Name, GameBase);
+                    Xv2Model xv2Model = new Xv2Model(SourceEmoFile.Parts[a].Name, GameBase);
                     xv2Model.AttachBone = SourceEmoFile.Skeleton.Bones.IndexOf(SourceEmoFile.Skeleton.Bones.FirstOrDefault(x => x.EmoPartIndex == partIdx));
 
                     foreach (var mesh in model.EmgMeshes)
@@ -440,6 +441,7 @@ namespace XenoKit.Engine.Model
         {
             if (AttachBone != -1 && skeleton != null)
             {
+                return world;
                 //return world * skeleton.Bones[AttachBone].SkinningMatrix;
                 return skeleton.Bones[AttachBone].SkinningMatrix * world;
             }

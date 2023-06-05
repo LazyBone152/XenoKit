@@ -145,6 +145,8 @@ namespace XenoKit.Engine.Vfx.Asset
 
         protected Matrix GetAdjustedTransform()
         {
+            //Unsure on AttachmentBone and User. They seem to get different rotations... so something is wrong
+
             switch (EffectPart.Orientation)
             {
                 case EffectPart.OrientationType.None:
@@ -154,14 +156,14 @@ namespace XenoKit.Engine.Vfx.Asset
                 case EffectPart.OrientationType.User:
                     if (Actor == null) return Transform;
                     //Effect Position + Orientation of base bone of actor, with an extra rotation on Y
-                    return Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(Transform.Translation) * (Actor.Transform * Matrix.Invert(Matrix.CreateTranslation(Actor.Transform.Translation)));
+                    return Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateRotationX(-MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(Transform.Translation) * (Actor.Transform * Matrix.Invert(Matrix.CreateTranslation(Actor.Transform.Translation)));
                 case EffectPart.OrientationType.Camera:
                     //Effect Position + rotate to face camera.
                     return Matrix.CreateBillboard(Transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.ActualPosition, Vector3.Up, Vector3.Forward) * Matrix.CreateTranslation(Transform.Translation);
                 case EffectPart.OrientationType.AttachmentBone:
                 default:
                     //Use full rotation of the attachment bone
-                    return Transform;
+                    return Matrix.CreateRotationX(MathHelpers.Radians90Degrees) * Transform;
 
             }
 

@@ -40,8 +40,7 @@ namespace XenoKit.Engine.Vfx
                 return;
             }
 
-            await Task.Run(() => NewEffects.Add(new VfxEffect(actor, effect, Matrix.Identity, GameBase)));
-            //Effects.Add(new VfxEffect(actor, effect, GameBase));
+            await Task.Run(() => AddEffect(actor, effect, Matrix.Identity, GameBase));
         }
 
         public async void PlayEffect(BAC_Type8 bacEffect, BacEntryInstance bacInstance)
@@ -68,12 +67,22 @@ namespace XenoKit.Engine.Vfx
                         spawnPosition = bacInstance.User.GetAbsoluteBoneMatrix(bacInstance.User.Skeleton.BAC_BoneIndices[(int)bacEffect.BoneLink]) * Matrix.CreateTranslation(new Vector3(bacEffect.PositionX, bacEffect.PositionY, bacEffect.PositionZ));
                     }
 
-                    await Task.Run(() => NewEffects.Add(new VfxEffect(bacInstance.User, eepkEffect, spawnPosition, GameBase)));
+                    await Task.Run(() => AddEffect(bacInstance.User, eepkEffect, spawnPosition, GameBase));
                 }
                 else
                 {
                     Log.Add($"No effect at ID {bacEffect.EffectID} could be found in EEPK {bacEffect.EepkType}.");
                 }
+            }
+        }
+
+        private void AddEffect(Actor actor, Effect effect, Matrix world, GameBase gameBase)
+        {
+            VfxEffect vfxEffect = new VfxEffect(actor, effect, world, GameBase);
+
+            lock (NewEffects)
+            {
+                NewEffects.Add(vfxEffect);
             }
         }
 
@@ -83,6 +92,21 @@ namespace XenoKit.Engine.Vfx
             {
                 if (vfxEffect.Actor == actor)
                     vfxEffect.Terminate(true);
+            }
+        }
+
+        public void StopEffect(BAC_Type8 bacEffect, BacEntryInstance bacInstance)
+        {
+            EffectContainerFile eepk = Files.Instance.GetEepkFile(bacEffect.EepkType, bacEffect.SkillID, bacInstance.SkillMove, bacInstance.User, true);
+
+            if (eepk != null)
+            {
+                Effect eepkEffect = eepk.GetEffect(bacEffect.EffectID);
+
+                if (eepkEffect != null)
+                {
+                    StopEffect(eepkEffect);
+                }
             }
         }
 
@@ -108,7 +132,10 @@ namespace XenoKit.Engine.Vfx
                 effect.Dispose();
             }
 
-            Effects.Clear();
+            lock (Effects)
+            {
+                Effects.Clear();
+            }
         }
 
         #endregion
@@ -116,43 +143,45 @@ namespace XenoKit.Engine.Vfx
         #region UpdateAndRendering
         public override void Update()
         {
-            Effects.AddRange(NewEffects);
-            NewEffects.Clear();
+            Update(false);
+        }
 
-            for (int i = Effects.Count - 1; i >= 0; i--)
+        private void Update(bool simulate)
+        {
+            lock (Effects)
             {
-                if (Effects[i].IsDestroyed)
+                lock (NewEffects)
                 {
-                    Effects.RemoveAt(i);
-                    continue;
-                }
+                    Effects.AddRange(NewEffects);
+                    NewEffects.Clear();
 
-                Effects[i].Update();
+
+                    for (int i = Effects.Count - 1; i >= 0; i--)
+                    {
+                        if (Effects[i].IsDestroyed)
+                        {
+                            Effects.RemoveAt(i);
+                            continue;
+                        }
+
+                        if (simulate)
+                        {
+                            Effects[i].Simulate();
+                        }
+                        else
+                        {
+                            Effects[i].Update();
+                        }
+                    }
+                }
             }
 
             ForceEffectUpdate = false;
-
-            //Task task = Task.WhenAll(CurrentTasks);
-            //task.Wait();
-
-            //CurrentTasks.Clear();
         }
 
         public void Simulate()
         {
-            Effects.AddRange(NewEffects);
-            NewEffects.Clear();
-
-            for (int i = Effects.Count - 1; i >= 0; i--)
-            {
-                if (Effects[i]?.IsDestroyed == true || Effects[i] == null)
-                {
-                    Effects.RemoveAt(i);
-                    continue;
-                }
-
-                Effects[i].Simulate();
-            }
+            Update(true);
         }
 
         public override void Draw()

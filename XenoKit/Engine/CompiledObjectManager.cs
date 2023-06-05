@@ -45,68 +45,74 @@ namespace XenoKit.Engine
         {
             if (key == null) return null;
 
-            CachedObjects.TryGetValue(key, out CompiledObjectCacheEntry cacheEntry);
-
-            object result = cacheEntry?.CachedObject?.Target;
-
-            if (cacheEntry?.IsAlive() == false)
-                RemoveDeadObjects();
-
-            if(result == null)
+            lock (CachedObjects)
             {
-                if (typeof(T) == typeof(Xv2ShaderEffect) && key is EmmMaterial material)
-                {
-                    result = new Xv2ShaderEffect(material, gameInstance);
-                }
-                else if (typeof(T) == typeof(Xv2Texture) && key is EmbEntry embEntry)
-                {
-                    result = new Xv2Texture(embEntry, gameInstance);
-                }
-                else if (typeof(T) == typeof(Xv2ModelFile) && key is EMD_File emdFile)
-                {
-                    result = Xv2ModelFile.LoadEmd(gameInstance, emdFile);
-                }
-                else if (typeof(T) == typeof(Xv2ModelFile) && key is EMO_File emoFile)
-                {
-                    result = Xv2ModelFile.LoadEmo(gameInstance, emoFile);
-                }
-                else if (typeof(T) == typeof(Animation.Xv2Skeleton) && key is ESK_File eskFile)
-                {
-                    result = new Animation.Xv2Skeleton(eskFile);
-                }
-                else if (typeof(T) == typeof(Animation.Xv2Skeleton) && key is Skeleton emoSkeleton)
-                {
-                    result = new Animation.Xv2Skeleton(emoSkeleton);
-                }
-                else if (typeof(T) == typeof(Vfx.Particle.ParticleEmissionData) && key is ParticleNode particleNode)
-                {
-                    result = new Vfx.Particle.ParticleEmissionData(particleNode, gameInstance);
-                }
-                else
-                {
-                    Log.Add($"GetCompiledObject<{typeof(T)}>: key and source combination not valid (source: {key.GetType()}).", LogType.Error);
-                    return null;
-                }
 
-                //Wacky thread safe guard
-                if (firstAttempt)
+                CachedObjects.TryGetValue(key, out CompiledObjectCacheEntry cacheEntry);
+
+                object result = cacheEntry?.CachedObject?.Target;
+
+                if (cacheEntry?.IsAlive() == false)
+                    RemoveDeadObjects();
+
+                if (result == null)
                 {
-                    try
+                    if (typeof(T) == typeof(Xv2ShaderEffect) && key is EmmMaterial material)
+                    {
+                        result = new Xv2ShaderEffect(material, gameInstance);
+                    }
+                    else if (typeof(T) == typeof(Xv2Texture) && key is EmbEntry embEntry)
+                    {
+                        result = new Xv2Texture(embEntry, gameInstance);
+                    }
+                    else if (typeof(T) == typeof(Xv2ModelFile) && key is EMD_File emdFile)
+                    {
+                        result = Xv2ModelFile.LoadEmd(gameInstance, emdFile);
+                    }
+                    else if (typeof(T) == typeof(Xv2ModelFile) && key is EMO_File emoFile)
+                    {
+                        result = Xv2ModelFile.LoadEmo(gameInstance, emoFile);
+                    }
+                    else if (typeof(T) == typeof(Animation.Xv2Skeleton) && key is ESK_File eskFile)
+                    {
+                        result = new Animation.Xv2Skeleton(eskFile);
+                    }
+                    else if (typeof(T) == typeof(Animation.Xv2Skeleton) && key is Skeleton emoSkeleton)
+                    {
+                        result = new Animation.Xv2Skeleton(emoSkeleton);
+                    }
+                    else if (typeof(T) == typeof(Vfx.Particle.ParticleEmissionData) && key is ParticleNode particleNode)
+                    {
+                        result = new Vfx.Particle.ParticleEmissionData(particleNode, gameInstance);
+                    }
+                    else
+                    {
+                        Log.Add($"GetCompiledObject<{typeof(T)}>: key and source combination not valid (source: {key.GetType()}).", LogType.Error);
+                        return null;
+                    }
+
+
+                    //Wacky thread safe guard
+                    if (firstAttempt)
+                    {
+                        try
+                        {
+                            CachedObjects.Add(key, new CompiledObjectCacheEntry(key, result, gameInstance));
+                        }
+                        catch
+                        {
+                            return GetCompiledObject<T>(key, gameInstance, false);
+                        }
+                    }
+                    else
                     {
                         CachedObjects.Add(key, new CompiledObjectCacheEntry(key, result, gameInstance));
                     }
-                    catch
-                    {
-                        return GetCompiledObject<T>(key, gameInstance, false);
-                    }
                 }
-                else
-                {
-                    CachedObjects.Add(key, new CompiledObjectCacheEntry(key, result, gameInstance));
-                }
+
+                return result as T;
             }
 
-            return result as T;
         }
 
         private void RemoveDeadObjects()
