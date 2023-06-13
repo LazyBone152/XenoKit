@@ -28,10 +28,31 @@ namespace XenoKit.Engine.Vfx.Particle
         private readonly float RotationY_Variance;
         private readonly float RotationZ_Variance;
 
+        protected float StartRotation_Variance = 0f;
+        protected float ActiveRotation_Variance = 0f;
+        protected float RotationAmount = 0f;
         public Vector3 Velocity;
-        public Matrix EmitLocalTransform;
 
-        public NodeState State { get; private set; }
+        /// <summary>
+        /// Transform encasing all movement of this node (velocity).
+        /// </summary>
+        public Matrix MovementTransform = Matrix.Identity;
+        //Transform = relative to ParticleSystem
+        /// <summary>
+        /// Where the node was created. Used for calculating current transform.
+        /// </summary>
+        protected Matrix EmitPointTransform;
+        /// <summary>
+        /// A snapshot of the attachment bone at the time this node was created. Used for calculating AbsoluteTransform, based on EEPK flags.
+        /// </summary>
+        private Matrix EmitBoneTransform;
+        /// <summary>
+        /// The current absolute transform of this node, relative to the world.
+        /// </summary>
+        public Matrix AbsoluteTransform;
+        protected Matrix ScaleAdjustment = Matrix.Identity;
+
+        public NodeState State { get; protected set; }
         public float CurrentFrame { get; private set; }
         public float CurrentTimeFactor { get; private set; }
 
@@ -40,14 +61,17 @@ namespace XenoKit.Engine.Vfx.Particle
 
         //Active child node instances
         protected List<int> ActiveInstances = new List<int>();
-        private bool ActiveInstancesUpdatedThisFrame = false;
+        protected bool ActiveInstancesUpdatedThisFrame = false;
+        protected virtual bool IsRootNode => false;
 
-        public ParticleNodeBase(Matrix emitLocalMatrix, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(gameBase)
+        public ParticleNodeBase(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(gameBase)
         {
+            Velocity = velocity;
             ParticleSystem = system;
             Node = node;
             EffectPart = effectPart;
-            EmitLocalTransform = emitLocalMatrix;
+            EmitPointTransform = emitPoint;
+            EmitBoneTransform = system.AttachmentBone;
 
             StartTime = node.StartTime + Xv2CoreLib.Random.Range(0, node.StartTime_Variance);
             Lifetime = node.Lifetime + Xv2CoreLib.Random.Range(0, node.Lifetime_Variance);
@@ -61,6 +85,15 @@ namespace XenoKit.Engine.Vfx.Particle
             RotationX_Variance = Xv2CoreLib.Random.Range(0, node.Rotation_Variance.X);
             RotationY_Variance = Xv2CoreLib.Random.Range(0, node.Rotation_Variance.Y);
             RotationZ_Variance = Xv2CoreLib.Random.Range(0, node.Rotation_Variance.Z);
+        }
+
+        public ParticleNodeBase(Matrix emitPoint, ParticleSystem system, EffectPart effectPart, GameBase gameBase) : base(gameBase)
+        {
+            EmitPointTransform = emitPoint;
+            ParticleSystem = system;
+            EffectPart = effectPart;
+            Node = new ParticleNode();
+            Node.Burst = 1;
         }
 
         public override void Update()
@@ -92,7 +125,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
             if (CurrentFrame >= Lifetime)
             {
-                if (Loop)
+                if (Loop && !ParticleSystem.IsTerminating)
                 {
                     CurrentFrame = 0f;
                 }
@@ -113,21 +146,49 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 CurrentTimeFactor = CurrentFrame / Lifetime;
 
+                //Update movement
+                if (SceneManager.IsPlaying)
+                {
+                    UpdateModifiers();
+
+                    //Change position based on current velocity
+                    MovementTransform *= Matrix.CreateTranslation((Velocity / 60f) * ((EffectPart.UseTimeScale) ? SceneManager.MainAnimTimeScale * SceneManager.BacTimeScale : 1f));
+                }
+
+                //Update position and rotation
                 float[] position = Node.Position.GetInterpolatedValue(CurrentTimeFactor);
                 float[] rotation = Node.Rotation.GetInterpolatedValue(CurrentTimeFactor);
 
-                position[0] += PositionX_Variance;
-                position[1] += PositionY_Variance;
-                position[2] += PositionZ_Variance;
-                rotation[0] += RotationX_Variance;
-                rotation[1] += RotationY_Variance;
-                rotation[2] += RotationZ_Variance;
+                Transform = MovementTransform * ScaleAdjustment * EmitPointTransform;
+                Transform *= Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
+                Transform *= Matrix.CreateTranslation(new Vector3(position[0] + PositionX_Variance, position[1] + PositionY_Variance, position[2] + PositionZ_Variance) * ParticleSystem.Scale);
+                //Transform = MovementTransform * Transform;
 
-                Transform = EmitLocalTransform;
-                Transform *= Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0]), MathHelper.ToRadians(rotation[1]), MathHelper.ToRadians(rotation[2]))));
-                Transform *= Matrix.CreateTranslation(position[0], position[1], position[2]);
+                AbsoluteTransform = EffectPart.InstantUpdate ? Transform * ParticleSystem.AttachmentBone : Transform * EmitBoneTransform;
             }
 
+        }
+
+        private void UpdateModifiers()
+        {
+            foreach(EMP_Modifier modifier in Node.Modifiers)
+            {
+                switch (modifier.EmpType)
+                {
+                    case EMP_Modifier.EmpModifierType.Acceleration:
+                        {
+                            var values = modifier.Axis.GetInterpolatedValue(CurrentTimeFactor);
+                            Velocity += (new Vector3(values[0] / 60f, values[1] / 60f, values[2] / 60f) * modifier.Factor.GetInterpolatedValue(CurrentTimeFactor)) * ParticleSystem.Scale;
+                        }
+                        break;
+                }
+            }
+        }
+
+        protected void UpdateRotation()
+        {
+            if(SceneManager.IsPlaying)
+                RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance) / 60f;
         }
 
         protected void UpdateChildrenNodes()
@@ -172,29 +233,38 @@ namespace XenoKit.Engine.Vfx.Particle
                 for (int b = 0; b < Node.Burst; b++)
                 {
                     //Maximum amount of instances of this node reached, so cannot create more
-                    if (Node.ChildParticleNodes[i].MaxInstances <= ActiveInstances[i])
+                    if (Node.ChildParticleNodes[i].MaxInstances <= ActiveInstances[i] && !IsRootNode)
                         break;
+
+                    //Position where the node is to be emitted. 
+                    Vector3 velocity = Vector3.Zero;
+                    Matrix emitTransform = GetEmitTransformationMatrix(ref velocity) * Transform;
+
+                    //IF node is an emission (NOT an emitter), then any children nodes will inherit its velocity.
+                    if (Node.IsEmission)
+                        velocity = Velocity;
 
                     if (Node.ChildParticleNodes[i].NodeType == ParticleNodeType.Emitter)
                     {
+                        Nodes.Add(new ParticleEmitter(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
 
                     }
                     else if (Node.ChildParticleNodes[i].NodeType == ParticleNodeType.Emission)
                     {
                         if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Plane)
                         {
-                            Nodes.Add(new Particle(Transform, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
+                            Nodes.Add(new Particle(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
                         }
                         else
                         {
                             //placeholder
-                            Nodes.Add(new ParticleNodeBase(Transform, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
+                            Nodes.Add(new ParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
                         }
                     }
                     else
                     {
-                        //"null" node
-                        Nodes.Add(new ParticleNodeBase(Transform, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
+                        //"null" node.
+                        Nodes.Add(new ParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
                     }
 
                     ActiveInstances[i]++;
@@ -202,10 +272,9 @@ namespace XenoKit.Engine.Vfx.Particle
             }
         }
 
-        protected virtual void GetEmitPositionAndVector(ref Vector3 position, ref Vector3 direction)
+        protected virtual Matrix GetEmitTransformationMatrix(ref Vector3 velocity)
         {
-            position = Vector3.Zero;
-            direction = Vector3.Up;
+            return Matrix.Identity;
         }
 
         /// <summary>
@@ -238,6 +307,11 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 node.Deactivate();
             }
+        }
+    
+        protected Matrix GetAttachmentBone()
+        {
+            return EffectPart.InstantUpdate ? ParticleSystem.AttachmentBone : EmitBoneTransform;
         }
     }
 

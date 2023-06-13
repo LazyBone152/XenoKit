@@ -593,6 +593,7 @@
     <Compile Include="Engine\Vfx\Particle\ParticleEmissionData.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleEmitter.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleNodeBase.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleRootNode.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleSystem.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleUV.cs" />
     <Compile Include="Engine\Vfx\VfxEffect.cs" />

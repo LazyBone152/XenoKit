@@ -34,6 +34,10 @@ namespace XenoKit.Engine.Vertex
 
         [FieldOffset(16)]
         public Vector2 TextureUV;
+        [FieldOffset(24)]
+        public Vector3 Normal;
+        [FieldOffset(36)]
+        public Vector3 Tangent;
 
         //Vertex Type:
         public static readonly VertexDeclaration VertexDeclaration;
@@ -51,6 +55,8 @@ namespace XenoKit.Engine.Vertex
             Color_G = (byte)(color.Y * 255);
             Color_B = (byte)(color.Z * 255);
             Color_A = (byte)(color.W * 255);
+            Normal = Vector3.Zero;
+            Tangent = Vector3.Zero;
         }
 
         public VertexPositionTextureColor(Vector3 position, Vector2 textureUV, float[] color)
@@ -61,6 +67,8 @@ namespace XenoKit.Engine.Vertex
             Color_G = (byte)(color[1] * 255);
             Color_B = (byte)(color[2] * 255);
             Color_A = (byte)(color[3] * 255);
+            Normal = Vector3.Zero;
+            Tangent = Vector3.Zero;
         }
 
         public void SetColor(float[] rgba)
@@ -77,14 +85,16 @@ namespace XenoKit.Engine.Vertex
             {    
                 new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
                 new VertexElement(12, VertexElementFormat.Color, VertexElementUsage.Color, 0),
-                new VertexElement(16, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0)
+                new VertexElement(16, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
+                new VertexElement(24, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
+                new VertexElement(36, VertexElementFormat.Vector3, VertexElementUsage.Tangent, 0),
             };
             VertexDeclaration declaration = new VertexDeclaration(elements);
             VertexDeclaration = declaration;
         }
 
         public override int GetHashCode() { return 0; } // TODO: Fix        
-        public static bool operator ==(VertexPositionTextureColor left, VertexPositionTextureColor right) { return (((left.Position == right.Position) && (left.TextureUV == right.TextureUV) && left.Color_A == right.Color_A && left.Color_R == right.Color_R && left.Color_G == right.Color_G && left.Color_B == right.Color_B)); }
+        public static bool operator ==(VertexPositionTextureColor left, VertexPositionTextureColor right) { return (((left.Position == right.Position) && (left.Normal == right.Normal) && (left.Tangent == right.Tangent) && (left.TextureUV == right.TextureUV) && left.Color_A == right.Color_A && left.Color_R == right.Color_R && left.Color_G == right.Color_G && left.Color_B == right.Color_B)); }
         public static bool operator !=(VertexPositionTextureColor left, VertexPositionTextureColor right) { return !(left == right); }
         public override bool Equals(object obj) { if (obj == null) { return false; } if (obj.GetType() != base.GetType()) { return false; } return (this == ((VertexPositionTextureColor)obj)); }
         public override string ToString() { return string.Format("{{Position:{0} Texture UV:{1} Color RGBA: {2}}", new object[] { this.Position, this.TextureUV, $"{Color_R}, {Color_G}, {Color_B}, {Color_A}" }); }

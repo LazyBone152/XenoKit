@@ -32,40 +32,59 @@ namespace XenoKit.Engine.Vfx.Particle
                 }
                 else
                 {
-                    int keyframeIndex = CurrentKeyframeIndex;
-
-                    if (CurrentTime >= TextureDef.ScrollState.Keyframes[CurrentKeyframeIndex].Time && TextureDef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.SpriteSheet)
+                    if(TextureDef.ScrollState.Keyframes.Count > 0)
                     {
-                        if (TextureDef.KeyframeType == EMP_TextureSamplerDef.KeyframeTypeEnum.Random)
+                        int keyframeIndex = CurrentKeyframeIndex;
+
+                        if (CurrentTime > TextureDef.ScrollState.Keyframes[CurrentKeyframeIndex].Time && TextureDef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.SpriteSheet)
                         {
-                            keyframeIndex = Xv2CoreLib.Random.Range(0, TextureDef.ScrollState.Keyframes.Count - 1);
-                        }
-                        else if (TextureDef.KeyframeType == EMP_TextureSamplerDef.KeyframeTypeEnum.SequentialLoop)
-                        {
-                            keyframeIndex = (CurrentKeyframeIndex < TextureDef.ScrollState.Keyframes.Count - 1) ? keyframeIndex + 1 : 0;
-                        }
-                        else if(CurrentKeyframeIndex < TextureDef.ScrollState.Keyframes.Count - 1)
-                        {
-                            keyframeIndex++;
+                            if (TextureDef.KeyframeType == EMP_TextureSamplerDef.KeyframeTypeEnum.Random)
+                            {
+                                keyframeIndex = Xv2CoreLib.Random.Range(0, TextureDef.ScrollState.Keyframes.Count - 1);
+                            }
+                            else if (TextureDef.KeyframeType == EMP_TextureSamplerDef.KeyframeTypeEnum.SequentialLoop)
+                            {
+                                keyframeIndex = (CurrentKeyframeIndex < TextureDef.ScrollState.Keyframes.Count - 1) ? keyframeIndex + 1 : 0;
+                            }
+                            else if (CurrentKeyframeIndex < TextureDef.ScrollState.Keyframes.Count - 1)
+                            {
+                                keyframeIndex++;
+                            }
+
+                            CurrentTime = 0;
                         }
 
-                        CurrentTime = 0;
+                        //Sanity check
+                        if (keyframeIndex > TextureDef.ScrollState.Keyframes.Count - 1)
+                            keyframeIndex = 0;
+
+                        ScrollU = TextureDef.ScrollState.Keyframes[keyframeIndex].ScrollU;
+                        ScrollV = TextureDef.ScrollState.Keyframes[keyframeIndex].ScrollV;
+                        StepU = TextureDef.ScrollState.Keyframes[keyframeIndex].ScaleU;
+                        StepV = TextureDef.ScrollState.Keyframes[keyframeIndex].ScaleV;
+
+                        CurrentKeyframeIndex = keyframeIndex;
+                    }
+                    else
+                    {
+                        //No keyframes defined in EMP. Use default values.
+
+                        ScrollU = 0f;
+                        ScrollV = 0f;
+                        StepU = 1f;
+                        StepV = 1f;
                     }
 
-                    //Sanity check
-                    if (keyframeIndex > TextureDef.ScrollState.Keyframes.Count - 1)
-                        keyframeIndex = 0;
-
-                    ScrollU = TextureDef.ScrollState.Keyframes[keyframeIndex].ScrollU;
-                    ScrollV = TextureDef.ScrollState.Keyframes[keyframeIndex].ScrollV;
-                    StepU = TextureDef.ScrollState.Keyframes[keyframeIndex].ScaleU;
-                    StepV = TextureDef.ScrollState.Keyframes[keyframeIndex].ScaleV;
-
-                    CurrentKeyframeIndex = keyframeIndex;
 
                     CurrentTime += useTimeScale ? 1f * SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale : 1f;
                 }
             }
+        }
+    
+        public void Restart()
+        {
+            CurrentTime = 0;
+            CurrentKeyframeIndex = 0;
         }
     }
 }

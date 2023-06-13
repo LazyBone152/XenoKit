@@ -132,6 +132,11 @@ namespace XenoKit.Engine.Vfx
                 effect.Dispose();
             }
 
+            lock (NewEffects)
+            {
+                NewEffects.Clear();
+            }
+
             lock (Effects)
             {
                 Effects.Clear();

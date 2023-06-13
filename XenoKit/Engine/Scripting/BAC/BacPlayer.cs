@@ -194,6 +194,7 @@ namespace XenoKit.Engine.Scripting.BAC
                         VfxManager.PlayEffect(effect, BacEntryInstance);
                     }
                 }
+                
 
                 //Camera
                 if (type is BAC_Type10 camera)

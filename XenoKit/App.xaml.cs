@@ -13,6 +13,7 @@ namespace XenoKit
         {
 #if !DEBUG
             Log.Add($"Unhandled Exception: {e.Exception.Message}", e.Exception.ToString(), LogType.Error);
+            e.Handled = true;
 
             if (!Xv2CoreLib.Resource.App.SettingsManager.Instance.Settings.XenoKit_SuppressErrorsToLogOnly)
             {
@@ -20,8 +21,12 @@ namespace XenoKit
                 window.ShowException(e.Exception);
 
             }
-            e.Handled = true;
 #endif
+        }
+
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            Xv2CoreLib.Resource.App.SettingsManager.Instance.CurrentApp = Xv2CoreLib.Resource.App.Application.XenoKit;
         }
     }
 }

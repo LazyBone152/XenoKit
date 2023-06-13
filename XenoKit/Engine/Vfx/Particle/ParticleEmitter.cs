@@ -11,105 +11,260 @@ namespace XenoKit.Engine.Vfx.Particle
 {
     public class ParticleEmitter : ParticleNodeBase
     {
+        private int BurstCountdown = 0;
+        private float SizeVariance;
+        private float Size2Variance;
 
-        public ParticleEmitter(Matrix emitLocalMatrix, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(emitLocalMatrix, system, node, effectPart, gameBase)
+        public ParticleEmitter(Matrix emitLocalMatrix, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(emitLocalMatrix, velocity, system, node, effectPart, gameBase)
         {
             SetValues();
         }
 
         private void SetValues()
         {
-
+            SizeVariance = Xv2CoreLib.Random.Range(0, Node.EmitterNode.Size_Variance);
+            Size2Variance = Xv2CoreLib.Random.Range(0, Node.EmitterNode.Size2_Variance);
         }
 
-        protected override void GetEmitPositionAndVector(ref Vector3 position, ref Vector3 direction)
+        public override void Update()
         {
-            direction = new Vector3(RandF(0, 1), 0, 0);
+            StartUpdate();
 
-            if (Node.EmitterNode.Shape == Xv2CoreLib.EMP_NEW.ParticleEmitter.ParticleEmitterShape.Circle)
+            if (State == NodeState.Active && SceneManager.IsPlaying)
             {
-                Matrix randomMatrix = Matrix.CreateFromYawPitchRoll(RandF(-MathHelper.Pi, MathHelper.Pi), RandF(-MathHelper.Pi, MathHelper.Pi), 0);
-                position = Vector3.Transform(direction, randomMatrix);
+                if (BurstCountdown == 0)
+                {
+                    Emit();
+                    BurstCountdown = BurstFrequency;
+                }
+                else
+                {
+                    BurstCountdown--;
+                }
+            }
 
-                float radius = Node.EmitterNode.Size.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Size_Variance);
-                float angle = Node.EmitterNode.Angle.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Angle_Variance);
-                float positionOffset = Node.EmitterNode.Position.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Position_Variance);
+            UpdateChildrenNodes();
+            EndUpdate();
+        }
 
-                if (Node.EmitterNode.EmitFromArea)
-                    position.Normalize();
+        protected override Matrix GetEmitTransformationMatrix(ref Vector3 velocity)
+        {
+            Matrix transformMatrix = Matrix.Identity;
+
+            switch (Node.EmitterNode.Shape)
+            {
+                case Xv2CoreLib.EMP_NEW.ParticleEmitter.ParticleEmitterShape.Circle:
+                    transformMatrix = GetEmitOnCircleMatrix();
+                    break;
+                case Xv2CoreLib.EMP_NEW.ParticleEmitter.ParticleEmitterShape.Square:
+                    transformMatrix = GetEmitOnSquareMatrix();
+                    break;
+                case Xv2CoreLib.EMP_NEW.ParticleEmitter.ParticleEmitterShape.Sphere:
+                    transformMatrix = GetEmitOnSphereMatrix();
+                    break;
+                case Xv2CoreLib.EMP_NEW.ParticleEmitter.ParticleEmitterShape.Point:
+                    transformMatrix = GetEmitOnPointMatrix();
+                    break;
+            }
+
+            //Calculate the velocity of the emitted node.
+            float velocityAmount = Node.EmitterNode.Velocity.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Velocity_Variance);
+            velocity = new Vector3(0, velocityAmount, 0) * ParticleSystem.Scale;
+
+            return transformMatrix * Matrix.CreateScale(ParticleSystem.Scale);
+        }
+
+        private Matrix GetEmitOnCircleMatrix()
+        {
+            float radius = (Node.EmitterNode.Size.GetInterpolatedValue(CurrentTimeFactor) + SizeVariance);
+            float angle = Node.EmitterNode.Angle.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Angle_Variance);
+            float positionOffset = Node.EmitterNode.Position.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Position_Variance);
+
+            //Random position in circle
+            float randomPosition = Xv2CoreLib.Random.Range(0, radius);
+
+            // Generate a random angle within the specified range
+            float randomAngle = Xv2CoreLib.Random.Range(0, 360);
+
+            // Calculate the position based on the random angle and radius
+            Vector3 position = new Vector3(
+                    randomPosition * (float)Math.Cos(randomAngle),
+                    0f,
+                    randomPosition * (float)Math.Sin(randomAngle)
+                );
+
+            Vector3 positionOffsetVector = new Vector3(0, positionOffset, 0);
+
+            // If emitFromEdge is true, adjust the position to be on the edge of the circle
+            if (Node.EmitterNode.EmitFromArea)
+            {
+                position.Normalize();
                 position *= radius;
-
-                direction = new Vector3();
-                direction.Y += RandF(0, Lifetime / 60); //What does this do?
-                float offset = direction.Y * (float)Math.Tan(angle * MathHelper.Pi / 180.0f);
-                direction.X += offset * position.X / position.Length();
-                direction.Z += offset * position.Z / position.Length();
-
-                //Add position offset onto position. This is done at the end because it happens along the up vector.
-                position += Vector3.Transform(new Vector3(0, positionOffset, 0), Matrix.CreateTranslation(direction));
-
-                if (Node.EmitterNode.EmitFromArea)
-                    position += direction;
-
-                direction.Normalize();
-                return;
             }
 
-            /*
-            if (Node.EmitterNode.Shape == Xv2CoreLib.EMP_NEW.ParticleEmitter.ParticleEmitterShape.Circle)
-            {
-                Matrix3x3 randomMatrix = Matrix3x3.RotationYawPitchRoll(RandF(-MathHelper.Pi, MathHelper.Pi), RandF(-MathHelper.Pi, MathHelper.Pi), 0);
-                direction = Vector3.Transform(direction, randomMatrix);
+            // Calculate the rotation based on the specified angle
+            float rotation = MathHelper.ToRadians(-angle);
 
-                if (MainViewModel.MainParticleSystem.Shape.EmitFromShell)
-                    direction.Normalize();
-                position = MainViewModel.MainParticleSystem.Shape.Radius * direction;
-                direction.Normalize();
-                return;
-            }
-            if (MainViewModel.MainParticleSystem.Shape.ShapeType == ParticleSystem.ShapeType.SPHERE)
-            {
-                Matrix3x3 randomMatrix = Matrix3x3.RotationYawPitchRoll(RandF(-MathHelper.Pi, MathHelper.Pi), RandF(-MathHelper.Pi, MathHelper.Pi), RandF(-MathHelper.Pi, MathHelper.Pi));
-                direction = Vector3.Transform(direction, randomMatrix);
+            // Determine the rotation axis based on the position within the circle
+            Vector3 rotationAxis = new Vector3(-position.Z, 0f, position.X);
+            rotationAxis.Normalize();
 
-                if (MainViewModel.MainParticleSystem.Shape.EmitFromShell)
-                    direction.Normalize();
-                position = MainViewModel.MainParticleSystem.Shape.Radius * direction;
-                return;
-            }
-            if (MainViewModel.MainParticleSystem.Shape.ShapeType == ParticleSystem.ShapeType.CONE)
-            {
-                Matrix3x3 randomMatrix = Matrix3x3.RotationYawPitchRoll(RandF(-MathHelper.Pi, MathHelper.Pi), RandF(-MathHelper.Pi, MathHelper.Pi), 0);
-                position = Vector3.Transform(direction, randomMatrix);
+            // Create the transformation matrix using the position and rotation
+            Matrix transform = Matrix.CreateTranslation(positionOffsetVector)
+                * Matrix.CreateFromAxisAngle(rotationAxis, rotation);
 
-                if (MainViewModel.MainParticleSystem.Shape.EmitFromShell)
-                    position.Normalize();
-                position *= MainViewModel.MainParticleSystem.Shape.Radius;
+            transform.Translation += position;
 
-                direction = new Vector3();
-                direction.Y += RandF(0, MainViewModel.MainParticleSystem.Lifetime);
-                float offset = direction.Y * (float)Math.Tan(MainViewModel.MainParticleSystem.Shape.Angle * MathHelper.Pi / 180.0f);
-                direction.X += offset * position.X / position.Length();
-                direction.Z += offset * position.Z / position.Length();
-
-                if (MainViewModel.MainParticleSystem.Shape.EmitFromVolume)
-                    position += direction;
-
-                direction.Normalize();
-                return;
-            }
-            if (MainViewModel.MainParticleSystem.Shape.ShapeType == ParticleSystem.ShapeType.EDGE)
-            {
-                position = new Vector3(RandF(-MainViewModel.MainParticleSystem.Shape.Radius, MainViewModel.MainParticleSystem.Shape.Radius), 0, 0);
-                direction = new Vector3(0, 0, 1);
-            }
-            */
+            return transform;
         }
 
-        private float RandF(float a, float b)
+        private Matrix GetEmitOnSquareMatrix()
         {
-            return Xv2CoreLib.Random.Range(a, b);
+            float sizeX = (Node.EmitterNode.Size.GetInterpolatedValue(CurrentTimeFactor) + SizeVariance);
+            float sizeZ = (Node.EmitterNode.Size2.GetInterpolatedValue(CurrentTimeFactor) + Size2Variance);
+            float angle = Node.EmitterNode.Angle.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Angle_Variance);
+            float positionOffset = Node.EmitterNode.Position.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Position_Variance);
+
+            // Calculate the position based on sizeX and sizeZ
+            Vector3 position;
+
+            if (Node.EmitterNode.EmitFromArea)
+            {
+                // randomly choose one of the four edges
+                int edge = Xv2CoreLib.Random.Range(0, 4);
+                float posX;
+                float posZ;
+
+                switch (edge)
+                {
+                    case 0: // left edge
+                        posX = -sizeX;
+                        posZ = Xv2CoreLib.Random.Range(-sizeZ, sizeZ);
+                        break;
+                    case 1: // right edge
+                        posX = sizeX;
+                        posZ = Xv2CoreLib.Random.Range(-sizeZ, sizeZ);
+                        break;
+                    case 2: // bottom edge
+                        posX = Xv2CoreLib.Random.Range(-sizeX, sizeX);
+                        posZ = -sizeZ;
+                        break;
+                    case 3: // top edge
+                        posX = Xv2CoreLib.Random.Range(-sizeX, sizeX);
+                        posZ = sizeZ;
+                        break;
+                    default: // shouldn't happen
+                        posX = 0f;
+                        posZ = 0f;
+                        break;
+                }
+
+                position = new Vector3(posX, 0f, posZ);
+            }
+            else
+            {
+                position = new Vector3(Xv2CoreLib.Random.Range(-sizeX, sizeX), 0f, Xv2CoreLib.Random.Range(-sizeZ, sizeZ));
+            }
+
+            Vector3 positionOffsetVector = new Vector3(0, positionOffset, 0);
+
+            // Calculate the rotation based on the specified angle
+            float rotation = MathHelper.ToRadians(-angle);
+
+            // Determine the rotation axis based on the position within the square
+            Vector3 rotationAxis = new Vector3(-position.Z, 0f, position.X);
+            rotationAxis.Normalize();
+
+            // Create the transformation matrix using the position and rotation
+            Matrix transform = Matrix.CreateTranslation(positionOffsetVector)
+                * Matrix.CreateFromAxisAngle(rotationAxis, rotation);
+
+            transform.Translation += position;
+
+            return transform;
         }
+
+        private Matrix GetEmitOnSphereMatrix()
+        {
+            //Lazy reuse of circle method.
+
+            float radius = 0.00001f;
+            float positionOffset = (Node.EmitterNode.Size.GetInterpolatedValue(CurrentTimeFactor) + SizeVariance);
+
+            //Random position in circle
+            float randomPosition = Xv2CoreLib.Random.Range(0, radius);
+
+            // Generate a random angle within the specified range
+            float randomAngle = Xv2CoreLib.Random.Range(0, 360);
+
+            // Calculate the position based on the random angle and radius
+            Vector3 position = new Vector3(
+                    randomPosition * (float)Math.Cos(randomAngle),
+                    0f,
+                    randomPosition * (float)Math.Sin(randomAngle)
+                );
+
+            Vector3 positionOffsetVector = new Vector3(0, positionOffset, 0);
+
+            // Calculate the rotation based on the specified angle
+            float rotation = MathHelper.ToRadians(Xv2CoreLib.Random.Range(0, 360));
+
+            // Determine the rotation axis based on the position within the circle
+            Vector3 rotationAxis = new Vector3(-position.Z, 0f, position.X);
+            rotationAxis.Normalize();
+
+            // Create the transformation matrix using the position and rotation
+            Matrix transform = Matrix.CreateTranslation(positionOffsetVector)
+                * Matrix.CreateFromAxisAngle(rotationAxis, rotation);
+
+            transform.Translation += position;
+
+            return transform;
+            //return Matrix.CreateTranslation(new Vector3(0, 10, 0)) * transform;
+        }
+
+        private Matrix GetEmitOnPointMatrix()
+        {
+            //Repurposed from cirlce. NOT quite 100% accurate, but close enough for now
+
+            float radius = 1f;
+            float angle = Node.EmitterNode.Angle.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Angle_Variance);
+            float positionOffset = Node.EmitterNode.Position.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Position_Variance);
+
+            if (angle > 0)
+                angle = Xv2CoreLib.Random.Range(5, angle);
+            else
+                angle = Xv2CoreLib.Random.Range(angle, -5);
+
+            //Random position in circle
+            float randomPosition = Xv2CoreLib.Random.Range(0, radius);
+
+            // Generate a random angle within the specified range
+            float randomAngle = Xv2CoreLib.Random.Range(0, 360);
+
+            // Calculate the position based on the random angle and radius
+            Vector3 position = new Vector3(
+                    randomPosition * (float)Math.Cos(randomAngle),
+                    0f,
+                    randomPosition * (float)Math.Sin(randomAngle)
+                );
+
+            Vector3 positionOffsetVector = new Vector3(0, positionOffset, 0);
+
+            // Calculate the rotation based on the specified angle
+            float rotation = MathHelper.ToRadians(-angle);
+
+            // Determine the rotation axis based on the position within the circle
+            Vector3 rotationAxis = new Vector3(-position.Z, 0f, position.X);
+            rotationAxis.Normalize();
+
+            // Create the transformation matrix using the position and rotation
+            Matrix transform = Matrix.CreateTranslation(positionOffsetVector)
+                * Matrix.CreateFromAxisAngle(rotationAxis, rotation);
+
+            return  transform;
+        }
+
 
     }
 }

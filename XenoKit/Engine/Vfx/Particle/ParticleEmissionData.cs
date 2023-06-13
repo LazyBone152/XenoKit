@@ -9,17 +9,58 @@ namespace XenoKit.Engine.Vfx.Particle
 {
     public class ParticleEmissionData : Entity
     {
+        private EMP_File empFile = null;
+        public EMP_File EmpFile
+        {
+            get => empFile;
+            set
+            {
+                if(empFile != value)
+                {
+                    empFile = value;
+                    SetTextureIndex();
+                }
+            }
+        }
+
         public readonly ParticleNode ParticleNode;
 
         public SamplerInfo[] Samplers { get; private set; }
         public Xv2Texture[] Textures { get; private set; }
         public Xv2ShaderEffect Material { get; private set; }
 
+        public int TextureIndex { get; private set; }
+
+        private bool IsTexturesDirty { get; set; }
+        private bool IsMaterialsDirty { get; set; }
+
         public ParticleEmissionData(ParticleNode node, GameBase gameBase) : base(gameBase)
         {
             ParticleNode = node;
             SetSamplers();
             SetMaterial();
+
+            ParticleNode.EmissionNode.Texture.PropertyChanged += Texture_PropertyChanged;
+            ParticleNode.EmissionNode.Texture.TextureEntryRef[0].PropertyChanged += ParticleEmissionData_PropertyChanged;
+            ParticleNode.EmissionNode.Texture.TextureEntryRef[1].PropertyChanged += ParticleEmissionData_PropertyChanged;
+        }
+
+        private void ParticleEmissionData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            IsTexturesDirty = true;
+        }
+
+        private void Texture_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ParticleTexture.MaterialRef))
+                IsMaterialsDirty = true;
+        }
+
+        public override void Dispose()
+        {
+            ParticleNode.EmissionNode.Texture.PropertyChanged -= Texture_PropertyChanged;
+            ParticleNode.EmissionNode.Texture.TextureEntryRef[0].PropertyChanged -= ParticleEmissionData_PropertyChanged;
+            ParticleNode.EmissionNode.Texture.TextureEntryRef[1].PropertyChanged -= ParticleEmissionData_PropertyChanged;
         }
 
         private void SetSamplers()
@@ -57,6 +98,16 @@ namespace XenoKit.Engine.Vfx.Particle
                     }
                 }
             }
+
+            if(EmpFile != null)
+            {
+                SetTextureIndex();
+            }
+        }
+
+        public void SetTextureIndex()
+        {
+            TextureIndex = EmpFile.Textures.IndexOf(ParticleNode.EmissionNode.Texture.TextureEntryRef[0].TextureRef);
         }
 
         private void SetMaterial()
@@ -109,5 +160,13 @@ namespace XenoKit.Engine.Vfx.Particle
             }
         }
 
+        public override void Update()
+        {
+            if (IsMaterialsDirty)
+                SetMaterial();
+
+            if (IsTexturesDirty)
+                SetSamplers();
+        }
     }
 }

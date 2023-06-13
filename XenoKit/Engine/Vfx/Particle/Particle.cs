@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using XenoKit.Editor;
 using XenoKit.Engine.Shader;
 using XenoKit.Engine.Textures;
 using XenoKit.Engine.Vertex;
@@ -33,20 +34,16 @@ namespace XenoKit.Engine.Vfx.Particle
         private float ScaleBase = 0.5f;
         private float ScaleU = 0.5f;
         private float ScaleV = 0.5f;
-        private float[] PrimaryColor = null;
+        private float[] PrimaryColor = new float[4];
         private float[] SecondaryColor = new float[4];
 
-        //Texture Scroll:
-        private int TextureIndex = 0;
-        //private float TextureScrollU = 0f;
-        //private float TextureScrollV = 0f;
-        //private float TextureStepU = 1f;
-        //private float TextureStepV = 1f;
 
-        public Particle(Matrix localEmitMatrix, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(localEmitMatrix, system, node, effectPart, gameBase)
+        public Particle(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(emitPoint, velocity, system, node, effectPart, gameBase)
         {
             EmissionData = CompiledObjectManager.GetCompiledObject<ParticleEmissionData>(node, gameBase);
+            EmissionData.EmpFile = system.EmpFile;
             SetValues();
+
         }
 
         public void SetValues()
@@ -56,45 +53,49 @@ namespace XenoKit.Engine.Vfx.Particle
             ColorB_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.Texture.Color_Variance.B);
             ColorA_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.Texture.Color_Variance.A);
 
-            ScaleBase_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.Texture.ScaleBase_Variance);
-            ScaleU_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.Texture.ScaleXY_Variance.X);
-            ScaleV_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.Texture.ScaleXY_Variance.Y);
+            //Scale variances are a generated together, using the same factor. This is so they all scale uniformly
+            float scaleFactor = Xv2CoreLib.Random.Range(0, 1f);
+            ScaleBase_Variance = Node.EmissionNode.Texture.ScaleBase_Variance * scaleFactor;
+            ScaleU_Variance = Node.EmissionNode.Texture.ScaleXY_Variance.X * scaleFactor;
+            ScaleV_Variance = Node.EmissionNode.Texture.ScaleXY_Variance.Y * scaleFactor;
 
-            TextureIndex = ParticleSystem.EmpFile.Textures.IndexOf(Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef);
+            StartRotation_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.StartRotation_Variance);
+            ActiveRotation_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.ActiveRotation_Variance);
+            RotationAmount = Node.EmissionNode.StartRotation + StartRotation_Variance;
         }
 
         private void UpdateColor()
         {
-            PrimaryColor = Node.EmissionNode.Texture.Color1.GetInterpolatedValue(CurrentTimeFactor);
+            float[] primaryColor = Node.EmissionNode.Texture.Color1.GetInterpolatedValue(CurrentTimeFactor);
             PrimaryColor[3] = Node.EmissionNode.Texture.Color1_Transparency.GetInterpolatedValue(CurrentTimeFactor);
 
-            PrimaryColor[0] += ColorR_Variance;
-            PrimaryColor[1] += ColorG_Variance;
-            PrimaryColor[2] += ColorB_Variance;
-            PrimaryColor[3] += ColorA_Variance;
+            PrimaryColor[0] = MathHelper.Clamp(primaryColor[0] + ColorR_Variance, 0f, 1f);
+            PrimaryColor[1] = MathHelper.Clamp(primaryColor[1] + ColorG_Variance, 0f, 1f);
+            PrimaryColor[2] = MathHelper.Clamp(primaryColor[2] + ColorB_Variance, 0f, 1f);
+            PrimaryColor[3] = MathHelper.Clamp(PrimaryColor[3] + ColorA_Variance, 0f, 1f);
 
             if (Node.NodeFlags.HasFlag(NodeFlags1.EnableSecondaryColor))
             {
-                SecondaryColor = Node.EmissionNode.Texture.Color2.GetInterpolatedValue(CurrentTimeFactor);
+                float[] secondaryColor = Node.EmissionNode.Texture.Color2.GetInterpolatedValue(CurrentTimeFactor);
                 SecondaryColor[3] = Node.EmissionNode.Texture.Color2_Transparency.GetInterpolatedValue(CurrentTimeFactor);
 
-                SecondaryColor[0] += ColorR_Variance;
-                SecondaryColor[1] += ColorG_Variance;
-                SecondaryColor[2] += ColorB_Variance;
-                SecondaryColor[3] += ColorA_Variance;
+                SecondaryColor[0] = MathHelper.Clamp(secondaryColor[0] + ColorR_Variance, 0f, 1f);
+                SecondaryColor[1] = MathHelper.Clamp(secondaryColor[1] + ColorG_Variance, 0f, 1f);
+                SecondaryColor[2] = MathHelper.Clamp(secondaryColor[2] + ColorB_Variance, 0f, 1f);
+                SecondaryColor[3] = MathHelper.Clamp(SecondaryColor[3] + ColorA_Variance, 0f, 1f);
             }
         }
 
         private void UpdateScale()
         {
-            ScaleBase = Node.EmissionNode.Texture.ScaleBase.GetInterpolatedValue(CurrentTimeFactor) + ScaleBase_Variance;
+            ScaleBase = (Node.EmissionNode.Texture.ScaleBase.GetInterpolatedValue(CurrentTimeFactor) + ScaleBase_Variance) * ParticleSystem.Scale;
 
             if (Node.NodeFlags.HasFlag(NodeFlags1.EnableScaleXY))
             {
                 float[] values = Node.EmissionNode.Texture.ScaleXY.GetInterpolatedValue(CurrentTimeFactor);
 
-                ScaleU = values[0] + ScaleU_Variance;
-                ScaleV = values[1] + ScaleV_Variance;
+                ScaleU = (values[0] + ScaleU_Variance) * ParticleSystem.Scale;
+                ScaleV = (values[1] + ScaleV_Variance) * ParticleSystem.Scale;
             }
             else
             {
@@ -102,38 +103,10 @@ namespace XenoKit.Engine.Vfx.Particle
                 ScaleV = ScaleBase;
             }
         }
-        /*
-        private void UpdateTextureScroll()
-        {
-            if (Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef == null) return;
-
-            if (Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.Speed)
-            {
-                TextureScrollU += Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.ScrollSpeed_U;
-                TextureScrollV += Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.ScrollSpeed_V;
-                TextureStepU = 1f;
-                TextureStepV = 1f;
-            }
-            else
-            {
-                //Keyframe path
-                int keyframeIndex = 0;
-
-                if (Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.SpriteSheet)
-                {
-                    keyframeIndex = (int)((Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.Keyframes.Count - 1) * CurrentTimeFactor);
-                }
-
-                TextureScrollU = Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.Keyframes[keyframeIndex].ScrollU;
-                TextureScrollV = Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.Keyframes[keyframeIndex].ScrollV;
-                TextureStepU = Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.Keyframes[keyframeIndex].ScaleU;
-                TextureStepV = Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef.ScrollState.Keyframes[keyframeIndex].ScaleV;
-            }
-        }
-        */
+        
         private void UpdateVertices()
         {
-            if (TextureIndex == -1) return;
+            if (EmissionData.TextureIndex == -1) return;
 
             UpdateScale();
             UpdateColor();
@@ -156,14 +129,14 @@ namespace XenoKit.Engine.Vfx.Particle
             Vertices[VERTEX_BOTTOM_RIGHT].Position.Y = -ScaleV;
 
             //UV
-            Vertices[VERTEX_TOP_LEFT].TextureUV.X = ParticleSystem.Textures[TextureIndex].ScrollU;
-            Vertices[VERTEX_TOP_LEFT].TextureUV.Y = ParticleSystem.Textures[TextureIndex].ScrollV;
-            Vertices[VERTEX_TOP_RIGHT].TextureUV.X = ParticleSystem.Textures[TextureIndex].ScrollU + ParticleSystem.Textures[TextureIndex].StepU;
-            Vertices[VERTEX_TOP_RIGHT].TextureUV.Y = ParticleSystem.Textures[TextureIndex].ScrollV;
-            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.X = ParticleSystem.Textures[TextureIndex].ScrollU;
-            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.Y = ParticleSystem.Textures[TextureIndex].ScrollV + ParticleSystem.Textures[TextureIndex].StepV;
-            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.X = ParticleSystem.Textures[TextureIndex].ScrollU + ParticleSystem.Textures[TextureIndex].StepU;
-            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.Y = ParticleSystem.Textures[TextureIndex].ScrollV + ParticleSystem.Textures[TextureIndex].StepV;
+            Vertices[VERTEX_TOP_LEFT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU;
+            Vertices[VERTEX_TOP_LEFT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV;
+            Vertices[VERTEX_TOP_RIGHT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU + ParticleSystem.Textures[EmissionData.TextureIndex].StepU;
+            Vertices[VERTEX_TOP_RIGHT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV;
+            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU;
+            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV + ParticleSystem.Textures[EmissionData.TextureIndex].StepV;
+            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU + ParticleSystem.Textures[EmissionData.TextureIndex].StepU;
+            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV + ParticleSystem.Textures[EmissionData.TextureIndex].StepV;
 
             //Color
             if (Node.NodeFlags.HasFlag(NodeFlags1.EnableSecondaryColor))
@@ -188,10 +161,18 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void Update()
         {
+            EmissionData.Update();
+
+            if (Node.EmissionNode.VisibleOnlyOnMotion)
+            {
+                ScaleAdjustment = Matrix.CreateTranslation(new Vector3(0, (ScaleV + ScaleV_Variance) / 2f, 0));
+            }
+
             StartUpdate();
 
             if (State == NodeState.Active)
             {
+                UpdateRotation();
                 UpdateVertices();
             }
 
@@ -203,6 +184,9 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             if (State == NodeState.Active && !Node.NodeFlags.HasFlag(NodeFlags1.Hide))
             {
+                //If the "Motion Only" flag is selected on the default plane, the particle should only be visible if there is any velocity
+                if (Node.NodeSpecificType == NodeSpecificType.AutoOriented_VisibleOnSpeed && Velocity == Vector3.Zero) return;
+
                 //Set samplers/textures
                 for (int i = 0; i < EmissionData.Samplers.Length; i++)
                 {
@@ -223,13 +207,32 @@ namespace XenoKit.Engine.Vfx.Particle
                     //EmissionData.Material.World = Matrix.CreateBillboard(new Vector3(-Transform.Translation.X, Transform.Translation.Y, Transform.Translation.Z), GameBase.ActiveCameraBase.CameraState.Position, Vector3.Up, GameBase.ActiveCameraBase.CameraState.TargetPosition - GameBase.ActiveCameraBase.CameraState.Position);
 
                     //Dirty hack, but works at a basic level. Not very good for what is needed here tho...
-                    EmissionData.Material.World = Matrix.Invert(GameBase.ActiveCameraBase.ViewMatrix);
-                    EmissionData.Material.World.Translation = new Vector3(-Transform.Translation.X, Transform.Translation.Y, Transform.Translation.Z);
+                    //EmissionData.Material.World = Matrix.Invert(GameBase.ActiveCameraBase.ViewMatrix);
+                    //Matrix world = Transform * GetAttachmentBone();
+                    //EmissionData.Material.World.Translation = new Vector3(-world.Translation.X, world.Translation.Y, world.Translation.Z);
 
+                    //try again
+                    Matrix world = Transform * GetAttachmentBone() * Matrix.CreateScale(-1f, 1, 1);
+                    //EmissionData.Material.World = Matrix.CreateBillboard(world.Translation, CameraBase.CameraState.Position, Vector3.Up, forward);
+
+                    if (Node.EmissionNode.VisibleOnlyOnMotion)
+                    {
+                        //Billboard normally always faces the opposite direction for an unknown reason, this is why there is a rotation (180 degrees). TODO: More testing with this, removing for now
+                        EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null);
+                    }
+                    else
+                    {
+                        float rotAmount = Xv2CoreLib.Random.Range(0, 2) == 1 && Node.NodeFlags2.HasFlag(NodeFlags2.RandomRotationDir) ? -RotationAmount : RotationAmount;
+
+                        //rotAmount and Camera Up vector need to be inverted... apparantly
+                        EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateFromAxisAngle(Vector3.Left, MathHelper.Pi) * Matrix.CreateBillboard(world.Translation, CameraBase.CameraState.Position, -Vector3.Up, null); // * Matrix.Invert(CameraBase.ViewMatrix) * Matrix.CreateRotationZ(MathHelper.ToRadians(RotationAmount)) * CameraBase.ViewMatrix
+                        EmissionData.Material.World.Translation = world.Translation;
+
+                    }
                 }
                 else
                 {
-                    EmissionData.Material.World = Transform * Matrix.CreateScale(-1f, 1, 1);
+                    EmissionData.Material.World = Transform * GetAttachmentBone() * Matrix.CreateScale(-1f, 1, 1);
                 }
 
                 //Shader passes and vertex drawing

@@ -829,26 +829,34 @@ namespace XenoKit.Engine.Shader
             switch (MatParam.AlphaBlendType)
             {
                 case 0: //Normal
-                    //blendState = BlendState.NonPremultiplied;
                     blendState.IndependentBlendEnable = true;
                     blendState.AlphaBlendFunction = BlendFunction.Add;
                     blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
                     blendState.AlphaSourceBlend = Blend.SourceAlpha;
+
                     blendState.ColorBlendFunction = BlendFunction.Add;
                     blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
                     blendState.ColorSourceBlend = Blend.SourceAlpha;
+
                     blendState.ColorWriteChannels = ColorWriteChannels.All;
                     blendState.MultiSampleMask = 1;
                     break;
                 case 1: //Additive
                     blendState = BlendState.Additive;
                     break;
-                case 2: //Sub
+                case 2: //Subtractive
+                    blendState.IndependentBlendEnable = true;
+
                     blendState.AlphaBlendFunction = BlendFunction.ReverseSubtract;
-                    blendState.ColorSourceBlend = Blend.InverseDestinationColor;
-                    blendState.ColorDestinationBlend = Blend.One;
-                    blendState.AlphaSourceBlend = Blend.Zero;
-                    blendState.AlphaDestinationBlend = Blend.One;
+                    blendState.AlphaSourceBlend = Blend.SourceAlpha;
+                    blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+
+                    blendState.ColorBlendFunction = BlendFunction.ReverseSubtract;
+                    blendState.ColorSourceBlend = Blend.SourceAlpha;
+                    blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
+
+                    blendState.ColorWriteChannels = ColorWriteChannels.All;
+
                     break;
             }
 
@@ -864,8 +872,7 @@ namespace XenoKit.Engine.Shader
 
             if (MatParam.AlphaBlend == 1)
                 depth.DepthBufferWriteEnable = false;
-
-
+            
             return depth;
         }
 

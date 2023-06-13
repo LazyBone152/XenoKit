@@ -6,7 +6,8 @@
              xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:converters="clr-namespace:LB_Common.Converters;assembly=LB_Common"
              DispatcherUnhandledException="Application_DispatcherUnhandledException"
-             xmlns:d1p1="http://schemas.openxmlformats.org/markup-compatibility/2006">
+             xmlns:d1p1="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             Startup="Application_Startup">
   <Application.Resources>
         <ResourceDictionary>
             <converters:VisibilityToNullableBooleanConverter x:Key="visibilityConverter"/>

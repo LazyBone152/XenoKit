@@ -9,13 +9,13 @@ namespace XenoKit.Engine.Vfx.Asset
     public abstract class VfxAsset : Entity
     {
         public bool IsFinished { get; protected set; }
-        protected bool IsTerminating;
+        public bool IsTerminating { get; protected set; }
         protected readonly EffectPart EffectPart;
         protected readonly Actor Actor;
 
         protected virtual bool FinishAnimationBeforeTerminating => false;
         private int BoneIdx = -1;
-        protected float Scale = 1f;
+        public float Scale { get; protected set; } = -1f;
         private Matrix BacSpawnSource;
         private Matrix InitialPosition;
         private Matrix InitialRotation;
@@ -163,7 +163,7 @@ namespace XenoKit.Engine.Vfx.Asset
                 case EffectPart.OrientationType.AttachmentBone:
                 default:
                     //Use full rotation of the attachment bone
-                    return Matrix.CreateRotationX(MathHelpers.Radians90Degrees) * Transform;
+                    return Transform;
 
             }
 

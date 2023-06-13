@@ -310,13 +310,32 @@ namespace XenoKit.Engine
         {
             return partSet?.Parts?.Contains(part) == true;
         }
+    
+        private CharaPart GetActiveEyePartSet()
+        {
+            if (TransformedParts[(int)PartType.FaceEye] != null) return TransformedParts[(int)PartType.FaceEye];
+            if (Parts[(int)PartType.FaceEye] != null) return Parts[(int)PartType.FaceEye];
+            return null;
+        }
+
+        public float GetLeftEyeScale()
+        {
+            CharaPart eye = GetActiveEyePartSet();
+            return eye != null ? eye.part.F_36 : 1f;
+        }
+
+        public float GetRightEyeScale()
+        {
+            CharaPart eye = GetActiveEyePartSet();
+            return eye != null ? eye.part.F_40 : 1f;
+        }
     }
 
     public class CharaPart : Entity
     {
         private Actor chara;
         private PartSet parentPartSet;
-        private Part part;
+        public Part part;
         private PhysicsPart physicsPart;
         public PartType partType;
         private PartTypeFlags partTypeFlag;
@@ -453,7 +472,7 @@ namespace XenoKit.Engine
             if(Model != null)
                 Model.ModelChanged -= RefreshMaterialsOnEdit;
 
-            Model = CompiledObjectManager.Instance.GetCompiledObject<Xv2ModelFile>(EmdFile, GameBase);
+            Model = CompiledObjectManager.GetCompiledObject<Xv2ModelFile>(EmdFile, GameBase);
 
             if (reloadMaterials)
                 LoadMaterials();
@@ -530,7 +549,7 @@ namespace XenoKit.Engine
                 return;
             }
 
-            Skeleton = CompiledObjectManager.Instance.GetCompiledObject<Xv2Skeleton>(EskFile, GameBase);
+            Skeleton = CompiledObjectManager.GetCompiledObject<Xv2Skeleton>(EskFile, GameBase);
         }
 
         public void LoadCustomColors()

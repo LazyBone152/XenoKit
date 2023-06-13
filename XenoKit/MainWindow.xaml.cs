@@ -58,6 +58,7 @@ namespace XenoKit
 
         #endregion
 
+        private bool ErrorMessageCurrentDisplayed = false;
 
         public MainWindow()
         {
@@ -482,6 +483,9 @@ namespace XenoKit
 
         public async void ShowException(Exception ex)
         {
+            if (ErrorMessageCurrentDisplayed) return;
+            ErrorMessageCurrentDisplayed = true;
+
             var dialogSettings = DialogSettings.Default;
             dialogSettings.AffirmativeButtonText = "OK";
             dialogSettings.NegativeButtonText = "OK (Copy Full Error)";
@@ -492,6 +496,8 @@ namespace XenoKit
             {
                 Clipboard.SetText(ex.ToString());
             }
+
+            ErrorMessageCurrentDisplayed = false;
         }
     }
 }

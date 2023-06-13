@@ -19,10 +19,10 @@ namespace XenoKit.Engine.Shader
         private static Lazy<ShaderManager> instance = new Lazy<ShaderManager>(() => new ShaderManager());
         public static ShaderManager Instance => instance.Value;
 
-        private ShaderManager() 
+        private ShaderManager()
         {
-            string path = Utils.SanitizePath($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}/Shaders/technique_default_sds.emz.sds.xml");
-            string agePath = Utils.SanitizePath($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}/Shaders/technique_age_sds.emz.sds.xml");
+            string path = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/technique_default_sds.emz.sds.xml");
+            string agePath = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/technique_age_sds.emz.sds.xml");
 
             if (!File.Exists(path))
             {
@@ -157,7 +157,7 @@ namespace XenoKit.Engine.Shader
                                                             AddressU = TextureAddressMode.Clamp,
                                                             AddressV = TextureAddressMode.Clamp,
                                                             AddressW = TextureAddressMode.Wrap,
-                                                            BorderColor = new Microsoft.Xna.Framework.Color(1,1,1,1), 
+                                                            BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
                                                             MaxAnisotropy = 1,
                                                             ComparisonFunction = CompareFunction.Never,
                                                             Filter = TextureFilter.LinearMipPoint,
@@ -210,10 +210,10 @@ namespace XenoKit.Engine.Shader
                         }
                 }
 
-                if(sampler != null)
+                if (sampler != null)
                     GlobalSamplers.Add(sampler);
 
-                if(sampler == null)
+                if (sampler == null)
                 {
                     //Log.Add($"Sampler Not Implemented: {GetSamplerName(slot)}", LogType.Debug);
                 }
@@ -221,12 +221,12 @@ namespace XenoKit.Engine.Shader
                 return sampler;
             }
         }
-        
+
         public void SetGlobalSampler(int slot, bool isVertexShader)
         {
             GlobalSampler sampler = GetGlobalSampler(slot);
 
-            if(sampler != null)
+            if (sampler != null)
             {
                 sampler.Sampler.GraphicsDevice = SceneManager.GraphicsDeviceRef;
 
@@ -242,7 +242,7 @@ namespace XenoKit.Engine.Shader
                 }
             }
         }
-        
+
         public void SetAllGlobalSamplers()
         {
             SetGlobalSampler(7, true);
@@ -254,7 +254,7 @@ namespace XenoKit.Engine.Shader
             SetGlobalSampler(15, false);
             SetGlobalSampler(15, false);
         }
-        
+
         public void ClearGlobalSampler(int slot)
         {
             GlobalSamplers.RemoveAll(x => x.Slot == slot);
@@ -263,14 +263,8 @@ namespace XenoKit.Engine.Shader
         //Helpers
         private byte[] GetVertexShader(string name, bool isDefaultSds)
         {
-            //Attempt to load breakers shaders
-            //string breakersPath = Utils.SanitizePath($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}/Shaders/Breakers/{name}.xvu");
-
-            //if (File.Exists(breakersPath))
-            //    return File.ReadAllBytes(breakersPath);
-
             string type = isDefaultSds ? "default" : "age";
-            string path = Utils.SanitizePath($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}/Shaders/shader_{type}_vs/{name}.xvu");
+            string path = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/shader_{type}_vs/{name}.xvu");
 
             if (!File.Exists(path))
             {
@@ -283,14 +277,8 @@ namespace XenoKit.Engine.Shader
 
         private byte[] GetPixelShader(string name, bool isDefaultSds)
         {
-            //Attempt to load breakers shaders
-            //string breakersPath = Utils.SanitizePath($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}/Shaders/Breakers/{name}.xpu");
-
-            //if(File.Exists(breakersPath))
-            //    return File.ReadAllBytes(breakersPath);
-
             string type = isDefaultSds ? "default" : "age";
-            string path = Utils.SanitizePath($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}/Shaders/shader_{type}_ps/{name}.xpu");
+            string path = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/shader_{type}_ps/{name}.xpu");
 
             if (!File.Exists(path))
             {
@@ -381,7 +369,7 @@ namespace XenoKit.Engine.Shader
             }
             return slot.ToString();
         }
-        
+
         private bool HasSkinningEnable(SDSShaderProgram entry)
         {
             return entry.Parameters.Any(x => x.Name == "SkinningEnable");
@@ -389,16 +377,16 @@ namespace XenoKit.Engine.Shader
 
         private string GetPathInShaderDir(string path)
         {
-            return Utils.SanitizePath($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}/Shaders/{path}");
+            return Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/{path}");
         }
-            
+
         public void DebugParseAllShaders()
         {
             string[] files = Directory.GetFiles("Shaders", "*.*", SearchOption.AllDirectories);
 
-            foreach(var file in files)
+            foreach (var file in files)
             {
-                if(Path.GetExtension(file) == ".xvu" || Path.GetExtension(file) == ".xpu" || Path.GetExtension(file) == ".xcu")
+                if (Path.GetExtension(file) == ".xvu" || Path.GetExtension(file) == ".xpu" || Path.GetExtension(file) == ".xcu")
                 {
                     var byteCode = new DXBC.DxbcParser(File.ReadAllBytes(file));
                     byteCode.SaveXml(file + ".xml");

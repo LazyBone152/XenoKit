@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using XenoKit.Engine.Vfx.Asset;
+using XenoKit.Engine.Vfx.Particle;
 using Xv2CoreLib.EEPK;
 
 namespace XenoKit.Engine.Vfx
@@ -57,6 +58,11 @@ namespace XenoKit.Engine.Vfx
                 {
                     if (effectPart.AssetRef.Files[0].EmaFile == null) continue;
                     Assets.Add(new VfxLight(effectPart.AssetRef.Files[0].EmaFile, effectPart, Actor, GameBase));
+                }
+                else if(effectPart.AssetType == AssetType.PBIND)
+                {
+                    if (effectPart.AssetRef.Files[0].EmpFile == null) continue;
+                    Assets.Add(new ParticleSystem(SpawnTransform, Actor, effectPart, effectPart.AssetRef.Files[0].EmpFile, GameBase));
                 }
             }
         }

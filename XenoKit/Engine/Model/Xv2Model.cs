@@ -441,7 +441,7 @@ namespace XenoKit.Engine.Model
         {
             if (AttachBone != -1 && skeleton != null)
             {
-                return world;
+                //return world;
                 //return world * skeleton.Bones[AttachBone].SkinningMatrix;
                 return skeleton.Bones[AttachBone].SkinningMatrix * world;
             }

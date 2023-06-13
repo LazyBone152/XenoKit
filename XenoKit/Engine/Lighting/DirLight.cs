@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Lighting
@@ -22,8 +23,8 @@ namespace XenoKit.Engine.Lighting
 
             if (SettingsManager.settings.XenoKit_EnableDynamicLighting)
             {
-                Direction = Vector4.Transform(new Vector4(-0.22f, 0.25f, -0.3f, 0), GameBase.ActiveCameraBase.TestViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
-                Direction = new Vector4(MathHelper.Clamp(Direction.X * 0.6f, -0.05f, 2f), MathHelper.Clamp(Direction.Y * 0.6f, -0.15f, 0.15f), MathHelper.Clamp(Direction.Z, -1f, 1f), 0f);
+                Direction = Vector4.Transform(new Vector4(-0.415f, 0.1f, -0.5f, 0), GameBase.ActiveCameraBase.TestViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
+                Direction = new Vector4(MathHelper.Clamp(Direction.X * 0.6f, -0.05f, 2f), 0.0f, MathHelper.Clamp(Direction.Z, -1f, 1f), 0f);
 
             }
             else
