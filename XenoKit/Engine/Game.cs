@@ -24,9 +24,12 @@ namespace XenoKit.Engine
     {
         public override ICameraBase ActiveCameraBase { get => camera; }
 
-        //Objects:
+        //Engine Features:
         public Camera camera;
         public AudioEngine AudioEngine;
+
+        //Engine Values:
+        public override bool IsMainInstance => true;
 
         //Gizmos
         public GizmoBase CurrentGizmo = null;
@@ -164,6 +167,8 @@ namespace XenoKit.Engine
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)
         {
+            BacTimeScale = 1f;
+
             if (resetAnims)
                 camera.ClearCameraAnimation();
             
@@ -201,18 +206,18 @@ namespace XenoKit.Engine
         #region UiButtons
         public void StartPlayback()
         {
-            SceneManager.IsPlaying = true;
+            IsPlaying = true;
 
         }
 
         public void StopPlayback()
         {
-            SceneManager.IsPlaying = false;
+            IsPlaying = false;
         }
 
         public void PauseAnimation()
         {
-            SceneManager.IsPlaying = false;
+            IsPlaying = false;
 
         }
 

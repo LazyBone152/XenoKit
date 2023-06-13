@@ -27,21 +27,38 @@ namespace XenoKit.Engine
         public SpriteBatch spriteBatch;
         public GameTime GameTime { get; protected set; }
 
-        //Custom Features:
+        //Engine Features:
+        public virtual ICameraBase ActiveCameraBase { get; }
         public DirLight LightSource { get; private set; }
         public Input Input { get; private set; } = new Input();
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; protected set; }
         public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
 
+        //Engine Values:
+        public virtual bool IsMainInstance => false;
+        public bool IsPlaying = false;
+        public bool RenderCharacters = true;
+        public float BacTimeScale = 1f;
+        public float AnimationTimeScale = 1f;
+        public float ActiveTimeScale
+        {
+            get
+            {
+                if (IsMainInstance)
+                {
+                    return (SceneManager.CurrentSceneState == EditorTabs.Action) ? BacTimeScale * AnimationTimeScale : 1f;
+                }
+                return 1f; //No instance other than the main uses a time scale currently
+            }
+        }
+
         //Entity
         protected List<Entity> Entities = new List<Entity>(1000);
 
         //Other
         public virtual Color BackgroundColor { get; set; } = new Color(20, 20, 20, 255);
-        public virtual ICameraBase ActiveCameraBase { get; }
-        private Timer DelayedTimer = new Timer(1000);
-        public bool RenderCharacters = true;
+        private int DelayedTimer = 0;
 
         protected override void Initialize()
         {
@@ -61,11 +78,6 @@ namespace XenoKit.Engine
 
             //Load font
             TextRenderer = new TextRenderer(GraphicsDevice, spriteBatch);
-
-            //Set up DelayedTimer so we can do a DelayedUpdate on all Entities
-            DelayedTimer.Elapsed += DelayedTimer_Elapsed;
-            DelayedTimer.AutoReset = true;
-            DelayedTimer.Start();
 
             LightSource = new DirLight(this);
 
@@ -101,6 +113,15 @@ namespace XenoKit.Engine
                 Entities[i].Update();
             }
 
+            if(DelayedTimer >= 60)
+            {
+                DelayedTimer = 0;
+                DelayedUpdate();
+            }
+            else
+            {
+                DelayedTimer++;
+            }
         }
 
         protected virtual void DelayedUpdate()
@@ -151,5 +172,11 @@ namespace XenoKit.Engine
         }
 
         #endregion
+
+        public void SetBacTimeScale(float timeScale, bool reset)
+        {
+            if (reset) BacTimeScale = 1f;
+            BacTimeScale *= timeScale;
+        }
     }
 }

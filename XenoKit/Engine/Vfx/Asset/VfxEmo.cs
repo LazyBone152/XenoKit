@@ -81,7 +81,7 @@ namespace XenoKit.Engine.Vfx.Asset
                 {
                     Model = (file.EmoFile != null) ? CompiledObjectManager.GetCompiledObject<Xv2ModelFile>(file.EmoFile, GameBase) : null;
                     Skeleton = CompiledObjectManager.GetCompiledObject<Xv2Skeleton>(file.EmoFile.Skeleton, GameBase);
-                    AnimationPlayer = new EmaAnimationPlayer(Skeleton);
+                    AnimationPlayer = new EmaAnimationPlayer(Skeleton, GameBase);
                 }
                 else if (file.fileType == EffectFile.FileType.EMB)
                 {
@@ -276,9 +276,9 @@ namespace XenoKit.Engine.Vfx.Asset
             {
                 Time += 1f;
             }
-            else if (SceneManager.IsPlaying)
+            else if (GameBase.IsPlaying)
             {
-                Time += EffectPart.UseTimeScale ? SceneManager.MainAnimTimeScale * SceneManager.BacTimeScale : 1f;
+                Time += EffectPart.UseTimeScale ? GameBase.AnimationTimeScale * GameBase.BacTimeScale : 1f;
             }
 
             AnimationPlayer?.SetFrame(Time);

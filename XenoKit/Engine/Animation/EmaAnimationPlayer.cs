@@ -36,7 +36,7 @@ namespace XenoKit.Engine.Animation
         private bool ExternalControl = false;
 
 
-        public EmaAnimationPlayer(Xv2Skeleton skeleton)
+        public EmaAnimationPlayer(Xv2Skeleton skeleton, GameBase game) : base(game)
         {
             Skeleton = skeleton;
             UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
@@ -123,8 +123,7 @@ namespace XenoKit.Engine.Animation
             HandleFinishedAnimations();
 
             //Advance frame
-            //TODO: will need to be changed when EMA editor is made, using SceneManager.IsPlaying wont do since it will be another window (and so different game instance)
-            if (SceneManager.IsPlaying && IsUsingAnimation && !ExternalControl)
+            if (GameBase.IsPlaying && IsUsingAnimation && !ExternalControl)
             {
                 AdvanceFrame();
             }

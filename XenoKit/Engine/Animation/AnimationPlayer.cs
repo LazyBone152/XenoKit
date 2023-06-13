@@ -49,7 +49,7 @@ namespace XenoKit.Engine.Animation
         }
 
 
-        public AnimationPlayer(Xv2Skeleton skeleton, Actor chara)
+        public AnimationPlayer(Xv2Skeleton skeleton, Actor chara) : base(chara.GameBase)
         {
             Skeleton = skeleton ?? throw new ArgumentNullException("skeleton", "AnimationPlayer: skeleton was null. Cannot construct an AnimationPlayer.");
             Character = chara;
@@ -116,7 +116,7 @@ namespace XenoKit.Engine.Animation
             HandleFinishedAnimations();
 
             //Advance frame
-            if (SceneManager.IsPlaying && IsUsingAnimation && PrimaryAnimation?.CurrentFrame < PrimaryAnimation?.EndFrame &&
+            if (GameBase.IsPlaying && IsUsingAnimation && PrimaryAnimation?.CurrentFrame < PrimaryAnimation?.EndFrame &&
                 SceneManager.IsOnTab(EditorTabs.Animation, EditorTabs.Action))
             {
                 AdvanceFrame();
@@ -154,7 +154,7 @@ namespace XenoKit.Engine.Animation
             {
                 if (PrimaryAnimation.CurrentFrame >= PrimaryAnimation.EndFrame)
                 {
-                    if (SceneManager.Loop && PrimaryAnimation.AutoTerminate && ((SceneManager.IsPlaying && SceneManager.IsOnTab(EditorTabs.Animation) || !SceneManager.IsOnTab(EditorTabs.Animation))))
+                    if (SceneManager.Loop && PrimaryAnimation.AutoTerminate && ((GameBase.IsPlaying && SceneManager.IsOnTab(EditorTabs.Animation) || !SceneManager.IsOnTab(EditorTabs.Animation))))
                     {
                         PrimaryAnimation.CurrentFrame_Int = PrimaryAnimation.StartFrame;
                     }
@@ -184,12 +184,12 @@ namespace XenoKit.Engine.Animation
         {
             if (PrimaryAnimation != null)
             {
-                PrimaryAnimation.AdvanceFrame(useTimeScale);
+                PrimaryAnimation.AdvanceFrame(useTimeScale, Character.GameBase.ActiveTimeScale);
             }
 
             for (int i = 0; i < SecondaryAnimations.Count; i++)
             {
-                SecondaryAnimations[i].AdvanceFrame(useTimeScale);
+                SecondaryAnimations[i].AdvanceFrame(useTimeScale, Character.GameBase.ActiveTimeScale);
             }
         }
 
@@ -306,7 +306,7 @@ namespace XenoKit.Engine.Animation
                 PrimaryAnimation = new AnimationInstance(_eanFile, eanIndex, startFrame, endFrame, blendWeight, blendWeightIncrease, prevMatrices, _animFlags, useTransform, timeScale, autoTerminate);
 
                 //Render first frame if not auto playing
-                if (!SceneManager.IsPlaying)
+                if (!GameBase.IsPlaying)
                     UpdateAnimation(PrimaryAnimation);
 
                 //IF a primary bac animation is playing, set face bones to disabled (they are not used by default)
@@ -855,14 +855,14 @@ namespace XenoKit.Engine.Animation
             CurrentFrameAdjusted = frame;
         }
     
-        public void AdvanceFrame(bool useTimeScale)
+        public void AdvanceFrame(bool useTimeScale, float timeScale)
         {
             if (CurrentFrame < EndFrame)
             {
                 PreviousFrame = CurrentFrame;
 
                 //We dont use TimeScale when simulating frames, so this is required
-                float actualTimeScale = (useTimeScale) ? SceneManager.BacTimeScale * AnimationTimeScale : 1f;
+                float actualTimeScale = (useTimeScale) ? timeScale : 1f;
                 CurrentFrame += 1f * actualTimeScale;
                 CurrentFrameAdjusted += 1f * actualTimeScale;
             }

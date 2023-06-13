@@ -19,7 +19,7 @@ namespace XenoKit.Engine.Vfx.Particle
             TextureDef = texture;
         }
 
-        public void Update(bool isPlaying, bool useTimeScale)
+        public void Update(bool isPlaying, float timeScale)
         {
             if (isPlaying)
             {
@@ -76,7 +76,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     }
 
 
-                    CurrentTime += useTimeScale ? 1f * SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale : 1f;
+                    CurrentTime += timeScale;
                 }
             }
         }

@@ -100,7 +100,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
             int type = Controls.BacTab.StaticSelectedBacType != null ? Controls.BacTab.StaticSelectedBacType.TypeID : -1;
 
             //Valid context if IsPlaying OR selected bac type isn't a hitbox (in which case, a HitboxGizmo will be visible)
-            return (SceneManager.IsPlaying || type != 1) && IsValidForCurrentFrame() && SettingsManager.Instance.Settings.XenoKit_HitboxSimulation;
+            return (GameBase.IsPlaying || type != 1) && IsValidForCurrentFrame() && SettingsManager.Instance.Settings.XenoKit_HitboxSimulation;
         }
 
         protected override void ActionStoppedEvent(ActionSimulationState state)

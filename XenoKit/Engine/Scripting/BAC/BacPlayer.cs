@@ -100,7 +100,7 @@ namespace XenoKit.Engine.Scripting.BAC
         private void UpdateBac(ref float _refFrame)
         {
             float frame = _refFrame;
-            SceneManager.SetBacTimeScale(1f, true);
+            GameBase.SetBacTimeScale(1f, true);
             ushort typeFlag = (ushort)(character.CharacterData.IsCaC ? 1 : 2);
 
             if (clearing) return;
@@ -137,7 +137,7 @@ namespace XenoKit.Engine.Scripting.BAC
                             case BAC_Type0.EanTypeEnum.Common:
                             case BAC_Type0.EanTypeEnum.Skill:
                                 character.AnimationPlayer.PlayPrimaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.AnimFlags, true, animation.TimeScale, false, true);
-                                SceneManager.MainAnimTimeScale = animation.TimeScale;
+                                GameBase.AnimationTimeScale = animation.TimeScale;
 
                                 if (animation.StartFrame != 0 && _refFrame == 0f) //On first frame, skipping to startFrame on animations is allowed
                                     _refFrame = animation.StartFrame;
@@ -177,7 +177,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 //TimeScale
                 if (type is BAC_Type4 timeScale)
                 {
-                    SceneManager.SetBacTimeScale(timeScale.TimeScale, false);
+                    GameBase.SetBacTimeScale(timeScale.TimeScale, false);
                 }
 
                 //Effect
@@ -221,7 +221,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
                     Xv2CoreLib.ACB.ACB_Wrapper acb = Files.Instance.GetAcbFile(sound.AcbType, BacEntryInstance.SkillMove, character, true);
 
-                    if (acb != null && sound.CueId != ushort.MaxValue && SceneManager.IsPlaying)
+                    if (acb != null && sound.CueId != ushort.MaxValue && GameBase.IsPlaying)
                     {
                         SceneManager.AudioEngine.PlayCue(sound.CueId, acb, character, BacEntryInstance, sound.SoundFlags.HasFlag(SoundFlags.StopWhenParentEnds));
                     }
@@ -300,7 +300,7 @@ namespace XenoKit.Engine.Scripting.BAC
             VfxManager.StopEffects();
             VfxManager.ForceEffectUpdate = false;
             SceneManager.MainCamera.ClearCameraAnimation();
-            SceneManager.MainAnimTimeScale = 1f;
+            GameBase.AnimationTimeScale = 1f;
             ProcessedBacTypes.Clear();
             BacEntryInstance.ResetState();
 
@@ -397,13 +397,13 @@ namespace XenoKit.Engine.Scripting.BAC
             //Values in the current BAC have changed and so the current frame must be re-simulated.
             if (BacEntryInstance != null)
             {
-                bool wasPlaying = SceneManager.IsPlaying;
-                SceneManager.IsPlaying = false;
+                bool wasPlaying = GameBase.IsPlaying;
+                GameBase.IsPlaying = false;
 
                 BacEntryInstance.CalculateEntryDuration();
                 Seek((int)BacEntryInstance.CurrentFrame, true);
 
-                SceneManager.IsPlaying = wasPlaying;
+                GameBase.IsPlaying = wasPlaying;
             }
         }
 
@@ -430,8 +430,8 @@ namespace XenoKit.Engine.Scripting.BAC
             ProcessedBacTypes.Clear();
             character.ResetPosition();
             BacEntryInstance.OriginalMatrix = character.Transform;
-            SceneManager.MainAnimTimeScale = 1f;
-            SceneManager.IsPlaying = false;
+            GameBase.AnimationTimeScale = 1f;
+            GameBase.IsPlaying = false;
         }
 
         public void SeekPrevFrame()

@@ -446,7 +446,7 @@ namespace XenoKit.Engine.Gizmo
 
             _lastIntersectionPosition = _intersectPosition;
 
-            if (IsLeftClickHeld && ActiveAxis != GizmoAxis.None && TransformOperation != null && ((!SceneManager.IsPlaying && AutoPause) || !AutoPause))
+            if (IsLeftClickHeld && ActiveAxis != GizmoAxis.None && TransformOperation != null && ((!GameBase.IsPlaying && AutoPause) || !AutoPause))
             {
                 switch (ActiveMode)
                 {
@@ -634,9 +634,9 @@ namespace XenoKit.Engine.Gizmo
         {
             if (Input.MouseState.LeftButton == ButtonState.Pressed && Input.LeftClickHeldDownContext != this && ActiveAxis != GizmoAxis.None)
             {
-                if (SceneManager.IsPlaying && AutoPause)
+                if (GameBase.IsPlaying && AutoPause)
                 {
-                    SceneManager.IsPlaying = false;
+                    GameBase.IsPlaying = false;
                 }
 
                 Input.LeftClickHeldDownContext = this;
@@ -644,7 +644,7 @@ namespace XenoKit.Engine.Gizmo
                 StartTransformOperation();
             }
 
-            if ((Input.MouseState.LeftButton == ButtonState.Released && Input.LeftClickHeldDownContext == this) || ((SceneManager.IsPlaying && AutoPause) && Input.LeftClickHeldDownContext == this))
+            if ((Input.MouseState.LeftButton == ButtonState.Released && Input.LeftClickHeldDownContext == this) || ((GameBase.IsPlaying && AutoPause) && Input.LeftClickHeldDownContext == this))
             {
                 Input.LeftClickHeldDownContext = null;
 

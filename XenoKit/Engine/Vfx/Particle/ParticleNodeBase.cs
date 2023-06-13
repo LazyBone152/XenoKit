@@ -147,12 +147,12 @@ namespace XenoKit.Engine.Vfx.Particle
                 CurrentTimeFactor = CurrentFrame / Lifetime;
 
                 //Update movement
-                if (SceneManager.IsPlaying)
+                if (GameBase.IsPlaying)
                 {
                     UpdateModifiers();
 
                     //Change position based on current velocity
-                    MovementTransform *= Matrix.CreateTranslation((Velocity / 60f) * ((EffectPart.UseTimeScale) ? SceneManager.MainAnimTimeScale * SceneManager.BacTimeScale : 1f));
+                    MovementTransform *= Matrix.CreateTranslation((Velocity / 60f) * ParticleSystem.ActiveTimeScale);
                 }
 
                 //Update position and rotation
@@ -187,7 +187,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         protected void UpdateRotation()
         {
-            if(SceneManager.IsPlaying)
+            if(GameBase.IsPlaying)
                 RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance) / 60f;
         }
 
@@ -210,8 +210,8 @@ namespace XenoKit.Engine.Vfx.Particle
         protected void EndUpdate()
         {
             //Handle particle lifetime
-            if (SceneManager.IsPlaying)
-                CurrentFrame += EffectPart.UseTimeScale ? 1f * SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale : 1f;
+            if (GameBase.IsPlaying)
+                CurrentFrame += ParticleSystem.ActiveTimeScale;
 
             if (State == NodeState.WaitingOnChildren && Nodes.Count == 0)
             {

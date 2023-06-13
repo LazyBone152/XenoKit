@@ -93,7 +93,7 @@ namespace XenoKit.Engine.Gizmo
 
         public bool IsContextValid()
         {
-            return Hitbox != null && Controls.BacTab.StaticSelectedBacType == Hitbox && SceneManager.CurrentSceneState == EditorTabs.Action && !SceneManager.IsPlaying;
+            return Hitbox != null && Controls.BacTab.StaticSelectedBacType == Hitbox && SceneManager.CurrentSceneState == EditorTabs.Action && !GameBase.IsPlaying;
         }
 
         private void Hitbox_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

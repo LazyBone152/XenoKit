@@ -17,7 +17,7 @@ namespace XenoKit.Engine.Vfx.Particle
         private ParticleRootNode RootNode;
         public ParticleUV[] Textures = null;
 
-        private int BoneIdx = -1;
+        public float ActiveTimeScale = 1f;
         public Matrix AttachmentBone { get; private set; } = Matrix.Identity;
 
         protected override bool FinishAnimationBeforeTerminating => true;
@@ -44,13 +44,15 @@ namespace XenoKit.Engine.Vfx.Particle
         public override void Update()
         {
             base.Update();
+
+            ActiveTimeScale = EffectPart.UseTimeScale ? GameBase.ActiveTimeScale : 1f;
             AttachmentBone = GetAdjustedTransform();
 
             RootNode.Update();
 
             for(int i = 0; i < Textures.Length; i++)
             {
-                Textures[i].Update(SceneManager.IsPlaying, EffectPart.UseTimeScale);
+                Textures[i].Update(GameBase.IsPlaying, ActiveTimeScale);
             }
 
             if (RootNode.State == NodeState.Expired)

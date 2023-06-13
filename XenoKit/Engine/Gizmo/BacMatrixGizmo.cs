@@ -87,7 +87,7 @@ namespace XenoKit.Engine.Gizmo
 
         public override bool IsContextValid()
         {
-            return matrix != null && SceneManager.IsOnTab(contextTab) && !SceneManager.IsPlaying;
+            return matrix != null && SceneManager.IsOnTab(contextTab) && !GameBase.IsPlaying;
         }
 
         protected override void StartTransformOperation()

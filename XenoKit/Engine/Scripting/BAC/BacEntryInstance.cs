@@ -163,10 +163,10 @@ namespace XenoKit.Engine.Scripting.BAC
             InScope = CurrentFrame < Duration;
 
             //Advance current frame
-            if (SceneManager.IsPlaying)
+            if (User.GameBase.IsPlaying)
             {
                 PreviousFrame = CurrentFrame;
-                CurrentFrame += SceneManager.MainAnimTimeScale * SceneManager.BacTimeScale;
+                CurrentFrame += User.GameBase.ActiveTimeScale;
             }
 
             DetermineActionState();

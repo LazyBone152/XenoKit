@@ -45,14 +45,14 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public override void Update()
         {
-            if(SimulationType == SimulationType.None && BacPlayer.HasBacEntry && SceneManager.IsPlaying)
+            if(SimulationType == SimulationType.None && BacPlayer.HasBacEntry && GameBase.IsPlaying)
             {
                 BacPlayer.ClearBacEntry();
             }
 
             if(SimulationType == SimulationType.ActionPreview && BacPlayer.HasBacEntry)
             {
-                if (BacPlayer.CurrentDuration <= BacPlayer.CurrentFrame && SceneManager.IsPlaying)
+                if (BacPlayer.CurrentDuration <= BacPlayer.CurrentFrame && GameBase.IsPlaying)
                 {
                     if(BacPlayer.BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
                     {
@@ -62,7 +62,7 @@ namespace XenoKit.Engine.Scripting.BAC
                         }
                         else
                         {
-                            SceneManager.IsPlaying = false;
+                            GameBase.IsPlaying = false;
                         }
                     }
                 }

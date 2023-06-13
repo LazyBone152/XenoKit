@@ -163,7 +163,7 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             EmissionData.Update();
 
-            if (Node.EmissionNode.VisibleOnlyOnMotion)
+            if (Node.EmissionNode.VelocityOriented)
             {
                 ScaleAdjustment = Matrix.CreateTranslation(new Vector3(0, (ScaleV + ScaleV_Variance) / 2f, 0));
             }
@@ -185,7 +185,7 @@ namespace XenoKit.Engine.Vfx.Particle
             if (State == NodeState.Active && !Node.NodeFlags.HasFlag(NodeFlags1.Hide))
             {
                 //If the "Motion Only" flag is selected on the default plane, the particle should only be visible if there is any velocity
-                if (Node.NodeSpecificType == NodeSpecificType.AutoOriented_VisibleOnSpeed && Velocity == Vector3.Zero) return;
+                if (Node.EmissionNode.VelocityOriented && Velocity == Vector3.Zero) return;
 
                 //Set samplers/textures
                 for (int i = 0; i < EmissionData.Samplers.Length; i++)
@@ -215,9 +215,10 @@ namespace XenoKit.Engine.Vfx.Particle
                     Matrix world = Transform * GetAttachmentBone() * Matrix.CreateScale(-1f, 1, 1);
                     //EmissionData.Material.World = Matrix.CreateBillboard(world.Translation, CameraBase.CameraState.Position, Vector3.Up, forward);
 
-                    if (Node.EmissionNode.VisibleOnlyOnMotion)
+                    if (Node.EmissionNode.VelocityOriented)
                     {
                         //Billboard normally always faces the opposite direction for an unknown reason, this is why there is a rotation (180 degrees). TODO: More testing with this, removing for now
+                        //EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null);
                         EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null);
                     }
                     else

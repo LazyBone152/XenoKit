@@ -122,9 +122,9 @@ namespace XenoKit.Engine.Vfx.Asset
             {
                 Time += 1f;
             }
-            else if(SceneManager.IsPlaying)
+            else if(GameBase.IsPlaying)
             {
-                Time += EffectPart.UseTimeScale ? SceneManager.MainAnimTimeScale * SceneManager.BacTimeScale : 1f;
+                Time += EffectPart.UseTimeScale ? GameBase.ActiveTimeScale : 1f;
             }
         }
     }

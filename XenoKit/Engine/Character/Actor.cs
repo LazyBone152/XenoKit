@@ -189,11 +189,11 @@ namespace XenoKit.Engine
         public void Simulate(bool fullAnimUpdate, bool advance)
         {
 #if DEBUG
-            if (SceneManager.IsPlaying) throw new InvalidOperationException("invalid operation, cannot do this while SceneManager.IsPlaying is true.");
+            if (GameBase.IsPlaying) throw new InvalidOperationException("invalid operation, cannot do this while GameBase.IsPlaying is true.");
 #else
-            if (SceneManager.IsPlaying)
+            if (GameBase.IsPlaying)
             {
-                Log.Add("Character.Simulate(): invalid operation, cannot do this while SceneManager.IsPlaying is true.", LogType.Error);
+                Log.Add("Character.Simulate(): invalid operation, cannot do this while GameBase.IsPlaying is true.", LogType.Error);
                 return;
             }
 #endif

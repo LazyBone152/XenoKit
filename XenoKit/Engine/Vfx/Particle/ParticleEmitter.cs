@@ -30,7 +30,7 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             StartUpdate();
 
-            if (State == NodeState.Active && SceneManager.IsPlaying)
+            if (State == NodeState.Active && GameBase.IsPlaying)
             {
                 if (BurstCountdown == 0)
                 {

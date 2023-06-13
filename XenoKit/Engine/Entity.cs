@@ -12,7 +12,7 @@ namespace XenoKit.Engine
     /// </summary>
     public abstract class Entity : IDisposable
     {
-        protected GameBase GameBase;
+        public GameBase GameBase { get; protected set; }
 
         //Exposed Properties
         public GraphicsDevice GraphicsDevice => GameBase.GraphicsDevice;
@@ -32,6 +32,7 @@ namespace XenoKit.Engine
 
         public virtual string Name { get; set; }
         public virtual Matrix Transform { get; set; } = Matrix.Identity;
+
 
         //Entity Settings
         public bool IsDestroyable { get; set; } = true;

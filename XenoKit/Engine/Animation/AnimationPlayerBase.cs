@@ -11,10 +11,15 @@ using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Engine.Animation
 {
-    public abstract class AnimationPlayerBase
+    public abstract class AnimationPlayerBase : Entity
     {
         protected Xv2Skeleton Skeleton;
         protected virtual bool IsUsingAnimation => false;
+
+        public AnimationPlayerBase(GameBase game) : base(game)
+        {
+
+        }
 
         protected void ClearPreviousFrame()
         {

@@ -31,7 +31,7 @@ namespace XenoKit.Controls
         {
             get
             {
-                return SceneManager.IsPlaying ? PackIconMaterialLightKind.Pause : PackIconMaterialLightKind.Play;
+                return SceneManager.IsPlaying == true ? PackIconMaterialLightKind.Pause : PackIconMaterialLightKind.Play;
             }
         }
 
@@ -61,11 +61,11 @@ namespace XenoKit.Controls
                     case EditorTabs.Action:
                         if (SceneManager.Actors[0].ActionControl.BacPlayer.IsScaled)
                         {
-                            return $"(TimeScale: {(SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale).ToString("0.00####")} -> {SceneManager.Actors[0].ActionControl.BacPlayer.ScaledDuration})";
+                            return $"(TimeScale: {SceneManager.ActiveTimeScale.ToString("0.00####")} -> {SceneManager.Actors[0].ActionControl.BacPlayer.ScaledDuration})";
                         }
                         else
                         {
-                            return $"(TimeScale: {(SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale).ToString("0.00####")})";
+                            return $"(TimeScale: {SceneManager.ActiveTimeScale.ToString("0.00####")})";
                         }
                 }
                 return "";
@@ -76,7 +76,7 @@ namespace XenoKit.Controls
             get
             {
                 if (MonoGame?.camera == null) return null;
-                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nLIGHTING:\nPos: {6}\nDir: {7}",
                     MonoGame.camera.CameraState.FieldOfView,
                     MonoGame.camera.CameraState.Roll,
                     MonoGame.camera.CameraState.ActualPosition,
@@ -396,7 +396,7 @@ namespace XenoKit.Controls
         private bool CanSeek()
         {
             //Can only seek in pause mode
-            return !SceneManager.IsPlaying;
+            return SceneManager.MainGameBase?.IsPlaying == false;
         }
         #endregion
 
