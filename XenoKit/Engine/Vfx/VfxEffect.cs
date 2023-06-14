@@ -62,7 +62,7 @@ namespace XenoKit.Engine.Vfx
                 else if(effectPart.AssetType == AssetType.PBIND)
                 {
                     if (effectPart.AssetRef.Files[0].EmpFile == null) continue;
-                    Assets.Add(new ParticleSystem(SpawnTransform, Actor, effectPart, effectPart.AssetRef.Files[0].EmpFile, GameBase));
+                    Assets.Add(new ParticleSystem(SpawnTransform, Actor, effectPart, effectPart.AssetRef.Files[0].EmpFile, this, GameBase));
                 }
             }
         }
@@ -90,7 +90,7 @@ namespace XenoKit.Engine.Vfx
         {
             Effect.EffectParts.CollectionChanged -= EffectParts_CollectionChanged;
 
-            foreach (var asset in Assets)
+            foreach (VfxAsset asset in Assets)
             {
                 asset.Dispose();
             }

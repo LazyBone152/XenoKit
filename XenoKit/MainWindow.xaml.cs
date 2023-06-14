@@ -62,6 +62,10 @@ namespace XenoKit
 
         public MainWindow()
         {
+#if DEBUG
+            DebugMenuVisible = Visibility.Visible;
+#endif
+
             //Tooltips
             ToolTipService.ShowDurationProperty.OverrideMetadata(
             typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
@@ -437,12 +441,6 @@ namespace XenoKit
             }
         }
 
-        private void MenuItem_ReloadSystem_Click(object sender, RoutedEventArgs e)
-        {
-            Xenoverse2.Instance.RefreshSkills();
-            Xenoverse2.Instance.RefreshCharacters();
-        }
-
         private void WindowResized(object sender, SizeChangedEventArgs e)
         {
             SettingsManager.Instance.Settings.XenoKit_WindowSizeX = (int)e.NewSize.Width;
@@ -499,5 +497,23 @@ namespace XenoKit
 
             ErrorMessageCurrentDisplayed = false;
         }
+
+        #region DEBUG MENU
+        public Visibility DebugMenuVisible { get; set; } = Visibility.Hidden;
+
+        private void MenuItem_ReloadSystem_Click(object sender, RoutedEventArgs e)
+        {
+            Xenoverse2.Instance.RefreshSkills();
+            Xenoverse2.Instance.RefreshCharacters();
+        }
+
+        private void DebugMenu_ForceGC(object sender, RoutedEventArgs e)
+        {
+            GC.Collect();
+
+            Log.Add("GC initiated", LogType.Debug);
+        }
+
+        #endregion
     }
 }

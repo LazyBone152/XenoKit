@@ -12,6 +12,8 @@ namespace XenoKit.Engine.Vfx.Particle
 {
     public class ParticleSystem : VfxAsset
     {
+        private bool IsParticleSystemDestroyed = false;
+        public WeakReference Effect;
         public EMP_File EmpFile { get; set; }
 
         private ParticleRootNode RootNode;
@@ -22,8 +24,9 @@ namespace XenoKit.Engine.Vfx.Particle
 
         protected override bool FinishAnimationBeforeTerminating => true;
 
-        public ParticleSystem(Matrix startWorld, Actor actor, EffectPart effectPart, EMP_File empFile, GameBase gameBase) : base(startWorld, effectPart, actor, gameBase)
+        public ParticleSystem(Matrix startWorld, Actor actor, EffectPart effectPart, EMP_File empFile, VfxEffect effect, GameBase gameBase) : base(startWorld, effectPart, actor, gameBase)
         {
+            Effect = new WeakReference(effect);
             EmpFile = empFile;
             InitializeParticleSystem();
         }
@@ -39,6 +42,34 @@ namespace XenoKit.Engine.Vfx.Particle
 
             RootNode = new ParticleRootNode(EmpFile, this, EffectPart, GameBase);
             RootNode.Play();
+        }
+
+        /// <summary>
+        /// Release all the Particle Systems objects back into the pool.
+        /// </summary>
+        public void DestroyParticleSystem()
+        {
+            if (!IsParticleSystemDestroyed)
+            {
+                IsParticleSystemDestroyed = true;
+                RootNode.ReleaseAll();
+            }
+        }
+
+        public override void Terminate()
+        {
+            base.Terminate();
+
+            if (IsFinished)
+            {
+                DestroyParticleSystem();
+            }
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            DestroyParticleSystem();
         }
 
         public override void Update()
@@ -58,6 +89,7 @@ namespace XenoKit.Engine.Vfx.Particle
             if (RootNode.State == NodeState.Expired)
             {
                 IsFinished = true;
+                DestroyParticleSystem();
             }
         }
 

@@ -477,6 +477,7 @@ namespace XenoKit.Engine.Model
         public VertexPositionNormalTextureBlend[] CpuVertexes { get; set; }
         public short[] Indices { get; set; }
 
+
         //Samplers:
         public SamplerInfo[] Samplers { get; set; }
 
@@ -490,7 +491,6 @@ namespace XenoKit.Engine.Model
         public bool EnableSkinning { get; set; }
         public string[] BoneNames;
         public short[][] BoneIdx = new short[SceneManager.NumActors][]; //[Actor][BoneIdxInVertex]
-        private readonly Task[] SkinningThreads = new Task[Environment.ProcessorCount > 1 ? (int)(Environment.ProcessorCount * 0.8f) : 1];
 
         //Actor-Specific Information:
         private Matrix[] PrevWVP = new Matrix[SceneManager.NumActors];
@@ -595,46 +595,10 @@ namespace XenoKit.Engine.Model
 
         private void UpdateVertices(Xv2Bone[] bones, int actor)
         {
-            int vertexPerThread = CpuVertexes.Length / SkinningThreads.Length;
-            //bool singleThread = CpuVertexes.Length * 2 <= SkinningThreads.Length;
-            const bool singleThread = true;
-
-            //Multithreading disabled for now
-            //It provides a sizable performance uplift when there's lots of animated models, but is way less efficent when theres just 1 (< 10% vs 20% cpu usage)
-
-            if (singleThread)
-            {
-                UpdateVertices(bones, actor, 0, CpuVertexes.Length);
-                return;
-            }
-
-            for(int i = 0; i < SkinningThreads.Length; i++)
-            {
-                SkinningThreads[i] = Task.CompletedTask;
-
-                int startIndex = vertexPerThread * i;
-
-                //Split the load evenly except on the last thread, where it will just finish the remaining amount
-                int count = i == SkinningThreads.Length - 1 ? CpuVertexes.Length - startIndex : vertexPerThread;
-
-                SkinningThreads[i] = Task.Run(() => UpdateVertices(bones, actor, startIndex, count));
-                //SkinningThreads[i] = new Task(() => UpdateVertices(bones, actor, startIndex, count), TaskCreationOptions.RunContinuationsAsynchronously);
-                //SkinningThreads[i].Start();
-            }
-
-            
-            Task task = Task.WhenAll(SkinningThreads);
-
-            while (!task.IsCompleted) { }
-            //task.Wait();
-        }
-
-        private void UpdateVertices(Xv2Bone[] bones, int actor, int startIndex, int count)
-        {
             //Performs quite poorly... majority of CPU time is spent on this even for just 1 animated character
             //Need to figure out how the shader skinning works
 
-            for (int i = startIndex; i < startIndex + count; i++)
+            for (int i = 0; i < GpuVertexes.Length; i++)
             {
                 GpuVertexes[i].Position = Vector3.Transform(CpuVertexes[i].Position, bones[BoneIdx[actor][CpuVertexes[i].BlendIndex0]].SkinningMatrix) * CpuVertexes[i].BlendWeights.X;
                 GpuVertexes[i].Normal = Vector3.Transform(CpuVertexes[i].Normal, bones[BoneIdx[actor][CpuVertexes[i].BlendIndex0]].SkinningMatrix) * CpuVertexes[i].BlendWeights.X;

@@ -15,9 +15,21 @@ namespace XenoKit.Engine.Vfx.Particle
         private float SizeVariance;
         private float Size2Variance;
 
-        public ParticleEmitter(Matrix emitLocalMatrix, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(emitLocalMatrix, velocity, system, node, effectPart, gameBase)
+        public override void Initialize(Matrix emitLocalMatrix, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, object effect)
         {
+            base.Initialize(emitLocalMatrix, velocity, system, node, effectPart, effect);
             SetValues();
+        }
+
+        public override void ClearObjectState()
+        {
+            base.ClearObjectState();
+            BurstCountdown = 0;
+        }
+
+        public override void Release()
+        {
+            ObjectPoolManager.ParticleEmitterPool.ReleaseObject(this);
         }
 
         private void SetValues()

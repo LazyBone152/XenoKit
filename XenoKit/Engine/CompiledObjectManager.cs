@@ -19,6 +19,8 @@ namespace XenoKit.Engine
     {
         private readonly Dictionary<object, CompiledObjectCacheEntry> CachedObjects = new Dictionary<object, CompiledObjectCacheEntry>();
 
+        public int ObjectCount => CachedObjects.Count;
+
         public CompiledObjectManager()
         {
             SceneManager.SlowUpdate += SceneManager_SlowUpdate;

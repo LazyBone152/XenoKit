@@ -150,8 +150,9 @@
                 <MenuItem Header="GitHub" Command="{Binding GitHubCommand}"/>
                 <MenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}"/>
             </MenuItem>
-            <MenuItem Header="Debug" Visibility="Hidden">
+            <MenuItem Header="Debug" Visibility="{Binding DebugMenuVisible}">
                 <MenuItem Header="Reload System" Click="MenuItem_ReloadSystem_Click"/>
+                <MenuItem Header="Force GC" Click="DebugMenu_ForceGC"/>
             </MenuItem>
         </Menu>
         <Grid Grid.ColumnSpan="5" Margin="0,0,-0.455,-3.673" Grid.Row="3" Background="{DynamicResource MahApps.Brushes.Accent2}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="20">

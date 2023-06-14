@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using XenoKit.Engine.Pool;
+using XenoKit.Engine.Vfx.Asset;
 using XenoKit.Helper;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EMP_NEW;
@@ -9,24 +11,27 @@ using Xv2CoreLib.Resource;
 
 namespace XenoKit.Engine.Vfx.Particle
 {
-    public class ParticleNodeBase : Entity
+    public class ParticleNodeBase : PooledEntity
     {
-        public ParticleSystem ParticleSystem { get; private set; }
-        public readonly ParticleNode Node;
-        private readonly EffectPart EffectPart;
+        public WeakReference Effect;
+        public override bool IsAlive => Effect.IsAlive == true;
 
-        public readonly int StartTime;
-        public readonly int Lifetime;
-        public readonly int Burst;
-        public readonly int BurstFrequency;
+        public ParticleSystem ParticleSystem { get; private set; }
+        public ParticleNode Node;
+        private EffectPart EffectPart;
+
+        public int StartTime;
+        public int Lifetime;
+        public int Burst;
+        public int BurstFrequency;
         public bool Loop;
 
-        private readonly float PositionX_Variance;
-        private readonly float PositionY_Variance;
-        private readonly float PositionZ_Variance;
-        private readonly float RotationX_Variance;
-        private readonly float RotationY_Variance;
-        private readonly float RotationZ_Variance;
+        private float PositionX_Variance;
+        private float PositionY_Variance;
+        private float PositionZ_Variance;
+        private float RotationX_Variance;
+        private float RotationY_Variance;
+        private float RotationZ_Variance;
 
         protected float StartRotation_Variance = 0f;
         protected float ActiveRotation_Variance = 0f;
@@ -64,8 +69,25 @@ namespace XenoKit.Engine.Vfx.Particle
         protected bool ActiveInstancesUpdatedThisFrame = false;
         protected virtual bool IsRootNode => false;
 
-        public ParticleNodeBase(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(gameBase)
+        #region Initialize
+        public ParticleNodeBase()
         {
+            Effect = new WeakReference(null);
+        }
+
+        public ParticleNodeBase(Matrix emitPoint, ParticleSystem system, EffectPart effectPart, GameBase game)
+        {
+            SetGameBaseInstance(game);
+            EmitPointTransform = emitPoint;
+            ParticleSystem = system;
+            EffectPart = effectPart;
+            Node = new ParticleNode();
+            Node.Burst = 1;
+        }
+
+        public virtual void Initialize(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, object effect)
+        {
+            Effect.Target = effect;
             Velocity = velocity;
             ParticleSystem = system;
             Node = node;
@@ -87,15 +109,51 @@ namespace XenoKit.Engine.Vfx.Particle
             RotationZ_Variance = Xv2CoreLib.Random.Range(0, node.Rotation_Variance.Z);
         }
 
-        public ParticleNodeBase(Matrix emitPoint, ParticleSystem system, EffectPart effectPart, GameBase gameBase) : base(gameBase)
+        public override void ClearObjectState()
         {
-            EmitPointTransform = emitPoint;
-            ParticleSystem = system;
-            EffectPart = effectPart;
-            Node = new ParticleNode();
-            Node.Burst = 1;
+            State = NodeState.Created;
+            CurrentFrame = 0f;
+            StartTime = 0;
+            Lifetime = 0;
+            Burst = 0;
+            BurstFrequency = 0;
+            Loop = false;
+            PositionX_Variance = 0f;
+            PositionY_Variance = 0f;
+            PositionZ_Variance = 0f;
+            RotationX_Variance = 0f;
+            RotationY_Variance = 0f;
+            RotationZ_Variance = 0f;
+
+            Nodes.Clear();
+            ActiveInstances.Clear();
+            MovementTransform = Matrix.Identity;
+            ScaleAdjustment = Matrix.Identity;
+            Velocity = Vector3.Zero;
         }
 
+        public virtual void Release()
+        {
+            ObjectPoolManager.ParticleNodeBasePool.ReleaseObject(this);
+        }
+
+        public void ReleaseAll()
+        {
+            lock (Nodes)
+            {
+                for(int i = 0; i < Nodes.Count; i++)
+                {
+                    Nodes[i].ReleaseAll();
+                }
+
+                Nodes.Clear();
+            }
+
+            Release();
+        }
+        #endregion
+
+        #region Update
         public override void Update()
         {
             StartUpdate();
@@ -105,7 +163,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void Draw()
         {
-            for(int i = 0; i < Nodes.Count; i++)
+            for (int i = 0; i < Nodes.Count; i++)
             {
                 Nodes[i].Draw();
             }
@@ -171,7 +229,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         private void UpdateModifiers()
         {
-            foreach(EMP_Modifier modifier in Node.Modifiers)
+            foreach (EMP_Modifier modifier in Node.Modifiers)
             {
                 switch (modifier.EmpType)
                 {
@@ -187,7 +245,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         protected void UpdateRotation()
         {
-            if(GameBase.IsPlaying)
+            if (GameBase.IsPlaying)
                 RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance) / 60f;
         }
 
@@ -199,6 +257,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
                 if (Nodes[i].State == NodeState.Expired)
                 {
+                    Nodes[i].Release();
                     Nodes.RemoveAt(i);
                 }
             }
@@ -220,6 +279,27 @@ namespace XenoKit.Engine.Vfx.Particle
 
             ActiveInstancesUpdatedThisFrame = false;
         }
+
+        /// <summary>
+        /// Update the number of active child instances. This method will only actually execute once per frame, any subsequent calls on the same frame will be skipped.
+        /// </summary>
+        private void UpdateActiveInstancesCount()
+        {
+            if (!ActiveInstancesUpdatedThisFrame)
+            {
+                ActiveInstancesUpdatedThisFrame = true;
+
+                for (int i = 0; i < Node.ChildParticleNodes.Count; i++)
+                {
+                    if (ActiveInstances.Count - 1 < i)
+                        ActiveInstances.Add(0);
+
+                    ActiveInstances[i] = Nodes.Where(x => x.Node == Node.ChildParticleNodes[i]).Count();
+                }
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Emit a burst of particles. 
@@ -246,25 +326,25 @@ namespace XenoKit.Engine.Vfx.Particle
 
                     if (Node.ChildParticleNodes[i].NodeType == ParticleNodeType.Emitter)
                     {
-                        Nodes.Add(new ParticleEmitter(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
+                        Nodes.Add(ObjectPoolManager.GetParticleEmitter(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target));
 
                     }
                     else if (Node.ChildParticleNodes[i].NodeType == ParticleNodeType.Emission)
                     {
                         if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Plane)
                         {
-                            Nodes.Add(new Particle(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
+                            Nodes.Add(ObjectPoolManager.GetParticle(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target));
                         }
                         else
                         {
                             //placeholder
-                            Nodes.Add(new ParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
+                            Nodes.Add(ObjectPoolManager.GetParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target));
                         }
                     }
                     else
                     {
                         //"null" node.
-                        Nodes.Add(new ParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, GameBase));
+                        Nodes.Add(ObjectPoolManager.GetParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target));
                     }
 
                     ActiveInstances[i]++;
@@ -275,25 +355,6 @@ namespace XenoKit.Engine.Vfx.Particle
         protected virtual Matrix GetEmitTransformationMatrix(ref Vector3 velocity)
         {
             return Matrix.Identity;
-        }
-
-        /// <summary>
-        /// Update the number of active child instances. This method will only actually execute once per frame, any subsequent calls on the same frame will be skipped.
-        /// </summary>
-        private void UpdateActiveInstancesCount()
-        {
-            if (!ActiveInstancesUpdatedThisFrame)
-            {
-                ActiveInstancesUpdatedThisFrame = true;
-
-                for (int i = 0; i < Node.ChildParticleNodes.Count; i++)
-                {
-                    if (ActiveInstances.Count - 1 < i)
-                        ActiveInstances.Add(0);
-
-                    ActiveInstances[i] = Nodes.Where(x => x.Node == Node.ChildParticleNodes[i]).Count();
-                }
-            }
         }
 
         /// <summary>
@@ -308,11 +369,12 @@ namespace XenoKit.Engine.Vfx.Particle
                 node.Deactivate();
             }
         }
-    
+
         protected Matrix GetAttachmentBone()
         {
             return EffectPart.InstantUpdate ? ParticleSystem.AttachmentBone : EmitBoneTransform;
         }
+    
     }
 
     public enum NodeState : byte

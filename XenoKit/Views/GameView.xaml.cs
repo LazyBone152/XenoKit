@@ -76,7 +76,17 @@ namespace XenoKit.Controls
             get
             {
                 if (MonoGame?.camera == null) return null;
-                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nLIGHTING:\nPos: {6}\nDir: {7}",
+#if !DEBUG
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
+                    MonoGame.camera.CameraState.FieldOfView,
+                    MonoGame.camera.CameraState.Roll,
+                    MonoGame.camera.CameraState.ActualPosition,
+                    MonoGame.camera.CameraState.ActualTargetPosition,
+                    (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
+                    GetSelectedBoneName());
+
+#else
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nLIGHTING:\nPos: {6}\nDir: {7}\n\nDEBUG:\nCompiled Objects: {8}\nPooled Objects: {9}",
                     MonoGame.camera.CameraState.FieldOfView,
                     MonoGame.camera.CameraState.Roll,
                     MonoGame.camera.CameraState.ActualPosition,
@@ -84,7 +94,11 @@ namespace XenoKit.Controls
                     (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
                     GetSelectedBoneName(),
                     MonoGame.LightSource.GetLightPosition(),
-                    MonoGame.LightSource.GetLightDirection());
+                    MonoGame.LightSource.GetLightDirection(),
+                    MonoGame.CompiledObjectManager.ObjectCount,
+                    MonoGame.ObjectPoolManager.ParticleEmitterPool.CurrentSize + MonoGame.ObjectPoolManager.ParticleNodeBasePool.CurrentSize + MonoGame.ObjectPoolManager.ParticlePool.CurrentSize);
+
+#endif
             }
         }
         public int MaxFrameValue
@@ -288,7 +302,7 @@ namespace XenoKit.Controls
             }
         }
 
-        #endregion
+#endregion
 
         public GameView()
         {
@@ -378,7 +392,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(VfxSimulation));
         }
 
-        #region Commands
+#region Commands
         public RelayCommand SeekNextCommand => new RelayCommand(SeekNextFrame, CanSeek);
         private void SeekNextFrame()
         {
@@ -398,7 +412,7 @@ namespace XenoKit.Controls
             //Can only seek in pause mode
             return SceneManager.MainGameBase?.IsPlaying == false;
         }
-        #endregion
+#endregion
 
 
         private void Play_Click(object sender, RoutedEventArgs e)

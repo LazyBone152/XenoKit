@@ -80,7 +80,7 @@ namespace XenoKit.Engine.Vfx
         {
             VfxEffect vfxEffect = new VfxEffect(actor, effect, world, GameBase);
 
-            lock (NewEffects)
+            lock (Effects)
             {
                 NewEffects.Add(vfxEffect);
             }
@@ -127,20 +127,17 @@ namespace XenoKit.Engine.Vfx
 
         public void StopEffects()
         {
-            foreach(var effect in Effects)
+            foreach(VfxEffect effect in Effects)
             {
                 effect.Dispose();
             }
 
-            lock (NewEffects)
-            {
-                NewEffects.Clear();
-            }
-
             lock (Effects)
             {
+                NewEffects.Clear();
                 Effects.Clear();
             }
+
         }
 
         #endregion
@@ -155,28 +152,25 @@ namespace XenoKit.Engine.Vfx
         {
             lock (Effects)
             {
-                lock (NewEffects)
+                Effects.AddRange(NewEffects);
+                NewEffects.Clear();
+
+
+                for (int i = Effects.Count - 1; i >= 0; i--)
                 {
-                    Effects.AddRange(NewEffects);
-                    NewEffects.Clear();
-
-
-                    for (int i = Effects.Count - 1; i >= 0; i--)
+                    if (Effects[i].IsDestroyed)
                     {
-                        if (Effects[i].IsDestroyed)
-                        {
-                            Effects.RemoveAt(i);
-                            continue;
-                        }
+                        Effects.RemoveAt(i);
+                        continue;
+                    }
 
-                        if (simulate)
-                        {
-                            Effects[i].Simulate();
-                        }
-                        else
-                        {
-                            Effects[i].Update();
-                        }
+                    if (simulate)
+                    {
+                        Effects[i].Simulate();
+                    }
+                    else
+                    {
+                        Effects[i].Update();
                     }
                 }
             }

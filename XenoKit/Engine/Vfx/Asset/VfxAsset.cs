@@ -77,7 +77,7 @@ namespace XenoKit.Engine.Vfx.Asset
         /// <summary>
         /// Deactivates the effect according to the Deactivation Mode.
         /// </summary>
-        public void Terminate()
+        public virtual void Terminate()
         {
             if (EffectPart.Deactivation == EffectPart.DeactivationMode.Always || (EffectPart.Deactivation == EffectPart.DeactivationMode.AfterAnimLoop && !FinishAnimationBeforeTerminating))
             {
@@ -147,26 +147,43 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             //Unsure on AttachmentBone and User. They seem to get different rotations... so something is wrong
 
+            Matrix transform = Transform;
+
+            if (EffectPart.AttachementType == EffectPart.Attachment.Camera)
+            {
+                //Place transform directly in front of the camera
+                Vector3 direction = GameBase.ActiveCameraBase.CameraState.ActualTargetPosition - GameBase.ActiveCameraBase.CameraState.ActualPosition;
+                Vector3 cameraForward = Vector3.Normalize(direction);
+                Vector3 positionInFrontOfCamera = GameBase.ActiveCameraBase.CameraState.ActualPosition + (cameraForward * 1f);
+
+                transform.Translation = positionInFrontOfCamera;
+            }
+
             switch (EffectPart.Orientation)
             {
                 case EffectPart.OrientationType.None:
                     //Just uses position and no orientation
                     //The game seems to always rotate it by 90 degrees on Y for some reason
-                    return Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(Transform.Translation);
+                    transform = Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(transform.Translation);
+                    break;
                 case EffectPart.OrientationType.User:
                     if (Actor == null) return Transform;
                     //Effect Position + Orientation of base bone of actor, with an extra rotation on Y
-                    return Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateRotationX(-MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(Transform.Translation) * (Actor.Transform * Matrix.Invert(Matrix.CreateTranslation(Actor.Transform.Translation)));
+                    transform = Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(transform.Translation) * (Actor.Transform * Matrix.Invert(Matrix.CreateTranslation(Actor.Transform.Translation)));
+                    break;
                 case EffectPart.OrientationType.Camera:
                     //Effect Position + rotate to face camera.
-                    return Matrix.CreateBillboard(Transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.ActualPosition, Vector3.Up, Vector3.Forward) * Matrix.CreateTranslation(Transform.Translation);
+                    transform = Matrix.CreateBillboard(transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.ActualPosition, Vector3.Up, Vector3.Forward);
+                    break;
                 case EffectPart.OrientationType.AttachmentBone:
                 default:
                     //Use full rotation of the attachment bone
-                    return Transform;
+                    transform = Transform;
+                    break;
 
             }
 
+            return transform;
         }
     }
 }

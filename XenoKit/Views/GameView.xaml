@@ -56,7 +56,7 @@
                 </TransformGroup>
             </Separator.RenderTransform>
         </Separator>
-        <TextBlock Grid.Row="1" x:Name="gameOverlay" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=GameOverlayText}" Foreground="{DynamicResource MahApps.Brushes.Accent}" VerticalAlignment="Top" Width="596" Height="240"/>
+        <TextBlock Grid.Row="1" x:Name="gameOverlay" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=GameOverlayText}" Foreground="{DynamicResource MahApps.Brushes.Accent}" VerticalAlignment="Top" Width="596" Height="300"/>
 
         <Button Grid.Row="1" ToolTip="Toggle camera information overlay" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="GameOverlayToggle_Click" Margin="80,0,0,53" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
             <iconPacks:PackIconModern Kind="Information" />

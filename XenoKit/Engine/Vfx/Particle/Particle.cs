@@ -20,7 +20,7 @@ namespace XenoKit.Engine.Vfx.Particle
         private const int VERTEX_BOTTOM_RIGHT = 5;
 
         private readonly VertexPositionTextureColor[] Vertices = new VertexPositionTextureColor[6];
-        private readonly ParticleEmissionData EmissionData;
+        private ParticleEmissionData EmissionData;
 
         private float ColorR_Variance = 0f;
         private float ColorG_Variance = 0f;
@@ -38,12 +38,22 @@ namespace XenoKit.Engine.Vfx.Particle
         private float[] SecondaryColor = new float[4];
 
 
-        public Particle(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, GameBase gameBase) : base(emitPoint, velocity, system, node, effectPart, gameBase)
+        public override void Initialize(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, object effect)
         {
-            EmissionData = CompiledObjectManager.GetCompiledObject<ParticleEmissionData>(node, gameBase);
+            base.Initialize(emitPoint, velocity, system, node, effectPart, effect);
+            EmissionData = CompiledObjectManager.GetCompiledObject<ParticleEmissionData>(node, GameBase);
             EmissionData.EmpFile = system.EmpFile;
             SetValues();
+        }
 
+        public override void Release()
+        {
+            ObjectPoolManager.ParticlePool.ReleaseObject(this);
+        }
+
+        public override void ClearObjectState()
+        {
+            base.ClearObjectState();
         }
 
         public void SetValues()

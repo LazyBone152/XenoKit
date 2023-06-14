@@ -16,6 +16,7 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Framework.WpfInterop;
 using MonoGame.Framework.WpfInterop.Input;
 using System.Threading.Tasks;
+using XenoKit.Engine.Pool;
 
 namespace XenoKit.Engine
 {
@@ -34,6 +35,7 @@ namespace XenoKit.Engine
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; protected set; }
         public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
+        public ObjectPoolManager ObjectPoolManager { get; private set; }
 
         //Engine Values:
         public virtual bool IsMainInstance => false;
@@ -80,6 +82,7 @@ namespace XenoKit.Engine
             TextRenderer = new TextRenderer(GraphicsDevice, spriteBatch);
 
             LightSource = new DirLight(this);
+            ObjectPoolManager = new ObjectPoolManager(this);
 
         }
 
@@ -126,6 +129,8 @@ namespace XenoKit.Engine
 
         protected virtual void DelayedUpdate()
         {
+            ObjectPoolManager.DelayedUpdate();
+
             for(int i = 0; i < Entities.Count; i++)
             {
                 Entities[i].DelayedUpdate();

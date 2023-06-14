@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using XenoKit.Engine.Text;
 using XenoKit.Engine.View;
 using XenoKit.Engine.Vfx;
+using XenoKit.Engine.Pool;
 
 namespace XenoKit.Engine
 {
@@ -29,6 +30,7 @@ namespace XenoKit.Engine
         public GameTime ElapsedTime => GameBase.GameTime;
         public VfxManager VfxManager => GameBase.VfxManager;
         public CompiledObjectManager CompiledObjectManager => GameBase.CompiledObjectManager;
+        public ObjectPoolManager ObjectPoolManager => GameBase.ObjectPoolManager;
 
         public virtual string Name { get; set; }
         public virtual Matrix Transform { get; set; } = Matrix.Identity;
@@ -43,6 +45,8 @@ namespace XenoKit.Engine
             GameBase = gameBase;
         }
 
+        public Entity() { }
+
         /// <summary>
         /// Invoked every frame, before Draw. This is where logic for updating the objects state should be.
         /// (Entity must be registered via <see cref="GameBase.AddEntity(Entity, bool)"/>)
@@ -54,7 +58,6 @@ namespace XenoKit.Engine
 
         /// <summary>
         /// Invoked every second (60 frames).
-        /// (Entity must be registered via <see cref="GameBase.AddEntity(Entity, bool)"/>)
         /// </summary>
         public virtual void DelayedUpdate()
         {
@@ -86,6 +89,19 @@ namespace XenoKit.Engine
         {
             Dispose();
             IsDestroyed = true;
+        }
+
+        /// <summary>
+        /// If the GameBase instance wasn't set in the constructor, it can be set by this method after the Entity has been created.
+        /// </summary>
+        public void SetGameBaseInstance(GameBase game)
+        {
+            if(GameBase != null)
+            {
+                throw new InvalidOperationException($"Entity.SetGameBaseInstance: GameBase has already been set!");
+            }
+
+            GameBase = game;
         }
     }
 }
