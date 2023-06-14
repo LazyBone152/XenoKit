@@ -849,11 +849,11 @@ namespace XenoKit.Engine.Shader
 
                     blendState.AlphaBlendFunction = BlendFunction.ReverseSubtract;
                     blendState.AlphaSourceBlend = Blend.SourceAlpha;
-                    blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState.AlphaDestinationBlend = Blend.One;
 
                     blendState.ColorBlendFunction = BlendFunction.ReverseSubtract;
                     blendState.ColorSourceBlend = Blend.SourceAlpha;
-                    blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState.ColorDestinationBlend = Blend.One;
 
                     blendState.ColorWriteChannels = ColorWriteChannels.All;
 
