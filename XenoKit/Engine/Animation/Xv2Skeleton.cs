@@ -88,7 +88,8 @@ namespace XenoKit.Engine.Animation
                 Bones[i].BindPoseMatrix = Bones[i].AbsoluteMatrix;
                 Bones[i].InverseBindPoseMatrix = Matrix.Invert(Bones[i].BindPoseMatrix);
 
-                BoneIndexCache.Add(Bones[i].Name, i);
+                if(!BoneIndexCache.ContainsKey(Bones[i].Name))
+                    BoneIndexCache.Add(Bones[i].Name, i);
             }
         }
 
