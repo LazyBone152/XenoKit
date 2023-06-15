@@ -112,83 +112,79 @@ namespace XenoKit.Engine.Model
             int submeshIndex = 0;
 
             //Models
-            foreach (var emdModel in SourceEmdFile.Models)
+            foreach (EMD_Model emdModel in SourceEmdFile.Models)
             {
                 Xv2Model model = new Xv2Model(emdModel.Name, GameBase);
 
                 //NSK files support model-level animation like EMOs
-                if(Type == ModelType.Nsk)
+                if (Type == ModelType.Nsk)
                     model.AttachBone = SourceNskFile.EskFile.Skeleton.NonRecursiveBones.IndexOf(SourceNskFile.EskFile.Skeleton.NonRecursiveBones.FirstOrDefault(x => x.Name == emdModel.Name));
 
-                foreach (var emdMesh in emdModel.Meshes)
+                foreach (EMD_Mesh emdMesh in emdModel.Meshes)
                 {
                     Xv2Mesh mesh = new Xv2Mesh(emdMesh.Name, GameBase);
 
-                    foreach (var emdSubmesh in emdMesh.Submeshes)
+                    foreach (EMD_Submesh emdSubmesh in emdMesh.Submeshes)
                     {
-                        Xv2Submesh submesh = new Xv2Submesh(GameBase, emdSubmesh.Name, submeshIndex, Type, emdSubmesh);
+                        //EACH triangle list needs to be its own Xv2Submesh. Merging them together cannot work with the vanilla game shaders as they cant accept more than 24 bones
 
-                        List<string> bones = new List<string>();
-
-                        //Triangles
-                        submesh.Indices = new short[emdSubmesh.TriangleCount];
-                        int indexPos = 0;
-
-                        foreach (var triangeList in emdSubmesh.Triangles)
+                        foreach (EMD_Triangle triangleList in emdSubmesh.Triangles)
                         {
-                            //Merge the face indices into a single array. 
-                            for (int i = 0; i < triangeList.FaceCount; i += 3)
+                            Xv2Submesh submesh = new Xv2Submesh(GameBase, emdSubmesh.Name, submeshIndex, Type, emdSubmesh);
+
+                            //Triangles
+                            submesh.Indices = new short[triangleList.Faces.Count];
+
+                            for (int i = 0; i < triangleList.Faces.Count; i++)
                             {
-                                submesh.Indices[indexPos + 0] = (short)triangeList.Faces[i + 0];
-                                submesh.Indices[indexPos + 1] = (short)triangeList.Faces[i + 1];
-                                submesh.Indices[indexPos + 2] = (short)triangeList.Faces[i + 2];
-                                indexPos += 3;
-                            }
-                        }
-
-                        //Create vertex array
-                        submesh.CpuVertexes = new VertexPositionNormalTextureBlend[emdSubmesh.VertexCount];
-                        submesh.GpuVertexes = new VertexPositionNormalTextureBlend[emdSubmesh.VertexCount];
-
-                        for (int i = 0; i < emdSubmesh.VertexCount; i++)
-                        {
-                            submesh.CpuVertexes[i].Position = new Vector3(emdSubmesh.Vertexes[i].PositionX, emdSubmesh.Vertexes[i].PositionY, emdSubmesh.Vertexes[i].PositionZ);
-                            submesh.CpuVertexes[i].Tangent = new Vector3(emdSubmesh.Vertexes[i].TangentX, emdSubmesh.Vertexes[i].TangentY, emdSubmesh.Vertexes[i].TangentZ);
-                            submesh.CpuVertexes[i].TextureUV0 = new Vector2(emdSubmesh.Vertexes[i].TextureU, emdSubmesh.Vertexes[i].TextureV);
-                            submesh.CpuVertexes[i].TextureUV1 = new Vector2(emdSubmesh.Vertexes[i].Texture2U, emdSubmesh.Vertexes[i].Texture2V);
-                            submesh.CpuVertexes[i].Color_R = emdSubmesh.Vertexes[i].ColorR;
-                            submesh.CpuVertexes[i].Color_G = emdSubmesh.Vertexes[i].ColorG;
-                            submesh.CpuVertexes[i].Color_B = emdSubmesh.Vertexes[i].ColorB;
-                            submesh.CpuVertexes[i].Color_A = emdSubmesh.Vertexes[i].ColorA;
-
-                            if (emdSubmesh.VertexFlags.HasFlag(VertexFlags.Normal))
-                            {
-                                submesh.CpuVertexes[i].Normal = new Vector3(emdSubmesh.Vertexes[i].NormalX, emdSubmesh.Vertexes[i].NormalY, emdSubmesh.Vertexes[i].NormalZ);
+                                submesh.Indices[i] = (short)triangleList.Faces[i];
                             }
 
-                            if (emdSubmesh.VertexFlags.HasFlag(VertexFlags.BlendWeight))
+                            //Create vertex array
+                            submesh.CpuVertexes = new VertexPositionNormalTextureBlend[emdSubmesh.VertexCount];
+                            submesh.GpuVertexes = new VertexPositionNormalTextureBlend[emdSubmesh.VertexCount];
+
+                            for (int i = 0; i < emdSubmesh.VertexCount; i++)
                             {
-                                submesh.CpuVertexes[i].BlendIndex0 = GetMergedBoneIndex(i, emdSubmesh.Vertexes[i].BlendIndexes[0], emdSubmesh, bones);
-                                submesh.CpuVertexes[i].BlendIndex1 = GetMergedBoneIndex(i, emdSubmesh.Vertexes[i].BlendIndexes[1], emdSubmesh, bones);
-                                submesh.CpuVertexes[i].BlendIndex2 = GetMergedBoneIndex(i, emdSubmesh.Vertexes[i].BlendIndexes[2], emdSubmesh, bones);
-                                submesh.CpuVertexes[i].BlendIndex3 = GetMergedBoneIndex(i, emdSubmesh.Vertexes[i].BlendIndexes[3], emdSubmesh, bones);
-                                //submesh.CpuVertexes[i].BlendWeights = new Vector4(emdSubmesh.Vertexes[i].BlendWeights[0], emdSubmesh.Vertexes[i].BlendWeights[1], emdSubmesh.Vertexes[i].BlendWeights[2], emdSubmesh.Vertexes[i].BlendWeights[3]);
-                                submesh.CpuVertexes[i].BlendWeights = new Vector3(emdSubmesh.Vertexes[i].BlendWeights[0], emdSubmesh.Vertexes[i].BlendWeights[1], emdSubmesh.Vertexes[i].BlendWeights[2]);
+                                submesh.CpuVertexes[i].Position = new Vector3(emdSubmesh.Vertexes[i].PositionX, emdSubmesh.Vertexes[i].PositionY, emdSubmesh.Vertexes[i].PositionZ);
+                                submesh.CpuVertexes[i].Tangent = new Vector3(emdSubmesh.Vertexes[i].TangentX, emdSubmesh.Vertexes[i].TangentY, emdSubmesh.Vertexes[i].TangentZ);
+                                submesh.CpuVertexes[i].TextureUV0 = new Vector2(emdSubmesh.Vertexes[i].TextureU, emdSubmesh.Vertexes[i].TextureV);
+                                submesh.CpuVertexes[i].TextureUV1 = new Vector2(emdSubmesh.Vertexes[i].Texture2U, emdSubmesh.Vertexes[i].Texture2V);
+                                submesh.CpuVertexes[i].Color_R = emdSubmesh.Vertexes[i].ColorR;
+                                submesh.CpuVertexes[i].Color_G = emdSubmesh.Vertexes[i].ColorG;
+                                submesh.CpuVertexes[i].Color_B = emdSubmesh.Vertexes[i].ColorB;
+                                submesh.CpuVertexes[i].Color_A = emdSubmesh.Vertexes[i].ColorA;
+
+                                if (emdSubmesh.VertexFlags.HasFlag(VertexFlags.Normal))
+                                {
+                                    submesh.CpuVertexes[i].Normal = new Vector3(emdSubmesh.Vertexes[i].NormalX, emdSubmesh.Vertexes[i].NormalY, emdSubmesh.Vertexes[i].NormalZ);
+                                }
+
+                                if (emdSubmesh.VertexFlags.HasFlag(VertexFlags.BlendWeight))
+                                {
+                                    submesh.CpuVertexes[i].BlendIndex0 = emdSubmesh.Vertexes[i].BlendIndexes[0];
+                                    submesh.CpuVertexes[i].BlendIndex1 = emdSubmesh.Vertexes[i].BlendIndexes[1];
+                                    submesh.CpuVertexes[i].BlendIndex2 = emdSubmesh.Vertexes[i].BlendIndexes[2];
+                                    submesh.CpuVertexes[i].BlendIndex3 = emdSubmesh.Vertexes[i].BlendIndexes[3];
+                                    submesh.CpuVertexes[i].BlendWeights = new Vector3(emdSubmesh.Vertexes[i].BlendWeights[0], emdSubmesh.Vertexes[i].BlendWeights[1], emdSubmesh.Vertexes[i].BlendWeights[2]);
+                                }
+
+                                //GpuVertexes (for rendering)
+                                submesh.GpuVertexes[i] = submesh.CpuVertexes[i];
                             }
 
-                            //GpuVertexes (for rendering)
-                            submesh.GpuVertexes[i] = submesh.CpuVertexes[i];
-                        }
+                            submesh.InitSamplers(emdSubmesh.TextureSamplerDefs);
 
-                        submesh.InitSamplers(emdSubmesh.TextureSamplerDefs);
+                            submesh.EnableSkinning = emdSubmesh.VertexFlags.HasFlag(VertexFlags.BlendWeight);
+                            submesh.BoneNames = triangleList.Bones.ToArray();
 
-                        submesh.EnableSkinning = emdSubmesh.VertexFlags.HasFlag(VertexFlags.BlendWeight);
-                        submesh.BoneNames = bones.ToArray();
+                            if (submesh.CpuVertexes.Length > 0)
+                            {
+                                mesh.Submeshes.Add(submesh);
+                                submeshIndex++;
+                            }
 
-                        if (submesh.CpuVertexes.Length > 0)
-                        {
-                            mesh.Submeshes.Add(submesh);
-                            submeshIndex++;
+
                         }
                     }
 
@@ -247,16 +243,10 @@ namespace XenoKit.Engine.Model
 
                                 if (mesh.VertexFlags.HasFlag(VertexFlags.BlendWeight))
                                 {
-                                    xv2Submesh.CpuVertexes[i].BlendIndex0 = GetMergedBoneIndex(i, mesh.Vertices[i].BlendIndexes[0], submesh);
-                                    xv2Submesh.CpuVertexes[i].BlendIndex1 = GetMergedBoneIndex(i, mesh.Vertices[i].BlendIndexes[1], submesh);
-                                    xv2Submesh.CpuVertexes[i].BlendIndex2 = GetMergedBoneIndex(i, mesh.Vertices[i].BlendIndexes[2], submesh);
-                                    xv2Submesh.CpuVertexes[i].BlendIndex3 = GetMergedBoneIndex(i, mesh.Vertices[i].BlendIndexes[3], submesh);
-
-                                    //xv2Submesh.CpuVertexes[i].BlendIndex0 = mesh.Vertices[i].BlendIndexes[0];
-                                    //xv2Submesh.CpuVertexes[i].BlendIndex1 = mesh.Vertices[i].BlendIndexes[1];
-                                    //xv2Submesh.CpuVertexes[i].BlendIndex2 = mesh.Vertices[i].BlendIndexes[2];
-                                    //xv2Submesh.CpuVertexes[i].BlendIndex3 = mesh.Vertices[i].BlendIndexes[3];
-                                    //xv2Submesh.CpuVertexes[i].BlendWeights = new Vector4(mesh.Vertices[i].BlendWeights[0], mesh.Vertices[i].BlendWeights[1], mesh.Vertices[i].BlendWeights[2], mesh.Vertices[i].BlendWeights[3]);
+                                    xv2Submesh.CpuVertexes[i].BlendIndex0 = mesh.Vertices[i].BlendIndexes[0];
+                                    xv2Submesh.CpuVertexes[i].BlendIndex1 = mesh.Vertices[i].BlendIndexes[1];
+                                    xv2Submesh.CpuVertexes[i].BlendIndex2 = mesh.Vertices[i].BlendIndexes[2];
+                                    xv2Submesh.CpuVertexes[i].BlendIndex3 = mesh.Vertices[i].BlendIndexes[3];
                                     xv2Submesh.CpuVertexes[i].BlendWeights = new Vector3(mesh.Vertices[i].BlendWeights[0], mesh.Vertices[i].BlendWeights[1], mesh.Vertices[i].BlendWeights[2]);
                                 }
 
@@ -270,11 +260,15 @@ namespace XenoKit.Engine.Model
                             xv2Submesh.EnableSkinning = mesh.VertexFlags.HasFlag(VertexFlags.BlendWeight);
 
                             //Generate bone index list
-                            xv2Submesh.BoneIdx[0] = new short[SourceEmoFile.Skeleton.Bones.Count];
+                            xv2Submesh.BoneIdx[0] = new short[24];
+                            xv2Submesh.BoneNames = new string[24];
 
                             //For EMOs the bone list is static, since the skeleton isn't gonna change after creation. So we can just use the skeleton from the EMO file (the OBJ.EMA skeleton should be identical).
-                            for (short i = 0; i < xv2Submesh.BoneIdx[0].Length; i++)
-                                xv2Submesh.BoneIdx[0][i] = i;
+                            for (short i = 0; i < submesh.Bones.Count; i++)
+                            {
+                                xv2Submesh.BoneIdx[0][i] = (short)submesh.Bones[i];
+                                xv2Submesh.BoneNames[i] = SourceEmoFile.Skeleton.Bones[submesh.Bones[i]].Name;
+                            }
 
                             if (xv2Submesh.CpuVertexes.Length > 0)
                             {
@@ -328,7 +322,7 @@ namespace XenoKit.Engine.Model
                 }
             }
         }
-        
+
         #endregion
 
         #region Rendering
@@ -491,6 +485,7 @@ namespace XenoKit.Engine.Model
         public bool EnableSkinning { get; set; }
         public string[] BoneNames;
         public short[][] BoneIdx = new short[SceneManager.NumActors][]; //[Actor][BoneIdxInVertex]
+        public Matrix[] SkinningMatrices = new Matrix[24];
 
         //Actor-Specific Information:
         private Matrix[] PrevWVP = new Matrix[SceneManager.NumActors];
@@ -563,16 +558,14 @@ namespace XenoKit.Engine.Model
             //Currently, dont apply to SCDs
             if (EnableSkinning && skeleton != null)
             {
-                /*
-                if(Type == ModelType.Emo)
-                {
-                    CreateSkinningMatrices(skeleton.Bones);
-                }
-                */
+                CreateSkinningMatrices(skeleton.Bones, actor);
 
-                UpdateVertices(skeleton.Bones, actor);
+                //UpdateVertices(skeleton.Bones, actor);
 
             }
+
+            if (EnableSkinning)
+                materials[SubmeshIndex].SetSkinningMatrices(SkinningMatrices);
 
             //Shader passes and vertex drawing
             foreach (EffectPass pass in materials[SubmeshIndex].CurrentTechnique.Passes)
@@ -582,8 +575,6 @@ namespace XenoKit.Engine.Model
 
                 materials[SubmeshIndex].SetVfxLight();
 
-                //if (Type == ModelType.Emo && EnableSkinning)
-                //    materials[SubmeshIndex].SetSkinningMatrices(SkinningMatrices);
 
                 pass.Apply();
 
@@ -593,10 +584,22 @@ namespace XenoKit.Engine.Model
             PrevWVP[actor] = materials[SubmeshIndex].PrevWVP;
         }
 
+        private void CreateSkinningMatrices(Xv2Bone[] bones, int actor)
+        {
+            for (int i = 0; i < BoneNames.Length; i++)
+            {
+                int boneIdx = BoneIdx[actor][i];
+
+                if (boneIdx != -1)
+                {
+                    SkinningMatrices[i] = bones[boneIdx].SkinningMatrix;
+                }
+            }
+        }
+
         private void UpdateVertices(Xv2Bone[] bones, int actor)
         {
-            //Performs quite poorly... majority of CPU time is spent on this even for just 1 animated character
-            //Need to figure out how the shader skinning works
+            //Old CPU skinning method.The renderer has since been updated to use the shaders for skinning.
 
             for (int i = 0; i < GpuVertexes.Length; i++)
             {

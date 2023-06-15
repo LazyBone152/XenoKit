@@ -521,34 +521,39 @@ namespace XenoKit.Engine.Shader
     [StructLayout(LayoutKind.Explicit, Size = 48)]
     public unsafe struct Matrix4x3
     {
+        public static Matrix4x3 Identity => new Matrix4x3(Matrix.Identity);
+
         [FieldOffset(0)]
-        public fixed float Row1[4];
-        [FieldOffset(16)]
-        public fixed float Row2[4];
-        [FieldOffset(32)]
-        public fixed float Row3[4];
+        public fixed float Row1[3];
+        [FieldOffset(12)]
+        public fixed float Row2[3];
+        [FieldOffset(24)]
+        public fixed float Row3[3];
+        [FieldOffset(36)]
+        public fixed float Row4[3];
 
         public Matrix4x3(Matrix mat4x4)
         {
             Row1[0] = mat4x4.M11;
             Row1[1] = mat4x4.M12;
             Row1[2] = mat4x4.M13;
-            Row1[3] = mat4x4.M14;
             Row2[0] = mat4x4.M21;
             Row2[1] = mat4x4.M22;
             Row2[2] = mat4x4.M23;
-            Row2[3] = mat4x4.M24;
             Row3[0] = mat4x4.M31;
             Row3[1] = mat4x4.M32;
             Row3[2] = mat4x4.M33;
-            Row3[3] = mat4x4.M34;
+            Row4[0] = mat4x4.M41;
+            Row4[1] = mat4x4.M42;
+            Row4[2] = mat4x4.M43;
         }
 
         public float[] GetValues()
         {
-            return new float[12] { Row1[0], Row1[1] , Row1[2] , Row1[3],
-                                   Row2[0], Row2[1] , Row2[2] , Row2[3],
-                                   Row3[0], Row3[1] , Row3[2] , Row3[3] };
+            return new float[12] { Row1[0], Row1[1] , Row1[2],
+                                   Row2[0], Row2[1] , Row2[2],
+                                   Row3[0], Row3[1] , Row3[2],
+                                   Row4[0], Row4[1] , Row4[2]};
         }
     }
 }

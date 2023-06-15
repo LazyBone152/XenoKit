@@ -201,7 +201,7 @@ namespace XenoKit.Engine.Shader
                                         break;
                                 }
 
-                                elementParameters[i] = new EffectParameter(class_, type, $"{name}_{i}", 0, 0, semantic, null, null, null, arrayValue);
+                                elementParameters[i] = new EffectParameter(class_, type, $"{name}_{i}", rowCount, columnCount, semantic, null, null, null, arrayValue);
                             }
                         }
                         else
@@ -658,6 +658,7 @@ namespace XenoKit.Engine.Shader
                 //Light direction / origin point relative to character. Light range is infinite, so large numbers have the same effect as small numbers (unless the sign changes, which then inverts that axis).
 
                 g_vLightVec0_VS.SetValue(GameBase.LightSource.Direction);
+                //g_vLightVec0_VS.SetValue(GameBase.LightSource.GetLightDirection(World.Translation));
 
             }
 
