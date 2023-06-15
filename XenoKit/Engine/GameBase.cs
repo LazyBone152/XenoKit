@@ -34,6 +34,7 @@ namespace XenoKit.Engine
         public Input Input { get; private set; } = new Input();
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; protected set; }
+        public RenderDepthSystem RenderDepthSystem { get; protected set; }
         public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
         public ObjectPoolManager ObjectPoolManager { get; private set; }
 
@@ -83,7 +84,6 @@ namespace XenoKit.Engine
 
             LightSource = new DirLight(this);
             ObjectPoolManager = new ObjectPoolManager(this);
-
         }
 
         private void DelayedTimer_Elapsed(object sender, ElapsedEventArgs e)

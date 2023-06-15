@@ -49,6 +49,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public override void Release()
         {
             ObjectPoolManager.ParticlePool.ReleaseObject(this);
+            GameBase.RenderDepthSystem.Remove(this);
         }
 
         public override void ClearObjectState()
@@ -113,7 +114,7 @@ namespace XenoKit.Engine.Vfx.Particle
                 ScaleV = ScaleBase;
             }
         }
-        
+
         private void UpdateVertices()
         {
             if (EmissionData.TextureIndex == -1) return;

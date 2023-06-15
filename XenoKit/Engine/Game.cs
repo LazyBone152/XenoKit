@@ -62,6 +62,7 @@ namespace XenoKit.Engine
             camera = new Camera(this);
             AudioEngine = new AudioEngine();
             VfxManager = new VfxManager(this);
+            RenderDepthSystem = new RenderDepthSystem();
         }
 
         protected override void LoadContent()
@@ -143,6 +144,9 @@ namespace XenoKit.Engine
                 }
             }
 
+            //First pass of RenderDepthSystem. This renders BEHIND the actors.
+            RenderDepthSystem.DrawBefore();
+
             //Actors
             for (int i = 0; i < SceneManager.Actors.Length; i++)
             {
@@ -151,6 +155,9 @@ namespace XenoKit.Engine
                     SceneManager.Actors[i].Draw();
                 }
             }
+
+            //Second pass of RenderDepthSystem. This renders IN FRONT of the actors.
+            RenderDepthSystem.DrawAfter();
 
             VfxManager.Draw();
 

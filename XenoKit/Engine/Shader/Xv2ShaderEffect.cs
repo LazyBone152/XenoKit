@@ -40,6 +40,8 @@ namespace XenoKit.Engine.Shader
         public EmmMaterial Material { get; private set; }
         public DecompiledMaterial MatParam => Material?.DecompiledParameters;
 
+        private bool SkinningEnabled { get; set; }
+
         //Parameters
         private EffectParameter g_mWVP_VS;
         private EffectParameter g_mVP_VS;
@@ -994,14 +996,27 @@ namespace XenoKit.Engine.Shader
         //Animation
         public void SetSkinningMatrices(Matrix[] matrices)
         {
-            if (shaderProgram.UseVertexShaderBuffer[8])
+
+            if (!SkinningEnabled && shaderProgram.UseVertexShaderBuffer[8])
             {
+                SkinningEnabled = true;
                 g_bSkinning_VS.SetValue(true);
             }
 
             if (shaderProgram.UseVertexShaderBuffer[4])
             {
                 g_mMatrixPalette_VS.SetValue(matrices);
+            }
+        }
+
+        public void DisableSkinning()
+        {
+            if (!SkinningEnabled) return;
+
+            if (shaderProgram.UseVertexShaderBuffer[8])
+            {
+                SkinningEnabled = false;
+                g_bSkinning_VS.SetValue(false);
             }
         }
 

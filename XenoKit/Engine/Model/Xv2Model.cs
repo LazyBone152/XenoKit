@@ -19,6 +19,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
 using Xv2CoreLib.NSK;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Model
 {
@@ -226,8 +227,8 @@ namespace XenoKit.Engine.Model
                             xv2Submesh.Indices = submesh.Faces.Copy();
 
                             //Create vertex array
-                            xv2Submesh.CpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
                             xv2Submesh.GpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
+                            xv2Submesh.CpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
 
                             for (int i = 0; i < mesh.Vertices.Count; i++)
                             {
@@ -362,21 +363,6 @@ namespace XenoKit.Engine.Model
         #endregion
 
         #region HelperFunctions
-        private static byte GetMergedBoneIndex(int vertexIdx, byte idx, EMD_Submesh emdSubmesh, List<string> boneNames)
-        {
-            string name = emdSubmesh.GetBoneName(vertexIdx, idx);
-
-            if (!boneNames.Contains(name))
-                boneNames.Add(name);
-
-            return (byte)boneNames.IndexOf(name);
-        }
-
-        private static byte GetMergedBoneIndex(int vertexIdx, byte idx, EMG_Submesh emgSubmesh)
-        {
-            return (byte)emgSubmesh.GetBoneIndex(vertexIdx, idx);
-        }
-
         public void UnsetActor(int actor)
         {
             foreach (var model in Models)
@@ -470,6 +456,7 @@ namespace XenoKit.Engine.Model
         public VertexPositionNormalTextureBlend[] GpuVertexes { get; set; }
         public VertexPositionNormalTextureBlend[] CpuVertexes { get; set; }
         public short[] Indices { get; set; }
+        public int[] UsedIndices { get; set; }
 
 
         //Samplers:
@@ -556,16 +543,22 @@ namespace XenoKit.Engine.Model
 
             //Perform skinning on the vertices (animation). 
             //Currently, dont apply to SCDs
+            VertexPositionNormalTextureBlend[] vertices = CpuVertexes;
+
             if (EnableSkinning && skeleton != null)
             {
-                CreateSkinningMatrices(skeleton.Bones, actor);
-
-                //UpdateVertices(skeleton.Bones, actor);
-
+                if (SettingsManager.Instance.Settings.XenoKit_EnableGpuSkinning)
+                {
+                    CreateSkinningMatrices(skeleton.Bones, actor);
+                    materials[SubmeshIndex].SetSkinningMatrices(SkinningMatrices);
+                }
+                else
+                {
+                    vertices = GpuVertexes;
+                    materials[SubmeshIndex].DisableSkinning();
+                    UpdateVertices(skeleton.Bones, actor);
+                }
             }
-
-            if (EnableSkinning)
-                materials[SubmeshIndex].SetSkinningMatrices(SkinningMatrices);
 
             //Shader passes and vertex drawing
             foreach (EffectPass pass in materials[SubmeshIndex].CurrentTechnique.Passes)
@@ -578,7 +571,7 @@ namespace XenoKit.Engine.Model
 
                 pass.Apply();
 
-                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, GpuVertexes, 0, GpuVertexes.Length, Indices, 0, Indices.Length / 3);
+                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, GpuVertexes.Length, Indices, 0, Indices.Length / 3);
             }
 
             PrevWVP[actor] = materials[SubmeshIndex].PrevWVP;
@@ -601,8 +594,13 @@ namespace XenoKit.Engine.Model
         {
             //Old CPU skinning method.The renderer has since been updated to use the shaders for skinning.
 
-            for (int i = 0; i < GpuVertexes.Length; i++)
+            if (UsedIndices == null)
+                CreateUsedIndices();
+
+            for (int a = 0; a < UsedIndices.Length; a++)
             {
+                int i = UsedIndices[a];
+
                 GpuVertexes[i].Position = Vector3.Transform(CpuVertexes[i].Position, bones[BoneIdx[actor][CpuVertexes[i].BlendIndex0]].SkinningMatrix) * CpuVertexes[i].BlendWeights.X;
                 GpuVertexes[i].Normal = Vector3.Transform(CpuVertexes[i].Normal, bones[BoneIdx[actor][CpuVertexes[i].BlendIndex0]].SkinningMatrix) * CpuVertexes[i].BlendWeights.X;
 
@@ -629,6 +627,19 @@ namespace XenoKit.Engine.Model
                 }
 
             }
+        }
+
+        private void CreateUsedIndices()
+        {
+            List<int> usedIndices = new List<int>();
+
+            foreach(short index in Indices)
+            {
+                if (!usedIndices.Contains(index))
+                    usedIndices.Add(index);
+            }
+
+            UsedIndices = usedIndices.ToArray();
         }
 
         #region CustomColor

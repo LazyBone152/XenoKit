@@ -93,10 +93,5 @@ namespace XenoKit.Engine.Vfx.Particle
             }
         }
 
-        public override void Draw()
-        {
-            RootNode.Draw();
-        }
-
     }
 }

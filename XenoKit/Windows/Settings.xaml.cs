@@ -68,6 +68,17 @@ namespace XenoKit.Windows
                 }
             }
         }
+        public bool EnableGpuSkinning
+        {
+            get => SettingsManager.settings.XenoKit_EnableGpuSkinning;
+            set
+            {
+                if (SettingsManager.settings.XenoKit_EnableGpuSkinning != value)
+                {
+                    SettingsManager.settings.XenoKit_EnableGpuSkinning = value;
+                }
+            }
+        }
 
         public SettingsWindow(MainWindow parent)
         {

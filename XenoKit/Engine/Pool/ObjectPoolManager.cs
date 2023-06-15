@@ -33,6 +33,7 @@ namespace XenoKit.Engine.Pool
         {
             ParticleNodeBase newNode = GameBase.ObjectPoolManager.ParticleNodeBasePool.GetObject();
             newNode.Initialize(emitPoint, velocity, system, node, effectPart, effect);
+            newNode.Reclaim();
             return newNode;
         }
 
@@ -40,6 +41,7 @@ namespace XenoKit.Engine.Pool
         {
             Vfx.Particle.ParticleEmitter newNode = GameBase.ObjectPoolManager.ParticleEmitterPool.GetObject();
             newNode.Initialize(emitPoint, velocity, system, node, effectPart, effect);
+            newNode.Reclaim();
             return newNode;
         }
 
@@ -47,6 +49,7 @@ namespace XenoKit.Engine.Pool
         {
             Particle newNode = GameBase.ObjectPoolManager.ParticlePool.GetObject();
             newNode.Initialize(emitPoint, velocity, system, node, effectPart, effect);
+            newNode.Reclaim();
             return newNode;
         }
 

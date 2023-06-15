@@ -34,7 +34,11 @@ namespace XenoKit.Engine
 
         public virtual string Name { get; set; }
         public virtual Matrix Transform { get; set; } = Matrix.Identity;
-
+        /// <summary>
+        /// Controls the depth at which this object will be rendered at.
+        /// Negative numbers will be closer to the camera, in front of objects with a higher number. 0 is the depth at which Actors are rendered.
+        /// </summary>
+        public virtual float RenderDepth => 0f;
 
         //Entity Settings
         public bool IsDestroyable { get; set; } = true;
@@ -89,6 +93,14 @@ namespace XenoKit.Engine
         {
             Dispose();
             IsDestroyed = true;
+        }
+
+        /// <summary>
+        /// Mark the Entity as alive once again (Changes Entity.IsDestroyed to true).
+        /// </summary>
+        public void Reclaim()
+        {
+            IsDestroyed = false;
         }
 
         /// <summary>

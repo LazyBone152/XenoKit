@@ -142,7 +142,14 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             lock (Nodes)
             {
-                for(int i = 0; i < Nodes.Count; i++)
+                for (int i = 0; i < PreviousNodes.Count; i++)
+                {
+                    PreviousNodes[i].ReleaseAll();
+                }
+
+                PreviousNodes.Clear();
+
+                for (int i = 0; i < Nodes.Count; i++)
                 {
                     Nodes[i].ReleaseAll();
                 }
@@ -160,19 +167,6 @@ namespace XenoKit.Engine.Vfx.Particle
             StartUpdate();
             UpdateChildrenNodes();
             EndUpdate();
-        }
-
-        public override void Draw()
-        {
-            for (int i = 0; i < PreviousNodes.Count; i++)
-            {
-                PreviousNodes[i].Draw();
-            }
-
-            for (int i = 0; i < Nodes.Count; i++)
-            {
-                Nodes[i].Draw();
-            }
         }
 
         /// <summary>
@@ -363,7 +357,10 @@ namespace XenoKit.Engine.Vfx.Particle
                     {
                         if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Plane)
                         {
-                            Nodes.Add(ObjectPoolManager.GetParticle(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target));
+                            ParticleNodeBase newNode = ObjectPoolManager.GetParticle(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
+                            Nodes.Add(newNode);
+
+                            GameBase.RenderDepthSystem.Add(newNode);
                         }
                         else
                         {

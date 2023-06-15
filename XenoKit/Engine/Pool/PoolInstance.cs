@@ -46,6 +46,7 @@ namespace XenoKit.Engine.Pool
         public void ReleaseObject(T _object)
         {
             _object.ClearObjectState();
+            _object.Destroy();
 
             lock (InUse)
             {
