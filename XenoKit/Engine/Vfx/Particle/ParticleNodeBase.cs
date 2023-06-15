@@ -14,7 +14,7 @@ namespace XenoKit.Engine.Vfx.Particle
     public class ParticleNodeBase : PooledEntity
     {
         public WeakReference Effect;
-        public override bool IsAlive => Effect.IsAlive == true;
+        public override bool IsAlive => Effect.IsAlive;
 
         public ParticleSystem ParticleSystem { get; private set; }
         public ParticleNode Node;
@@ -63,6 +63,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         //Children Nodes
         public List<ParticleNodeBase> Nodes = new List<ParticleNodeBase>();
+        public List<ParticleNodeBase> PreviousNodes = new List<ParticleNodeBase>();
 
         //Active child node instances
         protected List<int> ActiveInstances = new List<int>();
@@ -163,6 +164,11 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void Draw()
         {
+            for (int i = 0; i < PreviousNodes.Count; i++)
+            {
+                PreviousNodes[i].Draw();
+            }
+
             for (int i = 0; i < Nodes.Count; i++)
             {
                 Nodes[i].Draw();
@@ -186,6 +192,10 @@ namespace XenoKit.Engine.Vfx.Particle
                 if (Loop && !ParticleSystem.IsTerminating)
                 {
                     CurrentFrame = 0f;
+
+                    //The nodes created on a previous loop don't count as active children of the node
+                    PreviousNodes.AddRange(Nodes);
+                    Nodes.Clear();
                 }
                 else
                 {
@@ -251,6 +261,17 @@ namespace XenoKit.Engine.Vfx.Particle
 
         protected void UpdateChildrenNodes()
         {
+            for (int i = PreviousNodes.Count - 1; i >= 0; i--)
+            {
+                PreviousNodes[i].Update();
+
+                if (PreviousNodes[i].State == NodeState.Expired)
+                {
+                    PreviousNodes[i].Release();
+                    PreviousNodes.RemoveAt(i);
+                }
+            }
+
             for (int i = Nodes.Count - 1; i >= 0; i--)
             {
                 Nodes[i].Update();
@@ -272,7 +293,7 @@ namespace XenoKit.Engine.Vfx.Particle
             if (GameBase.IsPlaying)
                 CurrentFrame += ParticleSystem.ActiveTimeScale;
 
-            if (State == NodeState.WaitingOnChildren && Nodes.Count == 0)
+            if (State == NodeState.WaitingOnChildren && Nodes.Count == 0 && PreviousNodes.Count == 0)
             {
                 State = NodeState.Expired;
             }
@@ -294,7 +315,16 @@ namespace XenoKit.Engine.Vfx.Particle
                     if (ActiveInstances.Count - 1 < i)
                         ActiveInstances.Add(0);
 
-                    ActiveInstances[i] = Nodes.Where(x => x.Node == Node.ChildParticleNodes[i]).Count();
+                    ActiveInstances[i] = 0;
+
+                    for(int a = 0; a < Nodes.Count; a++)
+                    {
+                        if(Nodes[a].Node == Node.ChildParticleNodes[i])
+                        {
+                            ActiveInstances[i]++;
+                        }
+                    }
+                    //ActiveInstances[i] = Nodes.Where(x => x.Node == Node.ChildParticleNodes[i]).Count();
                 }
             }
         }

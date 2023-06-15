@@ -509,6 +509,7 @@ namespace XenoKit
 
         private void DebugMenu_ForceGC(object sender, RoutedEventArgs e)
         {
+            SceneManager.MainGameBase.CompiledObjectManager.RemoveDeadObjects();
             GC.Collect();
 
             Log.Add("GC initiated", LogType.Debug);

@@ -117,7 +117,7 @@ namespace XenoKit.Engine
 
         }
 
-        private void RemoveDeadObjects()
+        public void RemoveDeadObjects()
         {
             int removed = 0;
 
