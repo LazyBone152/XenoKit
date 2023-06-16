@@ -69,7 +69,8 @@ namespace XenoKit.Engine.Lighting
 
         public Vector4 GetLightDirection(Vector3 position)
         {
-            Vector4 vector = Position - new Vector4(position.X, position.Y, position.Z, 0);
+            //Vector4 vector = Position - new Vector4(position.X, position.Y, position.Z, 0);
+            Vector4 vector = Position;
             vector.Normalize();
             return vector;
         }

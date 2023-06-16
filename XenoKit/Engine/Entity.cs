@@ -96,7 +96,7 @@ namespace XenoKit.Engine
         }
 
         /// <summary>
-        /// Mark the Entity as alive once again (Changes Entity.IsDestroyed to true).
+        /// Mark the Entity as alive once again (Changes Entity.IsDestroyed to false).
         /// </summary>
         public void Reclaim()
         {

@@ -79,6 +79,17 @@ namespace XenoKit.Windows
                 }
             }
         }
+        public bool SuppressErrors
+        {
+            get => SettingsManager.settings.XenoKit_SuppressErrorsToLogOnly;
+            set
+            {
+                if (SettingsManager.settings.XenoKit_SuppressErrorsToLogOnly != value)
+                {
+                    SettingsManager.settings.XenoKit_SuppressErrorsToLogOnly = value;
+                }
+            }
+        }
 
         public SettingsWindow(MainWindow parent)
         {

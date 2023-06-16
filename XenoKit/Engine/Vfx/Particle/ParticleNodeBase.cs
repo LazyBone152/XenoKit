@@ -38,6 +38,7 @@ namespace XenoKit.Engine.Vfx.Particle
         protected float RotationAmount = 0f;
         public Vector3 Velocity;
 
+        public Matrix Rotation = Matrix.Identity;
         /// <summary>
         /// Transform encasing all movement of this node (velocity).
         /// </summary>
@@ -112,6 +113,8 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void ClearObjectState()
         {
+            ParticleSystem = null;
+            EffectPart = null;
             State = NodeState.Created;
             CurrentFrame = 0f;
             StartTime = 0;
@@ -222,11 +225,15 @@ namespace XenoKit.Engine.Vfx.Particle
                 float[] rotation = Node.Rotation.GetInterpolatedValue(CurrentTimeFactor);
 
                 Transform = MovementTransform * ScaleAdjustment * EmitPointTransform;
-                Transform *= Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
+                //Transform *= Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
                 Transform *= Matrix.CreateTranslation(new Vector3(position[0] + PositionX_Variance, position[1] + PositionY_Variance, position[2] + PositionZ_Variance) * ParticleSystem.Scale);
-                //Transform = MovementTransform * Transform;
 
-                AbsoluteTransform = EffectPart.InstantUpdate ? Transform * ParticleSystem.AttachmentBone : Transform * EmitBoneTransform;
+                //For now, splitting rotation out from Transform to fix an annoying bug with emissions.
+                //Rotation is only relevant for 2 things: 1. Its applied to emitted nodes (if this is an Emitter), rotating them. 2. For BillboardType=None, it rotates the texture in addition to the defined Rotation Axis
+                //It doesn't actually rotate the node, and so doesn't change the way position or a modifier is applied.
+                Rotation = Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
+
+                AbsoluteTransform = EffectPart.InstantUpdate ? Rotation * Transform * ParticleSystem.AttachmentBone : Rotation * Transform * EmitBoneTransform;
             }
 
         }
@@ -250,7 +257,7 @@ namespace XenoKit.Engine.Vfx.Particle
         protected void UpdateRotation()
         {
             if (GameBase.IsPlaying)
-                RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance) / 60f;
+                RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance); //Actually is per FRAME?
         }
 
         protected void UpdateChildrenNodes()
@@ -311,9 +318,9 @@ namespace XenoKit.Engine.Vfx.Particle
 
                     ActiveInstances[i] = 0;
 
-                    for(int a = 0; a < Nodes.Count; a++)
+                    for (int a = 0; a < Nodes.Count; a++)
                     {
-                        if(Nodes[a].Node == Node.ChildParticleNodes[i])
+                        if (Nodes[a].Node == Node.ChildParticleNodes[i])
                         {
                             ActiveInstances[i]++;
                         }
@@ -342,7 +349,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
                     //Position where the node is to be emitted. 
                     Vector3 velocity = Vector3.Zero;
-                    Matrix emitTransform = GetEmitTransformationMatrix(ref velocity) * Transform;
+                    Matrix emitTransform = GetEmitTransformationMatrix(ref velocity) * Rotation * Transform;
 
                     //IF node is an emission (NOT an emitter), then any children nodes will inherit its velocity.
                     if (Node.IsEmission)
@@ -401,7 +408,7 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             return EffectPart.InstantUpdate ? ParticleSystem.AttachmentBone : EmitBoneTransform;
         }
-    
+
     }
 
     public enum NodeState : byte

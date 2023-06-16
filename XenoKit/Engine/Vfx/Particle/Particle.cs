@@ -55,6 +55,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public override void ClearObjectState()
         {
             base.ClearObjectState();
+            EmissionData = null;
         }
 
         public void SetValues()
@@ -211,20 +212,13 @@ namespace XenoKit.Engine.Vfx.Particle
                     }
                 }
 
+                Matrix attachBone = GetAttachmentBone();
+
+                float rotAmount = Xv2CoreLib.Random.Range(0, 2) == 1 && Node.NodeFlags2.HasFlag(NodeFlags2.RandomRotationDir) ? -RotationAmount : RotationAmount;
 
                 if (Node.EmissionNode.BillboardType == ParticleBillboardType.Camera)
                 {
-                    //Billboard faces in the opposite direction with Matrix.CreateBillboard...?
-                    //EmissionData.Material.World = Matrix.CreateBillboard(new Vector3(-Transform.Translation.X, Transform.Translation.Y, Transform.Translation.Z), GameBase.ActiveCameraBase.CameraState.Position, Vector3.Up, GameBase.ActiveCameraBase.CameraState.TargetPosition - GameBase.ActiveCameraBase.CameraState.Position);
-
-                    //Dirty hack, but works at a basic level. Not very good for what is needed here tho...
-                    //EmissionData.Material.World = Matrix.Invert(GameBase.ActiveCameraBase.ViewMatrix);
-                    //Matrix world = Transform * GetAttachmentBone();
-                    //EmissionData.Material.World.Translation = new Vector3(-world.Translation.X, world.Translation.Y, world.Translation.Z);
-
-                    //try again
-                    Matrix world = Transform * GetAttachmentBone() * Matrix.CreateScale(-1f, 1, 1);
-                    //EmissionData.Material.World = Matrix.CreateBillboard(world.Translation, CameraBase.CameraState.Position, Vector3.Up, forward);
+                    Matrix world = Transform * attachBone * Matrix.CreateScale(-1f, 1, 1);
 
                     if (Node.EmissionNode.VelocityOriented)
                     {
@@ -234,17 +228,37 @@ namespace XenoKit.Engine.Vfx.Particle
                     }
                     else
                     {
-                        float rotAmount = Xv2CoreLib.Random.Range(0, 2) == 1 && Node.NodeFlags2.HasFlag(NodeFlags2.RandomRotationDir) ? -RotationAmount : RotationAmount;
-
                         //rotAmount and Camera Up vector need to be inverted... apparantly
-                        EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateFromAxisAngle(Vector3.Left, MathHelper.Pi) * Matrix.CreateBillboard(world.Translation, CameraBase.CameraState.Position, -Vector3.Up, null); // * Matrix.Invert(CameraBase.ViewMatrix) * Matrix.CreateRotationZ(MathHelper.ToRadians(RotationAmount)) * CameraBase.ViewMatrix
+                        EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateFromAxisAngle(Vector3.Left, MathHelper.Pi) * Matrix.CreateBillboard(world.Translation, CameraBase.CameraState.Position, -Vector3.Up, null);
                         EmissionData.Material.World.Translation = world.Translation;
 
                     }
                 }
+                else if(Node.EmissionNode.BillboardType == ParticleBillboardType.Front)
+                {
+                    Matrix world = Transform * attachBone * Matrix.CreateScale(-1f, 1, 1);
+
+                    EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateBillboard(world.Translation, attachBone.Translation, Vector3.Up, null);
+                    EmissionData.Material.World.Translation = world.Translation;
+                }
                 else
                 {
-                    EmissionData.Material.World = Transform * GetAttachmentBone() * Matrix.CreateScale(-1f, 1, 1);
+                    //Is ParticleBillboardType.None
+                    //For purposes of rendering, the orientation of all previous particle nodes is ignored. Rotation is handled entirely by the node itself (billboard, or a defined rotation axis).
+                    Transform.Decompose(out Vector3 scale, out Quaternion _, out Vector3 translation);
+                    Matrix world = Matrix.CreateTranslation(translation) * Matrix.CreateScale(scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
+
+                    Vector3 rotAxis = new Vector3(Node.EmissionNode.RotationAxis.X, Node.EmissionNode.RotationAxis.Y, Node.EmissionNode.RotationAxis.Z);
+
+                    if(rotAxis != Vector3.Zero)
+                    {
+                        EmissionData.Material.World = Matrix.CreateFromAxisAngle(rotAxis, MathHelper.ToRadians(rotAmount)) * Rotation * world;
+                    }
+                    else
+                    {
+                        EmissionData.Material.World = Rotation * world;
+                    }
+                    EmissionData.Material.World.Translation = world.Translation;
                 }
 
                 //Shader passes and vertex drawing
