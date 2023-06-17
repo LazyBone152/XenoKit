@@ -81,9 +81,9 @@ namespace XenoKit.Engine.Vfx.Particle
 
             //Calculate the velocity of the emitted node.
             float velocityAmount = Node.EmitterNode.Velocity.GetInterpolatedValue(CurrentTimeFactor) + Xv2CoreLib.Random.Range(0, Node.EmitterNode.Velocity_Variance);
-            velocity = new Vector3(0, velocityAmount, 0) * ParticleSystem.Scale;
+            velocity = new Vector3(0, velocityAmount, 0);
 
-            return transformMatrix * Matrix.CreateScale(ParticleSystem.Scale);
+            return transformMatrix;
         }
 
         private Matrix GetEmitOnCircleMatrix()

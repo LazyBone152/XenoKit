@@ -226,7 +226,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
                 Transform = MovementTransform * ScaleAdjustment * EmitPointTransform;
                 //Transform *= Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
-                Transform *= Matrix.CreateTranslation(new Vector3(position[0] + PositionX_Variance, position[1] + PositionY_Variance, position[2] + PositionZ_Variance) * ParticleSystem.Scale);
+                Transform *= Matrix.CreateTranslation(new Vector3(position[0] + PositionX_Variance, position[1] + PositionY_Variance, position[2] + PositionZ_Variance));
 
                 //For now, splitting rotation out from Transform to fix an annoying bug with emissions.
                 //Rotation is only relevant for 2 things: 1. Its applied to emitted nodes (if this is an Emitter), rotating them. 2. For BillboardType=None, it rotates the texture in addition to the defined Rotation Axis
@@ -247,7 +247,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     case EMP_Modifier.EmpModifierType.Acceleration:
                         {
                             var values = modifier.Axis.GetInterpolatedValue(CurrentTimeFactor);
-                            Velocity += (new Vector3(values[0] / 60f, values[1] / 60f, values[2] / 60f) * modifier.Factor.GetInterpolatedValue(CurrentTimeFactor)) * ParticleSystem.Scale;
+                            Velocity += (new Vector3(values[0] / 60f, values[1] / 60f, values[2] / 60f) * modifier.Factor.GetInterpolatedValue(CurrentTimeFactor));
                         }
                         break;
                 }

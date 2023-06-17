@@ -238,7 +238,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
                 if (Node.EmissionNode.BillboardType == ParticleBillboardType.Camera)
                 {
-                    Matrix world = Transform * attachBone * Matrix.CreateScale(-1f, 1, 1);
+                    Matrix world = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
 
                     if (Node.EmissionNode.VelocityOriented)
                     {
@@ -259,7 +259,7 @@ namespace XenoKit.Engine.Vfx.Particle
                 }
                 else if(Node.EmissionNode.BillboardType == ParticleBillboardType.Front)
                 {
-                    Matrix world = Transform * attachBone * Matrix.CreateScale(-1f, 1, 1);
+                    Matrix world = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
 
                     EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateBillboard(world.Translation, attachBone.Translation, Vector3.Up, null);
                     EmissionData.Material.World.Translation = world.Translation;
@@ -269,7 +269,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     //Is ParticleBillboardType.None
                     //For purposes of rendering, the orientation of all previous particle nodes is ignored. 
                     _ = Transform.Decompose(out Vector3 scale, out _, out Vector3 translation);
-                    Matrix world = Matrix.CreateTranslation(translation) * Matrix.CreateScale(scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
+                    Matrix world = Matrix.CreateTranslation(translation) * Matrix.CreateScale(scale) * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
                     Vector3 rotAxis;
 
                     if (Node.NodeFlags2.HasFlag(NodeFlags2.RandomUpVector))
