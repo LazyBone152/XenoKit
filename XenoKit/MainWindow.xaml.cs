@@ -467,6 +467,7 @@ namespace XenoKit
                         case ".ean":
                         case ".acb":
                         case ".eepk":
+                        case ".vfxpackage":
                             Files.Instance.ManualLoad(drop);
                             break;
                         default:

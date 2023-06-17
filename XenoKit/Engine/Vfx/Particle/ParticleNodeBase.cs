@@ -256,8 +256,14 @@ namespace XenoKit.Engine.Vfx.Particle
 
         protected void UpdateRotation()
         {
-            if (GameBase.IsPlaying)
-                RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance); //Actually is per FRAME?
+            //For some reason, FlashOnGen (whatever that is) disables ActiveRotation
+
+            if (GameBase.IsPlaying && !Node.NodeFlags.HasFlag(NodeFlags1.FlashOnGen))
+            {
+                //Rotation amount is PER frame, despite what the old tooltip said
+
+                RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance);
+            }
         }
 
         protected void UpdateChildrenNodes()

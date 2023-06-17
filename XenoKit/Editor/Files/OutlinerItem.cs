@@ -190,6 +190,7 @@ namespace XenoKit.Editor
                     ManualFiles = ManualFiles.LoadAcb(path);
                     break;
                 case ".eepk":
+                case ".vfxpackage":
                     Type = OutlinerItemType.EEPK;
                     ManualFiles = ManualFiles.LoadEepk(path);
                     break;
@@ -393,7 +394,9 @@ namespace XenoKit.Editor
 
         public static ManualFiles LoadEepk(string path)
         {
-            Xv2File<EffectContainerFile> file = new Xv2File<EffectContainerFile>(EffectContainerFile.Load(path), path, true);
+            EffectContainerFile eepk = Path.GetExtension(path) == EffectContainerFile.ZipExtension ? EffectContainerFile.LoadVfxPackage(path) : EffectContainerFile.Load(path);
+
+            Xv2File <EffectContainerFile> file = new Xv2File<EffectContainerFile>(eepk, path, true);
             Xv2MoveFiles move = new Xv2MoveFiles();
             move.EepkFile = file;
 

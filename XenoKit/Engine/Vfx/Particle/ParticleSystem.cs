@@ -17,7 +17,6 @@ namespace XenoKit.Engine.Vfx.Particle
         public EMP_File EmpFile { get; set; }
 
         private ParticleRootNode RootNode;
-        public ParticleUV[] Textures = null;
 
         public float ActiveTimeScale = 1f;
         public Matrix AttachmentBone { get; private set; } = Matrix.Identity;
@@ -33,13 +32,6 @@ namespace XenoKit.Engine.Vfx.Particle
 
         private void InitializeParticleSystem()
         {
-            Textures = new ParticleUV[EmpFile.Textures.Count];
-
-            for(int i = 0; i < EmpFile.Textures.Count; i++)
-            {
-                Textures[i] = new ParticleUV(EmpFile.Textures[i]);
-            }
-
             RootNode = new ParticleRootNode(EmpFile, this, EffectPart, GameBase);
             RootNode.Play();
         }
@@ -80,11 +72,6 @@ namespace XenoKit.Engine.Vfx.Particle
             AttachmentBone = GetAdjustedTransform();
 
             RootNode.Update();
-
-            for(int i = 0; i < Textures.Length; i++)
-            {
-                Textures[i].Update(GameBase.IsPlaying, ActiveTimeScale);
-            }
 
             if (RootNode.State == NodeState.Expired)
             {

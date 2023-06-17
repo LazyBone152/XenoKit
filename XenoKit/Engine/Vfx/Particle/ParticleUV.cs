@@ -14,6 +14,8 @@ namespace XenoKit.Engine.Vfx.Particle
         public float StepU = 1f;
         public float StepV = 1f;
 
+        public ParticleUV() { }
+
         public ParticleUV(EMP_TextureSamplerDef texture)
         {
             TextureDef = texture;
@@ -21,7 +23,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public void Update(bool isPlaying, float timeScale)
         {
-            if (isPlaying)
+            if (isPlaying && TextureDef != null)
             {
                 if (TextureDef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.Speed)
                 {
@@ -81,6 +83,13 @@ namespace XenoKit.Engine.Vfx.Particle
             }
         }
     
+        public void SetTexture(EMP_TextureSamplerDef texture)
+        {
+            TextureDef = texture;
+            CurrentKeyframeIndex = 0;
+            CurrentTime = 0;
+        }
+
         public void Restart()
         {
             CurrentTime = 0;

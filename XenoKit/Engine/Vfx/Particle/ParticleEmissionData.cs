@@ -103,6 +103,8 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 SetTextureIndex();
             }
+
+            IsTexturesDirty = false;
         }
 
         public void SetTextureIndex()
@@ -121,6 +123,7 @@ namespace XenoKit.Engine.Vfx.Particle
             }
 
             Material = compiledMat;
+            IsMaterialsDirty = false;
         }
 
         private TextureFilter GetTextureFilter(TextureFiltering min, TextureFiltering mag)

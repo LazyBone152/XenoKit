@@ -21,6 +21,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         private readonly VertexPositionTextureColor[] Vertices = new VertexPositionTextureColor[6];
         private ParticleEmissionData EmissionData;
+        private ParticleUV ParticleUV = new ParticleUV();
 
         private float ColorR_Variance = 0f;
         private float ColorG_Variance = 0f;
@@ -29,6 +30,9 @@ namespace XenoKit.Engine.Vfx.Particle
         private float ScaleBase_Variance = 0f;
         private float ScaleU_Variance = 0f;
         private float ScaleV_Variance = 0f;
+        private float RandomRotX = 0f;
+        private float RandomRotY = 0f;
+        private float RandomRotZ = 0f;
 
         //Keyframed Values:
         private float ScaleBase = 0.5f;
@@ -74,6 +78,24 @@ namespace XenoKit.Engine.Vfx.Particle
             StartRotation_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.StartRotation_Variance);
             ActiveRotation_Variance = Xv2CoreLib.Random.Range(0, Node.EmissionNode.ActiveRotation_Variance);
             RotationAmount = Node.EmissionNode.StartRotation + StartRotation_Variance;
+
+            if (Node.NodeFlags2.HasFlag(NodeFlags2.RandomUpVector))
+            {
+                RandomRotX = Xv2CoreLib.Random.Range(0, 1f);
+                RandomRotY = Xv2CoreLib.Random.Range(0, 1f);
+                RandomRotZ = Xv2CoreLib.Random.Range(0, 1f);
+            }
+
+            if(Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef != null)
+            {
+                ParticleUV.SetTexture(Node.EmissionNode.Texture.TextureEntryRef[0].TextureRef);
+            }
+
+            if (Node.EmissionNode.Texture.TextureEntryRef[1].TextureRef != null)
+            {
+                //Only a grand total of 2 EMPs use the second texture slot, hardly worth the effort of supporting it
+                Log.Add($"WARNING: Particle Node ({Node.Name}) uses 2 textures. This is not supported and wont be reflected in the viewport!", LogType.Warning);
+            }
         }
 
         private void UpdateColor()
@@ -141,17 +163,17 @@ namespace XenoKit.Engine.Vfx.Particle
             Vertices[VERTEX_BOTTOM_RIGHT].Position.Y = -ScaleV;
 
             //UV
-            Vertices[VERTEX_TOP_LEFT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU;
-            Vertices[VERTEX_TOP_LEFT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV;
-            Vertices[VERTEX_TOP_RIGHT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU + ParticleSystem.Textures[EmissionData.TextureIndex].StepU;
-            Vertices[VERTEX_TOP_RIGHT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV;
-            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU;
-            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV + ParticleSystem.Textures[EmissionData.TextureIndex].StepV;
-            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.X = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollU + ParticleSystem.Textures[EmissionData.TextureIndex].StepU;
-            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.Y = ParticleSystem.Textures[EmissionData.TextureIndex].ScrollV + ParticleSystem.Textures[EmissionData.TextureIndex].StepV;
+            Vertices[VERTEX_TOP_LEFT].TextureUV.X = ParticleUV.ScrollU;
+            Vertices[VERTEX_TOP_LEFT].TextureUV.Y = ParticleUV.ScrollV;
+            Vertices[VERTEX_TOP_RIGHT].TextureUV.X = ParticleUV.ScrollU + ParticleUV.StepU;
+            Vertices[VERTEX_TOP_RIGHT].TextureUV.Y = ParticleUV.ScrollV;
+            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.X = ParticleUV.ScrollU;
+            Vertices[VERTEX_BOTTOM_LEFT].TextureUV.Y = ParticleUV.ScrollV + ParticleUV.StepV;
+            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.X = ParticleUV.ScrollU + ParticleUV.StepU;
+            Vertices[VERTEX_BOTTOM_RIGHT].TextureUV.Y = ParticleUV.ScrollV + ParticleUV.StepV;
 
             //Color
-            if (Node.NodeFlags.HasFlag(NodeFlags1.EnableSecondaryColor))
+            if (Node.NodeFlags.HasFlag(NodeFlags1.EnableSecondaryColor) && !Node.NodeFlags.HasFlag(NodeFlags1.FlashOnGen))
             {
                 Vertices[VERTEX_TOP_LEFT].SetColor(PrimaryColor);
                 Vertices[VERTEX_TOP_RIGHT].SetColor(PrimaryColor);
@@ -174,8 +196,9 @@ namespace XenoKit.Engine.Vfx.Particle
         public override void Update()
         {
             EmissionData.Update();
+            ParticleUV.Update(GameBase.IsPlaying, ParticleSystem.ActiveTimeScale);
 
-            if (Node.EmissionNode.VelocityOriented)
+            if (Node.EmissionNode.VelocityOriented && Node.EmissionNode.BillboardType == ParticleBillboardType.Camera)
             {
                 ScaleAdjustment = Matrix.CreateTranslation(new Vector3(0, (ScaleV + ScaleV_Variance) / 2f, 0));
             }
@@ -196,9 +219,6 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             if (State == NodeState.Active && !Node.NodeFlags.HasFlag(NodeFlags1.Hide))
             {
-                //If the "Motion Only" flag is selected on the default plane, the particle should only be visible if there is any velocity
-                if (Node.EmissionNode.VelocityOriented && Velocity == Vector3.Zero) return;
-
                 //Set samplers/textures
                 for (int i = 0; i < EmissionData.Samplers.Length; i++)
                 {
@@ -222,6 +242,9 @@ namespace XenoKit.Engine.Vfx.Particle
 
                     if (Node.EmissionNode.VelocityOriented)
                     {
+                        //Skip rendering all together if velocity is zero
+                        if (Velocity == Vector3.Zero) return;
+
                         //Billboard normally always faces the opposite direction for an unknown reason, this is why there is a rotation (180 degrees). TODO: More testing with this, removing for now
                         //EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null);
                         EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null);
@@ -244,21 +267,27 @@ namespace XenoKit.Engine.Vfx.Particle
                 else
                 {
                     //Is ParticleBillboardType.None
-                    //For purposes of rendering, the orientation of all previous particle nodes is ignored. Rotation is handled entirely by the node itself (billboard, or a defined rotation axis).
-                    Transform.Decompose(out Vector3 scale, out Quaternion _, out Vector3 translation);
+                    //For purposes of rendering, the orientation of all previous particle nodes is ignored. 
+                    _ = Transform.Decompose(out Vector3 scale, out _, out Vector3 translation);
                     Matrix world = Matrix.CreateTranslation(translation) * Matrix.CreateScale(scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
+                    Vector3 rotAxis;
 
-                    Vector3 rotAxis = new Vector3(Node.EmissionNode.RotationAxis.X, Node.EmissionNode.RotationAxis.Y, Node.EmissionNode.RotationAxis.Z);
-
-                    if(rotAxis != Vector3.Zero)
+                    if (Node.NodeFlags2.HasFlag(NodeFlags2.RandomUpVector))
                     {
-                        EmissionData.Material.World = Matrix.CreateFromAxisAngle(rotAxis, MathHelper.ToRadians(rotAmount)) * Rotation * world;
+                        rotAxis = new Vector3(RandomRotX + Node.EmissionNode.RotationAxis.X, RandomRotY + Node.EmissionNode.RotationAxis.Y, RandomRotZ + Node.EmissionNode.RotationAxis.Z) * rotAmount;
+                        EmissionData.Material.World = Matrix.CreateFromYawPitchRoll(rotAxis.X, rotAxis.Y, rotAxis.Z) * Rotation * world;
                     }
                     else
                     {
-                        EmissionData.Material.World = Rotation * world;
+                        rotAxis = new Vector3(Node.EmissionNode.RotationAxis.X, Node.EmissionNode.RotationAxis.Y, Node.EmissionNode.RotationAxis.Z);
+                        EmissionData.Material.World = Matrix.CreateFromAxisAngle(rotAxis, MathHelper.ToRadians(rotAmount)) * Rotation * world;
                     }
-                    EmissionData.Material.World.Translation = world.Translation;
+
+                    //There is one case where this is different from the game:
+                    //IF RotAxis is 0 and some rotation value is set, the plane will disappear in XenoKit, but still be visible ingame
+                    //But it then disappears ingame anyway if a very low RotAxis is used
+                    //Can be fixed with an additional check against RotZero being zero, then removing the rotation from the matrix multiplication, but not sure if worth it
+
                 }
 
                 //Shader passes and vertex drawing
