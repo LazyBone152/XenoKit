@@ -7,6 +7,7 @@ using XenoKit.Engine.Textures;
 using XenoKit.Engine.Vertex;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EMP_NEW;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Vfx.Particle
 {
@@ -217,6 +218,8 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void Draw()
         {
+            if (!ParticleSystem.DrawThisFrame) return;
+
             if (State == NodeState.Active && !Node.NodeFlags.HasFlag(NodeFlags1.Hide))
             {
                 //Set samplers/textures

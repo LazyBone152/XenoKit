@@ -9,9 +9,17 @@ namespace XenoKit.Engine.Animation
 {
     public class Xv2Skeleton
     {
+        /// <summary>
+        /// Magic number to represent the "b_C_Hand" special bone (the barycenter between b_L_Hand and b_R_Hand).
+        /// </summary>
+        public const int b_C_Hand_Magic = 0xbcaaa;
+
         private readonly Dictionary<string, int> BoneIndexCache;
         public int BaseBoneIndex { get; private set; }
         public int PelvisBoneIndex { get; private set; }
+        public int HandL_BoneIndex { get; private set; }
+        public int HandR_BoneIndex { get; private set; }
+
         /// <summary>
         /// Indices of the BAC bones. Cached here for better performance.
         /// </summary>
@@ -123,6 +131,14 @@ namespace XenoKit.Engine.Animation
                 {
                     PelvisBoneIndex = i;
                 }
+                else if (Bones[i].Name == ESK_File.LeftHandBone)
+                {
+                    HandL_BoneIndex = i;
+                }
+                else if (Bones[i].Name == ESK_File.RightHandBone)
+                {
+                    HandR_BoneIndex = i;
+                }
             }
 
             UpdateAbsoluteMatrixFromRelative();
@@ -138,6 +154,8 @@ namespace XenoKit.Engine.Animation
 
             UpdateBoneScale();
             SetBacBoneIndices();
+
+            BoneIndexCache.Add("b_C_Hand", b_C_Hand_Magic);
         }
 
         private void UpdateAbsoluteMatrixFromRelative()
@@ -233,14 +251,21 @@ namespace XenoKit.Engine.Animation
         #endregion
 
         #region Helpers
-        public int GetBoneIndex(string name)
+        public int GetBoneIndex(string name, bool allowSpecialBones = false)
         {
             if (name == null) return -1;
             int idx;
 
             //Bones are cached for better performance
             if (BoneIndexCache.TryGetValue(name, out idx))
+            {
+                if (idx == b_C_Hand_Magic)
+                {
+                    return allowSpecialBones ? idx : -1;
+                }
+
                 return idx;
+            }
 
             return -1;
         }
@@ -273,6 +298,22 @@ namespace XenoKit.Engine.Animation
             }
 
             return bones;
+        }
+
+        public Matrix GetHandBarycenter()
+        {
+            if(HandL_BoneIndex != -1 && HandR_BoneIndex != -1)
+            {
+                Matrix leftHand = Bones[HandL_BoneIndex].SkinningMatrix;
+                Matrix rightHand = Bones[HandR_BoneIndex].SkinningMatrix;
+
+                float weight1 = 1f / Vector3.Distance(leftHand.Translation, rightHand.Translation);
+                float weight2 = 1f - weight1;
+                Matrix barycenter = Matrix.Lerp(leftHand, rightHand, weight1);
+                return Matrix.Lerp(barycenter, rightHand, weight2);
+            }
+
+            return Matrix.Identity;
         }
 
         public void CopySkinningState(Xv2Skeleton skinnedSkeleton)

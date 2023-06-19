@@ -410,7 +410,7 @@ namespace XenoKit
 
         private async void MetroWindow_Closing(object sender, CancelEventArgs e)
         {
-            SettingsManager.Instance.SaveSettings();
+            SettingsManager.Instance.SaveSettings(false);
 
 #if !DEBUG
             e.Cancel = true;
@@ -425,7 +425,7 @@ namespace XenoKit
 
         private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            bool changed = SceneManager.SetSceneState(mainTabControl.SelectedIndex, bcsTabControl.SelectedIndex, audioControl.audioTabControl.SelectedIndex);
+            bool changed = SceneManager.SetSceneState(mainTabControl.SelectedIndex, bcsTabControl.SelectedIndex, audioControl.audioTabControl.SelectedIndex, eepkEditor.tabControl.SelectedIndex);
 
             //Auto play bac entry if nothing is active
             if (SceneManager.CurrentSceneState == EditorTabs.Action)

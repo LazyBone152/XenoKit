@@ -17,8 +17,6 @@ namespace XenoKit.Engine.Vfx
         private const int MAX_EFFECTS = 100;
         private List<VfxEffect> Effects = new List<VfxEffect>();
 
-        //Thread Control
-        //public List<Task> CurrentTasks { get; private set; } = new List<Task>();
         private List<VfxEffect> NewEffects = new List<VfxEffect>();
 
         /// <summary>
@@ -88,10 +86,13 @@ namespace XenoKit.Engine.Vfx
 
         public void StopActorEffects(Actor actor)
         {
-            foreach (VfxEffect vfxEffect in Effects)
+            lock (Effects)
             {
-                if (vfxEffect.Actor == actor)
-                    vfxEffect.Terminate(true);
+                foreach (VfxEffect vfxEffect in Effects)
+                {
+                    if (vfxEffect.Actor == actor)
+                        vfxEffect.Terminate(true);
+                }
             }
         }
 
@@ -112,34 +113,44 @@ namespace XenoKit.Engine.Vfx
 
         public void StopEffect(Effect effect)
         {
-            foreach(VfxEffect vfxEffect in Effects)
+            lock (Effects)
             {
-                if (vfxEffect.Effect == effect)
-                    vfxEffect.Terminate(false);
-            }
+                foreach (VfxEffect vfxEffect in Effects)
+                {
+                    if (vfxEffect.Effect == effect)
+                        vfxEffect.Terminate(false);
+                }
 
-            foreach (VfxEffect vfxEffect in NewEffects)
-            {
-                if (vfxEffect.Effect == effect)
-                    vfxEffect.Terminate(false);
+                foreach (VfxEffect vfxEffect in NewEffects)
+                {
+                    if (vfxEffect.Effect == effect)
+                        vfxEffect.Terminate(false);
+                }
             }
         }
 
         public void StopEffects()
         {
-            foreach(VfxEffect effect in Effects)
-            {
-                effect.Dispose();
-            }
-
             lock (Effects)
             {
+                foreach (VfxEffect effect in Effects)
+                {
+                    effect.Dispose();
+                }
+
                 NewEffects.Clear();
                 Effects.Clear();
             }
 
         }
 
+        public void RestartEffect()
+        {
+            if(Effects.Count == 1)
+            {
+                Effects[0].Initialize();
+            }
+        }
         #endregion
 
         #region UpdateAndRendering

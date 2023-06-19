@@ -1,25 +1,22 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Linq;
+using System.IO;
+using System.Windows.Media.Imaging;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using XenoKit.Engine.Animation;
 using XenoKit.Engine.Vertex;
 using XenoKit.Engine.Shader;
 using XenoKit.Engine.Textures;
+using Xv2CoreLib.EMG;
 using Xv2CoreLib.EMO;
 using Xv2CoreLib.EMD;
 using Xv2CoreLib.EMM;
-using EmmMaterial = Xv2CoreLib.EMM.EmmMaterial;
-using static Xv2CoreLib.EMD.EMD_TextureSamplerDef;
-using System;
-using Xv2CoreLib.EMG;
-using System.Linq;
-using Xv2CoreLib.BCS;
-using System.Windows.Media.Imaging;
-using System.IO;
-using System.Threading.Tasks;
-using System.Threading;
 using Xv2CoreLib.NSK;
 using Xv2CoreLib.Resource.App;
+using EmmMaterial = Xv2CoreLib.EMM.EmmMaterial;
+using static Xv2CoreLib.EMD.EMD_TextureSamplerDef;
 
 namespace XenoKit.Engine.Model
 {
@@ -421,9 +418,12 @@ namespace XenoKit.Engine.Model
         {
             if (AttachBone != -1 && skeleton != null)
             {
-                return world;
-                //return world * skeleton.Bones[AttachBone].SkinningMatrix;
-                //return skeleton.Bones[AttachBone].SkinningMatrix * world;
+                //This is right and wrong depending on the case... why?
+                //When return world = fixes; broken effects, like sparks, but breaks boost auras
+                //When skeleton.Bones[AttachBone].SkinningMatrix * world; fixes boost auras, breaks sparks
+
+                //return world;
+                return skeleton.Bones[AttachBone].SkinningMatrix * world;
             }
 
             return world;

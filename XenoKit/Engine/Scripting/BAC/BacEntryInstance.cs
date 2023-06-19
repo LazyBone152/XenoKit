@@ -95,7 +95,7 @@ namespace XenoKit.Engine.Scripting.BAC
                     if (type0.EndFrame != ushort.MaxValue)
                     {
                         //animTypeDuration = (type0.EndFrame - type0.StartFrame) + ((type.StartTime == 0) ? type0.StartFrame : (ushort)type.StartTime);
-                        animTypeDuration = type0.EndFrame;
+                        animTypeDuration = type.StartTime == 0 ? type0.EndFrame : type0.EndFrame - type0.StartFrame;
                     }
                     else
                     {

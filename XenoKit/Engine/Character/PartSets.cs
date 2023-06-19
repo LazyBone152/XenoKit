@@ -33,6 +33,10 @@ namespace XenoKit.Engine
         public CharaPart[] Parts = new CharaPart[10];
         public CharaPart[] TransformedParts = new CharaPart[10];
 
+        //BAC PartSet Function:
+        public CharaPart[] BacTransformedParts = new CharaPart[10];
+        public bool[] BacPermanentParts = new bool[10];
+
         public PartTypeFlags HideFlags = 0;
         public PartTypeFlags HideMatFlags = 0;
 
@@ -137,6 +141,14 @@ namespace XenoKit.Engine
                 }
             }
 
+            for (int i = 0; i < BacTransformedParts.Length; i++)
+            {
+                if (BacTransformedParts[i] != null)
+                {
+                    flags |= BacTransformedParts[i].GetHideFlags();
+                }
+            }
+
             HideFlags = flags;
         }
 
@@ -157,6 +169,14 @@ namespace XenoKit.Engine
                 if (Parts[i] != null)
                 {
                     flags |= Parts[i].GetHideMatFlags();
+                }
+            }
+
+            for (int i = 0; i < BacTransformedParts.Length; i++)
+            {
+                if (BacTransformedParts[i] != null)
+                {
+                    flags |= BacTransformedParts[i].GetHideMatFlags();
                 }
             }
 
@@ -201,6 +221,25 @@ namespace XenoKit.Engine
                         else if (TransformedParts[i].partType == PartType.FaceBase)
                         {
                             FceEan = TransformedParts[i].GetEan();
+                        }
+                    }
+                }
+            }
+
+            //Transformed parts have priority, so they come last
+            for (int i = 0; i < BacTransformedParts.Length; i++)
+            {
+                if (BacTransformedParts[i] != null)
+                {
+                    if (BacTransformedParts[i].GetEan() != null)
+                    {
+                        if (BacTransformedParts[i].partType == PartType.FaceForehead)
+                        {
+                            FceForeheadEan = BacTransformedParts[i].GetEan();
+                        }
+                        else if (BacTransformedParts[i].partType == PartType.FaceBase)
+                        {
+                            FceEan = BacTransformedParts[i].GetEan();
                         }
                     }
                 }
@@ -252,12 +291,67 @@ namespace XenoKit.Engine
         }
         #endregion
 
+        #region BacPartSetSwap
+        public void ApplyBacPartSetSwap(int index, bool permanent)
+        {
+            var partSetTrans = chara.CharacterData.BcsFile.File.PartSets.FirstOrDefault(x => x.ID == index);
+            if (partSetTrans == null)
+            {
+                Log.Add($"CharaPartSet.ApplyBacTransformation: PartSet {index} not found.", LogType.Warning);
+                return;
+            }
+
+            //Load parts
+            ApplyBacPartSetSwap(0, partSetTrans, permanent);
+            ApplyBacPartSetSwap(1, partSetTrans, permanent);
+            ApplyBacPartSetSwap(2, partSetTrans, permanent);
+            ApplyBacPartSetSwap(3, partSetTrans, permanent);
+            ApplyBacPartSetSwap(4, partSetTrans, permanent);
+            ApplyBacPartSetSwap(5, partSetTrans, permanent);
+            ApplyBacPartSetSwap(6, partSetTrans, permanent);
+            ApplyBacPartSetSwap(7, partSetTrans, permanent);
+            ApplyBacPartSetSwap(8, partSetTrans, permanent);
+            ApplyBacPartSetSwap(9, partSetTrans, permanent);
+
+            //Reload fce.ean
+            GetFceEan();
+        }
+
+        private void ApplyBacPartSetSwap(int index, PartSet partSet, bool permanent)
+        {
+            Part part = partSet.GetPart(index);
+
+            if (part != null)
+            {
+                BacTransformedParts[index] = new CharaPart(GameBase, chara, part, (PartType)index);
+                BacPermanentParts[index] = permanent;
+            }
+        }
+
+        public void ResetBacPartSetSwap(bool revertPermanentSwaps)
+        {
+            //Always set this to true currently. 
+            revertPermanentSwaps = true;
+
+            for(int i = 0; i < BacTransformedParts.Length; i++)
+            {
+                if(BacPermanentParts[i] == false || revertPermanentSwaps)
+                {
+                    BacTransformedParts[i] = null;
+                    BacPermanentParts[i] = false;
+                }
+            }
+        }
+        #endregion
+
         #region Rendering
         public override void Update()
         {
             for (int i = 0; i < Parts.Length; i++)
             {
-                if (TransformedParts[i] != null)
+                if (BacTransformedParts[i] != null)
+                    BacTransformedParts[i].Update();
+                else if (TransformedParts[i] != null)
                     TransformedParts[i].Update();
                 else if (Parts[i] != null)
                     Parts[i].Update();
@@ -272,7 +366,9 @@ namespace XenoKit.Engine
                 //-TransformedPart
                 //-Else, Part if no TransformedPart
 
-                if(TransformedParts[i] != null)
+                if (BacTransformedParts[i] != null)
+                    BacTransformedParts[i].Draw(HideFlags);
+                else if (TransformedParts[i] != null)
                     TransformedParts[i].Draw(HideFlags);
                 else if (Parts[i] != null)
                     Parts[i].Draw(HideFlags);
@@ -665,7 +761,7 @@ namespace XenoKit.Engine
             if(path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if(chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
+                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -705,7 +801,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
+                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -741,7 +837,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
+                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -778,7 +874,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
+                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -818,7 +914,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && (path.Contains($"{owner}/") || path.Contains($"{owner}" + @"\")))
+                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -856,7 +952,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == physicsPart.CharaCode && (path.Contains($"{physicsPart.CharaCode}/") || path.Contains($"{physicsPart.CharaCode}" + @"\")))
+                if (chara.ShortName == physicsPart.CharaCode && Utils.CompareCharaFolder(path, chara.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 

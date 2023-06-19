@@ -92,14 +92,15 @@ namespace XenoKit.Engine.Scripting.BAC
             if (clearing || BacEntryInstance == null) return;
 
             if (BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
-                UpdateBac(ref BacEntryInstance.CurrentFrame);
+                UpdateBac(true, ref BacEntryInstance.CurrentFrame);
 
             BacEntryInstance.Update();
         }
 
-        private void UpdateBac(ref float _refFrame)
+        private void UpdateBac(bool allowTimeSkip, ref float _refFrame)
         {
             float frame = _refFrame;
+            bool timeSkip = false;
             GameBase.SetBacTimeScale(1f, true);
             ushort typeFlag = (ushort)(character.CharacterData.IsCaC ? 1 : 2);
 
@@ -140,7 +141,10 @@ namespace XenoKit.Engine.Scripting.BAC
                                 GameBase.AnimationTimeScale = animation.TimeScale;
 
                                 if (animation.StartFrame != 0 && _refFrame == 0f) //On first frame, skipping to startFrame on animations is allowed
+                                {
                                     _refFrame = animation.StartFrame;
+                                    timeSkip = true;
+                                }
                                 break;
                             case BAC_Type0.EanTypeEnum.FaceBase:
                             case BAC_Type0.EanTypeEnum.FaceForehead:
@@ -227,6 +231,18 @@ namespace XenoKit.Engine.Scripting.BAC
                     }
                 }
 
+                //Functions
+                if(type is BAC_Type15 function)
+                {
+                    switch (function.FunctionType)
+                    {
+                        case 0x13: //Sets BCS PartSet (temp).
+                        case 0x14: //Sets BCS PartSet (permanent).
+                            character.PartSet.ApplyBacPartSetSwap((int)function.Param1, function.FunctionType == 0x14);
+                            break;
+                    }
+                }
+
                 //Eye Movement
                 if (type is BAC_Type21 eyeMovement)
                 {
@@ -276,6 +292,12 @@ namespace XenoKit.Engine.Scripting.BAC
             //Update face animation
             if(character.AnimationPlayer.PrimaryAnimation != null)
                 character.AnimationPlayer.PrimaryAnimation.EnableFaceBones = BacEntryInstance.MainFaceAnimationEndTime > CurrentFrame;
+
+            //If the frame was skipped to a latter frame by an animation, then process this later frame as well.
+            if (timeSkip && allowTimeSkip)
+            {
+                UpdateBac(false, ref _refFrame);
+            }
         }
 
         /// <summary>
@@ -307,7 +329,7 @@ namespace XenoKit.Engine.Scripting.BAC
             for (int i = 0; i <= frame; i++)
             {
                 BacEntryInstance.CurrentFrame = i;
-                UpdateBac(ref BacEntryInstance.CurrentFrame);
+                UpdateBac(true, ref BacEntryInstance.CurrentFrame);
 
                 if(BacEntryInstance.CurrentFrame != i)
                 {
@@ -367,6 +389,7 @@ namespace XenoKit.Engine.Scripting.BAC
             if (!SceneManager.RetainActionMovement)
             {
                 RevertCharacterPosition(false);
+                character.PartSet.ResetBacPartSetSwap(false);
             }
 
             CurrentFrame = 0;
@@ -429,6 +452,7 @@ namespace XenoKit.Engine.Scripting.BAC
             BacEntryInstance.ResetState();
             ProcessedBacTypes.Clear();
             character.ResetPosition();
+            character.PartSet.ResetBacPartSetSwap(false);
             BacEntryInstance.OriginalMatrix = character.Transform;
             GameBase.AnimationTimeScale = 1f;
             GameBase.IsPlaying = false;

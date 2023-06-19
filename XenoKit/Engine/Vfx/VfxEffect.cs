@@ -25,7 +25,7 @@ namespace XenoKit.Engine.Vfx
             effect.EffectParts.CollectionChanged += EffectParts_CollectionChanged;
         }
 
-        private void Initialize()
+        public void Initialize()
         {
             if (Assets == null)
             {
@@ -145,9 +145,12 @@ namespace XenoKit.Engine.Vfx
                 //--Restart the effect if editor loop option is enabled, and on Effects tab
                 //--Otherwise, destroy the effect
 
-                if (SceneManager.Loop && Effect.EffectParts.Count > 0 && SceneManager.IsOnTab(EditorTabs.Effect))
+                if (Effect.EffectParts.Count > 0 && SceneManager.IsOnTab(EditorTabs.Effect))
                 {
                     Initialize();
+
+                    if (!SceneManager.Loop)
+                        GameBase.IsPlaying = false;
                 }
                 else
                 {

@@ -223,6 +223,10 @@ namespace XenoKit.Engine
         {
             //All b_C_Base movement is moved onto Transform. The bone is always at Identity, so this is needed to get the correct matrix.
 
+            //b_C_Hand is a special bone that is a combination of b_R_Hand and b_L_Hand
+            if (index == Xv2Skeleton.b_C_Hand_Magic)
+                return Skeleton.GetHandBarycenter() * Transform;
+
             return Skeleton.Bones[index].AbsoluteAnimationMatrix * Transform;
         }
 

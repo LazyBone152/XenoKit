@@ -9,7 +9,7 @@ namespace XenoKit.Engine
 
         public void DrawBefore()
         {
-            foreach(Entity entity in Entities.OrderByDescending(x => x.RenderDepth >= 0f))
+            foreach(Entity entity in Entities.Where(x => x.RenderDepth >= 0f).OrderByDescending(x => x.RenderDepth))
             {
                 entity.Draw();
             }
@@ -17,7 +17,7 @@ namespace XenoKit.Engine
 
         public void DrawAfter()
         {
-            foreach (Entity entity in Entities.OrderByDescending(x => x.RenderDepth < 0f))
+            foreach (Entity entity in Entities.Where(x => x.RenderDepth < 0f).OrderByDescending(x => x.RenderDepth))
             {
                 entity.Draw();
             }

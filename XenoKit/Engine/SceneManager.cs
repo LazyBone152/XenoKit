@@ -62,6 +62,11 @@ namespace XenoKit.Engine
         Projectile,
         Hitbox,
         Effect,
+        Effect_PBIND,
+        Effect_TBIND,
+        Effect_CBIND,
+        Effect_LIGHT,
+        Effect_EMO,
         Audio_VOX,
         Audio_SE,
         System
@@ -111,7 +116,7 @@ namespace XenoKit.Engine
         /// </summary>
         /// <param name="mainTabIdx"></param>
         /// <returns></returns>
-        public static bool SetSceneState(int mainTabIdx, int bcsTabIdx, int audioTabIdx)
+        public static bool SetSceneState(int mainTabIdx, int bcsTabIdx, int audioTabIdx, int effectTabIdx)
         {
             EditorTabs prevTab = CurrentSceneState;
             MainEditorTabs mainTab = (MainEditorTabs)mainTabIdx;
@@ -158,7 +163,27 @@ namespace XenoKit.Engine
                     CurrentSceneState = EditorTabs.Camera;
                     break;
                 case MainEditorTabs.Effect:
-                    CurrentSceneState = EditorTabs.Effect;
+                    switch (effectTabIdx)
+                    {
+                        case 0:
+                            CurrentSceneState = EditorTabs.Effect;
+                            break;
+                        case 1:
+                            CurrentSceneState = EditorTabs.Effect_PBIND;
+                            break;
+                        case 2:
+                            CurrentSceneState = EditorTabs.Effect_TBIND;
+                            break;
+                        case 3:
+                            CurrentSceneState = EditorTabs.Effect_CBIND;
+                            break;
+                        case 4:
+                            CurrentSceneState = EditorTabs.Effect_LIGHT;
+                            break;
+                        case 5:
+                            CurrentSceneState = EditorTabs.Effect_EMO;
+                            break;
+                    }
                     break;
                 case MainEditorTabs.Hitbox:
                     CurrentSceneState = EditorTabs.Hitbox;
@@ -515,10 +540,19 @@ namespace XenoKit.Engine
         {
             if (MainGameInstance != null)
             {
-                MainGameInstance.VfxManager.StopEffects();
                 MainGameInstance.AudioEngine.StopCues();
                 MainGameInstance.camera.Stop();
                 MainGameInstance.DestroyAllEntities();
+
+                if (IsOnTab(EditorTabs.Effect))
+                {
+                    MainGameInstance.VfxManager.RestartEffect();
+                }
+                else
+                {
+                    MainGameInstance.VfxManager.StopEffects();
+                }
+
             }
 
             //Goto first frame of animation

@@ -184,31 +184,31 @@ namespace XenoKit.Engine.Vfx.Particle
                 CurrentFrame = 0f;
             }
 
-            if (CurrentFrame >= Lifetime)
-            {
-                if (Loop && !ParticleSystem.IsTerminating)
-                {
-                    CurrentFrame = 0f;
-
-                    //The nodes created on a previous loop don't count as active children of the node
-                    PreviousNodes.AddRange(Nodes);
-                    Nodes.Clear();
-                }
-                else
-                {
-                    State = NodeState.WaitingOnChildren;
-
-                    //Emission and Null nodes only emit when they expire
-                    if (Node.NodeType != ParticleNodeType.Emitter)
-                    {
-                        Emit();
-                    }
-                }
-            }
-
             //Main logic loop
             if (State == NodeState.Active)
             {
+                if (CurrentFrame >= Lifetime)
+                {
+                    if (Loop && !ParticleSystem.IsTerminating)
+                    {
+                        CurrentFrame = 0f;
+
+                        //The nodes created on a previous loop don't count as active children of the node
+                        PreviousNodes.AddRange(Nodes);
+                        Nodes.Clear();
+                    }
+                    else
+                    {
+                        State = NodeState.WaitingOnChildren;
+
+                        //Emission and Null nodes only emit when they expire
+                        if (Node.NodeType != ParticleNodeType.Emitter)
+                        {
+                            Emit();
+                        }
+                    }
+                }
+
                 CurrentTimeFactor = CurrentFrame / Lifetime;
 
                 //Update movement
@@ -349,8 +349,9 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 for (int b = 0; b < Node.Burst; b++)
                 {
-                    //Maximum amount of instances of this node reached, so cannot create more
-                    if (Node.ChildParticleNodes[i].MaxInstances <= ActiveInstances[i] && !IsRootNode)
+                    //Maximum amount of instances of this node reached, so cannot create more.
+                    //If MaxInstances is 0, then there is no limit
+                    if (Node.ChildParticleNodes[i].MaxInstances > 0 && Node.ChildParticleNodes[i].MaxInstances <= ActiveInstances[i] && !IsRootNode)
                         break;
 
                     //Position where the node is to be emitted. 

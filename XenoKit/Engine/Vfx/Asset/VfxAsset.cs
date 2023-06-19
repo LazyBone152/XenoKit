@@ -3,6 +3,7 @@ using XenoKit.Editor;
 using Xv2CoreLib;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.Resource;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Vfx.Asset
 {
@@ -19,7 +20,8 @@ namespace XenoKit.Engine.Vfx.Asset
         private Matrix BacSpawnSource;
         private Matrix InitialPosition;
         private Matrix InitialRotation;
-        protected bool DrawThisFrame = true;
+        private Matrix CurrentRotation;
+        public bool DrawThisFrame { get; protected set; }
 
         //Asset Type
         private AssetType AssetType;
@@ -71,6 +73,20 @@ namespace XenoKit.Engine.Vfx.Asset
             //Apply Initial Position XYZ offsets
             Transform *= Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
 
+            //Apply CurrentRotation, if enabled
+            if (EffectPart.EnableRotationValues)
+            {
+                float rotX = MathHelper.ToRadians(Random.Range(EffectPart.RotationX_Min, EffectPart.RotationX_Max));
+                float rotY = MathHelper.ToRadians(Random.Range(EffectPart.RotationY_Min, EffectPart.RotationY_Max));
+                float rotZ = MathHelper.ToRadians(Random.Range(EffectPart.RotationZ_Min, EffectPart.RotationZ_Max));
+
+                CurrentRotation = Matrix.CreateFromYawPitchRoll(rotX, rotY, rotZ);
+            }
+            else
+            {
+                CurrentRotation = Matrix.Identity;
+            }
+
             Scale = Random.Range(EffectPart.ScaleMin, EffectPart.ScaleMax);
         }
 
@@ -113,6 +129,11 @@ namespace XenoKit.Engine.Vfx.Asset
                 {
                     Transform = Actor.GetAbsoluteBoneMatrix(BoneIdx) * Matrix.Invert(Matrix.CreateTranslation(Actor.GetAbsoluteBoneMatrix(BoneIdx).Translation)) * InitialPosition;
                 }
+                else
+                {
+                    //Use starting position and rotation
+                    Transform = Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ)) * InitialPosition * InitialRotation;
+                }
             }
 
             //Near and Far fade distance
@@ -126,6 +147,8 @@ namespace XenoKit.Engine.Vfx.Asset
                 DrawThisFrame = distanceToCamera >= EffectPart.NearFadeDistance && distanceToCamera < EffectPart.FarFadeDistance;
             }
 
+            if (!SettingsManager.Instance.Settings.XenoKit_VfxSimulation)
+                DrawThisFrame = false;
         }
 
         public virtual void Simulate()
@@ -164,21 +187,34 @@ namespace XenoKit.Engine.Vfx.Asset
                 case EffectPart.OrientationType.None:
                     //Just uses position and no orientation
                     //The game seems to always rotate it by 90 degrees on Y for some reason
-                    transform = Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(transform.Translation);
+                    transform = Matrix.CreateRotationY(MathHelper.PiOver2) * CurrentRotation * Matrix.CreateTranslation(transform.Translation);
                     break;
                 case EffectPart.OrientationType.User:
                     if (Actor == null) return Transform;
-                    //Effect Position + Orientation of base bone of actor, with an extra rotation on Y
-                    transform = Matrix.CreateRotationY(MathHelpers.Radians90Degrees) * Matrix.CreateTranslation(transform.Translation) * (Actor.Transform * Matrix.Invert(Matrix.CreateTranslation(Actor.Transform.Translation)));
+                    //Effect Position/Rotation + Base Bone of actor, with an additional rotation based on EffectPart.Direction (I_06)
+                    Matrix userMatrix = Matrix.CreateTranslation(transform.Translation) * (Actor.Transform * Matrix.Invert(Matrix.CreateTranslation(Actor.Transform.Translation)));
+
+                    //If I_06 was 2, there is no rotation (default direction)
+                    if (EffectPart.I_06 == 0)
+                        userMatrix = Matrix.CreateRotationY(MathHelper.PiOver2) * userMatrix;
+                    else if (EffectPart.I_06 == 1)
+                        userMatrix = Matrix.CreateRotationX(MathHelper.PiOver2) * userMatrix;
+
+                    transform = CurrentRotation * userMatrix;
                     break;
                 case EffectPart.OrientationType.Camera:
                     //Effect Position + rotate to face camera.
-                    transform = Matrix.CreateBillboard(transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.ActualPosition, Vector3.Up, Vector3.Forward);
+                    transform = CurrentRotation * Matrix.CreateBillboard(transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.ActualPosition, Vector3.Up, Vector3.Forward);
+                    break;
+                case EffectPart.OrientationType.RotateMovement:
+                    //This rotates the effect by 45 degrees if there is active movement going on.
+                    //transform = Matrix.CreateRotationX(MathHelper.PiOver4) * Transform;
+                    transform = CurrentRotation * Transform;
                     break;
                 case EffectPart.OrientationType.AttachmentBone:
                 default:
                     //Use full rotation of the attachment bone
-                    transform = Transform;
+                    transform = CurrentRotation * Transform;
                     break;
 
             }

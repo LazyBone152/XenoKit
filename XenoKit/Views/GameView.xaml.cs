@@ -86,7 +86,7 @@ namespace XenoKit.Controls
                     GetSelectedBoneName());
 
 #else
-                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nLIGHTING:\nPos: {6}\nDir: {7}\n\nDEBUG:\nCompiled Objects: {8}\nPooled Objects: {9}",
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nLIGHTING:\nPos: {6}\nDir: {7}\n\nDEBUG:\nCompiled Objects: {8}\nPooled Objects (Active): {9}\nPooled Objects (Free): {10}",
                     MonoGame.camera.CameraState.FieldOfView,
                     MonoGame.camera.CameraState.Roll,
                     MonoGame.camera.CameraState.ActualPosition,
@@ -96,7 +96,8 @@ namespace XenoKit.Controls
                     MonoGame.LightSource.GetLightPosition(),
                     MonoGame.LightSource.GetLightDirection(),
                     MonoGame.CompiledObjectManager.ObjectCount,
-                    MonoGame.ObjectPoolManager.ParticleEmitterPool.CurrentSize + MonoGame.ObjectPoolManager.ParticleNodeBasePool.CurrentSize + MonoGame.ObjectPoolManager.ParticlePool.CurrentSize);
+                    MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticlePool.UsedObjectCount,
+                    MonoGame.ObjectPoolManager.ParticleEmitterPool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticlePool.FreeObjectCount);
 
 #endif
             }

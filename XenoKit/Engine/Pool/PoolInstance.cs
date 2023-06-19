@@ -11,6 +11,8 @@ namespace XenoKit.Engine.Pool
         private readonly List<T> Available = new List<T>();
 
         public int CurrentSize => InUse.Count + Available.Count;
+        public int FreeObjectCount => Available.Count;
+        public int UsedObjectCount => InUse.Count;
 
         public PoolInstance(int poolSize, GameBase game)
         {

@@ -23,7 +23,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <TreeView x:Name="treeView" Grid.Column="0" ItemsSource="{Binding ElementName=Window, Path=BcsFile.PartSets.Binding}" SelectedItemChanged="TreeView_SelectedItemChanged" Loaded="treeView_Loaded" TreeViewItem.Selected="TreeViewItem_Selected">
+        <TreeView x:Name="treeView" Grid.Column="0" ItemsSource="{Binding ElementName=Window, Path=BcsFile.PartSets.Binding}" VirtualizingStackPanel.IsVirtualizing="True" SelectedItemChanged="TreeView_SelectedItemChanged" Loaded="treeView_Loaded" TreeViewItem.Selected="TreeViewItem_Selected">
             <TreeView.Resources>
                 
                 <HierarchicalDataTemplate DataType="{x:Type bcs:PartSet}" ItemsSource="{Binding Parts.Binding}">
