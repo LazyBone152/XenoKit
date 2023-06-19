@@ -19,7 +19,6 @@ using XenoKit.Engine.Vfx.Particle;
 
 namespace XenoKit.Engine
 {
-
     public class Game : GameBase
     {
         public override ICameraBase ActiveCameraBase { get => camera; }
@@ -27,6 +26,7 @@ namespace XenoKit.Engine
         //Engine Features:
         public Camera camera;
         public AudioEngine AudioEngine;
+        public VfxPreview VfxPreview;
 
         //Engine Values:
         public override bool IsMainInstance => true;
@@ -62,7 +62,8 @@ namespace XenoKit.Engine
             camera = new Camera(this);
             AudioEngine = new AudioEngine();
             VfxManager = new VfxManager(this);
-            RenderDepthSystem = new RenderDepthSystem();
+            RenderDepthSystem = new RenderDepthSystem(this);
+            VfxPreview = new VfxPreview(this);
         }
 
         protected override void LoadContent()
@@ -81,7 +82,15 @@ namespace XenoKit.Engine
             BacHitboxGizmo.Update();
 
             AudioEngine.Update();
-            VfxManager.Update();
+
+            if (SceneManager.IsOnEffectTab)
+            {
+                VfxPreview.Update();
+            }
+            else
+            {
+                VfxManager.Update();
+            }
 
             //Stage
             if (ActiveStage != null)
@@ -110,8 +119,6 @@ namespace XenoKit.Engine
 
             SceneManager.Update(time);
 
-            if (particle != null)
-                particle.Update();
         }
 
         protected override void DelayedUpdate()
@@ -144,22 +151,18 @@ namespace XenoKit.Engine
                 }
             }
 
-            //First pass of RenderDepthSystem. This renders BEHIND the actors.
-            RenderDepthSystem.DrawBefore();
+            //Draw Particles, Actors... 
+            RenderDepthSystem.Draw();
 
-            //Actors
-            for (int i = 0; i < SceneManager.Actors.Length; i++)
+            //TODO: move other effects into RenderDepthSystem
+            if (SceneManager.IsOnEffectTab)
             {
-                if (SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
-                {
-                    SceneManager.Actors[i].Draw();
-                }
+                VfxPreview.Draw();
             }
-
-            //Second pass of RenderDepthSystem. This renders IN FRONT of the actors.
-            RenderDepthSystem.DrawAfter();
-
-            VfxManager.Draw();
+            else
+            {
+                VfxManager.Draw();
+            }
 
             //Sprite:
             TextRenderer.Draw();
@@ -167,9 +170,6 @@ namespace XenoKit.Engine
             //Draw last and over everything else
             CurrentGizmo.Draw();
             BacHitboxGizmo.Draw();
-
-            if (particle != null)
-                particle.Draw();
         }
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)
@@ -273,27 +273,6 @@ namespace XenoKit.Engine
 
         #endregion
 
-        Particle particle = null;
-
-        public void TestParticlePlay(Xv2CoreLib.EEPK.Effect effect)
-        {
-            Xv2CoreLib.EMP_NEW.ParticleNode node = null;
-            Xv2CoreLib.EEPK.EffectPart effectPart = null;
-
-            foreach (var asset in effect.EffectParts)
-            {
-                if(asset.AssetRef?.Files[0]?.EmpFile?.ParticleNodes[0].Name == "TEST")
-                {
-                    effectPart = asset;
-                    node = asset.AssetRef?.Files[0]?.EmpFile?.ParticleNodes[0];
-                }
-            }
-
-            if(node != null)
-            {
-                //particle = new Particle(node, effectPart, this);
-            }
-        }
     }
 
 }

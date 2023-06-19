@@ -98,9 +98,11 @@ namespace XenoKit
             Title += $" ({SettingsManager.Instance.CurrentVersionString})";
 
             mainTabControl.SelectedIndex = 1;
+            eepkEditor.SelectedEffectTabChanged += EepkEditor_SelectedEffectTabChanged;
 
             Closing += MainWindow_Closing;
         }
+
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
@@ -111,6 +113,7 @@ namespace XenoKit
         private void Files_SelectedMoveChanged(object sender, EventArgs e)
         {
             mainTabControl.Visibility = Files.Instance.SelectedItem != null ? Visibility.Visible : Visibility.Hidden;
+            UpdateSelectedTab();
         }
 
         #region Init
@@ -425,6 +428,11 @@ namespace XenoKit
 
         private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            UpdateSelectedTab();
+        }
+
+        private void UpdateSelectedTab()
+        {
             bool changed = SceneManager.SetSceneState(mainTabControl.SelectedIndex, bcsTabControl.SelectedIndex, audioControl.audioTabControl.SelectedIndex, eepkEditor.tabControl.SelectedIndex);
 
             //Auto play bac entry if nothing is active
@@ -439,6 +447,11 @@ namespace XenoKit
             {
                 SceneManager.CameraSelectionChanged(cameraTabView.SelectedEanFile, cameraTabView.SelectedAnimation);
             }
+        }
+
+        private void EepkEditor_SelectedEffectTabChanged(object sender, EventArgs e)
+        {
+            UpdateSelectedTab();
         }
 
         private void WindowResized(object sender, SizeChangedEventArgs e)

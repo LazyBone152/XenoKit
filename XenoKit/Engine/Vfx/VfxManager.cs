@@ -12,6 +12,9 @@ using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Vfx
 {
+    /// <summary>
+    /// This is the main effect manager class. This can play multiple effects simultaneously, and handles loops and deactivations.
+    /// </summary>
     public class VfxManager : Entity
     {
         private const int MAX_EFFECTS = 100;
@@ -221,6 +224,11 @@ namespace XenoKit.Engine.Vfx
         /// </summary>
         public VfxColorFadeEntry GetActiveColorFade(string materialName, Actor actor)
         {
+            if(SceneManager.IsOnEffectTab && GameBase.IsMainInstance)
+            {
+                return SceneManager.MainGameInstance.VfxPreview.GetActiveColorFade(materialName, actor);
+            }
+
             foreach(VfxEffect effect in Effects.Where(x => x.Actor == actor))
             {
                 foreach(VfxAsset asset in effect.Assets)
@@ -240,6 +248,11 @@ namespace XenoKit.Engine.Vfx
 
         public VfxLight GetActiveLight(Matrix world)
         {
+            if (SceneManager.IsOnEffectTab && GameBase.IsMainInstance)
+            {
+                return SceneManager.MainGameInstance.VfxPreview.GetActiveLight();
+            }
+
             foreach (VfxEffect effect in Effects)
             {
                 foreach (VfxAsset asset in effect.Assets)

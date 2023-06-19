@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using XenoKit.Engine.Vfx.Asset;
 using XenoKit.Engine.Vfx.Particle;
 using Xv2CoreLib.EEPK;
@@ -15,6 +14,9 @@ namespace XenoKit.Engine.Vfx
 
         private Matrix SpawnTransform;
 
+        private readonly bool IsAssetPreview = false;
+        private readonly EffectPart EffectPart = null;
+
         public VfxEffect(Actor actor, Effect effect, Matrix world, GameBase gameBase) : base(gameBase)
         {
             Effect = effect;
@@ -25,6 +27,52 @@ namespace XenoKit.Engine.Vfx
             effect.EffectParts.CollectionChanged += EffectParts_CollectionChanged;
         }
 
+        public VfxEffect(Actor actor, EffectPart effectPart, GameBase gameBase) : base(gameBase)
+        {
+            IsAssetPreview = true;
+            EffectPart = effectPart;
+            Actor = actor;
+            SpawnTransform = Matrix.Identity;
+            InitializeFromAsset();
+        }
+
+        public void InitializeFromAsset()
+        {
+            if (Assets == null)
+            {
+                Assets = new List<VfxAsset>(1);
+            }
+            else
+            {
+                foreach (VfxAsset asset in Assets)
+                {
+                    asset.Dispose();
+                }
+
+                Assets.Clear();
+            }
+
+            if (EffectPart.AssetType == AssetType.CBIND)
+            {
+                if (EffectPart.AssetRef.Files[0].EcfFile == null) return;
+                Assets.Add(new VfxColorFade(EffectPart.AssetRef.Files[0].EcfFile, EffectPart, Actor, GameBase));
+            }
+            else if (EffectPart.AssetType == AssetType.EMO)
+            {
+                Assets.Add(new VfxEmo(SpawnTransform, EffectPart.AssetRef, EffectPart, Actor, GameBase));
+            }
+            else if (EffectPart.AssetType == AssetType.LIGHT)
+            {
+                if (EffectPart.AssetRef.Files[0].EmaFile == null) return;
+                Assets.Add(new VfxLight(EffectPart.AssetRef.Files[0].EmaFile, EffectPart, Actor, GameBase));
+            }
+            else if (EffectPart.AssetType == AssetType.PBIND)
+            {
+                if (EffectPart.AssetRef.Files[0].EmpFile == null) return;
+                Assets.Add(new ParticleSystem(SpawnTransform, Actor, EffectPart, EffectPart.AssetRef.Files[0].EmpFile, this, GameBase));
+            }
+        }
+
         public void Initialize()
         {
             if (Assets == null)
@@ -33,7 +81,7 @@ namespace XenoKit.Engine.Vfx
             }
             else
             {
-                foreach (var asset in Assets)
+                foreach (VfxAsset asset in Assets)
                 {
                     asset.Dispose();
                 }
@@ -88,7 +136,8 @@ namespace XenoKit.Engine.Vfx
 
         public override void Dispose()
         {
-            Effect.EffectParts.CollectionChanged -= EffectParts_CollectionChanged;
+            if(Effect != null)
+                Effect.EffectParts.CollectionChanged -= EffectParts_CollectionChanged;
 
             foreach (VfxAsset asset in Assets)
             {
@@ -141,20 +190,27 @@ namespace XenoKit.Engine.Vfx
 
             if (Assets.Count == 0)
             {
-                //Handle end of effect:
-                //--Restart the effect if editor loop option is enabled, and on Effects tab
-                //--Otherwise, destroy the effect
-
-                if (Effect.EffectParts.Count > 0 && SceneManager.IsOnTab(EditorTabs.Effect))
+                if (!IsAssetPreview)
                 {
-                    Initialize();
+                    //Handle end of effect:
+                    //--Restart the effect if editor loop option is enabled, and on Effects tab
+                    //--Otherwise, destroy the effect
 
-                    if (!SceneManager.Loop)
-                        GameBase.IsPlaying = false;
+                    if (Effect.EffectParts.Count > 0 && SceneManager.IsOnTab(EditorTabs.Effect))
+                    {
+                        Initialize();
+
+                        if (!SceneManager.Loop)
+                            GameBase.IsPlaying = false;
+                    }
+                    else
+                    {
+                        Destroy();
+                    }
                 }
                 else
                 {
-                    Destroy();
+                    InitializeFromAsset();
                 }
 
             }

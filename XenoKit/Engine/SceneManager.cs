@@ -107,6 +107,8 @@ namespace XenoKit.Engine
         #region SceneState
         public static EditorTabs PrevSceneState = EditorTabs.Nothing;
         public static EditorTabs CurrentSceneState = 0;
+        public static bool IsOnEffectTab = false;
+
         public static Vector4 SystemTime; //Seconds elsapsed while "IsPlaying". For use in DBXV2 Shaders.
         public static Vector4 ScreenSize;
 
@@ -121,6 +123,9 @@ namespace XenoKit.Engine
             EditorTabs prevTab = CurrentSceneState;
             MainEditorTabs mainTab = (MainEditorTabs)mainTabIdx;
             BcsEditorTabs bcsTab = (BcsEditorTabs)bcsTabIdx;
+
+            IsOnEffectTab = false;
+            ShowActorsInCurrentScene = true;
 
             switch (mainTab)
             {
@@ -163,6 +168,8 @@ namespace XenoKit.Engine
                     CurrentSceneState = EditorTabs.Camera;
                     break;
                 case MainEditorTabs.Effect:
+                    IsOnEffectTab = true;
+
                     switch (effectTabIdx)
                     {
                         case 0:
@@ -170,18 +177,21 @@ namespace XenoKit.Engine
                             break;
                         case 1:
                             CurrentSceneState = EditorTabs.Effect_PBIND;
+                            ShowActorsInCurrentScene = false;
                             break;
                         case 2:
                             CurrentSceneState = EditorTabs.Effect_TBIND;
+                            ShowActorsInCurrentScene = false;
                             break;
                         case 3:
                             CurrentSceneState = EditorTabs.Effect_CBIND;
                             break;
                         case 4:
-                            CurrentSceneState = EditorTabs.Effect_LIGHT;
+                            CurrentSceneState = EditorTabs.Effect_EMO;
+                            ShowActorsInCurrentScene = false;
                             break;
                         case 5:
-                            CurrentSceneState = EditorTabs.Effect_EMO;
+                            CurrentSceneState = EditorTabs.Effect_LIGHT;
                             break;
                     }
                     break;
@@ -261,6 +271,7 @@ namespace XenoKit.Engine
         /// Movement that occurs in a BAC entry is reverted by default when the entry ends. With this setting, that is disabled.
         /// </summary>
         public static bool RetainActionMovement = false;
+        public static bool ShowActorsInCurrentScene = true;
 
         public static bool WireframeModeCharacters => SettingsManager.settings.XenoKit_WireframeMode;
         public static bool Loop => SettingsManager.settings.XenoKit_Loop;
@@ -359,6 +370,13 @@ namespace XenoKit.Engine
                     Actors[i] = null;
             }
 
+            //Remove previous actor from RenderDepthSystem
+            if (Actors[actorSlot] != null)
+                MainGameBase.RenderDepthSystem.Remove(Actors[actorSlot]);
+
+            //Set new actor there
+            MainGameBase.RenderDepthSystem.Add(character);
+
             Actors[actorSlot] = character;
             character.ActorSlot = actorSlot;
             character.ResetPosition();
@@ -383,6 +401,9 @@ namespace XenoKit.Engine
 
                 //Remove all current bone indices for this actorSlots character models. This is required because the skeletons are different and bone idx wont point to the same thing.
                 MainGameBase.CompiledObjectManager.UnsetActorOnModels(actorSlot);
+
+                //Remove actor from RenderDepthSystem
+                MainGameBase.RenderDepthSystem.Remove(actor);
 
                 Log.Add($"{actor.Name} removed as the {GetActorName(actorSlot)} actor.");
 
@@ -546,7 +567,7 @@ namespace XenoKit.Engine
 
                 if (IsOnTab(EditorTabs.Effect))
                 {
-                    MainGameInstance.VfxManager.RestartEffect();
+                    MainGameInstance.VfxPreview.Stop();
                 }
                 else
                 {

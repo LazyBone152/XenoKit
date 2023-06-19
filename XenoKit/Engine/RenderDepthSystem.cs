@@ -1,25 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace XenoKit.Engine
 {
-    public class RenderDepthSystem
+    public class RenderDepthSystem : Entity
     {
-        private List<Entity> Entities = new List<Entity>();
+        private readonly List<Entity> Entities = new List<Entity>();
 
-        public void DrawBefore()
+        public RenderDepthSystem(GameBase game) : base(game)
         {
-            foreach(Entity entity in Entities.Where(x => x.RenderDepth >= 0f).OrderByDescending(x => x.RenderDepth))
-            {
-                entity.Draw();
-            }
+
         }
 
-        public void DrawAfter()
+        public override void Draw()
         {
-            foreach (Entity entity in Entities.Where(x => x.RenderDepth < 0f).OrderByDescending(x => x.RenderDepth))
+            foreach(Entity entity in Entities.OrderBy(x => Math.Abs(Vector3.Distance(CameraBase.CameraState.ActualPosition, x.Transform.Translation))).ThenByDescending(x => RenderDepth))
             {
-                entity.Draw();
+                if(entity.DrawThisFrame)
+                    entity.Draw();
             }
         }
 
@@ -33,7 +33,7 @@ namespace XenoKit.Engine
             Entities.Remove(entity);
         }
 
-        public void Update()
+        public override void Update()
         {
             for (int i = Entities.Count - 1; i >= 0; i--)
             {

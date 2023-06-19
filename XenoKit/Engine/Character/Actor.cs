@@ -13,6 +13,7 @@ namespace XenoKit.Engine
     public class Actor : Entity
     {
         //TODO: Clean this mess up!
+        public override Matrix AbsoluteTransform => Transform;
 
         public int ActorSlot { get; set; }
         public CharaPartSet PartSet;
@@ -169,6 +170,8 @@ namespace XenoKit.Engine
         #region GameLoop
         public override void Update()
         {
+            DrawThisFrame = true;
+
             //Reset Eye positions to their defaults
             EyeIrisLeft_UV[0] = EyeIrisLeft_UV[1] = EyeIrisRight_UV[0] = EyeIrisRight_UV[1] = 0;
             BacEyeMovementUsed = false;
@@ -206,7 +209,8 @@ namespace XenoKit.Engine
 
         public override void Draw()
         {
-            if (!GameBase.RenderCharacters) return;
+            DrawThisFrame = false;
+            if (!GameBase.RenderCharacters || !SceneManager.ShowActorsInCurrentScene) return;
 
             PartSet.Draw();
 

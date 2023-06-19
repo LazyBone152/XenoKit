@@ -196,6 +196,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void Update()
         {
+            DrawThisFrame = true;
             EmissionData.Update();
             ParticleUV.Update(GameBase.IsPlaying, ParticleSystem.ActiveTimeScale);
 
@@ -218,6 +219,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void Draw()
         {
+            DrawThisFrame = false;
             if (!ParticleSystem.DrawThisFrame) return;
 
             if (State == NodeState.Active && !Node.NodeFlags.HasFlag(NodeFlags1.Hide))

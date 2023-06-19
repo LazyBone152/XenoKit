@@ -21,7 +21,6 @@ namespace XenoKit.Engine.Vfx.Asset
         private Matrix InitialPosition;
         private Matrix InitialRotation;
         private Matrix CurrentRotation;
-        public bool DrawThisFrame { get; protected set; }
 
         //Asset Type
         private AssetType AssetType;

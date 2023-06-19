@@ -52,10 +52,6 @@ namespace XenoKit.Engine.Vfx.Particle
         /// A snapshot of the attachment bone at the time this node was created. Used for calculating AbsoluteTransform, based on EEPK flags.
         /// </summary>
         private Matrix EmitBoneTransform;
-        /// <summary>
-        /// The current absolute transform of this node, relative to the world.
-        /// </summary>
-        public Matrix AbsoluteTransform;
         protected Matrix ScaleAdjustment = Matrix.Identity;
 
         public NodeState State { get; protected set; }

@@ -33,12 +33,17 @@ namespace XenoKit.Engine
         public ObjectPoolManager ObjectPoolManager => GameBase.ObjectPoolManager;
 
         public virtual string Name { get; set; }
+        public virtual Matrix AbsoluteTransform { get; protected set; }
         public virtual Matrix Transform { get; set; } = Matrix.Identity;
         /// <summary>
         /// Controls the depth at which this object will be rendered at.
         /// Negative numbers will be closer to the camera, in front of objects with a higher number. 0 is the depth at which Actors are rendered.
         /// </summary>
         public virtual float RenderDepth => 0f;
+        /// <summary>
+        /// (Mostly just used by RenderDepthSystem to enable it to skip drawing objects that haven't been updated this frame)
+        /// </summary>
+        public virtual bool DrawThisFrame { get; protected set; }
 
         //Entity Settings
         public bool IsDestroyable { get; set; } = true;

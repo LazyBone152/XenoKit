@@ -601,6 +601,7 @@
     <Compile Include="Engine\Vfx\Particle\ParticleUV.cs" />
     <Compile Include="Engine\Vfx\VfxEffect.cs" />
     <Compile Include="Engine\Vfx\VfxManager.cs" />
+    <Compile Include="Engine\Vfx\VfxPreview.cs" />
     <Compile Include="Engine\View\CameraAnimationInstance.cs" />
     <Compile Include="Engine\View\CameraBase.cs" />
     <Compile Include="Engine\View\ICameraBase.cs" />
