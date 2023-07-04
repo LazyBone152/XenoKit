@@ -529,6 +529,11 @@ namespace XenoKit
             Log.Add("GC initiated", LogType.Debug);
         }
 
+        private void DebugMenu_ReloadShaders_Click(object sender, RoutedEventArgs e)
+        {
+            SceneManager.MainGameBase.CompiledObjectManager.ForceShaderUpdate();
+        }
         #endregion
+
     }
 }

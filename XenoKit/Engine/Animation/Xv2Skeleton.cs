@@ -304,13 +304,10 @@ namespace XenoKit.Engine.Animation
         {
             if(HandL_BoneIndex != -1 && HandR_BoneIndex != -1)
             {
-                Matrix leftHand = Bones[HandL_BoneIndex].SkinningMatrix;
-                Matrix rightHand = Bones[HandR_BoneIndex].SkinningMatrix;
+                Matrix leftHand = Bones[HandL_BoneIndex].AbsoluteAnimationMatrix;
+                Matrix rightHand = Bones[HandR_BoneIndex].AbsoluteAnimationMatrix;
 
-                float weight1 = 1f / Vector3.Distance(leftHand.Translation, rightHand.Translation);
-                float weight2 = 1f - weight1;
-                Matrix barycenter = Matrix.Lerp(leftHand, rightHand, weight1);
-                return Matrix.Lerp(barycenter, rightHand, weight2);
+                return Matrix.CreateTranslation(Matrix.Lerp(leftHand, rightHand, 0.5f).Translation);
             }
 
             return Matrix.Identity;

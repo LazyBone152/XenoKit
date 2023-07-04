@@ -17,5 +17,7 @@ namespace XenoKit.Engine.View
         Vector2 ProjectToScreenPosition(Vector3 worldPos);
 
         float DistanceFromCamera(Vector3 worldPos);
+
+        Vector3 TransformRelativeToCamera(Vector3 position, float distanceModifier);
     }
 }

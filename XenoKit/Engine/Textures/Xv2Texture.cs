@@ -38,24 +38,25 @@ namespace XenoKit.Engine.Textures
             EmbEntry = embEntry;
             Texture = TextureLoader.ConvertToTexture2D(embEntry, null, GameBase.GraphicsDevice);
 
-            if(autoUpdate)
+            if (autoUpdate)
                 EmbEntry.PropertyChanged += EmbEntry_PropertyChanged;
         }
 
         private void EmbEntry_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(EmbEntry.Data))
+            if (e.PropertyName == nameof(EmbEntry.Data))
             {
                 IsDirty = true;
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
-            if(EmbEntry != null)
+            base.Dispose();
+            if (EmbEntry != null)
                 EmbEntry.PropertyChanged -= EmbEntry_PropertyChanged;
         }
-    
+
         public Xv2Texture HardCopy()
         {
             return new Xv2Texture(EmbEntry.Copy(), GameBase, false);
@@ -72,5 +73,6 @@ namespace XenoKit.Engine.Textures
 
             return textures;
         }
+
     }
 }

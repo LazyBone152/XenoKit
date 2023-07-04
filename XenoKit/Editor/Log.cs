@@ -19,19 +19,21 @@ namespace XenoKit.Editor
 #if !DEBUG
             if (type == LogType.Debug) return;
 #endif
-
-            int existing = Exists(message, type);
-
-            if (existing != -1)
+            lock (Entries)
             {
-                PushToTop(existing);
-                LogEntryAddedEvent.Invoke(Entries[existing], null);
-                return;
-            }
+                int existing = Exists(message, type);
 
-            var newEntry = new LogEntry(message, type, Entries.Count);
-            Entries.Add(newEntry);
-            LogEntryAddedEvent?.Invoke(newEntry, null);
+                if (existing != -1)
+                {
+                    PushToTop(existing);
+                    LogEntryAddedEvent.Invoke(Entries[existing], null);
+                    return;
+                }
+
+                var newEntry = new LogEntry(message, type, Entries.Count);
+                Entries.Add(newEntry);
+                LogEntryAddedEvent?.Invoke(newEntry, null);
+            }
         }
 
         public static void Add(string message, string exception, LogType type)
@@ -39,26 +41,31 @@ namespace XenoKit.Editor
 #if !DEBUG
             if (type == LogType.Debug) return;
 #endif
-
-            int existing = Exists(message, type);
-
-            if (existing != -1)
+            lock (Entries)
             {
-                PushToTop(existing);
-                LogEntryAddedEvent.Invoke(Entries[existing], null);
-                return;
-            }
+                int existing = Exists(message, type);
 
-            var newEntry = new LogEntry(message, exception, type, Entries.Count);
-            Entries.Add(newEntry);
-            LogEntryAddedEvent?.Invoke(newEntry, null);
+                if (existing != -1)
+                {
+                    PushToTop(existing);
+                    LogEntryAddedEvent.Invoke(Entries[existing], null);
+                    return;
+                }
+
+                var newEntry = new LogEntry(message, exception, type, Entries.Count);
+                Entries.Add(newEntry);
+                LogEntryAddedEvent?.Invoke(newEntry, null);
+            }
         }
 
         private static void PushToTop(int oldIdx)
         {
-            Entries.Move(oldIdx, 0);
-            Entries[0].Num++;
-            RecalculateIndexes();
+            lock (Entries)
+            {
+                Entries.Move(oldIdx, 0);
+                Entries[0].Num++;
+                RecalculateIndexes();
+            }
         }
 
         private static int Exists(string Message, LogType type)

@@ -71,6 +71,45 @@ namespace XenoKit.Engine.Model
         }
 
         /// <summary>
+        /// Load the first submesh from an EMG, and ignore samplers and blend weights. This is intended for loading particle EMGs.
+        /// </summary>
+        public static Xv2Submesh LoadEmg(GameBase gameBase, EMG_File emgFile)
+        {
+            if (emgFile.EmgMeshes.Count == 0) return null;
+            if (emgFile.EmgMeshes[0].Submeshes.Count == 0) return null;
+
+            EMG_Mesh mesh = emgFile.EmgMeshes[0];
+            EMG_Submesh submesh = emgFile.EmgMeshes[0].Submeshes[0];
+
+            Xv2Submesh xv2Submesh = new Xv2Submesh(gameBase, submesh.MaterialName, 0, ModelType.Emg, submesh);
+
+            //Triangles
+            xv2Submesh.Indices = submesh.Faces.Copy();
+
+            //Create vertex array
+            xv2Submesh.GpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
+            xv2Submesh.CpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
+
+            for (int i = 0; i < mesh.Vertices.Count; i++)
+            {
+                xv2Submesh.CpuVertexes[i].Position = new Vector3(mesh.Vertices[i].PositionX, mesh.Vertices[i].PositionY, mesh.Vertices[i].PositionZ);
+                xv2Submesh.CpuVertexes[i].Normal = new Vector3(mesh.Vertices[i].NormalX, mesh.Vertices[i].NormalY, mesh.Vertices[i].NormalZ);
+                xv2Submesh.CpuVertexes[i].Tangent = new Vector3(mesh.Vertices[i].TangentX, mesh.Vertices[i].TangentY, mesh.Vertices[i].TangentZ);
+                xv2Submesh.CpuVertexes[i].TextureUV0 = new Vector2(mesh.Vertices[i].TextureU, mesh.Vertices[i].TextureV);
+                xv2Submesh.CpuVertexes[i].TextureUV1 = new Vector2(mesh.Vertices[i].Texture2U, mesh.Vertices[i].Texture2V);
+                xv2Submesh.CpuVertexes[i].Color_R = mesh.Vertices[i].ColorR;
+                xv2Submesh.CpuVertexes[i].Color_G = mesh.Vertices[i].ColorG;
+                xv2Submesh.CpuVertexes[i].Color_B = mesh.Vertices[i].ColorB;
+                xv2Submesh.CpuVertexes[i].Color_A = mesh.Vertices[i].ColorA;
+
+                //GpuVertexes (for rendering)
+                xv2Submesh.GpuVertexes[i] = xv2Submesh.CpuVertexes[i];
+            }
+
+            return xv2Submesh;
+        }
+
+        /// <summary>
         /// Creates a materials list to use for renderering. Materials are indexed by the submesh index. 
         /// </summary>
         public List<Xv2ShaderEffect> InitializeMaterials(EMM_File emmFile = null)
@@ -305,17 +344,25 @@ namespace XenoKit.Engine.Model
             {
                 ReinitializeTextureSamplers();
             }
+            else if (e.PropertyName == nameof(EMD_File.MaterialsChanged))
+            {
+                ModelChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private void ReinitializeTextureSamplers()
         {
-            for (int i = 0; i < Models.Count; i++)
+            for (int i = 0; i < SourceEmdFile.Models.Count; i++)
             {
-                for (int a = 0; a < Models[i].Meshes.Count; a++)
+                for (int a = 0; a < SourceEmdFile.Models[i].Meshes.Count; a++)
                 {
-                    for (int s = 0; s < Models[i].Meshes[a].Submeshes.Count; s++)
+                    for (int s = 0; s < SourceEmdFile.Models[i].Meshes[a].Submeshes.Count; s++)
                     {
-                        Models[i].Meshes[a].Submeshes[s].InitSamplers(SourceEmdFile.Models[i].Meshes[a].Submeshes[s].TextureSamplerDefs);
+                        //Triangle lists are separated into submeshes in XenoKit, so we must account for that here.
+                        for(int b = 0; b < SourceEmdFile.Models[i].Meshes[a].Submeshes[s].Triangles.Count; b++)
+                        {
+                            Models[i].Meshes[a].Submeshes[s + b].InitSamplers(SourceEmdFile.Models[i].Meshes[a].Submeshes[s].TextureSamplerDefs);
+                        }
                     }
                 }
             }
@@ -825,7 +872,8 @@ namespace XenoKit.Engine.Model
     {
         Emd,
         Nsk,
-        Emo
+        Emo,
+        Emg
     }
 
 }

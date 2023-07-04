@@ -4,7 +4,7 @@ using Xv2CoreLib.EEPK;
 namespace XenoKit.Engine.Vfx
 {
     /// <summary>
-    /// This is a light weight class intended for simple effect and asset previewing, for use with the EEPK Organiser.
+    /// This is a light weight class intended for simple effect and asset previewing, for use when editing effects (Effect Tab).
     /// </summary>
     public class VfxPreview : Entity
     {
@@ -25,6 +25,8 @@ namespace XenoKit.Engine.Vfx
                 case EditorTabs.Effect:
                     Effect?.Update();
                     break;
+                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
+                    break;
                 default:
                     Asset?.Update();
                     break;
@@ -37,6 +39,8 @@ namespace XenoKit.Engine.Vfx
             {
                 case EditorTabs.Effect:
                     Effect?.Draw();
+                    break;
+                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
                     break;
                 default:
                     Asset?.Draw();
@@ -79,6 +83,36 @@ namespace XenoKit.Engine.Vfx
             {
                 Asset.InitializeFromAsset();
                 GameBase.IsPlaying = false;
+            }
+        }
+
+        public void SeekPrev()
+        {
+            switch (SceneManager.CurrentSceneState)
+            {
+                case EditorTabs.Effect:
+                    Effect?.SeekPrevFrame();
+                    break;
+                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
+                    break;
+                default:
+                    Asset?.SeekPrevFrame();
+                    break;
+            }
+        }
+
+        public void SeekNext()
+        {
+            switch (SceneManager.CurrentSceneState)
+            {
+                case EditorTabs.Effect:
+                    Effect?.SeekNextFrame();
+                    break;
+                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
+                    break;
+                default:
+                    Asset?.SeekNextFrame();
+                    break;
             }
         }
 

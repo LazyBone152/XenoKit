@@ -410,6 +410,9 @@
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EtrScale.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\EtrScale.xaml.cs</Link>
     </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\KeyframeScale.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\KeyframeScale.xaml.cs</Link>
+    </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\LogForm.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\LogForm.xaml.cs</Link>
     </Compile>
@@ -592,10 +595,12 @@
     <Compile Include="Engine\Vfx\Asset\VfxColorFade.cs" />
     <Compile Include="Engine\Vfx\Asset\VfxEmo.cs" />
     <Compile Include="Engine\Vfx\Asset\VfxLight.cs" />
-    <Compile Include="Engine\Vfx\Particle\Particle.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleEmissionBase.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleEmissionData.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleEmitter.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleMesh.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleNodeBase.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticlePlane.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleRootNode.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleSystem.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleUV.cs" />
@@ -923,6 +928,11 @@
     </Page>
     <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\EtrScale.xaml">
       <Link>Views\EEPK Organiser\Forms\EtrScale.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\KeyframeScale.xaml">
+      <Link>Views\EEPK Organiser\Forms\KeyframeScale.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

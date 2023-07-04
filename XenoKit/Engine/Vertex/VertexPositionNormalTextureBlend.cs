@@ -76,6 +76,22 @@ namespace XenoKit.Engine.Vertex
             VertexDeclaration = declaration;
         }
 
+        public void SetColor(float[] rgba)
+        {
+            Color_R = (byte)(rgba[0] * 255);
+            Color_G = (byte)(rgba[1] * 255);
+            Color_B = (byte)(rgba[2] * 255);
+            Color_A = (byte)(rgba[3] * 255);
+        }
+
+        public void SetColor(float r, float g, float b, float a)
+        {
+            Color_R = (byte)(r * 255);
+            Color_G = (byte)(g * 255);
+            Color_B = (byte)(b * 255);
+            Color_A = (byte)(a * 255);
+        }
+
         public override int GetHashCode() { return 0; } // TODO: Fix        
         public static bool operator ==(VertexPositionNormalTextureBlend left, VertexPositionNormalTextureBlend right) { return (((left.Position == right.Position) && (left.Normal == right.Normal)) && (left.TextureUV0 == right.TextureUV0) && (left.BlendIndex0 == right.BlendIndex0) && (left.BlendIndex1 == right.BlendIndex1) && (left.BlendIndex2 == right.BlendIndex2) && (left.BlendIndex3 == right.BlendIndex3) && (left.BlendWeights == right.BlendWeights) && left.Color_A == right.Color_A && left.Color_R == right.Color_R && left.Color_G == right.Color_G && left.Color_B == right.Color_B); }
         public static bool operator !=(VertexPositionNormalTextureBlend left, VertexPositionNormalTextureBlend right) { return !(left == right); }

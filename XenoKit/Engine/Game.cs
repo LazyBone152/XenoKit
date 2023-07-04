@@ -127,7 +127,6 @@ namespace XenoKit.Engine
             CurrentGizmo.DelayedUpdate();
             BacHitboxGizmo.DelayedUpdate();
 
-
             for (int i = 0; i < SceneManager.Actors.Length; i++)
             {
                 if (SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
@@ -230,6 +229,12 @@ namespace XenoKit.Engine
 
         public void PrevFrame()
         {
+            if (SceneManager.IsOnEffectTab)
+            {
+                VfxPreview.SeekPrev();
+                return;
+            }
+
             switch (SceneManager.CurrentSceneState)
             {
                 case EditorTabs.Animation:
@@ -248,6 +253,12 @@ namespace XenoKit.Engine
 
         public void NextFrame()
         {
+            if (SceneManager.IsOnEffectTab)
+            {
+                VfxPreview.SeekNext();
+                return;
+            }
+
             switch (SceneManager.CurrentSceneState)
             {
                 case EditorTabs.Animation:

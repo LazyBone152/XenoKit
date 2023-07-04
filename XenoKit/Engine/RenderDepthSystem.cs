@@ -8,6 +8,10 @@ namespace XenoKit.Engine
     public class RenderDepthSystem : Entity
     {
         private readonly List<Entity> Entities = new List<Entity>();
+        private readonly List<Entity> EntitiesToRemove = new List<Entity>();
+
+        public int ActiveParticleCount { get; private set; }
+        public int Count => Entities.Count;
 
         public RenderDepthSystem(GameBase game) : base(game)
         {
@@ -16,21 +20,53 @@ namespace XenoKit.Engine
 
         public override void Draw()
         {
-            foreach(Entity entity in Entities.OrderBy(x => Math.Abs(Vector3.Distance(CameraBase.CameraState.ActualPosition, x.Transform.Translation))).ThenByDescending(x => RenderDepth))
+            if(EntitiesToRemove.Count > 0)
             {
-                if(entity.DrawThisFrame)
-                    entity.Draw();
+                foreach (Entity entity in EntitiesToRemove)
+                {
+                    Entities.Remove(entity);
+                }
+
+                EntitiesToRemove.Clear();
             }
+
+            int particleCount = 0;
+
+            foreach(Entity entity in Entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.ActualPosition, x.AbsoluteTransform.Translation)))
+            {
+                if (entity.DrawThisFrame && entity.AlphaBlendType <= 1)
+                {
+                    entity.Draw();
+
+                    if (entity.EntityType == EntityType.Particle)
+                        particleCount++;
+                }
+            }
+
+            //Render subtractive blend type last
+            foreach (Entity entity in Entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.ActualPosition, x.AbsoluteTransform.Translation)))
+            {
+                if (entity.DrawThisFrame && entity.AlphaBlendType == 2)
+                {
+                    entity.Draw();
+
+                    if (entity.EntityType == EntityType.Particle)
+                        particleCount++;
+                }
+            }
+
+            ActiveParticleCount = particleCount;
         }
 
         public void Add(Entity entity)
         {
-            Entities.Add(entity);
+            if(entity != null)
+                Entities.Add(entity);
         }
 
         public void Remove(Entity entity)
         {
-            Entities.Remove(entity);
+            EntitiesToRemove.Add(entity);
         }
 
         public override void Update()

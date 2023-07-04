@@ -186,6 +186,11 @@ namespace XenoKit.Engine
             PartSet.Update();
         }
 
+        public override void DelayedUpdate()
+        {
+            ActionControl.DelayedUpdate();
+        }
+
         /// <summary>
         /// Simulate a frame. 
         /// </summary>

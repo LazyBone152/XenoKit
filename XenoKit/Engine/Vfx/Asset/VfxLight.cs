@@ -16,6 +16,23 @@ namespace XenoKit.Engine.Vfx.Asset
         private EMA_Animation Animation;
 
         private float Time = 0f;
+        private ushort AnimationLoopEndFrame
+        {
+            get
+            {
+                if (EffectPart.EMA_LoopEndFrame != 0) return EffectPart.EMA_LoopEndFrame;
+                return AnimationEndFrame;
+            }
+        }
+        private ushort AnimationEndFrame
+        {
+            get
+            {
+                if (Animation != null) return Animation.EndFrame;
+                return 1000;
+            }
+        }
+
         public float[] RGBA = new float[4]; //g_vColor0_PS
         public float[] Light = new float[4]; //g_vParam4_PS
         public float[] LightStrength = new float[4]; //g_vParam3_PS (Ambient Light Strength = 1f, Anim Light Strength = A / 2, capped to 10 max)
@@ -67,6 +84,8 @@ namespace XenoKit.Engine.Vfx.Asset
 
         public override void Simulate()
         {
+            if (!HasStarted) return;
+
             Update(true);
         }
 
@@ -83,14 +102,12 @@ namespace XenoKit.Engine.Vfx.Asset
             if (Animation == null)
                 return;
 
-            ushort loopEnd = EffectPart.EMA_LoopEndFrame != 0 ? EffectPart.EMA_LoopEndFrame : Animation.EndFrame;
-
-            if(Time > loopEnd && EffectPart.EMA_Loop)
+            if(Time > AnimationLoopEndFrame && EffectPart.EMA_Loop)
             {
                 Time = EffectPart.EMA_LoopStartFrame;
                 ResetKeyframeIndex();
             }
-            else if(Time > Animation.EndFrame)
+            else if(Time > AnimationEndFrame)
             {
                 IsFinished = true;
                 return;
@@ -126,6 +143,18 @@ namespace XenoKit.Engine.Vfx.Asset
             {
                 Time += EffectPart.UseTimeScale ? GameBase.ActiveTimeScale : 1f;
             }
+        }
+
+        public override void SeekNextFrame()
+        {
+            base.SeekNextFrame();
+            Time++;
+        }
+
+        public override void SeekPrevFrame()
+        {
+            base.SeekPrevFrame();
+            Time = Time == 0 ? AnimationLoopEndFrame : Time - 1;
         }
     }
 }

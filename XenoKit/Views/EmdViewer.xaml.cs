@@ -87,17 +87,23 @@ namespace XenoKit.Views
                 }
             }
         }
-        public string SelecteSubmeshName
+        public string SelectedSubmeshName
         {
             get => SelectedSubmesh?.Name;
             set
             {
                 if (SelectedSubmesh != null && SelectedSubmesh?.Name != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(nameof(SelectedSubmesh.Name), SelectedSubmesh, SelectedSubmesh.Name, value, "Mesh Name"));
+                    UndoManager.Instance.AddCompositeUndo(new List<IUndoRedo>()
+                    {
+                        new UndoablePropertyGeneric(nameof(SelectedSubmesh.Name), SelectedSubmesh, SelectedSubmesh.Name, value),
+                        new UndoActionDelegate(EmdFile, nameof(EmdFile.TriggerMaterialsChanged), true)
+                    }, "Submesh Name", UndoGroup.EMD);
+
                     SelectedSubmesh.Name = value;
-                    NotifyPropertyChanged(nameof(SelecteSubmeshName));
+                    NotifyPropertyChanged(nameof(SelectedSubmeshName));
                     SelectedSubmesh.RefreshValues();
+                    EmdFile.TriggerMaterialsChanged();
                 }
             }
         }
@@ -170,7 +176,7 @@ namespace XenoKit.Views
             NotifyPropertyChanged(nameof(TextureVisibility));
             NotifyPropertyChanged(nameof(SelectedModelName));
             NotifyPropertyChanged(nameof(SelectedMeshName));
-            NotifyPropertyChanged(nameof(SelecteSubmeshName));
+            NotifyPropertyChanged(nameof(SelectedSubmeshName));
         }
 
         private void TreeViewItem_Selected(object sender, RoutedEventArgs e)

@@ -8,6 +8,7 @@ using XenoKit.Engine.Textures;
 using Xv2CoreLib.EMA;
 using Xv2CoreLib.EMB_CLASS;
 using Xv2CoreLib.EMD;
+using Xv2CoreLib.EMG;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.EMO;
 using Xv2CoreLib.EMP_NEW;
@@ -49,7 +50,6 @@ namespace XenoKit.Engine
 
             lock (CachedObjects)
             {
-
                 CachedObjects.TryGetValue(key, out CompiledObjectCacheEntry cacheEntry);
 
                 object result = cacheEntry?.CachedObject?.Target;
@@ -74,6 +74,10 @@ namespace XenoKit.Engine
                     else if (typeof(T) == typeof(Xv2ModelFile) && key is EMO_File emoFile)
                     {
                         result = Xv2ModelFile.LoadEmo(gameInstance, emoFile);
+                    }
+                    else if (typeof(T) == typeof(Xv2Submesh) && key is EMG_File emgFile)
+                    {
+                        result = Xv2ModelFile.LoadEmg(gameInstance, emgFile);
                     }
                     else if (typeof(T) == typeof(Animation.Xv2Skeleton) && key is ESK_File eskFile)
                     {
@@ -119,16 +123,20 @@ namespace XenoKit.Engine
 
         public void RemoveDeadObjects()
         {
-            int removed = 0;
-
-            foreach (KeyValuePair<object, CompiledObjectCacheEntry> item in CachedObjects.Where(x => !x.Value.IsAlive()).ToList())
+            try
             {
-                CachedObjects.Remove(item.Key);
-                removed++;
-            }
+                //int removed = 0;
 
-            if(removed > 0)
-                Log.Add($"Removed {removed} dead objects", LogType.Debug);
+                foreach (KeyValuePair<object, CompiledObjectCacheEntry> item in CachedObjects.Where(x => !x.Value.IsAlive()).ToList())
+                {
+                    CachedObjects.Remove(item.Key);
+                    //removed++;
+                }
+
+                //if (removed > 0)
+               //    Log.Add($"Removed {removed} dead objects", LogType.Debug);
+            }
+            catch { }
         }
 
         #endregion

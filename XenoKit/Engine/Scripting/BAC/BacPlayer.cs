@@ -10,6 +10,7 @@ using Xv2CoreLib.BAC;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EffectContainer;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Scripting.BAC
 {
@@ -21,6 +22,7 @@ namespace XenoKit.Engine.Scripting.BAC
         //Bac Entry:
         public BacEntryInstance BacEntryInstance { get; private set; }
         public bool HasBacEntry => BacEntryInstance != null;
+        public bool DelayedResimulate { get; set; }
 
         //Frame and Duration:
         public int CurrentFrame
@@ -75,7 +77,7 @@ namespace XenoKit.Engine.Scripting.BAC
             }
         }
 
-        public void PlayBacEntry(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move = null, bool revertPosition = true)
+        public void PlayBacEntryPreview(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move = null, bool revertPosition = true)
         {
             if (bacEntry == null)
             {
@@ -83,6 +85,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 return;
             }
 
+            Xv2CoreLib.Random.GenerateNewSeed();
             ClearBacEntry();
             BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, revertPosition, character.BaseTransform);
         }
@@ -95,6 +98,15 @@ namespace XenoKit.Engine.Scripting.BAC
                 UpdateBac(true, ref BacEntryInstance.CurrentFrame);
 
             BacEntryInstance.Update();
+        }
+
+        public override void DelayedUpdate()
+        {
+            if (DelayedResimulate)
+            {
+                DelayedResimulate = false;
+                ResimulateCurrentEntry();
+            }
         }
 
         private void UpdateBac(bool allowTimeSkip, ref float _refFrame)
@@ -187,7 +199,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 //Effect
                 if (type is BAC_Type8 effect)
                 {
-                    if (ProcessedBacTypes.Contains(type)) continue;
+                    if (ProcessedBacTypes.Contains(type) || !SettingsManager.Instance.Settings.XenoKit_VfxSimulation) continue;
 
                     if (effect.EffectFlags.HasFlag(BAC_Type8.EffectFlagsEnum.Off))
                     {
@@ -195,10 +207,9 @@ namespace XenoKit.Engine.Scripting.BAC
                     }
                     else
                     {
-                        VfxManager.PlayEffect(effect, BacEntryInstance);
+                        VfxManager.PlayEffect(effect, BacEntryInstance, character);
                     }
                 }
-                
 
                 //Camera
                 if (type is BAC_Type10 camera)
@@ -319,6 +330,7 @@ namespace XenoKit.Engine.Scripting.BAC
             if (clearAnimations)
                 character.AnimationPlayer.ClearCurrentAnimation(true);
 
+            Xv2CoreLib.Random.ResetWithCurrentSeed();
             VfxManager.StopEffects();
             VfxManager.ForceEffectUpdate = false;
             SceneManager.MainCamera.ClearCameraAnimation();
@@ -392,6 +404,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 character.PartSet.ResetBacPartSetSwap(false);
             }
 
+            Xv2CoreLib.Random.ResetWithCurrentSeed();
             CurrentFrame = 0;
             ProcessedBacTypes.Clear();
             VfxManager.StopEffects();

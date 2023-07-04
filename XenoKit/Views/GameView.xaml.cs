@@ -71,37 +71,6 @@ namespace XenoKit.Controls
                 return "";
             }
         }
-        public string GameOverlayText
-        {
-            get
-            {
-                if (MonoGame?.camera == null) return null;
-#if !DEBUG
-                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
-                    MonoGame.camera.CameraState.FieldOfView,
-                    MonoGame.camera.CameraState.Roll,
-                    MonoGame.camera.CameraState.ActualPosition,
-                    MonoGame.camera.CameraState.ActualTargetPosition,
-                    (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
-                    GetSelectedBoneName());
-
-#else
-                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nLIGHTING:\nPos: {6}\nDir: {7}\n\nDEBUG:\nCompiled Objects: {8}\nPooled Objects (Active): {9}\nPooled Objects (Free): {10}",
-                    MonoGame.camera.CameraState.FieldOfView,
-                    MonoGame.camera.CameraState.Roll,
-                    MonoGame.camera.CameraState.ActualPosition,
-                    MonoGame.camera.CameraState.ActualTargetPosition,
-                    (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
-                    GetSelectedBoneName(),
-                    MonoGame.LightSource.GetLightPosition(),
-                    MonoGame.LightSource.GetLightDirection(),
-                    MonoGame.CompiledObjectManager.ObjectCount,
-                    MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticlePool.UsedObjectCount,
-                    MonoGame.ObjectPoolManager.ParticleEmitterPool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticlePool.FreeObjectCount);
-
-#endif
-            }
-        }
         public int MaxFrameValue
         {
             get
@@ -167,6 +136,80 @@ namespace XenoKit.Controls
                     NotifyPropertyChanged(nameof(CurrentFrame));
             }
         }
+
+        //Overlays
+        public string GameOverlayText
+        {
+            get
+            {
+                if (MonoGame?.camera == null) return null;
+#if !DEBUG
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
+                    MonoGame.camera.CameraState.FieldOfView,
+                    MonoGame.camera.CameraState.Roll,
+                    MonoGame.camera.CameraState.ActualPosition,
+                    MonoGame.camera.CameraState.ActualTargetPosition,
+                    (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
+                    GetSelectedBoneName());
+
+#else
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nLIGHTING:\nPos: {6}\nDir: {7}\n\nDEBUG:\nCompiled Objects: {8}\nPooled Objects (Active): {9}\nPooled Objects (Free): {10}",
+                    MonoGame.camera.CameraState.FieldOfView,
+                    MonoGame.camera.CameraState.Roll,
+                    MonoGame.camera.CameraState.ActualPosition,
+                    MonoGame.camera.CameraState.ActualTargetPosition,
+                    (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
+                    GetSelectedBoneName(),
+                    MonoGame.LightSource.GetLightPosition(),
+                    MonoGame.LightSource.GetLightDirection(),
+                    MonoGame.CompiledObjectManager.ObjectCount,
+                    MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.UsedObjectCount,
+                    MonoGame.ObjectPoolManager.ParticleEmitterPool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.FreeObjectCount);
+
+#endif
+            }
+        }
+        public string StandardOverlay
+        {
+            get
+            {
+                if (MonoGame?.camera == null) return null;
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
+                    MonoGame.camera.CameraState.FieldOfView,
+                    MonoGame.camera.CameraState.Roll,
+                    MonoGame.camera.CameraState.ActualPosition,
+                    MonoGame.camera.CameraState.ActualTargetPosition,
+                    (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
+                    GetSelectedBoneName());
+            }
+        }
+        public string VfxOverlay
+        {
+            get
+            {
+                if (MonoGame?.camera == null || (!SceneManager.IsOnTab(EditorTabs.Action) && !SceneManager.IsOnEffectTab)) return null;
+                return string.Format("\nVFX:\nParticles: {0}\nEmitters: {1}", MonoGame.RenderDepthSystem.ActiveParticleCount, MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount);
+            }
+        }
+        public string DebugOverlay
+        {
+            get
+            {
+                if (MonoGame?.camera == null) return null;
+#if DEBUG
+                return string.Format("\nLIGHTING:\nPos: {0}\nDir: {1}\n\nDEBUG:\nCompiled Objects: {2}\nPooled Objects (Active): {3}\nPooled Objects (Free): {4}\nRender Objects: {5}",
+                    MonoGame.LightSource.GetLightPosition(),
+                    MonoGame.LightSource.GetLightDirection(),
+                    MonoGame.CompiledObjectManager.ObjectCount,
+                    MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.UsedObjectCount,
+                    MonoGame.ObjectPoolManager.ParticleEmitterPool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.FreeObjectCount,
+                    MonoGame.RenderDepthSystem.Count);
+#else
+                return null;
+#endif
+            }
+        }
+        public Visibility OverlayVisibility { get; set; } = Visibility.Visible;
 
         public bool Loop
         {
@@ -345,7 +388,9 @@ namespace XenoKit.Controls
         {
             NotifyPropertyChanged(nameof(CurrentFramePreview));
             NotifyPropertyChanged(nameof(TimeScale));
-            NotifyPropertyChanged(nameof(GameOverlayText));
+            NotifyPropertyChanged(nameof(StandardOverlay));
+            NotifyPropertyChanged(nameof(VfxOverlay));
+            NotifyPropertyChanged(nameof(DebugOverlay));
             NotifyPropertyChanged(nameof(MaxFrameValue));
             NotifyPropertyChanged(nameof(CurrentFrame));
             NotifyPropertyChanged(nameof(PlayPauseButtonBinding));
@@ -445,10 +490,12 @@ namespace XenoKit.Controls
 
         private void GameOverlayToggle_Click(object sender, RoutedEventArgs e)
         {
-            if (gameOverlay.Visibility == Visibility.Visible)
-                gameOverlay.Visibility = Visibility.Hidden;
+            if (OverlayVisibility == Visibility.Visible)
+                OverlayVisibility = Visibility.Hidden;
             else
-                gameOverlay.Visibility = Visibility.Visible;
+                OverlayVisibility = Visibility.Visible;
+
+            NotifyPropertyChanged(nameof(OverlayVisibility));
         }
 
         private string GetSelectedBoneName()

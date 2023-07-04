@@ -137,6 +137,7 @@ namespace XenoKit.Engine
                     break;
                 case MainEditorTabs.Audio:
                     CurrentSceneState = audioTabIdx == 0 ? EditorTabs.Audio_VOX : EditorTabs.Audio_SE;
+                    ShowActorsInCurrentScene = false;
                     break;
                 case MainEditorTabs.BCS:
                     switch (bcsTab)
@@ -309,7 +310,7 @@ namespace XenoKit.Engine
                 if (chara != null)
                 {
                     Log.Add($"{GetActorName(actorSlot)} Actor was not set. Defaulting to the first free loaded character ({characters[0].Name}).", LogType.Info);
-                    Actors[actorSlot] = characters[0];
+                    SetActor(characters[0], actorSlot);
                 }
                 else
                 {

@@ -107,7 +107,7 @@ namespace XenoKit.Engine.Vfx
                     if (effectPart.AssetRef.Files[0].EmaFile == null) continue;
                     Assets.Add(new VfxLight(effectPart.AssetRef.Files[0].EmaFile, effectPart, Actor, GameBase));
                 }
-                else if(effectPart.AssetType == AssetType.PBIND)
+                else if (effectPart.AssetType == AssetType.PBIND)
                 {
                     if (effectPart.AssetRef.Files[0].EmpFile == null) continue;
                     Assets.Add(new ParticleSystem(SpawnTransform, Actor, effectPart, effectPart.AssetRef.Files[0].EmpFile, this, GameBase));
@@ -128,7 +128,7 @@ namespace XenoKit.Engine.Vfx
                 return;
             }
 
-            foreach(var asset in Assets)
+            foreach (VfxAsset asset in Assets)
             {
                 asset.Terminate();
             }
@@ -136,7 +136,7 @@ namespace XenoKit.Engine.Vfx
 
         public override void Dispose()
         {
-            if(Effect != null)
+            if (Effect != null)
                 Effect.EffectParts.CollectionChanged -= EffectParts_CollectionChanged;
 
             foreach (VfxAsset asset in Assets)
@@ -219,6 +219,22 @@ namespace XenoKit.Engine.Vfx
         public void Simulate()
         {
             Update(true);
+        }
+
+        public void SeekNextFrame()
+        {
+            foreach(VfxAsset asset in Assets)
+            {
+                asset.SeekNextFrame();
+            }
+        }
+
+        public void SeekPrevFrame()
+        {
+            foreach (VfxAsset asset in Assets)
+            {
+                asset.SeekPrevFrame();
+            }
         }
     }
 }

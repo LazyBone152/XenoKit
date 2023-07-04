@@ -9,6 +9,8 @@ namespace XenoKit.Engine.Vfx.Asset
 {
     public abstract class VfxAsset : Entity
     {
+        public float CurrentFrame { get; protected set; }
+        public bool HasStarted { get; protected set; }
         public bool IsFinished { get; protected set; }
         public bool IsTerminating { get; protected set; }
         protected readonly EffectPart EffectPart;
@@ -52,7 +54,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
             if (!string.IsNullOrWhiteSpace(EffectPart.ESK) && Actor != null)
             {
-                BoneIdx = Actor.Skeleton.GetBoneIndex(EffectPart.ESK);
+                BoneIdx = Actor.Skeleton.GetBoneIndex(EffectPart.ESK, true);
             }
 
             //Set Transform to selected bone if on bone attachment, else use the StartingTransform (from BAC)
@@ -87,6 +89,10 @@ namespace XenoKit.Engine.Vfx.Asset
             }
 
             Scale = Random.Range(EffectPart.ScaleMin, EffectPart.ScaleMax);
+
+            //Reset start state
+            CurrentFrame = 0f;
+            HasStarted = false;
         }
 
         /// <summary>
@@ -109,9 +115,25 @@ namespace XenoKit.Engine.Vfx.Asset
             EffectPart.PropertyChanged -= EffectPart_PropertyChanged;
         }
 
-
         public override void Update()
         {
+            if (!HasStarted)
+            {
+                if(CurrentFrame >= EffectPart.StartTime)
+                {
+                    CurrentFrame = 0f;
+                    HasStarted = true;
+                }
+                else
+                {
+                    CurrentFrame += EffectPart.UseTimeScale ? GameBase.ActiveTimeScale : 1f;
+                    DrawThisFrame = false;
+                    return;
+                }
+            }
+
+            DrawThisFrame = true;
+
             if(Actor != null && BoneIdx != -1 && EffectPart.AttachementType == EffectPart.Attachment.Bone)
             {
                 //TODO: implement BoneDirection
@@ -152,12 +174,12 @@ namespace XenoKit.Engine.Vfx.Asset
 
         public virtual void Simulate()
         {
-
+            //Update();
         }
 
         public virtual void SeekNextFrame()
         {
-
+            //Update();
         }
 
         public virtual void SeekPrevFrame()

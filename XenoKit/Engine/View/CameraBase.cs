@@ -386,6 +386,12 @@ namespace XenoKit.Engine.View
             }
         }
 
+        public Vector3 TransformRelativeToCamera(Vector3 position, float distanceModifier)
+        {
+            Vector3 cameraForward = position - CameraState.Position;
+            cameraForward.Normalize();
+            return cameraForward * distanceModifier;
+        }
         #endregion
     }
 }

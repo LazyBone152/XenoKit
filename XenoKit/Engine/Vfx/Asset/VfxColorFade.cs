@@ -61,6 +61,8 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private void Update(bool simulate)
         {
+            if (!HasStarted) return;
+
             int active = 0;
 
             for (int i = 0; i < EcfFile.Nodes.Count; i++)
@@ -135,6 +137,29 @@ namespace XenoKit.Engine.Vfx.Asset
             }
 
             return null;
+        }
+
+        public override void SeekNextFrame()
+        {
+            base.SeekNextFrame();
+            
+            foreach(VfxColorFadeEntry node in Values)
+            {
+                node.Time++;
+            }
+        }
+
+        public override void SeekPrevFrame()
+        {
+            base.SeekPrevFrame();
+
+            for(int i = 0; i < Values.Count; i++)
+            {
+                if (Values[i].Time > 0)
+                    Values[i].Time--;
+                else if (EcfFile.Nodes[i].Loop)
+                    Values[i].Time = EcfFile.Nodes[i].EndTime;
+            }
         }
     }
 

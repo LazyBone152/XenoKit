@@ -55,11 +55,12 @@ namespace XenoKit.Engine.Vfx.Asset
         public bool IsMaterialsAnimated => MaterialAnimation != null;
         public List<VfxEmaMaterialNode> MaterialNodes = new List<VfxEmaMaterialNode>();
 
+        private Matrix AttachmentBone = Matrix.Identity;
+
         public VfxEmo(Matrix startWorld, Xv2CoreLib.EffectContainer.Asset asset, EffectPart effectPart, Actor actor, GameBase gameBase) : base(startWorld, effectPart, actor, gameBase)
         {
             Asset = asset;
             InitializeFiles();
-            Transform = Matrix.Identity;
         }
 
         private void InitializeFiles()
@@ -182,6 +183,10 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             base.Update();
 
+            if (!HasStarted) return;
+
+            AttachmentBone = GetAdjustedTransform();
+
             //Animation has been changed
             if (EffectPart.EMA_AnimationIndex != EmaIndex)
             {
@@ -206,7 +211,7 @@ namespace XenoKit.Engine.Vfx.Asset
             {
                 if (!simulate || VfxManager.ForceEffectUpdate)
                 {
-                    AnimationPlayer?.Update(Transform);
+                    AnimationPlayer?.Update(AttachmentBone);
 
                     if (MaterialAnimation != null)
                     {
@@ -293,10 +298,21 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             if (DrawThisFrame && Model != null)
             {
-                Model.Draw(Matrix.CreateScale(Scale) * GetAdjustedTransform(), 0, Materials, Textures, null, 0, Skeleton);
+                Model.Draw(Matrix.CreateScale(Scale) * AttachmentBone, 0, Materials, Textures, null, 0, Skeleton);
             }
         }
 
+        public override void SeekNextFrame()
+        {
+            base.SeekNextFrame();
+            Time++;
+        }
+
+        public override void SeekPrevFrame()
+        {
+            base.SeekPrevFrame();
+            Time = Time == 0 ? AnimationLoopEndFrame : Time - 1;
+        }
 
     }
 

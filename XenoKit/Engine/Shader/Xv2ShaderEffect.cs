@@ -14,6 +14,22 @@ namespace XenoKit.Engine.Shader
     /// </summary>
     public class Xv2ShaderEffect : Effect
     {
+        //Constant Buffer IDS:
+        public const int VS_MATRIX_CB = 0;
+        public const int VS_STAGE_CB = 1;
+        public const int VS_COMMON_LIGHT_CB = 2;
+        public const int VS_COMMON_MATERIAL_CB = 3;
+        public const int VS_MTXPLT_CB = 4; //can also be: vs_mtxplt_alias_sspl_cb
+        public const int VS_MTXPLT_PREV_CB = 5;
+        public const int VS_VERSATILE_CB = 6;
+        public const int CB_VS_BOOL = 8;
+        public const int PS_STAGE_CB = 0;
+        public const int PS_ALPHATEST_CB = 1;
+        public const int PS_COMMON_CB = 2;
+        public const int PS_VERSATILE_CB = 4;
+        public const int PS_USER_CB = 5;
+        public const int CB_PS_BOOL = 8;
+
         //Default materials to use when none is found:
         private static Xv2ShaderEffect _defaultCharaMaterial = null;
         public static Xv2ShaderEffect DefaultCharacterMaterial
@@ -39,6 +55,7 @@ namespace XenoKit.Engine.Shader
         private ShaderProgram shaderProgram = null;
         public EmmMaterial Material { get; private set; }
         public DecompiledMaterial MatParam => Material?.DecompiledParameters;
+        public bool IsSubtractiveBlending { get; private set; }
 
         private bool SkinningEnabled { get; set; }
 
@@ -351,7 +368,7 @@ namespace XenoKit.Engine.Shader
             //NOTE: A lot of these default values are taken from XenoViewer. Others are taken from frames captured with RenderDoc.
 
             //vs_stage_cb
-            if (shaderProgram.UseVertexShaderBuffer[1])
+            if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
                 Parameters["g_vHeightFog_VS"].SetValue(new Vector4(-1.0f, 1 / 100, -2, 1 / 1000));
                 Parameters["g_vFog_VS"].SetValue(new Vector4(-2, 1 / 1000, -2, 1 / 1000));
@@ -364,7 +381,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //vs_common_light_cb
-            if (shaderProgram.UseVertexShaderBuffer[2])
+            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_LIGHT_CB])
             {
                 Parameters["g_vAmbUni_VS"].SetVector4(MatParam.MatAmb.Values, MatParam.MatAmbScale);
                 Parameters["g_vRim_VS"].SetValue(new Vector4(MatParam.RimCoeff, MatParam.RimPower, 0, 0));
@@ -380,7 +397,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //vs_common_material_cb
-            if (shaderProgram.UseVertexShaderBuffer[3])
+            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
             {
                 Parameters["g_TexScroll0_VS"].SetVector4(MatParam.TexScrl0.Values);
                 Parameters["g_TexScroll1_VS"].SetVector4(MatParam.TexScrl1.Values);
@@ -399,7 +416,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //vs_versatile_cb
-            if (shaderProgram.UseVertexShaderBuffer[6])
+            if (shaderProgram.UseVertexShaderBuffer[VS_VERSATILE_CB])
             {
                 //g_vUserFlag0_VS 71.44044, 1.72659, 88.18906, 1.00 float4
 
@@ -414,9 +431,9 @@ namespace XenoKit.Engine.Shader
             }
 
             //cb_vs_bool
-            if (shaderProgram.UseVertexShaderBuffer[8])
+            if (shaderProgram.UseVertexShaderBuffer[CB_VS_BOOL])
             {
-                //Force disable hardware skinning. XenoKit does this on the CPU currently.
+                //Initialize to false. If material uses skinning, this will be changed later
                 Parameters["g_bSkinning_VS"].SetValue(false);
 
                 Parameters["g_bVersatile0_VS"].SetValue(MatParam.VsFlag0);
@@ -430,7 +447,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //ps_stage_cb
-            if (shaderProgram.UsePixelShaderBuffer[0])
+            if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB])
             {
                 //Parameters["g_vShadowMap_PS"].SetValue(new Vector4(2048f, 00049f, 0.001f, 0.85f));
                 Parameters["g_vShadowMap_PS"].SetValue(new Vector4(4096f, 0.00012f, 0.001f, 0.85f));
@@ -449,13 +466,13 @@ namespace XenoKit.Engine.Shader
             }
 
             //ps_alphatest_cb
-            if (shaderProgram.UsePixelShaderBuffer[1])
+            if (shaderProgram.UsePixelShaderBuffer[PS_ALPHATEST_CB])
             {
                 Parameters["g_vAlphaTest_PS"].SetValue(MatParam.AlphaTest > 0 ? new Vector4(MatParam.AlphaTest / 255f, 0, 0, 0) : Vector4.Zero);
             }
 
             //ps_common_cb
-            if (shaderProgram.UsePixelShaderBuffer[2])
+            if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
             {
                 Parameters["g_vAmbUni_PS"].SetVector4(MatParam.MatAmb.Values, MatParam.MatAmbScale);
                 Parameters["g_vLightDif0_PS"].SetVector4(MatParam.gLightDif.Values, MatParam.MatDifScale);
@@ -495,7 +512,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //ps_versatile_cb
-            if (shaderProgram.UsePixelShaderBuffer[4])
+            if (shaderProgram.UsePixelShaderBuffer[PS_VERSATILE_CB])
             {
                 Parameters["g_vParam0_PS"].SetValue(new Vector4(1.0f, 0.0f, 1.0f, 1.0f));
                 Parameters["g_vParam1_PS"].SetValue(new Vector4(0, 0, 0, 1f));
@@ -513,8 +530,10 @@ namespace XenoKit.Engine.Shader
             }
 
             //cb_ps_bool
-            if (shaderProgram.UsePixelShaderBuffer[8])
+            if (shaderProgram.UsePixelShaderBuffer[CB_PS_BOOL])
             {
+                Parameters["g_bFog_PS"].SetValue(true);
+                Parameters["g_bOutputGlareMRT_PS"].SetValue(MatParam.Glare == 1);
                 Parameters["ps_bool_padding0"].SetValue(true);
             }
 
@@ -580,7 +599,7 @@ namespace XenoKit.Engine.Shader
 
 
             //If shader has vs_matrix_cb, update these parameters every frame.
-            if (shaderProgram.UseVertexShaderBuffer[0])
+            if (shaderProgram.UseVertexShaderBuffer[VS_MATRIX_CB])
             {
                 Matrix viewMatrix = GameBase.ActiveCameraBase.ViewMatrix;
                 Matrix projMatrix = GameBase.ActiveCameraBase.ProjectionMatrix;
@@ -598,7 +617,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //vs_stage_cb.
-            if (shaderProgram.UseVertexShaderBuffer[1])
+            if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
                 g_vScreen_VS.SetValue(SceneManager.ScreenSize);
                 g_SystemTime_VS.SetValue(SceneManager.SystemTime);
@@ -620,7 +639,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //vs_common_material_cb
-            if (shaderProgram.UseVertexShaderBuffer[3])
+            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
             {
                 //VFX Testing
                 /*
@@ -638,7 +657,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //vs_common_light_cb.
-            if (shaderProgram.UseVertexShaderBuffer[2])
+            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_LIGHT_CB])
             {
                 //Front Side: (Left in XenoKit)
                 //Parameters["g_vEyePos_VS"].SetValue(new Vector4(-0.31891f, 0.41145f, -3.78455f, 1.00f));
@@ -665,7 +684,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //vs_versatile_cb.
-            if (shaderProgram.UseVertexShaderBuffer[6])
+            if (shaderProgram.UseVertexShaderBuffer[VS_VERSATILE_CB])
             {
                 //Camera position / Shade caster. This is where the "shadow" over a character originates.
                 //g_vUserFlag0_VS.SetValue(new Vector4(0,-1,-1, 0));
@@ -676,7 +695,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //cb_vs_bool
-            if (shaderProgram.UseVertexShaderBuffer[8])
+            if (shaderProgram.UseVertexShaderBuffer[CB_VS_BOOL])
             {
                 //VFX Testing
                 /*
@@ -687,7 +706,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //ps_stage_cb
-            if (shaderProgram.UsePixelShaderBuffer[0])
+            if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB])
             {
                 if (ECF_Multi != null)
                 {
@@ -708,13 +727,13 @@ namespace XenoKit.Engine.Shader
             }
 
             //ps_user_cb
-            if (shaderProgram.UsePixelShaderBuffer[5])
+            if (shaderProgram.UsePixelShaderBuffer[PS_USER_CB])
             {
                 //Parameters["g_vShadowParam_PS"].SetValue(new Vector4(0, 0, 0, 1)); //Y must be equal or greater than X, else no shadow
             }
 
             //ps_common_cb.
-            if (shaderProgram.UsePixelShaderBuffer[2])
+            if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
             {
                 //Parameters["g_vEyePos_PS"].SetValue(new Vector4(-0.50204f, -0.46655f, -0.7282f, 0.00f));
 
@@ -737,7 +756,7 @@ namespace XenoKit.Engine.Shader
 
             }
             //ps_versatile_cb
-            if (shaderProgram.UsePixelShaderBuffer[4])
+            if (shaderProgram.UsePixelShaderBuffer[PS_VERSATILE_CB])
             {
                 //Light animation parameters
                 /*
@@ -766,7 +785,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //cb_ps_bool
-            if (shaderProgram.UsePixelShaderBuffer[8])
+            if (shaderProgram.UsePixelShaderBuffer[CB_PS_BOOL])
             {
                 /*
                 Parameters["g_bFog_PS"].SetValue(false); //Enables fog (on stages)
@@ -786,7 +805,7 @@ namespace XenoKit.Engine.Shader
             }
 
             //Set global samplers/textures
-            foreach (var shader in _shaders)
+            foreach (Xv2Shader shader in _shaders)
                 shader.SetGlobalSamplers();
         }
 
@@ -828,27 +847,69 @@ namespace XenoKit.Engine.Shader
         public BlendState GetBlendState()
         {
             BlendState blendState = new BlendState();
+            IsSubtractiveBlending = false;
 
             switch (MatParam.AlphaBlendType)
             {
                 case 0: //Normal
+                    //goto case 1; //test
                     blendState.IndependentBlendEnable = true;
-                    blendState.AlphaBlendFunction = BlendFunction.Add;
-                    blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState.BlendFactor = Color.White;
+                    blendState.MultiSampleMask = -1;
+
+                    blendState.ColorSourceBlend = Blend.SourceAlpha;
+                    blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState.ColorBlendFunction = BlendFunction.Add;
+
                     blendState.AlphaSourceBlend = Blend.SourceAlpha;
+                    blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState.AlphaBlendFunction = BlendFunction.Add;
+
+                    blendState.ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
+
+                    /*
+                    blendState.AlphaBlendFunction = BlendFunction.Add;
+                    blendState.AlphaDestinationBlend = Blend.One;
+                    blendState.AlphaSourceBlend = Blend.One;
 
                     blendState.ColorBlendFunction = BlendFunction.Add;
-                    blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState.ColorDestinationBlend = Blend.One;
                     blendState.ColorSourceBlend = Blend.SourceAlpha;
-
                     blendState.ColorWriteChannels = ColorWriteChannels.All;
-                    blendState.MultiSampleMask = 1;
+                    */
                     break;
                 case 1: //Additive
-                    blendState = BlendState.Additive;
+                    //blendState = BlendState.Additive;
+                    blendState.IndependentBlendEnable = true;
+                    blendState.BlendFactor = Color.White;
+                    blendState.MultiSampleMask = -1;
+
+                    blendState.ColorSourceBlend = Blend.SourceAlpha;
+                    blendState.ColorDestinationBlend = Blend.One;
+                    blendState.ColorBlendFunction = BlendFunction.Add;
+
+                    blendState.AlphaSourceBlend = Blend.SourceAlpha;
+                    blendState.AlphaDestinationBlend = Blend.One;
+                    blendState.AlphaBlendFunction = BlendFunction.Add;
+
+                    blendState.ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
+
+                    /*
+                    blendState.AlphaBlendFunction = BlendFunction.Add;
+                    blendState.AlphaSourceBlend = Blend.Zero;
+                    blendState.AlphaDestinationBlend = Blend.One;
+
+                    blendState.ColorBlendFunction = BlendFunction.Add;
+                    blendState.ColorSourceBlend = Blend.SourceAlpha;
+                    blendState.ColorDestinationBlend = Blend.One;
+
+                    blendState.ColorWriteChannels = ColorWriteChannels.All;
+                    */
                     break;
                 case 2: //Subtractive
                     blendState.IndependentBlendEnable = true;
+                    blendState.BlendFactor = Color.White;
+                    blendState.MultiSampleMask = -1;
 
                     blendState.AlphaBlendFunction = BlendFunction.ReverseSubtract;
                     blendState.AlphaSourceBlend = Blend.SourceAlpha;
@@ -859,7 +920,7 @@ namespace XenoKit.Engine.Shader
                     blendState.ColorDestinationBlend = Blend.One;
 
                     blendState.ColorWriteChannels = ColorWriteChannels.All;
-
+                    IsSubtractiveBlending = true;
                     break;
             }
 
@@ -870,22 +931,51 @@ namespace XenoKit.Engine.Shader
         {
             DepthStencilState depth = new DepthStencilState();
 
-            if (MatParam.AlphaBlend == 1 || MatParam.AlphaSortMask == 1 || MatParam.ZTestMask == 1)
+            if (MatParam.AlphaSortMask == 1 || MatParam.ZTestMask == 1)
                 depth.DepthBufferEnable = true;
 
-            if (MatParam.AlphaBlend == 1)
+            if (MatParam.AlphaBlend == 1 && MatParam.AlphaBlendType != 3)
+            {
+                depth.DepthBufferEnable = true;
+                depth.DepthBufferFunction = CompareFunction.LessEqual;
+                depth.StencilEnable = false;
+                depth.StencilMask = 255;
+                depth.StencilWriteMask = 255;
+
+                depth.StencilFail = StencilOperation.Keep;
+                depth.StencilPass = StencilOperation.Keep;
+                depth.StencilDepthBufferFail = StencilOperation.Keep;
+                depth.StencilFunction = CompareFunction.Always;
+                depth.CounterClockwiseStencilFail = StencilOperation.Keep;
+                depth.CounterClockwiseStencilPass = StencilOperation.Keep;
+                depth.CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep;
+                depth.CounterClockwiseStencilFunction = CompareFunction.Always;
+            }
+
+            if(MatParam.ZWriteMask == 1)
+            {
                 depth.DepthBufferWriteEnable = false;
-            
+            }
+
             return depth;
         }
 
         public RasterizerState GetRasterizerState()
         {
+            RasterizerState state = new RasterizerState();
+
+            state.FillMode = SceneManager.WireframeModeCharacters ? FillMode.WireFrame : FillMode.Solid;
+            state.CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullCounterClockwiseFace;
+
+            return state;
+
+            /*
             return new RasterizerState
             {
                 CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullCounterClockwiseFace,
                 FillMode = SceneManager.WireframeModeCharacters ? FillMode.WireFrame : FillMode.Solid,
             };
+            */
         }
 
         public static Xv2ShaderEffect CreateDefaultMaterial(GameBase gameBase)
@@ -972,7 +1062,7 @@ namespace XenoKit.Engine.Shader
 
         public void SetMaterialAnimationValues(VfxEmaMaterialNode materialAnimationNode)
         {
-            if (shaderProgram.UseVertexShaderBuffer[3])
+            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
             {
                 g_TexScroll0_VS.SetVector4(materialAnimationNode.TexScrl[0]);
                 g_TexScroll1_VS.SetVector4(materialAnimationNode.TexScrl[1]);
@@ -982,7 +1072,7 @@ namespace XenoKit.Engine.Shader
                 g_MaterialCol3_VS.SetVector4(materialAnimationNode.MatCol[3]);
             }
 
-            if (shaderProgram.UsePixelShaderBuffer[2])
+            if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
             {
                 g_TexScroll0_PS.SetVector4(materialAnimationNode.TexScrl[0]);
                 g_TexScroll1_PS.SetVector4(materialAnimationNode.TexScrl[1]);
@@ -997,13 +1087,13 @@ namespace XenoKit.Engine.Shader
         public void SetSkinningMatrices(Matrix[] matrices)
         {
 
-            if (!SkinningEnabled && shaderProgram.UseVertexShaderBuffer[8])
+            if (!SkinningEnabled && shaderProgram.UseVertexShaderBuffer[CB_VS_BOOL])
             {
                 SkinningEnabled = true;
                 g_bSkinning_VS.SetValue(true);
             }
 
-            if (shaderProgram.UseVertexShaderBuffer[4])
+            if (shaderProgram.UseVertexShaderBuffer[VS_MTXPLT_CB])
             {
                 g_mMatrixPalette_VS.SetValue(matrices);
             }
@@ -1013,7 +1103,7 @@ namespace XenoKit.Engine.Shader
         {
             if (!SkinningEnabled) return;
 
-            if (shaderProgram.UseVertexShaderBuffer[8])
+            if (shaderProgram.UseVertexShaderBuffer[CB_VS_BOOL])
             {
                 SkinningEnabled = false;
                 g_bSkinning_VS.SetValue(false);
@@ -1022,12 +1112,12 @@ namespace XenoKit.Engine.Shader
 
         public void SetEyeMovement(float[] uvScroll)
         {
-            if (shaderProgram.UsePixelShaderBuffer[2])
+            if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
             {
                 g_TexScroll0_PS.SetVector4(uvScroll);
             }
 
-            if (shaderProgram.UseVertexShaderBuffer[3])
+            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
             {
                 g_TexScroll0_VS.SetVector4(uvScroll);
             }

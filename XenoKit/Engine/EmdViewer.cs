@@ -86,7 +86,7 @@ namespace XenoKit.Engine
 
             base.LoadContent();
         }
-        
+
         protected override void Update(GameTime time)
         {
             base.Update(time);
@@ -101,7 +101,7 @@ namespace XenoKit.Engine
             worldGrid.Draw();
 
             //Handle Dyt texture and Sampler
-            if(DytTexture != null)
+            if (DytTexture != null)
             {
                 GraphicsDevice.SamplerStates[4] = DytSampler.state;
                 GraphicsDevice.VertexSamplerStates[4] = DytSampler.state;
@@ -122,12 +122,12 @@ namespace XenoKit.Engine
                 return;
             }
 
-            while(GraphicsDevice == null)
+            while (GraphicsDevice == null)
             {
                 await Task.Delay(100);
             }
 
-            if(Model != null)
+            if (Model != null)
             {
                 Model.ModelChanged -= RefreshMaterialsEvent;
             }
@@ -140,7 +140,7 @@ namespace XenoKit.Engine
             {
                 Textures = new Xv2Texture[EmbFile.Entry.Count];
 
-                for(int i = 0; i < Textures.Length; i++)
+                for (int i = 0; i < Textures.Length; i++)
                 {
                     //Textures[i] = new Xv2Texture(EmbFile.Entry[i], this);
                     Textures[i] = CompiledObjectManager.GetCompiledObject<Xv2Texture>(EmbFile.Entry[i], this);
@@ -151,7 +151,7 @@ namespace XenoKit.Engine
                 Textures = null;
             }
 
-            if(DytFile != null)
+            if (DytFile != null)
             {
                 DytTexture = new Xv2Texture[1];
                 //DytTexture[0] = new Xv2Texture(DytFile.Entry[0], this);
@@ -164,15 +164,15 @@ namespace XenoKit.Engine
 
             Model.ModelChanged += RefreshMaterialsEvent;
         }
-        
+
         public void ClearInstance()
         {
-            if(Model != null)
+            if (Model != null)
             {
                 Model.ModelChanged -= RefreshMaterialsEvent;
             }
 
-            if(Textures != null)
+            if (Textures != null)
             {
                 foreach (var texture in Textures)
                     texture.Dispose();
@@ -185,11 +185,11 @@ namespace XenoKit.Engine
 
             CompiledObjectManager.Dispose();
         }
-    
+
         private void RefreshMaterialsEvent(object sender, EventArgs e)
         {
             Materials = Model.InitializeMaterials(EmmFile);
         }
-        
+
     }
 }

@@ -10,7 +10,7 @@ namespace XenoKit.Engine.Objects
         public VertexPositionColor[] Vertices;
         private BasicEffect effect;
 
-        public int GridLines { get; private set; } = 60; 
+        public int GridLines { get; private set; } = 60;
         public float GridLineSpacing { get; private set; } = 0.5f;
         public float AxisLength { get; private set; } = 5.0f;
         public Color GridColor { get; private set; } = new Color(80, 80, 80);

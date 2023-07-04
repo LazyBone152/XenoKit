@@ -7,7 +7,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public EMP_TextureSamplerDef TextureDef { get; private set; }
 
         private float CurrentTime = 0f;
-        private int CurrentKeyframeIndex = 0;
+        private float CurrentKeyframeIndex = 0;
 
         public float ScrollU = 0f;
         public float ScrollV = 0f;
@@ -21,14 +21,14 @@ namespace XenoKit.Engine.Vfx.Particle
             TextureDef = texture;
         }
 
-        public void Update(bool isPlaying, float timeScale)
+        public void Update(float frameDelta)
         {
-            if (isPlaying && TextureDef != null)
+            if (TextureDef != null)
             {
                 if (TextureDef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.Speed)
                 {
-                    ScrollU += TextureDef.ScrollState.ScrollSpeed_U;
-                    ScrollV += TextureDef.ScrollState.ScrollSpeed_V;
+                    ScrollU += TextureDef.ScrollState.ScrollSpeed_U * frameDelta;
+                    ScrollV += TextureDef.ScrollState.ScrollSpeed_V * frameDelta;
                     StepU = 1f;
                     StepV = 1f;
                 }
@@ -36,9 +36,9 @@ namespace XenoKit.Engine.Vfx.Particle
                 {
                     if(TextureDef.ScrollState.Keyframes.Count > 0)
                     {
-                        int keyframeIndex = CurrentKeyframeIndex;
+                        float keyframeIndex = CurrentKeyframeIndex;
 
-                        if (CurrentTime > TextureDef.ScrollState.Keyframes[CurrentKeyframeIndex].Time && TextureDef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.SpriteSheet)
+                        if (CurrentTime > TextureDef.ScrollState.Keyframes[(int)CurrentKeyframeIndex].Time && TextureDef.ScrollState.ScrollType == EMP_ScrollState.ScrollTypeEnum.SpriteSheet)
                         {
                             if (TextureDef.KeyframeType == EMP_TextureSamplerDef.KeyframeTypeEnum.Random)
                             {
@@ -50,7 +50,7 @@ namespace XenoKit.Engine.Vfx.Particle
                             }
                             else if (CurrentKeyframeIndex < TextureDef.ScrollState.Keyframes.Count - 1)
                             {
-                                keyframeIndex++;
+                                keyframeIndex += frameDelta;
                             }
 
                             CurrentTime = 0;
@@ -60,10 +60,10 @@ namespace XenoKit.Engine.Vfx.Particle
                         if (keyframeIndex > TextureDef.ScrollState.Keyframes.Count - 1)
                             keyframeIndex = 0;
 
-                        ScrollU = TextureDef.ScrollState.Keyframes[keyframeIndex].ScrollU;
-                        ScrollV = TextureDef.ScrollState.Keyframes[keyframeIndex].ScrollV;
-                        StepU = TextureDef.ScrollState.Keyframes[keyframeIndex].ScaleU;
-                        StepV = TextureDef.ScrollState.Keyframes[keyframeIndex].ScaleV;
+                        ScrollU = TextureDef.ScrollState.Keyframes[(int)keyframeIndex].ScrollU;
+                        ScrollV = TextureDef.ScrollState.Keyframes[(int)keyframeIndex].ScrollV;
+                        StepU = TextureDef.ScrollState.Keyframes[(int)keyframeIndex].ScaleU;
+                        StepV = TextureDef.ScrollState.Keyframes[(int)keyframeIndex].ScaleV;
 
                         CurrentKeyframeIndex = keyframeIndex;
                     }
@@ -78,7 +78,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     }
 
 
-                    CurrentTime += timeScale;
+                    CurrentTime += frameDelta;
                 }
             }
         }

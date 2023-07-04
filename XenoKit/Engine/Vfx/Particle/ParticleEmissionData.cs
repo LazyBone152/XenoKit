@@ -34,6 +34,8 @@ namespace XenoKit.Engine.Vfx.Particle
         private bool IsTexturesDirty { get; set; }
         private bool IsMaterialsDirty { get; set; }
 
+        private readonly EMP_TextureSamplerDef[] PreviousTextureDef = new EMP_TextureSamplerDef[2];
+
         public ParticleEmissionData(ParticleNode node, GameBase gameBase) : base(gameBase)
         {
             ParticleNode = node;
@@ -47,6 +49,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         private void ParticleEmissionData_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            
             IsTexturesDirty = true;
         }
 
@@ -56,15 +59,34 @@ namespace XenoKit.Engine.Vfx.Particle
                 IsMaterialsDirty = true;
         }
 
+        private void TextureChangedOnNode_Event(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            IsTexturesDirty = true;
+        }
+
         public override void Dispose()
         {
             ParticleNode.EmissionNode.Texture.PropertyChanged -= Texture_PropertyChanged;
             ParticleNode.EmissionNode.Texture.TextureEntryRef[0].PropertyChanged -= ParticleEmissionData_PropertyChanged;
             ParticleNode.EmissionNode.Texture.TextureEntryRef[1].PropertyChanged -= ParticleEmissionData_PropertyChanged;
+
+            if (PreviousTextureDef[0] != null)
+                PreviousTextureDef[0].PropertyChanged -= TextureChangedOnNode_Event;
+
+            if (PreviousTextureDef[1] != null)
+                PreviousTextureDef[1].PropertyChanged -= TextureChangedOnNode_Event;
         }
 
         private void SetSamplers()
         {
+            IsTexturesDirty = false;
+
+            if(PreviousTextureDef[0] != null)
+                PreviousTextureDef[0].PropertyChanged -= TextureChangedOnNode_Event;
+            
+            if(PreviousTextureDef[1] != null)
+                PreviousTextureDef[1].PropertyChanged -= TextureChangedOnNode_Event;
+
             Samplers = new SamplerInfo[ParticleNode.EmissionNode.Texture.TextureEntryRef.Count];
             Textures = new Xv2Texture[ParticleNode.EmissionNode.Texture.TextureEntryRef.Count];
 
@@ -104,7 +126,14 @@ namespace XenoKit.Engine.Vfx.Particle
                 SetTextureIndex();
             }
 
-            IsTexturesDirty = false;
+            PreviousTextureDef[0] = ParticleNode.EmissionNode.Texture.TextureEntryRef[0].TextureRef;
+            PreviousTextureDef[1] = ParticleNode.EmissionNode.Texture.TextureEntryRef[1].TextureRef;
+
+            if (PreviousTextureDef[0] != null)
+                PreviousTextureDef[0].PropertyChanged += TextureChangedOnNode_Event;
+
+            if(PreviousTextureDef[1] != null)
+                PreviousTextureDef[1].PropertyChanged += TextureChangedOnNode_Event;
         }
 
         public void SetTextureIndex()
@@ -114,7 +143,9 @@ namespace XenoKit.Engine.Vfx.Particle
 
         private void SetMaterial()
         {
-            var compiledMat = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(ParticleNode.EmissionNode.Texture.MaterialRef, GameBase);
+            IsMaterialsDirty = false;
+
+            Xv2ShaderEffect compiledMat = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(ParticleNode.EmissionNode.Texture.MaterialRef, GameBase);
 
             if (compiledMat == null)
             {
@@ -123,7 +154,6 @@ namespace XenoKit.Engine.Vfx.Particle
             }
 
             Material = compiledMat;
-            IsMaterialsDirty = false;
         }
 
         private TextureFilter GetTextureFilter(TextureFiltering min, TextureFiltering mag)

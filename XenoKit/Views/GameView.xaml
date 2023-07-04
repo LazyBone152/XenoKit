@@ -56,9 +56,13 @@
                 </TransformGroup>
             </Separator.RenderTransform>
         </Separator>
-        <TextBlock Grid.Row="1" x:Name="gameOverlay" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=GameOverlayText}" Foreground="{DynamicResource MahApps.Brushes.Accent}" VerticalAlignment="Top" Width="596" Height="300"/>
+        <StackPanel Grid.Row="1" VerticalAlignment="Top" Width="596" Height="400" HorizontalAlignment="Left" Margin="10,10,0,0" Visibility="{Binding ElementName=UserControl, Path=OverlayVisibility}">
+            <TextBlock x:Name="standardOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=StandardOverlay}" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+            <TextBlock x:Name="vfxOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=VfxOverlay}" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+            <TextBlock x:Name="debugOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=DebugOverlay}" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+        </StackPanel>
 
-        <Button Grid.Row="1" ToolTip="Toggle camera information overlay" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="GameOverlayToggle_Click" Margin="80,0,0,53" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+        <Button Grid.Row="1" ToolTip="Toggle viewport overlays" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="GameOverlayToggle_Click" Margin="80,0,0,53" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
             <iconPacks:PackIconModern Kind="Information" />
         </Button>
 

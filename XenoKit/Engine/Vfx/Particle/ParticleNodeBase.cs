@@ -52,7 +52,7 @@ namespace XenoKit.Engine.Vfx.Particle
         /// A snapshot of the attachment bone at the time this node was created. Used for calculating AbsoluteTransform, based on EEPK flags.
         /// </summary>
         private Matrix EmitBoneTransform;
-        protected Matrix ScaleAdjustment = Matrix.Identity;
+        protected Matrix VelocityOrientedAdjustment = Matrix.Identity;
 
         public NodeState State { get; protected set; }
         public float CurrentFrame { get; private set; }
@@ -128,7 +128,7 @@ namespace XenoKit.Engine.Vfx.Particle
             Nodes.Clear();
             ActiveInstances.Clear();
             MovementTransform = Matrix.Identity;
-            ScaleAdjustment = Matrix.Identity;
+            VelocityOrientedAdjustment = Matrix.Identity;
             Velocity = Vector3.Zero;
         }
 
@@ -189,9 +189,10 @@ namespace XenoKit.Engine.Vfx.Particle
                     {
                         CurrentFrame = 0f;
 
-                        //The nodes created on a previous loop don't count as active children of the node
-                        PreviousNodes.AddRange(Nodes);
-                        Nodes.Clear();
+                        //NOTE: Removed this code for now as this needs more research. Some EMPs seem to note follow how I had this documented, and caused a bug where particles were spawned endlessly
+                        //The nodes created on a previous loop don't count as active children of the node (as above, not always true?)
+                        //PreviousNodes.AddRange(Nodes);
+                        //Nodes.Clear();
                     }
                     else
                     {
@@ -202,25 +203,24 @@ namespace XenoKit.Engine.Vfx.Particle
                         {
                             Emit();
                         }
+
+                        return;
                     }
                 }
 
                 CurrentTimeFactor = CurrentFrame / Lifetime;
 
                 //Update movement
-                if (GameBase.IsPlaying)
-                {
-                    UpdateModifiers();
+                UpdateModifiers();
 
-                    //Change position based on current velocity
-                    MovementTransform *= Matrix.CreateTranslation((Velocity / 60f) * ParticleSystem.ActiveTimeScale);
-                }
+                //Change position based on current velocity
+                MovementTransform *= Matrix.CreateTranslation((Velocity / 60f) * ParticleSystem.CurrentFrameDelta);
 
                 //Update position and rotation
                 float[] position = Node.Position.GetInterpolatedValue(CurrentTimeFactor);
                 float[] rotation = Node.Rotation.GetInterpolatedValue(CurrentTimeFactor);
 
-                Transform = MovementTransform * ScaleAdjustment * EmitPointTransform;
+                Transform = MovementTransform * VelocityOrientedAdjustment * EmitPointTransform;
                 //Transform *= Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
                 Transform *= Matrix.CreateTranslation(new Vector3(position[0] + PositionX_Variance, position[1] + PositionY_Variance, position[2] + PositionZ_Variance));
 
@@ -229,7 +229,14 @@ namespace XenoKit.Engine.Vfx.Particle
                 //It doesn't actually rotate the node, and so doesn't change the way position or a modifier is applied.
                 Rotation = Matrix.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
 
-                AbsoluteTransform = EffectPart.InstantUpdate ? Rotation * Transform * ParticleSystem.AttachmentBone : Rotation * Transform * EmitBoneTransform;
+                /*
+                //AbsoluteTransform is used for Draw Order purposes only, so it only needs to be calculated on emission type nodes
+                if (Node.IsEmission)
+                {
+                    AbsoluteTransform = EffectPart.InstantUpdate ? Rotation * Transform * ParticleSystem.AttachmentBone : Rotation * Transform * EmitBoneTransform;
+                    AbsoluteTransform *= Matrix.CreateTranslation(CameraBase.TransformRelativeToCamera(AbsoluteTransform.Translation, Node.EmissionNode.Texture.RenderDepth));
+                }
+                */
             }
 
         }
@@ -243,7 +250,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     case EMP_Modifier.EmpModifierType.Acceleration:
                         {
                             var values = modifier.Axis.GetInterpolatedValue(CurrentTimeFactor);
-                            Velocity += (new Vector3(values[0] / 60f, values[1] / 60f, values[2] / 60f) * modifier.Factor.GetInterpolatedValue(CurrentTimeFactor));
+                            Velocity += (new Vector3(values[0] / 60f, values[1] / 60f, values[2] / 60f) * modifier.Factor.GetInterpolatedValue(CurrentTimeFactor)) * ParticleSystem.CurrentFrameDelta;
                         }
                         break;
                 }
@@ -254,11 +261,11 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             //For some reason, FlashOnGen (whatever that is) disables ActiveRotation
 
-            if (GameBase.IsPlaying && !Node.NodeFlags.HasFlag(NodeFlags1.FlashOnGen))
+            if (!Node.NodeFlags.HasFlag(NodeFlags1.FlashOnGen))
             {
                 //Rotation amount is PER frame, despite what the old tooltip said
 
-                RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance);
+                RotationAmount += (Node.EmissionNode.ActiveRotation.GetInterpolatedValue(CurrentTimeFactor) + ActiveRotation_Variance) * ParticleSystem.CurrentFrameDelta;
             }
         }
 
@@ -293,8 +300,7 @@ namespace XenoKit.Engine.Vfx.Particle
         protected void EndUpdate()
         {
             //Handle particle lifetime
-            if (GameBase.IsPlaying)
-                CurrentFrame += ParticleSystem.ActiveTimeScale;
+            CurrentFrame += ParticleSystem.CurrentFrameDelta;
 
             if (State == NodeState.WaitingOnChildren && Nodes.Count == 0 && PreviousNodes.Count == 0)
             {
@@ -332,6 +338,13 @@ namespace XenoKit.Engine.Vfx.Particle
             }
         }
 
+
+        public virtual void Simulate()
+        {
+            StartUpdate();
+            UpdateChildrenNodes();
+            EndUpdate();
+        }
         #endregion
 
         /// <summary>
@@ -365,18 +378,25 @@ namespace XenoKit.Engine.Vfx.Particle
                     }
                     else if (Node.ChildParticleNodes[i].NodeType == ParticleNodeType.Emission)
                     {
+                        ParticleNodeBase newNode;
+
                         if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Plane)
                         {
-                            ParticleNodeBase newNode = ObjectPoolManager.GetParticle(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
-                            Nodes.Add(newNode);
-
+                            newNode = ObjectPoolManager.GetParticlePlane(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
+                            GameBase.RenderDepthSystem.Add(newNode);
+                        }
+                        else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Mesh)
+                        {
+                            newNode = ObjectPoolManager.GetParticleMesh(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
                             GameBase.RenderDepthSystem.Add(newNode);
                         }
                         else
                         {
                             //placeholder
-                            Nodes.Add(ObjectPoolManager.GetParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target));
+                            newNode = ObjectPoolManager.GetParticleNodeBase(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
                         }
+
+                        Nodes.Add(newNode);
                     }
                     else
                     {
@@ -395,7 +415,7 @@ namespace XenoKit.Engine.Vfx.Particle
         }
 
         /// <summary>
-        /// Terminate the node, according to <see cref="EffectPart.DeactivationMode.AfterAnimLoop"/>.
+        /// Terminate the node, according to <see cref="EffectPart.DeactivationMode"/>.
         /// </summary>
         public void Deactivate()
         {

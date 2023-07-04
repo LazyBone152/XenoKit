@@ -45,16 +45,16 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public override void Update()
         {
-            if(SimulationType == SimulationType.None && BacPlayer.HasBacEntry && GameBase.IsPlaying)
+            if (SimulationType == SimulationType.None && BacPlayer.HasBacEntry && GameBase.IsPlaying)
             {
                 BacPlayer.ClearBacEntry();
             }
 
-            if(SimulationType == SimulationType.ActionPreview && BacPlayer.HasBacEntry)
+            if (SimulationType == SimulationType.ActionPreview && BacPlayer.HasBacEntry)
             {
                 if (BacPlayer.CurrentDuration <= BacPlayer.CurrentFrame && GameBase.IsPlaying)
                 {
-                    if(BacPlayer.BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
+                    if (BacPlayer.BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
                     {
                         if (SceneManager.Loop)
                         {
@@ -71,10 +71,18 @@ namespace XenoKit.Engine.Scripting.BAC
             }
         }
 
+        public override void DelayedUpdate()
+        {
+            if (SimulationType == SimulationType.ActionPreview && BacPlayer.HasBacEntry)
+            {
+                BacPlayer.DelayedUpdate();
+            }
+        }
+
         public void PreviewBacEntry(BAC_File bacFile, BAC_Entry bacEntry, Move move = null, Actor user = null)
         {
             if (!BacPlayer.HasBacEntry) Character.ResetPosition();
-            BacPlayer.PlayBacEntry(bacFile, bacEntry, (user != null) ? user : Character, move);
+            BacPlayer.PlayBacEntryPreview(bacFile, bacEntry, (user != null) ? user : Character, move);
         }
 
         public bool IsBacEntryActive(BAC_Entry bacEntry)
@@ -85,11 +93,11 @@ namespace XenoKit.Engine.Scripting.BAC
         private void SceneManager_BacValuesChanged(object sender, EventArgs e)
         {
             if (SimulationType == SimulationType.ActionPreview)
-                BacPlayer.ResimulateCurrentEntry();
+                BacPlayer.DelayedResimulate = true;
         }
-       
+
         #region PlaybackControl
-        public void Resume () { BacPlayer.Resume(); }
+        public void Resume() { BacPlayer.Resume(); }
         public void Stop() { BacPlayer.Stop(); }
         public void SeekPrevFrame() { BacPlayer.SeekPrevFrame(); }
         public void SeekNextFrame() { BacPlayer.SeekNextFrame(); }

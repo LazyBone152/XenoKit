@@ -166,7 +166,7 @@ namespace XenoKit.Engine.Animation
                 if (boneIdx == -1)
                     continue;
 
-                /*
+                
                 //Not needed
                 Bone bone = animation.EmaFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
                 ESK_RelativeTransform transform = bone.EskRelativeTransform;
@@ -181,7 +181,7 @@ namespace XenoKit.Engine.Animation
                 relativeMatrix_EanBone_inv *= Matrix.CreateFromQuaternion(ean_initialBoneOrientation);
                 relativeMatrix_EanBone_inv *= Matrix.CreateTranslation(ean_initialBonePosition);
                 relativeMatrix_EanBone_inv = Matrix.Invert(relativeMatrix_EanBone_inv);
-                */
+                
 
                 //Read components
                 EMA_Command posX = node.GetCommand(0, 0);
@@ -214,12 +214,13 @@ namespace XenoKit.Engine.Animation
 
                 //Position:
                 float valuePosX = posX != null ? posX.GetKeyframeValue(animation.CurrentFrame) : 0f;
-                float valuePosY = posX != null ? posY.GetKeyframeValue(animation.CurrentFrame) : 0f;
-                float valuePosZ = posX != null ? posZ.GetKeyframeValue(animation.CurrentFrame) : 0f;
+                float valuePosY = posY != null ? posY.GetKeyframeValue(animation.CurrentFrame) : 0f;
+                float valuePosZ = posZ != null ? posZ.GetKeyframeValue(animation.CurrentFrame) : 0f;
                 Vector3 pos_tmp = new Vector3(valuePosX, valuePosY, valuePosZ);
 
                 transformAnimation *= Matrix.CreateTranslation(pos_tmp);
 
+                //Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation * relativeMatrix_EanBone_inv;
                 Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation;
             }
         }

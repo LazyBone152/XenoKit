@@ -44,7 +44,7 @@ namespace XenoKit.Engine.Vfx
             await Task.Run(() => AddEffect(actor, effect, Matrix.Identity, GameBase));
         }
 
-        public async void PlayEffect(BAC_Type8 bacEffect, BacEntryInstance bacInstance)
+        public async void PlayEffect(BAC_Type8 bacEffect, BacEntryInstance bacInstance, Actor actor)
         {
             if (Effects.Count >= MAX_EFFECTS)
             {
@@ -63,9 +63,9 @@ namespace XenoKit.Engine.Vfx
                     //Get spawn position from declared bone and position on the bac entry
                     Matrix spawnPosition = Matrix.Identity;
 
-                    if(bacInstance.User != null && (int)bacEffect.BoneLink < 25)
+                    if(actor != null && (int)bacEffect.BoneLink < 25)
                     {
-                        spawnPosition = bacInstance.User.GetAbsoluteBoneMatrix(bacInstance.User.Skeleton.BAC_BoneIndices[(int)bacEffect.BoneLink]) * Matrix.CreateTranslation(new Vector3(bacEffect.PositionX, bacEffect.PositionY, bacEffect.PositionZ));
+                        spawnPosition = actor.GetAbsoluteBoneMatrix(actor.Skeleton.BAC_BoneIndices[(int)bacEffect.BoneLink]) * Matrix.CreateTranslation(new Vector3(bacEffect.PositionX, bacEffect.PositionY, bacEffect.PositionZ));
                     }
 
                     await Task.Run(() => AddEffect(bacInstance.User, eepkEffect, spawnPosition, GameBase));
@@ -208,16 +208,6 @@ namespace XenoKit.Engine.Vfx
         }
 
         #endregion
-
-        public void SeekPrev()
-        {
-
-        }
-
-        public void SeekNext()
-        {
-
-        }
 
         /// <summary>
         /// Returns the first active <see cref="VfxColorFade"/> matching the conditions.
