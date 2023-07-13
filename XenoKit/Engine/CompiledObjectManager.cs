@@ -44,7 +44,7 @@ namespace XenoKit.Engine
         /// <typeparam name="T">The compiled object type</typeparam>
         /// <param name="key">The source object</param>
         /// <returns></returns>
-        public T GetCompiledObject<T>(object key, GameBase gameInstance, bool firstAttempt = true) where T : class
+        public T GetCompiledObject<T>(object key, GameBase gameInstance, ShaderType shaderType = ShaderType.Default, bool firstAttempt = true) where T : class
         {
             if (key == null) return null;
 
@@ -59,9 +59,13 @@ namespace XenoKit.Engine
 
                 if (result == null)
                 {
-                    if (typeof(T) == typeof(Xv2ShaderEffect) && key is EmmMaterial material)
+                    if (typeof(T) == typeof(PostShaderEffect) && key is ShaderProgram shaderProgram)
                     {
-                        result = new Xv2ShaderEffect(material, gameInstance);
+                        result = new PostShaderEffect(shaderProgram, gameInstance);
+                    }
+                    else if (typeof(T) == typeof(Xv2ShaderEffect) && key is EmmMaterial material)
+                    {
+                        result = new Xv2ShaderEffect(material, shaderType, gameInstance);
                     }
                     else if (typeof(T) == typeof(Xv2Texture) && key is EmbEntry embEntry)
                     {
@@ -107,7 +111,7 @@ namespace XenoKit.Engine
                         }
                         catch
                         {
-                            return GetCompiledObject<T>(key, gameInstance, false);
+                            return GetCompiledObject<T>(key, gameInstance, shaderType, firstAttempt: false);
                         }
                     }
                     else
@@ -156,11 +160,12 @@ namespace XenoKit.Engine
 
         public void ForceShaderUpdate()
         {
-            foreach(var obj in CachedObjects)
+            foreach(KeyValuePair<object, CompiledObjectCacheEntry> obj in CachedObjects)
             {
                 if (obj.Value.CachedObject.IsAlive && obj.Value.CachedObject.Target is Xv2ShaderEffect shader)
                 {
-                    shader.InitTechnique();
+                    if(shader.ShaderType != ShaderType.CharaNormals)
+                        shader.InitTechnique();
                 }
             }
         }

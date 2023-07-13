@@ -89,6 +89,12 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             PlatformGraphicsDeviceResetting();
             base.GraphicsDeviceResetting();
-        }        
-	}
+        }
+
+
+        public SharpDX.Direct3D11.DepthStencilView GetDepthBuffer()
+        {
+            return _depthStencilView;
+        }
+    }
 }

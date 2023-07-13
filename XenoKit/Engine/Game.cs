@@ -16,6 +16,7 @@ using XenoKit.Engine.Text;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
 using XenoKit.Engine.Vfx.Particle;
+using XenoKit.Engine.Rendering;
 
 namespace XenoKit.Engine
 {
@@ -41,6 +42,8 @@ namespace XenoKit.Engine
         //Stage. Not final design just a quick hacky way to get stages into the application.
         public ManualFiles ActiveStage = null;
 
+        private RenderTargetWrapper MainRenderTarget;
+
         protected override void Initialize()
         {
             //Initalize all base elements first
@@ -48,9 +51,6 @@ namespace XenoKit.Engine
 
             //Set game instace in SceneManager - this is required for most objects to function correctly
             SceneManager.MainGameInstance = this;
-
-            //Required for global samplers, currently. Everything else uses Entity.GraphicsDevice. Will eventually remove entirely
-            SceneManager.GraphicsDeviceRef = GraphicsDevice;
 
             //Now initialize objects
             AnimatorGizmo = new AnimatorGizmo(this);
@@ -62,8 +62,11 @@ namespace XenoKit.Engine
             camera = new Camera(this);
             AudioEngine = new AudioEngine();
             VfxManager = new VfxManager(this);
-            RenderDepthSystem = new RenderDepthSystem(this);
+            RenderSystem = new RenderSystem(this);
             VfxPreview = new VfxPreview(this);
+
+            MainRenderTarget = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, true, "MainRenderTarget");
+            RenderSystem.RegisterRenderTarget(MainRenderTarget);
         }
 
         protected override void LoadContent()
@@ -78,6 +81,7 @@ namespace XenoKit.Engine
         protected override void Update(GameTime time)
         {
             base.Update(time);
+            ShaderManager.Update();
             CurrentGizmo.Update();
             BacHitboxGizmo.Update();
 
@@ -109,7 +113,9 @@ namespace XenoKit.Engine
                     SceneManager.Actors[i].Update();
                 }
             }
-            
+
+            RenderSystem.Update();
+
             //Update camera last - this way it has the lowest priority for mouse click events
             camera.Update(time);
 
@@ -119,11 +125,13 @@ namespace XenoKit.Engine
 
             SceneManager.Update(time);
 
+
         }
 
         protected override void DelayedUpdate()
         {
             base.DelayedUpdate();
+            RenderSystem.DelayedUpdate();
             CurrentGizmo.DelayedUpdate();
             BacHitboxGizmo.DelayedUpdate();
 
@@ -138,20 +146,16 @@ namespace XenoKit.Engine
 
         protected override void Draw(GameTime time)
         {
+            ShaderManager.SetAllGlobalSamplers();
+
+            //RenderSystem goes first
+            RenderSystem.Draw();
+
+            //Next, render everything else (gizmos, grid)
+            GraphicsDevice.SetRenderTarget(MainRenderTarget.RenderTarget);
+
             //ShaderManager.Instance.SetAllGlobalSamplers();
             base.Draw(time);
-
-            //Stage:
-            if (ActiveStage != null)
-            {
-                foreach(StageModel model in ActiveStage.StageModels)
-                {
-                    model.Draw();
-                }
-            }
-
-            //Draw Particles, Actors... 
-            RenderDepthSystem.Draw();
 
             //TODO: move other effects into RenderDepthSystem
             if (SceneManager.IsOnEffectTab)
@@ -169,6 +173,12 @@ namespace XenoKit.Engine
             //Draw last and over everything else
             CurrentGizmo.Draw();
             BacHitboxGizmo.Draw();
+
+            //Draw MainRenderTarget onto screen
+            GraphicsDevice.SetRenderTarget(InternalRenderTarget);
+
+            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget);
+            RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget());
         }
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)
@@ -208,6 +218,20 @@ namespace XenoKit.Engine
             return BacMatrixGizmo;
         }
 
+        public void SetActiveStage(ManualFiles stage)
+        {
+            if(ActiveStage != null)
+            {
+                RenderSystem.RemoveRenderEntity(ActiveStage.StageModels);
+            }
+
+            if(stage != null)
+            {
+                RenderSystem.AddRenderEntity(stage.StageModels);
+            }
+
+            ActiveStage = stage;
+        }
 
         #region UiButtons
         public void StartPlayback()

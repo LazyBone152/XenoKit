@@ -105,7 +105,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
             if (Model != null)
             {
-                Materials = Model.InitializeMaterials(EmmFile);
+                Materials = Model.InitializeMaterials(ShaderType.Default, EmmFile);
             }
             else
             {

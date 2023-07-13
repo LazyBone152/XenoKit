@@ -15,6 +15,8 @@ namespace XenoKit.Engine.Model
     /// </summary>
     public class StageModel : Entity
     {
+        public override EntityType EntityType => EntityType.Stage;
+
         public Xv2Skeleton Skeleton;
         public Xv2ModelFile Model;
         public List<Xv2ShaderEffect> Materials;
@@ -28,19 +30,26 @@ namespace XenoKit.Engine.Model
 
             Skeleton = new Xv2Skeleton(nskFile.EskFile);
             Model = Xv2ModelFile.LoadNsk(gameBase, nskFile);
-            Materials = Model.InitializeMaterials(emmFile);
+            Materials = Model.InitializeMaterials(ShaderType.Stage, emmFile);
             Textures = Xv2Texture.LoadTextureArray(embFile, gameBase);
-
         }
 
         public override void Update()
         {
+            DrawThisFrame = true;
             Model.Update(0);
         }
 
         public override void Draw()
         {
+            DrawThisFrame = false;
+
             Model.Draw(Matrix.Identity, 0, Materials, Textures, null, 0, Skeleton);
+        }
+
+        public override void DrawPass(bool normalPass)
+        {
+            Model.Draw(Matrix.Identity, 0, RenderSystem.ShadowModel, Skeleton);
         }
     }
 }

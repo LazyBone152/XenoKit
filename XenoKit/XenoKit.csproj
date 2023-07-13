@@ -135,12 +135,6 @@
     <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Xaml.Behaviors.Wpf.1.1.19\lib\net45\Microsoft.Xaml.Behaviors.dll</HintPath>
     </Reference>
-    <Reference Include="MonoGame.Extended, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MonoGame.Extended.3.8.0\lib\netstandard2.0\MonoGame.Extended.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoGame.Extended.Particles, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MonoGame.Extended.Particles.3.8.0\lib\netstandard2.0\MonoGame.Extended.Particles.dll</HintPath>
-    </Reference>
     <Reference Include="NAudio, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NAudio.1.9.0\lib\net35\NAudio.dll</HintPath>
     </Reference>
@@ -547,6 +541,7 @@
     <Compile Include="Engine\CompiledObjectManager.cs" />
     <Compile Include="Engine\EmdViewer.cs" />
     <Compile Include="Engine\EngineUtils.cs" />
+    <Compile Include="Engine\Extensions.cs" />
     <Compile Include="Engine\GameBase.cs" />
     <Compile Include="Engine\Gizmo\AnimatorGizmo.cs" />
     <Compile Include="Engine\Gizmo\BacMatrixGizmo.cs" />
@@ -559,10 +554,15 @@
     <Compile Include="Engine\Lighting\DirLight.cs" />
     <Compile Include="Engine\Pool\ObjectPoolManager.cs" />
     <Compile Include="Engine\Pool\PoolInstance.cs" />
-    <Compile Include="Engine\RenderDepthSystem.cs" />
+    <Compile Include="Engine\Rendering\IRenderEntity.cs" />
+    <Compile Include="Engine\Rendering\RenderSystem.cs" />
+    <Compile Include="Engine\Rendering\RenderTargetWrapper.cs" />
+    <Compile Include="Engine\Rendering\PostFilter.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\EyeMovementPositions.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\HitboxPreview.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\BacSimulationObject.cs" />
+    <Compile Include="Engine\Shader\CharaShaderEffect.cs" />
+    <Compile Include="Engine\Shader\PostShaderEffect.cs" />
     <Compile Include="Engine\Shapes\GizmoGeometry.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\AnimationTransformOperation.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\ITransformOperation.cs" />
@@ -590,6 +590,7 @@
     <Compile Include="Engine\Text\TextRenderer.cs" />
     <Compile Include="Engine\Vertex\VertexPositionNormal.cs" />
     <Compile Include="Engine\Vertex\VertexPositionNormalTextureBlend.cs" />
+    <Compile Include="Engine\Vertex\VertexPositionTexture2.cs" />
     <Compile Include="Engine\Vertex\VertexPositionTextureColor.cs" />
     <Compile Include="Engine\Vfx\Asset\VfxAsset.cs" />
     <Compile Include="Engine\Vfx\Asset\VfxColorFade.cs" />
@@ -1344,10 +1345,6 @@
     <Resource Include="Resources\transparent_checkerboard.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj">
-      <Project>{e75f2be2-787a-4a7a-927d-d0f06b10472c}</Project>
-      <Name>MonoGame.Framework.WindowsDX</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\XV2 Tools\LB_Common\LB_Common.csproj">
       <Project>{513b1851-4576-45ec-8f8e-400a38b05502}</Project>
       <Name>LB_Common</Name>
@@ -1359,6 +1356,10 @@
     <ProjectReference Include="..\MonoGameWpfInterloop\MonoGame.Framework.WpfInterop\MonoGame.Framework.WpfInterop.csproj">
       <Project>{60d02330-e7cb-4078-95ad-10daa7ac3b1d}</Project>
       <Name>MonoGame.Framework.WpfInterop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj">
+      <Project>{e75f2be2-787a-4a7a-927d-d0f06b10472c}</Project>
+      <Name>MonoGame.Framework.WindowsDX</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

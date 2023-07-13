@@ -1197,6 +1197,24 @@ namespace Microsoft.Xna.Framework.Graphics
             return renderTarget;
         }
 
+        //XenoKit: MG lacks the ability to use the depth buffer as a texture, so this method will implement that functionality. A little hacky since it bypasses MG and sets resources through SharpDX directly.
+        /// <summary>
+        /// Set the depth buffer from the specified RenderTarget as a texture resource on the GPU. <para />
+        /// WARNING: Do not use this method on a RenderTarget that is currently set as an active RenderTarget AND ensure that the texture is cleared once it is no longer needed.
+        /// </summary>
+        public void SetDepthAsTexture(RenderTarget2D rt, int textureSlot)
+        {
+            var depthView = rt.GetDepthBufferView();
+
+            //No depth view, then nothing to set
+            if (depthView == null) return;
+
+            lock (_d3dContext)
+            {
+                _d3dContext.PixelShader.SetShaderResource(textureSlot, depthView);
+            }
+        }
+
 #if WINDOWS_UAP
         internal void ResetRenderTargets()
         {

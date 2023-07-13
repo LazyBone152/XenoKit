@@ -85,13 +85,14 @@ namespace XenoKit.Controls
 
             if (CanSetStage())
             {
+
                 if (SceneManager.MainGameInstance.ActiveStage == files.SelectedItem.ManualFiles)
                 {
-                    SceneManager.MainGameInstance.ActiveStage = null;
+                    SceneManager.MainGameInstance.SetActiveStage(null);
                 }
                 else
                 {
-                    SceneManager.MainGameInstance.ActiveStage = files.SelectedItem.ManualFiles;
+                    SceneManager.MainGameInstance.SetActiveStage(files.SelectedItem.ManualFiles);
                 }
             }
         }

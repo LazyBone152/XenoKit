@@ -533,6 +533,11 @@ namespace XenoKit
         {
             SceneManager.MainGameBase.CompiledObjectManager.ForceShaderUpdate();
         }
+
+        private void DebugMenu_DumpRenderTargets_Click(object sender, RoutedEventArgs e)
+        {
+            SceneManager.MainGameBase.RenderSystem.DumpRenderTargetsNextFrame = true;
+        }
         #endregion
 
     }

@@ -25,7 +25,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public override void Release()
         {
             ObjectPoolManager.ParticleMeshPool.ReleaseObject(this);
-            GameBase.RenderDepthSystem.Remove(this);
+            GameBase.RenderSystem.RemoveRenderEntity(this);
         }
 
         public void UpdateVertices()

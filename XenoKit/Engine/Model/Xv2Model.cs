@@ -112,7 +112,7 @@ namespace XenoKit.Engine.Model
         /// <summary>
         /// Creates a materials list to use for renderering. Materials are indexed by the submesh index. 
         /// </summary>
-        public List<Xv2ShaderEffect> InitializeMaterials(EMM_File emmFile = null)
+        public List<Xv2ShaderEffect> InitializeMaterials(ShaderType shaderType, EMM_File emmFile = null)
         {
             List<Xv2ShaderEffect> materials = new List<Xv2ShaderEffect>();
 
@@ -125,12 +125,12 @@ namespace XenoKit.Engine.Model
                         EmmMaterial material = emmFile != null ? emmFile.GetMaterial(submesh.Name) : null;
                         //submesh.SetLodBias(material); //Slow
 
-                        Xv2ShaderEffect compiledMat = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(material, GameBase);
+                        Xv2ShaderEffect compiledMat = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(material, GameBase, shaderType);
 
                         if (compiledMat == null)
                         {
                             //No material was found for this Submesh. Use default.
-                            compiledMat = Xv2ShaderEffect.CreateDefaultMaterial(GameBase);
+                            compiledMat = Xv2ShaderEffect.CreateDefaultMaterial(ShaderType.Chara, GameBase);
                         }
 
                         materials.Add(compiledMat);
@@ -359,7 +359,7 @@ namespace XenoKit.Engine.Model
                     for (int s = 0; s < SourceEmdFile.Models[i].Meshes[a].Submeshes.Count; s++)
                     {
                         //Triangle lists are separated into submeshes in XenoKit, so we must account for that here.
-                        for(int b = 0; b < SourceEmdFile.Models[i].Meshes[a].Submeshes[s].Triangles.Count; b++)
+                        for (int b = 0; b < SourceEmdFile.Models[i].Meshes[a].Submeshes[s].Triangles.Count; b++)
                         {
                             Models[i].Meshes[a].Submeshes[s + b].InitSamplers(SourceEmdFile.Models[i].Meshes[a].Submeshes[s].TextureSamplerDefs);
                         }
@@ -399,6 +399,27 @@ namespace XenoKit.Engine.Model
                         Matrix transformedMatrix = animatedWorld * model.Transform * mesh.Transform * submesh.Transform;
 
                         submesh.Draw(transformedMatrix, actor, materials, textures, dyts, dytIdx, skeleton);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draw this model with just one material and no textures or dyts. Intended for earlier passes only (shadow/normals).
+        /// </summary>
+        public void Draw(Matrix world, int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton = null)
+        {
+            foreach (Xv2Model model in Models)
+            {
+                Matrix animatedWorld = model.GetTransformedWorld(world, skeleton);
+
+                foreach (Xv2Mesh mesh in model.Meshes)
+                {
+                    foreach (Xv2Submesh submesh in mesh.Submeshes)
+                    {
+                        Matrix transformedMatrix = animatedWorld * model.Transform * mesh.Transform * submesh.Transform;
+
+                        submesh.Draw(transformedMatrix, actor, material, skeleton);
                     }
                 }
             }
@@ -588,8 +609,27 @@ namespace XenoKit.Engine.Model
                 */
             }
 
+            DrawEnd(actor, materials[SubmeshIndex], skeleton);
+        }
+
+        public void Draw(Matrix world, int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton = null)
+        {
+            material.World = world * Matrix.CreateScale(-1, 1f, 1f);
+            material.PrevWVP = PrevWVP[actor];
+
+            if (Type == ModelType.Emd)
+            {
+                if (BoneIdx[actor] == null && skeleton != null)
+                    SetBoneIndices(actor, skeleton);
+            }
+
+            DrawEnd(actor, material, skeleton);
+        }
+
+        private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton)
+        {
+
             //Perform skinning on the vertices (animation). 
-            //Currently, dont apply to SCDs
             VertexPositionNormalTextureBlend[] vertices = CpuVertexes;
 
             if (EnableSkinning && skeleton != null)
@@ -597,31 +637,30 @@ namespace XenoKit.Engine.Model
                 if (SettingsManager.Instance.Settings.XenoKit_EnableGpuSkinning)
                 {
                     CreateSkinningMatrices(skeleton.Bones, actor);
-                    materials[SubmeshIndex].SetSkinningMatrices(SkinningMatrices);
+                    material.SetSkinningMatrices(SkinningMatrices);
                 }
                 else
                 {
                     vertices = GpuVertexes;
-                    materials[SubmeshIndex].DisableSkinning();
+                    material.DisableSkinning();
                     UpdateVertices(skeleton.Bones, actor);
                 }
             }
 
             //Shader passes and vertex drawing
-            foreach (EffectPass pass in materials[SubmeshIndex].CurrentTechnique.Passes)
+            foreach (EffectPass pass in material.CurrentTechnique.Passes)
             {
                 if (Type == ModelType.Emd)
-                    materials[SubmeshIndex].SetColorFade(SceneManager.Actors[actor]);
+                    material.SetColorFade(SceneManager.Actors[actor]);
 
-                materials[SubmeshIndex].SetVfxLight();
-
+                material.SetVfxLight();
 
                 pass.Apply();
 
                 GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, GpuVertexes.Length, Indices, 0, Indices.Length / 3);
             }
 
-            PrevWVP[actor] = materials[SubmeshIndex].PrevWVP;
+            PrevWVP[actor] = material.PrevWVP;
         }
 
         private void CreateSkinningMatrices(Xv2Bone[] bones, int actor)
@@ -680,7 +719,7 @@ namespace XenoKit.Engine.Model
         {
             List<int> usedIndices = new List<int>();
 
-            foreach(short index in Indices)
+            foreach (short index in Indices)
             {
                 if (!usedIndices.Contains(index))
                     usedIndices.Add(index);
@@ -783,7 +822,7 @@ namespace XenoKit.Engine.Model
                 Samplers[i].state.MaxAnisotropy = 1;
                 Samplers[i].state.MaxMipLevel = 1;
 
-                Samplers[i].name = ShaderManager.Instance.GetSamplerName(i);
+                Samplers[i].name = ShaderManager.GetSamplerName(i);
                 Samplers[i].state.Name = Samplers[i].name;
                 Samplers[i].parameter = samplerDefs[i].EmbIndex;
 

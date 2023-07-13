@@ -62,7 +62,7 @@ namespace XenoKit.Engine
                 type = SamplerType.Sampler2D,
                 textureSlot = 4,
                 samplerSlot = 4,
-                name = ShaderManager.Instance.GetSamplerName(4),
+                name = ShaderManager.GetSamplerName(4),
                 state = new SamplerState()
                 {
                     AddressU = TextureAddressMode.Clamp,
@@ -73,7 +73,7 @@ namespace XenoKit.Engine
                     MaxAnisotropy = 1,
                     MaxMipLevel = 1,
                     MipMapLevelOfDetailBias = 0,
-                    Name = ShaderManager.Instance.GetSamplerName(4)
+                    Name = ShaderManager.GetSamplerName(4)
                 }
             };
 
@@ -134,7 +134,7 @@ namespace XenoKit.Engine
 
             //Model = Xv2ModelFile.LoadCharaEmd(this, EmdFile);
             Model = CompiledObjectManager.GetCompiledObject<Xv2ModelFile>(EmdFile, this);
-            Materials = Model.InitializeMaterials(EmmFile);
+            Materials = Model.InitializeMaterials(ShaderType.Chara, EmmFile);
 
             if (EmbFile != null)
             {
@@ -188,7 +188,7 @@ namespace XenoKit.Engine
 
         private void RefreshMaterialsEvent(object sender, EventArgs e)
         {
-            Materials = Model.InitializeMaterials(EmmFile);
+            Materials = Model.InitializeMaterials(ShaderType.Chara, EmmFile);
         }
 
     }

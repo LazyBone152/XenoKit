@@ -14,6 +14,7 @@ namespace XenoKit.Engine
     {
         //TODO: Clean this mess up!
         public override Matrix AbsoluteTransform => Transform;
+        public override EntityType EntityType => EntityType.Actor;
 
         public int ActorSlot { get; set; }
         public CharaPartSet PartSet;
@@ -226,6 +227,10 @@ namespace XenoKit.Engine
                 visualSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
         }
 
+        public override void DrawPass(bool normalPass)
+        {
+            PartSet.DrawSimple(normalPass);
+        }
         #endregion
 
         public Matrix GetAbsoluteBoneMatrix(int index)

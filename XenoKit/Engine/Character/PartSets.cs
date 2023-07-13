@@ -82,7 +82,7 @@ namespace XenoKit.Engine
 
         public void LoadPart(int index, bool fetchPartSet = true, bool loadFlags = true)
         {
-            if(fetchPartSet)
+            if (fetchPartSet)
                 partSet = chara.CharacterData.BcsFile.File.PartSets.FirstOrDefault(x => x.ID == ID);
 
             if (partSet == null)
@@ -94,7 +94,7 @@ namespace XenoKit.Engine
             Part part = partSet.GetPart(index);
 
             //Part was null. 
-            if(part == null)
+            if (part == null)
             {
                 Parts[index] = null;
                 return;
@@ -125,9 +125,9 @@ namespace XenoKit.Engine
         {
             PartTypeFlags flags = 0;
 
-            for(int i = 0; i < Parts.Length; i++)
+            for (int i = 0; i < Parts.Length; i++)
             {
-                if(Parts[i] != null)
+                if (Parts[i] != null)
                 {
                     flags |= Parts[i].GetHideFlags();
                 }
@@ -214,7 +214,7 @@ namespace XenoKit.Engine
                 {
                     if (TransformedParts[i].GetEan() != null)
                     {
-                        if(TransformedParts[i].partType == PartType.FaceForehead)
+                        if (TransformedParts[i].partType == PartType.FaceForehead)
                         {
                             FceForeheadEan = TransformedParts[i].GetEan();
                         }
@@ -277,7 +277,7 @@ namespace XenoKit.Engine
         {
             Part part = partSet.GetPart(index);
 
-            if(part != null)
+            if (part != null)
                 TransformedParts[index] = new CharaPart(GameBase, chara, part, (PartType)index);
         }
 
@@ -333,9 +333,9 @@ namespace XenoKit.Engine
             //Always set this to true currently. 
             revertPermanentSwaps = true;
 
-            for(int i = 0; i < BacTransformedParts.Length; i++)
+            for (int i = 0; i < BacTransformedParts.Length; i++)
             {
-                if(BacPermanentParts[i] == false || revertPermanentSwaps)
+                if (BacPermanentParts[i] == false || revertPermanentSwaps)
                 {
                     BacTransformedParts[i] = null;
                     BacPermanentParts[i] = false;
@@ -374,13 +374,26 @@ namespace XenoKit.Engine
                     Parts[i].Draw(HideFlags);
             }
         }
+
+        public void DrawSimple(bool normalPass)
+        {
+            for (int i = 0; i < Parts.Length; i++)
+            {
+                if (BacTransformedParts[i] != null)
+                    BacTransformedParts[i].DrawSimple(normalPass, HideFlags);
+                else if (TransformedParts[i] != null)
+                    TransformedParts[i].DrawSimple(normalPass, HideFlags);
+                else if (Parts[i] != null)
+                    Parts[i].DrawSimple(normalPass, HideFlags);
+            }
+        }
         #endregion
 
         public void ReapplyCustomColors()
         {
-            foreach(var part in Parts)
+            foreach (var part in Parts)
             {
-                if(part != null)
+                if (part != null)
                 {
                     part.ResetCustomColors();
                     part.LoadCustomColors();
@@ -406,7 +419,7 @@ namespace XenoKit.Engine
         {
             return partSet?.Parts?.Contains(part) == true;
         }
-    
+
         private CharaPart GetActiveEyePartSet()
         {
             if (TransformedParts[(int)PartType.FaceEye] != null) return TransformedParts[(int)PartType.FaceEye];
@@ -467,7 +480,7 @@ namespace XenoKit.Engine
         //Auto-updating
         private bool IsMaterialsDirty = false;
 
-        public CharaPart(GameBase gameBase, Actor chara, Part part, PartType type) : base (gameBase)
+        public CharaPart(GameBase gameBase, Actor chara, Part part, PartType type) : base(gameBase)
         {
             GameBase = gameBase;
             this.chara = chara;
@@ -481,7 +494,7 @@ namespace XenoKit.Engine
                 type = SamplerType.Sampler2D,
                 textureSlot = 4,
                 samplerSlot = 4,
-                name = ShaderManager.Instance.GetSamplerName(4),
+                name = ShaderManager.GetSamplerName(4),
                 state = new SamplerState()
                 {
                     AddressU = TextureAddressMode.Clamp,
@@ -492,7 +505,7 @@ namespace XenoKit.Engine
                     MaxAnisotropy = 1,
                     MaxMipLevel = 1,
                     MipMapLevelOfDetailBias = 0,
-                    Name = ShaderManager.Instance.GetSamplerName(4)
+                    Name = ShaderManager.GetSamplerName(4)
                 }
             };
 
@@ -517,7 +530,7 @@ namespace XenoKit.Engine
                 type = SamplerType.Sampler2D,
                 textureSlot = 4,
                 samplerSlot = 4,
-                name = ShaderManager.Instance.GetSamplerName(4),
+                name = ShaderManager.GetSamplerName(4),
                 state = new SamplerState()
                 {
                     AddressU = TextureAddressMode.Clamp,
@@ -528,7 +541,7 @@ namespace XenoKit.Engine
                     MaxAnisotropy = 1,
                     MaxMipLevel = 1,
                     MipMapLevelOfDetailBias = 0,
-                    Name = ShaderManager.Instance.GetSamplerName(4)
+                    Name = ShaderManager.GetSamplerName(4)
                 }
             };
 
@@ -558,14 +571,14 @@ namespace XenoKit.Engine
 
         public void LoadModel(bool reloadMaterials = true)
         {
-            if(EmdFile == null)
+            if (EmdFile == null)
             {
                 Log.Add($"CharaPart.LoadModel: No emd file has been loaded.", LogType.Error);
                 return;
             }
 
             //Unsubscribe from ModelChanged event if a model already exists on this Part
-            if(Model != null)
+            if (Model != null)
                 Model.ModelChanged -= RefreshMaterialsOnEdit;
 
             Model = CompiledObjectManager.GetCompiledObject<Xv2ModelFile>(EmdFile, GameBase);
@@ -590,7 +603,7 @@ namespace XenoKit.Engine
 
             if (Model != null)
             {
-                Materials = Model.InitializeMaterials(EmmFile);
+                Materials = Model.InitializeMaterials(ShaderType.Chara, EmmFile);
 
                 //If part is an Eye, then set the Eye Indices. This is needed for eye UV scroll to be set to allow eye movement.
                 //This code assumes there is just one material per eye
@@ -598,7 +611,7 @@ namespace XenoKit.Engine
 
                 if (partType == PartType.FaceEye)
                 {
-                    for(int i = 0; i < Materials.Count; i++)
+                    for (int i = 0; i < Materials.Count; i++)
                     {
                         if (Materials[i].Material.Name.Contains("_L"))
                         {
@@ -652,7 +665,7 @@ namespace XenoKit.Engine
         {
             //We have to load colors from ALL the parts, because they draw the colors from all the parts for whatever reason. No idea on the reasoning for this
 
-            foreach(var _part in parentPartSet.Parts)
+            foreach (var _part in parentPartSet.Parts)
             {
                 foreach (var colSel in _part.ColorSelectors)
                 {
@@ -701,7 +714,7 @@ namespace XenoKit.Engine
 
             PhysicsParts = new CharaPart[physicsPartCount];
 
-            for(int i = 0; i < physicsPartCount; i++)
+            for (int i = 0; i < physicsPartCount; i++)
             {
                 PhysicsParts[i] = new CharaPart(GameBase, chara, part.PhysicsParts[i], part, this, partType);
             }
@@ -716,7 +729,7 @@ namespace XenoKit.Engine
         {
             if (Model != null && EmmFile != null)
             {
-                Materials = Model.InitializeMaterials(EmmFile);
+                Materials = Model.InitializeMaterials(ShaderType.Chara, EmmFile);
             }
         }
         #endregion
@@ -758,7 +771,7 @@ namespace XenoKit.Engine
                 owner = part.CharaCode;
             }
 
-            if(path != null)
+            if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
                 if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
@@ -928,7 +941,7 @@ namespace XenoKit.Engine
                 }
             }
 
-            if(!string.IsNullOrWhiteSpace(declaredPath) && string.IsNullOrWhiteSpace(path))
+            if (!string.IsNullOrWhiteSpace(declaredPath) && string.IsNullOrWhiteSpace(path))
             {
                 Log.Add($"EanPath was declared but no file could be found: {declaredPath}.", LogType.Error);
             }
@@ -975,7 +988,7 @@ namespace XenoKit.Engine
             if (FileManager.Instance.fileIO.FileExists(path))
                 return path;
 
-            if(pathOnParent != null)
+            if (pathOnParent != null)
             {
                 if (FileManager.Instance.fileIO.FileExists(pathOnParent))
                     return pathOnParent;
@@ -1022,7 +1035,7 @@ namespace XenoKit.Engine
 
         public void UpdatePhysicsPart()
         {
-            if(Model != null)
+            if (Model != null)
             {
                 Model.Update(0, Skeleton);
             }
@@ -1033,7 +1046,7 @@ namespace XenoKit.Engine
         /// </summary>
         public void Draw(PartTypeFlags hideFlags)
         {
-            if(IsMaterialsDirty)
+            if (IsMaterialsDirty)
             {
                 RefreshMaterials();
                 IsMaterialsDirty = false;
@@ -1058,9 +1071,9 @@ namespace XenoKit.Engine
             }
 
             //Set eye movement parameters in shaders
-            if(partType == PartType.FaceEye)
+            if (partType == PartType.FaceEye)
             {
-                if(LeftEyeIndex != -1)
+                if (LeftEyeIndex != -1)
                 {
                     Materials[LeftEyeIndex].SetEyeMovement(chara.EyeIrisLeft_UV);
                 }
@@ -1079,7 +1092,7 @@ namespace XenoKit.Engine
 
             if (!IsPhysicsPart)
             {
-                foreach(var physicsPart in PhysicsParts)
+                foreach (var physicsPart in PhysicsParts)
                 {
                     physicsPart.DrawPhysicsPart();
                 }
@@ -1127,6 +1140,41 @@ namespace XenoKit.Engine
             if (chara.ForceDytOverride > -1) return chara.ForceDytOverride;
             return partIdx;
         }
+
+        public void DrawSimple(bool normalPass, PartTypeFlags hideFlags)
+        {
+            //Check if part hiding is enabled for this Part Type
+            if (hideFlags.HasFlag(partTypeFlag)) return;
+
+            if (Model != null)
+            {
+                //Draw Model
+                Model.Draw(chara.Transform, chara.ActorSlot, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, chara.Skeleton);
+            }
+
+            if (!IsPhysicsPart)
+            {
+                foreach (CharaPart physicsPart in PhysicsParts)
+                {
+                    physicsPart.DrawSimplePhysicsPart(normalPass);
+                }
+            }
+        }
+
+        public void DrawSimplePhysicsPart(bool normalPass)
+        {
+            if (Model != null)
+            {
+                Matrix charaBone = chara.AnimationPlayer.GetCurrentAbsoluteMatrix(physicsPart.BoneToAttach);
+
+                if (Skeleton != null)
+                    Skeleton.CopySkinningState(chara.Skeleton);
+
+                Model.Draw(charaBone * chara.Transform, 0, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, Skeleton);
+            }
+        }
+
+
         #endregion
 
         private bool IsCustomColorMaterial(string materialName, string colorMaterialPrefix)
@@ -1149,9 +1197,9 @@ namespace XenoKit.Engine
             {
                 flags |= part.HideFlags;
 
-                if(PhysicsParts != null)
+                if (PhysicsParts != null)
                 {
-                    for(int i = 0; i < PhysicsParts.Length; i++)
+                    for (int i = 0; i < PhysicsParts.Length; i++)
                     {
                         if (PhysicsParts[i] != null)
                         {

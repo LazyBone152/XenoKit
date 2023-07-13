@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using XenoKit.Editor;
+using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Textures;
 using Xv2CoreLib;
 using Xv2CoreLib.EMB_CLASS;
@@ -15,12 +16,12 @@ namespace XenoKit.Engine.Shader
 {
     public class ShaderManager
     {
-        #region Singleton
-        private static Lazy<ShaderManager> instance = new Lazy<ShaderManager>(() => new ShaderManager());
-        public static ShaderManager Instance => instance.Value;
+        private GameBase game;
+        private bool IsRenderSystemActive => game.RenderSystem != null;
 
-        private ShaderManager()
+        public ShaderManager(GameBase game)
         {
+            this.game = game;
             string path = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/technique_default_sds.emz.sds.xml");
             string agePath = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/technique_age_sds.emz.sds.xml");
 
@@ -44,17 +45,25 @@ namespace XenoKit.Engine.Shader
 
             //DebugParseAllShaders();
         }
-        #endregion
 
         private readonly SDS_File DefaultSdsFile;
         private readonly SDS_File AgeSdsFile;
 
         //Caches
         private readonly List<ShaderProgram> ShaderPrograms = new List<ShaderProgram>();
-        private readonly List<GlobalSampler> GlobalSamplers = new List<GlobalSampler>();
+        private readonly GlobalSampler[] GlobalSamplers = new GlobalSampler[16];
 
+        //Global sampler indices (0 - 4 are object specific samplers, 13+ are global but static so irrelevant)
+        private const int SamplerCubeMap = 5;
+        private const int SamplerProjectionMap = 6;
+        private const int SamplerShadowMap = 7;
+        private const int SamplerReflect = 8;
+        private const int SamplerRefract = 9;
+        private const int SamplerAlphaDepth = 10;
+        private const int SamplerCurrentScene = 11;
+        private const int SamplerSmallScene = 12;
 
-        public ShaderProgram GetShaderProgram(string shaderProgramName, GraphicsDevice graphicsDevice)
+        public ShaderProgram GetShaderProgram(string shaderProgramName)
         {
             lock (ShaderPrograms)
             {
@@ -78,7 +87,7 @@ namespace XenoKit.Engine.Shader
                         byte[] ps = GetPixelShader(sdsEntry.PixelShader, isDefaultSds);
                         byte[] vs = GetVertexShader(sdsEntry.VertexShader, isDefaultSds);
 
-                        shaderProgram = new ShaderProgram(shaderProgramName, vs, ps, HasSkinningEnable(sdsEntry), graphicsDevice);
+                        shaderProgram = new ShaderProgram(shaderProgramName, vs, ps, HasSkinningEnable(sdsEntry), game.GraphicsDevice);
                         ShaderPrograms.Add(shaderProgram);
                     }
                     else
@@ -92,13 +101,19 @@ namespace XenoKit.Engine.Shader
             }
         }
 
+        public void Update()
+        {
+            //Set global sampler textures from RenderTargets here
+        }
+
+        #region GlobalSamplers
         public GlobalSampler GetGlobalSampler(int slot)
         {
             lock (GlobalSamplers)
             {
                 //If sampler already exists in the cache then re-use that instance.
-                if (GlobalSamplers.Any(x => x.Slot == slot))
-                    return GlobalSamplers.FirstOrDefault(x => x.Slot == slot);
+                if (GlobalSamplers[slot] != null)
+                    return GlobalSamplers[slot];
 
                 //Create sampler and add it to the cache
                 GlobalSampler sampler = null;
@@ -109,8 +124,7 @@ namespace XenoKit.Engine.Shader
                     case 7:
                         //ShadowMap / SamplerProjectionMap
                         {
-                            Texture2D texture = TextureLoader.ConvertToTexture2D(GetPathInShaderDir("Texture/ShadowMap.dds"), SceneManager.MainGameBase.GraphicsDevice);
-                            sampler = new GlobalSampler(slot, texture,
+                            sampler = new GlobalSampler(slot, game.RenderSystem.SamplerAlphaDepth,
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Border,
@@ -122,14 +136,15 @@ namespace XenoKit.Engine.Shader
                                                             Filter = TextureFilter.Linear,
                                                             MipMapLevelOfDetailBias = 0,
                                                             Name = GetSamplerName(slot),
-                                                            FilterMode = TextureFilterMode.Comparison
+                                                            FilterMode = TextureFilterMode.Comparison,
+                                                            GraphicsDevice = game.GraphicsDevice
                                                         });
                             break;
                         }
                     case 10:
                         //SamplerAlphaDepth
                         {
-                            Texture2D texture = TextureLoader.ConvertToTexture2D(GetPathInShaderDir("Texture/ShadowMap.dds"), SceneManager.MainGameBase.GraphicsDevice);
+                            Texture2D texture = TextureLoader.ConvertToTexture2D(GetPathInShaderDir("Texture/ShadowMap.dds"), game.GraphicsDevice);
                             sampler = new GlobalSampler(slot, texture,
                                                         new SamplerState()
                                                         {
@@ -142,7 +157,8 @@ namespace XenoKit.Engine.Shader
                                                             Filter = TextureFilter.Point,
                                                             MipMapLevelOfDetailBias = 0,
                                                             Name = GetSamplerName(slot),
-                                                            FilterMode = TextureFilterMode.Comparison
+                                                            FilterMode = TextureFilterMode.Comparison,
+                                                            GraphicsDevice = game.GraphicsDevice
                                                         });
                             break;
                         }
@@ -151,7 +167,7 @@ namespace XenoKit.Engine.Shader
                         {
                             EMB_File lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/cmn.emb", false);
                             sampler = new GlobalSampler(slot,
-                                                        TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), SceneManager.MainGameBase.GraphicsDevice),
+                                                        TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), game.GraphicsDevice),
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Clamp,
@@ -162,7 +178,8 @@ namespace XenoKit.Engine.Shader
                                                             ComparisonFunction = CompareFunction.Never,
                                                             Filter = TextureFilter.LinearMipPoint,
                                                             MipMapLevelOfDetailBias = 0,
-                                                            Name = GetSamplerName(slot)
+                                                            Name = GetSamplerName(slot),
+                                                            GraphicsDevice = game.GraphicsDevice
                                                         });
                             break;
                         }
@@ -173,8 +190,9 @@ namespace XenoKit.Engine.Shader
 
                             if (SettingsManager.Instance.Settings.XenoKit_RimLightingEnabled)
                             {
+                                lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFpot.emb", false); //ToP
                                 //lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFtwf.emb", false); //Future In Ruins
-                                lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFten.emb", false); //World Tournament
+                                //lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFten.emb", false); //World Tournament
                             }
                             else
                             {
@@ -193,7 +211,7 @@ namespace XenoKit.Engine.Shader
                             }
 
                             sampler = new GlobalSampler(slot,
-                                                        TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), SceneManager.MainGameBase.GraphicsDevice),
+                                                        TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), game.GraphicsDevice),
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Clamp,
@@ -204,14 +222,14 @@ namespace XenoKit.Engine.Shader
                                                             ComparisonFunction = CompareFunction.Never,
                                                             Filter = TextureFilter.PointMipLinear,
                                                             MipMapLevelOfDetailBias = 0,
-                                                            Name = GetSamplerName(slot)
+                                                            Name = GetSamplerName(slot),
+                                                            GraphicsDevice = game.GraphicsDevice
                                                         });
                             break;
                         }
                 }
 
-                if (sampler != null)
-                    GlobalSamplers.Add(sampler);
+                GlobalSamplers[slot] = sampler;
 
                 if (sampler == null)
                 {
@@ -228,17 +246,15 @@ namespace XenoKit.Engine.Shader
 
             if (sampler != null)
             {
-                sampler.Sampler.GraphicsDevice = SceneManager.GraphicsDeviceRef;
-
                 if (isVertexShader)
                 {
-                    SceneManager.GraphicsDeviceRef.VertexTextures[slot] = sampler.Texture;
-                    SceneManager.GraphicsDeviceRef.VertexSamplerStates[slot] = sampler.Sampler;
+                    game.GraphicsDevice.VertexTextures[slot] = sampler.RT != null ? sampler.RT.RenderTarget : sampler.Texture;
+                    game.GraphicsDevice.VertexSamplerStates[slot] = sampler.Sampler;
                 }
                 else
                 {
-                    SceneManager.GraphicsDeviceRef.Textures[slot] = sampler.Texture;
-                    SceneManager.GraphicsDeviceRef.SamplerStates[slot] = sampler.Sampler;
+                    game.GraphicsDevice.Textures[slot] = sampler.RT != null ? sampler.RT.RenderTarget : sampler.Texture;
+                    game.GraphicsDevice.SamplerStates[slot] = sampler.Sampler;
                 }
             }
         }
@@ -257,10 +273,12 @@ namespace XenoKit.Engine.Shader
 
         public void ClearGlobalSampler(int slot)
         {
-            GlobalSamplers.RemoveAll(x => x.Slot == slot);
+            GlobalSamplers[slot] = null;
         }
 
-        //Helpers
+        #endregion
+
+        #region Helpers
         private byte[] GetVertexShader(string name, bool isDefaultSds)
         {
             string type = isDefaultSds ? "default" : "age";
@@ -393,18 +411,30 @@ namespace XenoKit.Engine.Shader
                 }
             }
         }
+
+        #endregion
     }
 
     public class GlobalSampler
     {
         public int Slot { get; private set; }
-        public Texture Texture { get; private set; }
         public SamplerState Sampler { get; private set; }
+
+        //Texture:
+        public Texture Texture { get; private set; }
+        public RenderTargetWrapper RT { get; private set; }
 
         public GlobalSampler(int slot, Texture texture, SamplerState sampler)
         {
             Slot = slot;
             Texture = texture;
+            Sampler = sampler;
+        }
+
+        public GlobalSampler(int slot, RenderTargetWrapper texture, SamplerState sampler)
+        {
+            Slot = slot;
+            RT = texture;
             Sampler = sampler;
         }
     }

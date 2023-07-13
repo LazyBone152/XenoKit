@@ -17,24 +17,27 @@ using MonoGame.Framework.WpfInterop;
 using MonoGame.Framework.WpfInterop.Input;
 using System.Threading.Tasks;
 using XenoKit.Engine.Pool;
+using XenoKit.Engine.Rendering;
+using XenoKit.Engine.Shader;
 
 namespace XenoKit.Engine
 {
     public class GameBase : WpfGame
     {
-        private IGraphicsDeviceService _graphicsDeviceManager;
+        protected WpfGraphicsDeviceService _graphicsDeviceManager;
         public WpfKeyboard _keyboard;
         public WpfMouse _mouse;
         public SpriteBatch spriteBatch;
         public GameTime GameTime { get; protected set; }
 
         //Engine Features:
+        public ShaderManager ShaderManager { get; private set; }
         public virtual ICameraBase ActiveCameraBase { get; }
         public DirLight LightSource { get; private set; }
         public Input Input { get; private set; } = new Input();
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; protected set; }
-        public RenderDepthSystem RenderDepthSystem { get; protected set; }
+        public RenderSystem RenderSystem { get; protected set; }
         public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
         public ObjectPoolManager ObjectPoolManager { get; private set; }
 
@@ -69,6 +72,7 @@ namespace XenoKit.Engine
             // note that MonoGame requires this to be initialized in the constructor, while WpfInterop requires it to
             // be called inside Initialize (before base.Initialize())
             _graphicsDeviceManager = new WpfGraphicsDeviceService(this);
+            _graphicsDeviceManager.GraphicsDevice.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
             spriteBatch = new SpriteBatch(_graphicsDeviceManager.GraphicsDevice);
 
             // wpf and keyboard need reference to the host control in order to receive input
@@ -84,6 +88,7 @@ namespace XenoKit.Engine
 
             LightSource = new DirLight(this);
             ObjectPoolManager = new ObjectPoolManager(this);
+            ShaderManager = new ShaderManager(this);
         }
 
         private void DelayedTimer_Elapsed(object sender, ElapsedEventArgs e)

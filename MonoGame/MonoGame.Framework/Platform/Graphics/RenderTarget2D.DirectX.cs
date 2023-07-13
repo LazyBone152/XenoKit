@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
+using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
@@ -14,6 +15,8 @@ namespace Microsoft.Xna.Framework.Graphics
         private SharpDX.Direct3D11.Texture2D _msTexture;
 
         private SampleDescription _msSampleDescription;
+
+        private ShaderResourceView _depthResourceView;
 
         private void PlatformConstruct(GraphicsDevice graphicsDevice, int width, int height, bool mipMap,
             DepthFormat preferredDepthFormat, int preferredMultiSampleCount, RenderTargetUsage usage, bool shared)
@@ -62,34 +65,80 @@ namespace Microsoft.Xna.Framework.Graphics
             // If we don't need a depth buffer then we're done.
             if (DepthStencilFormat == DepthFormat.None)
                 return;
+ 
+            bool createDepthSRV = DepthStencilFormat == DepthFormat.Depth24Stencil8;
 
             // The depth stencil view's multisampling configuration must strictly
             // match the texture's multisampling configuration.  Ignore whatever parameters
             // were provided and use the texture's configuration so that things are
             // guarenteed to work.
-            var multisampleDesc = _msSampleDescription;
+            SampleDescription multisampleDesc = _msSampleDescription;
 
             // Create a descriptor for the depth/stencil buffer.
             // Allocate a 2-D surface as the depth/stencil buffer.
             // Create a DepthStencil view on this surface to use on bind.
-            using (var depthBuffer = new SharpDX.Direct3D11.Texture2D(GraphicsDevice._d3dDevice, new Texture2DDescription
+            Texture2DDescription depthTextureDesc = new Texture2DDescription()
             {
-                Format = SharpDXHelper.ToFormat(DepthStencilFormat),
+                Format = GetResourceFormat(DepthStencilFormat),
                 ArraySize = 1,
                 MipLevels = 1,
                 Width = width,
                 Height = height,
                 SampleDescription = multisampleDesc,
-                BindFlags = BindFlags.DepthStencil,
-            }))
+                Usage = ResourceUsage.Default,
+                BindFlags = createDepthSRV ? BindFlags.DepthStencil | BindFlags.ShaderResource : BindFlags.DepthStencil,
+                CpuAccessFlags = CpuAccessFlags.None,
+                OptionFlags = ResourceOptionFlags.None
+            };
+
+            DepthStencilViewDescription depthViewDesc = new DepthStencilViewDescription()
             {
-                // Create the view for binding to the device.
-                _depthStencilView = new DepthStencilView(GraphicsDevice._d3dDevice, depthBuffer,
-                    new DepthStencilViewDescription()
-                    {
-                        Format = SharpDXHelper.ToFormat(DepthStencilFormat),
-                        Dimension = MultiSampleCount > 1 ? DepthStencilViewDimension.Texture2DMultisampled : DepthStencilViewDimension.Texture2D
-                    });
+                Flags = DepthStencilViewFlags.None,
+                Dimension = MultiSampleCount > 1 ? DepthStencilViewDimension.Texture2DMultisampled : DepthStencilViewDimension.Texture2D,
+                Format = GetFormatViewFormat(DepthStencilFormat, false),
+            };
+            ShaderResourceViewDescription depthResourceDesc = new ShaderResourceViewDescription()
+            {
+                Format = GetFormatViewFormat(DepthStencilFormat, true),
+                Dimension = MultiSampleCount > 1 ? ShaderResourceViewDimension.Texture2DMultisampled : ShaderResourceViewDimension.Texture2D
+            };
+            depthResourceDesc.Texture2D.MipLevels = 1;
+
+            using (SharpDX.Direct3D11.Texture2D depthBuffer = new SharpDX.Direct3D11.Texture2D(GraphicsDevice._d3dDevice, depthTextureDesc))
+            {
+                // Create the views for binding to the device.
+                _depthStencilView = new DepthStencilView(GraphicsDevice._d3dDevice, depthBuffer, depthViewDesc);
+
+                if (createDepthSRV)
+                    _depthResourceView = new ShaderResourceView(GraphicsDevice._d3dDevice, depthBuffer, depthResourceDesc);
+                else
+                    _depthResourceView = null;
+            }
+        }
+
+        private Format GetFormatViewFormat(DepthFormat depthFormat, bool isSRV)
+        {
+            switch (depthFormat)
+            {
+                case DepthFormat.Depth16:
+                    return isSRV ? SharpDX.DXGI.Format.R16_UNorm : SharpDX.DXGI.Format.D16_UNorm;
+                case DepthFormat.Depth24Stencil8:
+                    return isSRV ? SharpDX.DXGI.Format.R24_UNorm_X8_Typeless : SharpDX.DXGI.Format.D24_UNorm_S8_UInt;
+                default:
+                    return SharpDX.DXGI.Format.R24_UNorm_X8_Typeless;
+            }
+        }
+
+        private Format GetResourceFormat(DepthFormat depthFormat)
+        {
+            switch (depthFormat)
+            {
+                case DepthFormat.Depth16:
+                    return SharpDX.DXGI.Format.R16_Typeless;
+                case DepthFormat.Depth24Stencil8:
+                    return SharpDX.DXGI.Format.R24G8_Typeless;
+                default:
+                    return SharpDX.DXGI.Format.R24_UNorm_X8_Typeless;
             }
         }
 
@@ -102,6 +151,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 _renderTargetViews = null;
             }
             SharpDX.Utilities.Dispose(ref _depthStencilView);
+            SharpDX.Utilities.Dispose(ref _depthResourceView);
         }
 
         protected override void Dispose(bool disposing)
@@ -115,6 +165,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     _renderTargetViews = null;
                 }
                 SharpDX.Utilities.Dispose(ref _depthStencilView);
+                SharpDX.Utilities.Dispose(ref _depthResourceView);
                 SharpDX.Utilities.Dispose(ref _msTexture);
             }
 
@@ -190,5 +241,11 @@ namespace Microsoft.Xna.Framework.Graphics
 
             return desc;
         }
+
+        public ShaderResourceView GetDepthBufferView()
+        {
+            return _depthResourceView;
+        }
+
     }
 }

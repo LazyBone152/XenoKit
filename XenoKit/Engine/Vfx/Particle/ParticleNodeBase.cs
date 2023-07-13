@@ -15,6 +15,7 @@ namespace XenoKit.Engine.Vfx.Particle
     {
         public WeakReference Effect;
         public override bool IsAlive => Effect.IsAlive;
+        public override EntityType EntityType => EntityType.VFX;
 
         public ParticleSystem ParticleSystem { get; private set; }
         public ParticleNode Node;
@@ -383,12 +384,12 @@ namespace XenoKit.Engine.Vfx.Particle
                         if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Plane)
                         {
                             newNode = ObjectPoolManager.GetParticlePlane(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
-                            GameBase.RenderDepthSystem.Add(newNode);
+                            GameBase.RenderSystem.AddRenderEntity(newNode);
                         }
                         else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Mesh)
                         {
                             newNode = ObjectPoolManager.GetParticleMesh(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
-                            GameBase.RenderDepthSystem.Add(newNode);
+                            GameBase.RenderSystem.AddRenderEntity(newNode);
                         }
                         else
                         {

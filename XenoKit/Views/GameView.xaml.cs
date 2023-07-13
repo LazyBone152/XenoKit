@@ -188,7 +188,7 @@ namespace XenoKit.Controls
             get
             {
                 if (MonoGame?.camera == null || (!SceneManager.IsOnTab(EditorTabs.Action) && !SceneManager.IsOnEffectTab)) return null;
-                return string.Format("\nVFX:\nParticles: {0}\nEmitters: {1}", MonoGame.RenderDepthSystem.ActiveParticleCount, MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount);
+                return string.Format("\nVFX:\nParticles: {0}\nEmitters: {1}", MonoGame.RenderSystem.ActiveParticleCount, MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount);
             }
         }
         public string DebugOverlay
@@ -203,7 +203,7 @@ namespace XenoKit.Controls
                     MonoGame.CompiledObjectManager.ObjectCount,
                     MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.UsedObjectCount,
                     MonoGame.ObjectPoolManager.ParticleEmitterPool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.FreeObjectCount,
-                    MonoGame.RenderDepthSystem.Count);
+                    MonoGame.RenderSystem.Count);
 #else
                 return null;
 #endif

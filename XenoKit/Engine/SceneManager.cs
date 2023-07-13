@@ -80,7 +80,6 @@ namespace XenoKit.Engine
         public static Camera MainCamera => MainGameInstance != null ? MainGameInstance.camera : null;
         public static AudioEngine AudioEngine { get { return MainGameInstance?.AudioEngine; } }
         public static AnimatorGizmo AnimatorGizmo { get { return MainGameInstance?.GetAnimatorGizmo(); } }
-        public static GraphicsDevice GraphicsDeviceRef = null;
 
         //Exposed MainGameBase values: (mainly here for compat with old code when these were on SceneManager)
         /// <summary>
@@ -373,10 +372,10 @@ namespace XenoKit.Engine
 
             //Remove previous actor from RenderDepthSystem
             if (Actors[actorSlot] != null)
-                MainGameBase.RenderDepthSystem.Remove(Actors[actorSlot]);
+                MainGameBase.RenderSystem.RemoveRenderEntity(Actors[actorSlot]);
 
             //Set new actor there
-            MainGameBase.RenderDepthSystem.Add(character);
+            MainGameBase.RenderSystem.AddRenderEntity(character);
 
             Actors[actorSlot] = character;
             character.ActorSlot = actorSlot;
@@ -404,7 +403,7 @@ namespace XenoKit.Engine
                 MainGameBase.CompiledObjectManager.UnsetActorOnModels(actorSlot);
 
                 //Remove actor from RenderDepthSystem
-                MainGameBase.RenderDepthSystem.Remove(actor);
+                MainGameBase.RenderSystem.RemoveRenderEntity(actor);
 
                 Log.Add($"{actor.Name} removed as the {GetActorName(actorSlot)} actor.");
 

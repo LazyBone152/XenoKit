@@ -154,6 +154,7 @@
                 <MenuItem Header="Reload Shaders" Click="DebugMenu_ReloadShaders_Click"/>
                 <MenuItem Header="Reload System" Click="MenuItem_ReloadSystem_Click"/>
                 <MenuItem Header="Force GC" Click="DebugMenu_ForceGC"/>
+                <MenuItem Header="Dump Render Targets" Click="DebugMenu_DumpRenderTargets_Click"/>
             </MenuItem>
         </Menu>
         <Grid Grid.ColumnSpan="5" Margin="0,0,-0.455,-3.673" Grid.Row="3" Background="{DynamicResource MahApps.Brushes.Accent2}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="20">

@@ -41,10 +41,10 @@ namespace XenoKit.Engine.Shader
 
         }
 
-        public void SetGlobalSamplers()
+        public void SetGlobalSamplers(ShaderManager shaderManager)
         {
             foreach (int sampler in GlobalSamplers)
-                ShaderManager.Instance.SetGlobalSampler(sampler, Stage == ShaderStage.Vertex);
+                shaderManager.SetGlobalSampler(sampler, Stage == ShaderStage.Vertex);
         }
     }
 }

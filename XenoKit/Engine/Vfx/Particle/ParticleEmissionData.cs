@@ -110,7 +110,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     Samplers[i].state.MaxAnisotropy = 1;
                     Samplers[i].state.MaxMipLevel = 1;
 
-                    Samplers[i].name = ShaderManager.Instance.GetSamplerName(i);
+                    Samplers[i].name = ShaderManager.GetSamplerName(i);
                     Samplers[i].state.Name = Samplers[i].name;
                     Samplers[i].parameter = ParticleNode.EmissionNode.Texture.TextureEntryRef[i].TextureRef.EmbIndex;
 
@@ -150,7 +150,7 @@ namespace XenoKit.Engine.Vfx.Particle
             if (compiledMat == null)
             {
                 //No material was found for this Submesh. Use default.
-                compiledMat = Xv2ShaderEffect.CreateDefaultMaterial(GameBase);
+                compiledMat = Xv2ShaderEffect.CreateDefaultMaterial(ShaderType.Default, GameBase);
             }
 
             Material = compiledMat;

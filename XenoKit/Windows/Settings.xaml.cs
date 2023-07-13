@@ -41,7 +41,7 @@ namespace XenoKit.Windows
                 if (SettingsManager.settings.XenoKit_RimLightingEnabled != value)
                 {
                     SettingsManager.settings.XenoKit_RimLightingEnabled = value;
-                    ShaderManager.Instance.ClearGlobalSampler(15);
+                    SceneManager.MainGameBase.ShaderManager.ClearGlobalSampler(15);
                 }
             }
         }

@@ -5,6 +5,8 @@ using XenoKit.Engine.Text;
 using XenoKit.Engine.View;
 using XenoKit.Engine.Vfx;
 using XenoKit.Engine.Pool;
+using XenoKit.Engine.Shader;
+using XenoKit.Engine.Rendering;
 
 namespace XenoKit.Engine
 {
@@ -18,6 +20,8 @@ namespace XenoKit.Engine
 
         //Exposed Properties
         public GraphicsDevice GraphicsDevice => GameBase.GraphicsDevice;
+        public ShaderManager ShaderManager => GameBase.ShaderManager;
+        public RenderSystem RenderSystem => GameBase.RenderSystem;
         public Input Input => GameBase.Input;
         public TextRenderer TextRenderer => GameBase.TextRenderer;
         public ICameraBase CameraBase => GameBase.ActiveCameraBase;
@@ -79,6 +83,11 @@ namespace XenoKit.Engine
 
         }
 
+        public virtual void DrawPass(bool normalPass)
+        {
+
+        }
+
         /// <summary>
         /// Invoked upon the Entity's destruction/>
         /// </summary>
@@ -122,6 +131,8 @@ namespace XenoKit.Engine
     public enum EntityType
     {
         Undefined,
-        Particle
+        Actor,
+        Stage,
+        VFX
     }
 }

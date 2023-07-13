@@ -10,8 +10,6 @@ namespace XenoKit.Engine.Vfx.Particle
     /// </summary>
     public abstract class ParticleEmissionBase : ParticleNodeBase
     {
-        public override EntityType EntityType => EntityType.Particle;
-
         protected ParticleEmissionData EmissionData;
         protected ParticleUV ParticleUV = new ParticleUV();
 

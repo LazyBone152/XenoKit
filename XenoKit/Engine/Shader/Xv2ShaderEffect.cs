@@ -38,72 +38,72 @@ namespace XenoKit.Engine.Shader
             {
                 if (_defaultCharaMaterial == null)
                 {
-                    _defaultCharaMaterial = CreateDefaultMaterial(SceneManager.MainGameBase);
+                    _defaultCharaMaterial = CreateDefaultMaterial(ShaderType.Chara, SceneManager.MainGameBase);
                 }
                 return _defaultCharaMaterial;
             }
         }
 
-        private GameBase GameBase;
+        protected GameBase GameBase;
 
+        public ShaderType ShaderType { get; protected set; }
         private Xv2Shader[] _shaders;
 
         public Matrix World = Matrix.Identity;
         public Matrix PrevWVP = Matrix.Identity;
 
         //Settings
-        private ShaderProgram shaderProgram = null;
-        public EmmMaterial Material { get; private set; }
+        protected ShaderProgram shaderProgram = null;
+        public EmmMaterial Material { get; protected set; }
         public DecompiledMaterial MatParam => Material?.DecompiledParameters;
-        public bool IsSubtractiveBlending { get; private set; }
+        public bool IsSubtractiveBlending { get; protected set; }
 
         private bool SkinningEnabled { get; set; }
 
         //Parameters
-        private EffectParameter g_mWVP_VS;
-        private EffectParameter g_mVP_VS;
-        private EffectParameter g_mWVP_Prev_VS;
-        private EffectParameter g_mWV_VS;
-        private EffectParameter g_mW_VS;
-        private EffectParameter g_mWLP_SM_VS;
-        private EffectParameter g_vScreen_VS;
-        private EffectParameter g_SystemTime_VS;
-        private EffectParameter g_vEyePos_VS;
-        private EffectParameter g_vLightVec0_VS;
-        private EffectParameter g_vUserFlag0_VS;
-        private EffectParameter g_vLightVec0_PS;
-        private EffectParameter g_vEyePos_PS;
-        private EffectParameter g_vFadeMulti_PS;
-        private EffectParameter g_vFadeRim_PS;
-        private EffectParameter g_vFadeAdd_PS;
-        private EffectParameter g_vColor0_PS;
-        private EffectParameter g_vParam3_PS;
-        private EffectParameter g_vParam4_PS;
-        private EffectParameter g_vParam5_PS;
+        protected EffectParameter g_mWVP_VS;
+        protected EffectParameter g_mVP_VS;
+        protected EffectParameter g_mWVP_Prev_VS;
+        protected EffectParameter g_mWV_VS;
+        protected EffectParameter g_mW_VS;
+        protected EffectParameter g_mWLP_SM_VS;
+        protected EffectParameter g_vScreen_VS;
+        protected EffectParameter g_SystemTime_VS;
+        protected EffectParameter g_vEyePos_VS;
+        protected EffectParameter g_vLightVec0_VS;
+        protected EffectParameter g_vUserFlag0_VS;
+        protected EffectParameter g_vLightVec0_PS;
+        protected EffectParameter g_vEyePos_PS;
+        protected EffectParameter g_vFadeMulti_PS;
+        protected EffectParameter g_vFadeRim_PS;
+        protected EffectParameter g_vFadeAdd_PS;
+        protected EffectParameter g_vColor0_PS;
+        protected EffectParameter g_vParam1_PS;
+        protected EffectParameter g_vParam2_PS;
+        protected EffectParameter g_vParam3_PS;
+        protected EffectParameter g_vParam4_PS;
+        protected EffectParameter g_vParam5_PS;
 
-        private EffectParameter g_MaterialCol0_VS;
-        private EffectParameter g_MaterialCol1_VS;
-        private EffectParameter g_MaterialCol2_VS;
-        private EffectParameter g_MaterialCol3_VS;
-        private EffectParameter g_MaterialCol0_PS;
-        private EffectParameter g_MaterialCol1_PS;
-        private EffectParameter g_MaterialCol2_PS;
-        private EffectParameter g_MaterialCol3_PS;
-        private EffectParameter g_TexScroll0_PS;
-        private EffectParameter g_TexScroll1_PS;
-        private EffectParameter g_TexScroll0_VS;
-        private EffectParameter g_TexScroll1_VS;
+        protected EffectParameter g_MaterialCol0_VS;
+        protected EffectParameter g_MaterialCol1_VS;
+        protected EffectParameter g_MaterialCol2_VS;
+        protected EffectParameter g_MaterialCol3_VS;
+        protected EffectParameter g_MaterialCol0_PS;
+        protected EffectParameter g_MaterialCol1_PS;
+        protected EffectParameter g_MaterialCol2_PS;
+        protected EffectParameter g_MaterialCol3_PS;
+        protected EffectParameter g_TexScroll0_PS;
+        protected EffectParameter g_TexScroll1_PS;
+        protected EffectParameter g_TexScroll0_VS;
+        protected EffectParameter g_TexScroll1_VS;
 
-        private EffectParameter g_mMatrixPalette_VS;
-        private EffectParameter g_bSkinning_VS;
+        protected EffectParameter g_mMatrixPalette_VS;
+        protected EffectParameter g_bSkinning_VS;
 
 
         //Updating
         public bool IsShaderProgramDirty { get; set; }
         public bool IsDirty { get; set; }
-
-        //Lighting
-        private static Vector4 LightVector = new Vector4(-0.50204f, -0.0f, -0.3682f, 0.00f);
 
         //Color Fade
         private float[] ECF_Multi = null;
@@ -117,11 +117,12 @@ namespace XenoKit.Engine.Shader
         private float[] LIGHT_Strength = null;
 
 
-        public Xv2ShaderEffect(EmmMaterial material, GameBase gameBase) : base(gameBase.GraphicsDevice)
+        public Xv2ShaderEffect(EmmMaterial material, ShaderType type, GameBase gameBase) : base(gameBase.GraphicsDevice)
         {
             GraphicsDevice = gameBase.GraphicsDevice;
             Material = material;
             GameBase = gameBase;
+            ShaderType = type;
 
             InitTechnique();
 
@@ -129,9 +130,37 @@ namespace XenoKit.Engine.Shader
             material.PropertyChanged += Material_PropertyChanged;
         }
 
+        protected Xv2ShaderEffect(EmmMaterial material, bool delayInit, GameBase gameBase) : base(gameBase.GraphicsDevice)
+        {
+            GraphicsDevice = gameBase.GraphicsDevice;
+            Material = material;
+            GameBase = gameBase;
+
+            if(!delayInit)
+                InitTechnique();
+
+            material.DecompiledParameters.PropertyChanged += DecompiledParameters_PropertyChanged;
+            material.PropertyChanged += Material_PropertyChanged;
+        }
+
+        protected Xv2ShaderEffect(GameBase gameBase) : base(gameBase.GraphicsDevice)
+        {
+        }
+
+        public void SetShaderType(ShaderType type)
+        {
+            if(ShaderType != type)
+            {
+                ShaderType = type;
+                InitTechnique();
+            }
+        }
+
         public void InitTechnique()
         {
-            shaderProgram = ShaderManager.Instance.GetShaderProgram(Material.ShaderProgram, GraphicsDevice);
+            //Only grab the shader program if this shader effect is for a material, and not a ShaderProgram itself
+            if(ShaderType != ShaderType.PostFilter)
+                shaderProgram = GameBase.ShaderManager.GetShaderProgram(Material.ShaderProgram);
 
             //Start load parametrs
             EffectParameter[] parameters = new EffectParameter[shaderProgram.VsParser.CBuffers.Sum(x => x.Variables.Length) + shaderProgram.PsParser.CBuffers.Sum(x => x.Variables.Length)];
@@ -363,7 +392,7 @@ namespace XenoKit.Engine.Shader
             return new EffectPassCollection(passes);
         }
 
-        private void SetParameters()
+        protected virtual void SetParameters()
         {
             //NOTE: A lot of these default values are taken from XenoViewer. Others are taken from frames captured with RenderDoc.
 
@@ -433,8 +462,7 @@ namespace XenoKit.Engine.Shader
             //cb_vs_bool
             if (shaderProgram.UseVertexShaderBuffer[CB_VS_BOOL])
             {
-                //Initialize to false. If material uses skinning, this will be changed later
-                Parameters["g_bSkinning_VS"].SetValue(false);
+                Parameters["g_bSkinning_VS"].SetValue(SkinningEnabled);
 
                 Parameters["g_bVersatile0_VS"].SetValue(MatParam.VsFlag0);
                 Parameters["g_bVersatile1_VS"].SetValue(MatParam.VsFlag1);
@@ -449,8 +477,8 @@ namespace XenoKit.Engine.Shader
             //ps_stage_cb
             if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB])
             {
-                //Parameters["g_vShadowMap_PS"].SetValue(new Vector4(2048f, 00049f, 0.001f, 0.85f));
-                Parameters["g_vShadowMap_PS"].SetValue(new Vector4(4096f, 0.00012f, 0.001f, 0.85f));
+                Parameters["g_vShadowMap_PS"].SetValue(new Vector4(2048f, 00049f, 0.001f, 0.85f));
+                //Parameters["g_vShadowMap_PS"].SetValue(new Vector4(4096f, 0.00012f, 0.001f, 0.85f));
                 Parameters["g_vShadowColor_PS"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 0));
                 Parameters["g_vEdge_PS"].SetValue(MatParam.NoEdge > 0 ? Vector4.Zero : Vector4.One);
                 Parameters["g_vGlare_PS"].SetValue(Vector4.Zero);
@@ -557,6 +585,8 @@ namespace XenoKit.Engine.Shader
             g_vFadeAdd_PS = Parameters["g_vFadeAdd_PS"];
 
             g_vColor0_PS = Parameters["g_vColor0_PS"];
+            g_vParam1_PS = Parameters["g_vParam1_PS"];
+            g_vParam2_PS = Parameters["g_vParam2_PS"];
             g_vParam3_PS = Parameters["g_vParam3_PS"];
             g_vParam4_PS = Parameters["g_vParam4_PS"];
             g_vParam5_PS = Parameters["g_vParam5_PS"];
@@ -612,8 +642,15 @@ namespace XenoKit.Engine.Shader
                 g_mWLP_SM_VS.SetValue(projMatrix);
 
                 PrevWVP = World * viewMatrix * projMatrix;
+            }
 
-                //Parameters["g_mW_VS"].SetValue(Matrix.CreateTranslation(new Vector3(10,0,0)));
+            if (ShaderType == ShaderType.CharaNormals)
+            {
+                //Controls the final vertex color of NormalPassRT0 and 1, which is key for the black body outline around characters as well as BPE BodyOutlines 
+                g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
+                g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
+                g_vParam3_PS.SetValue(new Vector4(0.001f, 1000, 0.92638f, 0.90798f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
+                return;
             }
 
             //vs_stage_cb.
@@ -654,6 +691,7 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vLodViewport_VS"].SetValue(new Vector4(1,1,1,1));
 
                 */
+                
             }
 
             //vs_common_light_cb.
@@ -724,6 +762,7 @@ namespace XenoKit.Engine.Shader
 
                 //Parameters["g_vShadowMap_PS"].SetValue(new Vector4(8192, 0.00012f, 0.00006f, 1));
                 //Parameters["g_vShadowColor_PS"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 0));
+                
             }
 
             //ps_user_cb
@@ -767,6 +806,30 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vParam5_PS"].SetValue(new Vector4(-2.5f, 1.0f, 0, 1.00f)); //Light source position (relative to World)
                 */
 
+                /*
+                //Values from AGE_TEST_EDGELINE_MRT
+                Parameters["g_vColor0_PS"].SetValue(new Vector4(1f, 1f, 1f, 1));
+                Parameters["g_vColor1_PS"].SetValue(new Vector4(0f, 0f, 0f, 1));
+                Parameters["g_vColor2_PS"].SetValue(new Vector4(0f, 0f, 0f, 1));
+                Parameters["g_vParam0_PS"].SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
+                Parameters["g_vParam1_PS"].SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
+                Parameters["g_vParam2_PS"].SetValue(new Vector4(0, 0, 1f, 0));
+                Parameters["g_vParam3_PS"].SetValue(new Vector4(1, 0, 0, 0));
+                Parameters["g_vParam4_PS"].SetValue(new Vector4(0, 2.60427f, 0, 0));
+                Parameters["g_vParam5_PS"].SetValue(new Vector4(-2.04347f, -3.57628E-07f, -0.11416f, 1.00f));
+                Parameters["g_vParam6_PS"].SetValue(new Vector4(0, 0, 0, 0));
+                Parameters["g_vParam7_PS"].SetValue(new Vector4(0, 20, 0.04f, -0.1f));
+                */
+
+                //NORMAL_FADE_WATERDEPTH_W_M Values:
+                //Parameters["g_vParam1_PS"].SetValue(new Vector4(0, 50, 1, 0.6f));
+                //Parameters["g_vParam2_PS"].SetValue(new Vector4(0, 0, 1, 0));//1 in game shaders. Flipped for XenoKit, otherwise get wrong colors
+                //Parameters["g_vParam3_PS"].SetValue(new Vector4(10, 1000, 0, 0));
+
+                //Parameters["g_vParam1_PS"].SetValue(new Vector4(0, 50, 1, 0.6f));
+                //Parameters["g_vParam2_PS"].SetValue(new Vector4(0.00391f, 0, 1, 0));
+                //Parameters["g_vParam3_PS"].SetValue(new Vector4(0.001f, 3006.13501f, 0.82168f, 0.7771f));
+
                 if (LIGHT_RGBA != null)
                 {
                     g_vColor0_PS.SetVector4(LIGHT_RGBA);
@@ -781,7 +844,6 @@ namespace XenoKit.Engine.Shader
                     g_vParam4_PS.SetValue(Vector4.Zero);
                     g_vParam5_PS.SetValue(Vector4.Zero);
                 }
-
             }
 
             //cb_ps_bool
@@ -806,7 +868,7 @@ namespace XenoKit.Engine.Shader
 
             //Set global samplers/textures
             foreach (Xv2Shader shader in _shaders)
-                shader.SetGlobalSamplers();
+                shader.SetGlobalSamplers(GameBase.ShaderManager);
         }
 
         protected override void Dispose(bool disposing)
@@ -843,47 +905,50 @@ namespace XenoKit.Engine.Shader
             return -1;
         }
 
+
         //Render Settings
-        public BlendState GetBlendState()
+        public virtual BlendState GetBlendState()
         {
             BlendState blendState = new BlendState();
+            blendState.IndependentBlendEnable = true;
             IsSubtractiveBlending = false;
 
+            if (ShaderType == ShaderType.CharaNormals)
+            {
+                blendState.ApplyNone(0);
+                blendState.ApplyNone(1);
+
+                return blendState;
+            }
+            else if(ShaderType == ShaderType.Stage)
+            {
+                blendState.ApplyNone(0);
+                blendState.ApplyNone(1);
+                blendState[0].ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
+
+                return blendState;
+            }
+
+            //Default path; used for effects (PBIND, TBIND and EMO) and regular character shaders
             switch (MatParam.AlphaBlendType)
             {
                 case 0: //Normal
-                    //goto case 1; //test
-                    blendState.IndependentBlendEnable = true;
-                    blendState.BlendFactor = Color.White;
-                    blendState.MultiSampleMask = -1;
+                    //BlendState 0
+                    blendState[0].ColorSourceBlend = Blend.SourceAlpha;
+                    blendState[0].ColorDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState[0].ColorBlendFunction = BlendFunction.Add;
 
-                    blendState.ColorSourceBlend = Blend.SourceAlpha;
-                    blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
-                    blendState.ColorBlendFunction = BlendFunction.Add;
+                    blendState[0].AlphaSourceBlend = Blend.SourceAlpha;
+                    blendState[0].AlphaDestinationBlend = Blend.InverseSourceAlpha;
+                    blendState[0].AlphaBlendFunction = BlendFunction.Add;
 
-                    blendState.AlphaSourceBlend = Blend.SourceAlpha;
-                    blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
-                    blendState.AlphaBlendFunction = BlendFunction.Add;
+                    blendState[0].ColorWriteChannels = ColorWriteChannels.All;
 
-                    blendState.ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
-
-                    /*
-                    blendState.AlphaBlendFunction = BlendFunction.Add;
-                    blendState.AlphaDestinationBlend = Blend.One;
-                    blendState.AlphaSourceBlend = Blend.One;
-
-                    blendState.ColorBlendFunction = BlendFunction.Add;
-                    blendState.ColorDestinationBlend = Blend.One;
-                    blendState.ColorSourceBlend = Blend.SourceAlpha;
-                    blendState.ColorWriteChannels = ColorWriteChannels.All;
-                    */
+                    //BlendState 1
+                    blendState.CopyState(0, 1);
                     break;
                 case 1: //Additive
-                    //blendState = BlendState.Additive;
-                    blendState.IndependentBlendEnable = true;
-                    blendState.BlendFactor = Color.White;
-                    blendState.MultiSampleMask = -1;
-
+                    //Blend 0
                     blendState.ColorSourceBlend = Blend.SourceAlpha;
                     blendState.ColorDestinationBlend = Blend.One;
                     blendState.ColorBlendFunction = BlendFunction.Add;
@@ -892,25 +957,22 @@ namespace XenoKit.Engine.Shader
                     blendState.AlphaDestinationBlend = Blend.One;
                     blendState.AlphaBlendFunction = BlendFunction.Add;
 
-                    blendState.ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
-
-                    /*
-                    blendState.AlphaBlendFunction = BlendFunction.Add;
-                    blendState.AlphaSourceBlend = Blend.Zero;
-                    blendState.AlphaDestinationBlend = Blend.One;
-
-                    blendState.ColorBlendFunction = BlendFunction.Add;
-                    blendState.ColorSourceBlend = Blend.SourceAlpha;
-                    blendState.ColorDestinationBlend = Blend.One;
-
                     blendState.ColorWriteChannels = ColorWriteChannels.All;
-                    */
+
+                    //Blend 1
+                    blendState.CopyState(0, 1);
+
+                    if(Material.DecompiledParameters.LowRez == 1 || Material.DecompiledParameters.LowRezSmoke == 1)
+                    {
+                        blendState[1].ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
+
+                        //Re-enable these once LowRez is implemented in the renderer
+                        blendState[0].AlphaSourceBlend = Blend.Zero;
+                        blendState[1].AlphaSourceBlend = Blend.Zero;
+                    }
                     break;
                 case 2: //Subtractive
-                    blendState.IndependentBlendEnable = true;
-                    blendState.BlendFactor = Color.White;
-                    blendState.MultiSampleMask = -1;
-
+                    //Blend 0
                     blendState.AlphaBlendFunction = BlendFunction.ReverseSubtract;
                     blendState.AlphaSourceBlend = Blend.SourceAlpha;
                     blendState.AlphaDestinationBlend = Blend.One;
@@ -920,17 +982,96 @@ namespace XenoKit.Engine.Shader
                     blendState.ColorDestinationBlend = Blend.One;
 
                     blendState.ColorWriteChannels = ColorWriteChannels.All;
+
+                    //Blend 1
+                    blendState.CopyState(0, 1);
+
+                    if (Material.DecompiledParameters.LowRez == 1 || Material.DecompiledParameters.LowRezSmoke == 1)
+                    {
+                        blendState[1].ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
+
+                        //Need to reconfirm this case.
+                        //When both AlphaBlendType 1 AND LowRez are set, AlphaSourceBlend is set to zero on both states
+                        blendState[0].AlphaSourceBlend = Blend.Zero;
+                        blendState[1].AlphaSourceBlend = Blend.Zero;
+                    }
+
                     IsSubtractiveBlending = true;
                     break;
-            }
+                default:
+                    blendState.ColorSourceBlend = Blend.One;
+                    blendState.ColorDestinationBlend = Blend.Zero;
+                    blendState.ColorBlendFunction = BlendFunction.Add;
 
+                    blendState.AlphaSourceBlend = Blend.One;
+                    blendState.AlphaDestinationBlend = Blend.Zero;
+                    blendState.AlphaBlendFunction = BlendFunction.Add;
+
+                    blendState.ColorWriteChannels = ColorWriteChannels.All;
+                    blendState.CopyState(0, 1);
+                    break;
+            }
+            
             return blendState;
         }
 
-        public DepthStencilState GetDepthState()
+        public virtual DepthStencilState GetDepthState()
         {
             DepthStencilState depth = new DepthStencilState();
 
+            if(ShaderType == ShaderType.CharaNormals)
+            {
+                depth.DepthBufferEnable = true;
+                depth.DepthBufferWriteEnable = true;
+                depth.DepthBufferFunction = CompareFunction.LessEqual;
+                depth.StencilEnable = false;
+                depth.StencilWriteMask = 255;
+                depth.StencilMask = 255;
+                depth.ReferenceStencil = 255;
+
+                return depth;
+            }
+            else if(ShaderType == ShaderType.Chara)
+            {
+                //Default character depth buffer
+                depth.DepthBufferEnable = true;
+                depth.DepthBufferWriteEnable = true;
+                depth.DepthBufferFunction = CompareFunction.LessEqual;
+                depth.StencilEnable = true;
+                depth.StencilWriteMask = 80;
+                depth.StencilMask = 80;
+                depth.ReferenceStencil = 80;
+                depth.CounterClockwiseStencilPass = StencilOperation.Replace;
+                depth.StencilPass = StencilOperation.Replace;
+                depth.StencilFunction = CompareFunction.Always;
+
+                return depth;
+            }
+            else if (ShaderType == ShaderType.Stage)
+            {
+                //Default stage depth buffer
+                depth.DepthBufferEnable = true;
+                depth.DepthBufferWriteEnable = true;
+                depth.DepthBufferFunction = CompareFunction.LessEqual;
+                depth.StencilEnable = true;
+                depth.StencilWriteMask = 128;
+                depth.StencilMask = 128;
+                depth.ReferenceStencil = 0;
+                depth.StencilFunction = CompareFunction.Always;
+                depth.CounterClockwiseStencilFunction = CompareFunction.Always;
+
+                depth.StencilFail = StencilOperation.Keep;
+                depth.StencilDepthBufferFail = StencilOperation.Keep;
+                depth.StencilPass = StencilOperation.Zero;
+
+                depth.CounterClockwiseStencilFail = StencilOperation.Keep;
+                depth.CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep;
+                depth.CounterClockwiseStencilPass = StencilOperation.Zero;
+
+                return depth;
+            }
+
+            //Default path: Valid for effects
             if (MatParam.AlphaSortMask == 1 || MatParam.ZTestMask == 1)
                 depth.DepthBufferEnable = true;
 
@@ -960,7 +1101,7 @@ namespace XenoKit.Engine.Shader
             return depth;
         }
 
-        public RasterizerState GetRasterizerState()
+        public virtual RasterizerState GetRasterizerState()
         {
             RasterizerState state = new RasterizerState();
 
@@ -978,14 +1119,14 @@ namespace XenoKit.Engine.Shader
             */
         }
 
-        public static Xv2ShaderEffect CreateDefaultMaterial(GameBase gameBase)
+        public static Xv2ShaderEffect CreateDefaultMaterial(ShaderType type, GameBase gameBase)
         {
             EmmMaterial mat = new EmmMaterial();
             mat.ShaderProgram = "TOON_UNIF_STAIN3_DFD";
             mat.Name = "default";
             mat.DecompileParameters();
 
-            return new Xv2ShaderEffect(mat, gameBase);
+            return new Xv2ShaderEffect(mat, type, gameBase);
         }
 
         //Auto-updating
@@ -1122,5 +1263,14 @@ namespace XenoKit.Engine.Shader
                 g_TexScroll0_VS.SetVector4(uvScroll);
             }
         }
+    }
+
+    public enum ShaderType
+    {
+        Default, //Effects (PBIND, TBIND, EMO)
+        Chara,
+        CharaNormals,
+        Stage,
+        PostFilter,
     }
 }
