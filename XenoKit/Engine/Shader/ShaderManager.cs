@@ -22,32 +22,22 @@ namespace XenoKit.Engine.Shader
         public ShaderManager(GameBase game)
         {
             this.game = game;
-            string path = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/technique_default_sds.emz.sds.xml");
-            string agePath = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/technique_age_sds.emz.sds.xml");
-
-            if (!File.Exists(path))
-            {
-                Log.Add($"SDS file not found at {path}.", LogType.Error);
-            }
-            else
-            {
-                DefaultSdsFile = SDS_File.LoadFromXml(path);
-            }
-
-            if (!File.Exists(agePath))
-            {
-                Log.Add($"SDS file not found at {agePath}.", LogType.Error);
-            }
-            else
-            {
-                AgeSdsFile = SDS_File.LoadFromXml(agePath);
-            }
+            DefaultSdsFile = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_default_sds.emz", false, true);
+            AgeSdsFile = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_age_sds.emz", false, true);
+            AgeEmb_VS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_vs.emz", false, true);
+            AgeEmb_PS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_ps.emz", false, true);
+            DefaultEmb_VS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_vs.emz", false, true);
+            DefaultEmb_PS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_ps.emz", false, true);
 
             //DebugParseAllShaders();
         }
 
         private readonly SDS_File DefaultSdsFile;
         private readonly SDS_File AgeSdsFile;
+        private readonly EMB_File DefaultEmb_VS;
+        private readonly EMB_File DefaultEmb_PS;
+        private readonly EMB_File AgeEmb_VS;
+        private readonly EMB_File AgeEmb_PS;
 
         //Caches
         private readonly List<ShaderProgram> ShaderPrograms = new List<ShaderProgram>();
@@ -62,6 +52,7 @@ namespace XenoKit.Engine.Shader
         private const int SamplerAlphaDepth = 10;
         private const int SamplerCurrentScene = 11;
         private const int SamplerSmallScene = 12;
+
 
         public ShaderProgram GetShaderProgram(string shaderProgramName)
         {
@@ -281,30 +272,30 @@ namespace XenoKit.Engine.Shader
         #region Helpers
         private byte[] GetVertexShader(string name, bool isDefaultSds)
         {
-            string type = isDefaultSds ? "default" : "age";
-            string path = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/shader_{type}_vs/{name}.xvu");
+            EMB_File embFile = isDefaultSds ? DefaultEmb_VS : AgeEmb_VS;
+            EmbEntry enbEntry = embFile.GetEntry(name + ".xvu");
 
-            if (!File.Exists(path))
+            if (enbEntry == null)
             {
-                Log.Add($"VertexShader not found at {path}.", LogType.Error);
+                Log.Add($"Could not find VertexShader {name}!", LogType.Error);
                 return null;
             }
 
-            return File.ReadAllBytes(path);
+            return enbEntry.Data;
         }
 
         private byte[] GetPixelShader(string name, bool isDefaultSds)
         {
-            string type = isDefaultSds ? "default" : "age";
-            string path = Utils.SanitizePath($"{SettingsManager.Instance.GetAppFolder()}/Shaders/shader_{type}_ps/{name}.xpu");
+            EMB_File embFile = isDefaultSds ? DefaultEmb_PS : AgeEmb_PS;
+            EmbEntry enbEntry = embFile.GetEntry(name + ".xpu");
 
-            if (!File.Exists(path))
+            if (enbEntry == null)
             {
-                Log.Add($"PixelShader not found at {path}.", LogType.Error);
+                Log.Add($"Could not find PixelShader {name}!", LogType.Error);
                 return null;
             }
 
-            return File.ReadAllBytes(path);
+            return enbEntry.Data;
         }
 
         public string GetSamplerName(int slot)
