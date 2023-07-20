@@ -26,7 +26,7 @@ namespace XenoKit.Engine.Shader
         [FieldOffset(384)]
         public Matrix g_mWLP_PM_VS;
         [FieldOffset(448)]
-        public Matrix g_mWLPB_PM_VS;
+        public Matrix g_mWLPB_PM_VS; //LightScaleBiasMatrix?
         [FieldOffset(512)]
         public Matrix g_mWV_VS; //This is a Matrix4x3, with a float4 following for padding. But... the padding has data in them.. so it IS a Matric4x4?
         [FieldOffset(576)]

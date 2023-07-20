@@ -30,13 +30,19 @@ namespace XenoKit.Engine.Rendering
         private List<RenderTargetWrapper> registeredRenderTargets = new List<RenderTargetWrapper>();
         private List<RenderTarget2D> _toBeDisposed = new List<RenderTarget2D>();
 
-        private const int ShadowMapSize = 2048;
+        //Render Settings:
         private readonly Color NormalsBackgroundColor = new Color(0.50196f, 0.50196f, 0, 0);
         public bool DumpRenderTargetsNextFrame = false;
 
+        //Render Resolution:
+        public readonly float[] RenderResolution = new float[4];
+        public int RenderWidth { get; private set; }
+        public int RenderHeight { get; private set; }
+        public int CurrentRT_Width { get; private set; }
+        public int CurrentRT_Height { get; private set; }
+
         //RTs:
-        //Characters and the stage enviroments are drawn onto this RT with the different shaders (Chara: ShadowModel_W, Stage: ShadowModel, Grass: GI_ShadowModel_Grass)
-        private readonly RenderTarget2D ShadowPassRT0; //Static resolution of 8192x8192 (or whatever the shadow map res is set to), so no need for auto-updating
+        public readonly RenderTargetWrapper DepthBuffer;
 
         //Characters are drawn onto these RTs using the shader NORMAL_FADE_WATERDEPTH_W_M
         private readonly RenderTargetWrapper NormalPassRT0;
@@ -52,11 +58,17 @@ namespace XenoKit.Engine.Rendering
 
         //Some BPE effects such as BodyOutline are done at this point, and drawn onto NextColorPassRT0 + ColorPassRT1
         //Next are effects, using the same RTs
+        private readonly RenderTargetWrapper LowRezRT0;
+        private readonly RenderTargetWrapper LowRezRT1;
+        private readonly RenderTargetWrapper LowRezSmokeRT0;
+        private readonly RenderTargetWrapper LowRezSmokeRT0_New;
+        private readonly RenderTargetWrapper LowRezSmokeRT1;
 
         //The final render target that everything will be drawn onto at the end of the frame. This can also be used for the "State_SamplerSmallScene" sampler as that is for the previously rendered frame (unsure about State_SamplerCurrentScene)
         private readonly RenderTargetWrapper FinalRenderTarget;
 
         //Global sampler RTs:
+        public readonly RenderTargetWrapper ShadowPassRT0; //Characters and the stage enviroments are drawn onto this RT with the different shaders (Chara: ShadowModel_W, Stage: ShadowModel, Grass: GI_ShadowModel_Grass)
         public readonly RenderTargetWrapper SamplerAlphaDepth;
 
         //ShaderPrograms:
@@ -75,12 +87,19 @@ namespace XenoKit.Engine.Rendering
         private PostShaderEffect DepthToColor;
         private PostShaderEffect AddTex; //Merge up to 2 textures into a RenderTarget
 
+        private Texture2D TestOutlineTexture;
+        private Texture2D TestOutlineTexture2;
+
         public RenderSystem(GameBase game) : base(game)
         {
-            PostFilter = new PostFilter(game);
+            SetRenderResolution();
+            CurrentRT_Width = RenderWidth;
+            CurrentRT_Height = RenderHeight;
+
+            PostFilter = new PostFilter(game, this);
 
             //Load shaders used for the shadow and normal passes. These are used instead of the regular shaders defined in EMM during those passes.
-            ShadowModel_W = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel_W"), game);
+            ShadowModel_W = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel_W"), game, ShaderType.CharaShadow);
             ShadowModel = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel"), game);
             GI_ShadowModel_Grass = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel_Grass"), game);
             NORMAL_FADE_WATERDEPTH_W_M = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("NORMAL_FADE_WATERDEPTH_W_M"), game, ShaderType.CharaNormals);
@@ -98,16 +117,23 @@ namespace XenoKit.Engine.Rendering
             AGE_TEST_DEPTH_TO_PFXD = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_DEPTH_TO_PFXD"), game);
 
             //Create RTs
-            ShadowPassRT0 = new RenderTarget2D(GraphicsDevice, ShadowMapSize, ShadowMapSize, false, SurfaceFormat.Single, DepthFormat.Depth16, 0, RenderTargetUsage.PreserveContents);
-            NormalPassRT0 = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, true, "NormalPassRT0");
-            NormalPassRT1 = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, false, "NormalPassRT1");
-            ColorPassRT0 = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, true, "ColorPassRT0");
-            ColorPassRT1 = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, false, "ColorPassRT1");
-            NextColorPassRT0 = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, true, "NextColorPassRT0");
-            FinalRenderTarget = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, true, "FinalRenderTarget");
-            SamplerAlphaDepth = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Single, false, "SamplerAlphaDepth");
+            ShadowPassRT0 = RenderTargetWrapper.CreateShadowMap(this);
+            DepthBuffer = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true);
+            NormalPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "NormalPassRT0");
+            NormalPassRT1 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, false, "NormalPassRT1");
+            ColorPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "ColorPassRT0");
+            ColorPassRT1 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, false, "ColorPassRT1");
+            NextColorPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "NextColorPassRT0");
+            FinalRenderTarget = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "FinalRenderTarget");
+            SamplerAlphaDepth = new RenderTargetWrapper(this, 1, SurfaceFormat.Single, false, "SamplerAlphaDepth");
+            LowRezRT0 = new RenderTargetWrapper(this, 2, SurfaceFormat.Color, true, "LowRezRT0");
+            LowRezRT1 = new RenderTargetWrapper(this, 2, SurfaceFormat.Color, false, "LowRezRT1");
+            LowRezSmokeRT0 = new RenderTargetWrapper(this, 4, SurfaceFormat.Color, true, "LowRezSmokeRT0");
+            LowRezSmokeRT0_New = new RenderTargetWrapper(this, 4, SurfaceFormat.Color, true, "LowRezSmokeRT0_New");
+            LowRezSmokeRT1 = new RenderTargetWrapper(this, 4, SurfaceFormat.Color, false, "LowRezSmokeRT1");
 
             //Register all render targets so they get auto-updated if the viewport changes size
+            RegisterRenderTarget(ShadowPassRT0);
             RegisterRenderTarget(NormalPassRT0);
             RegisterRenderTarget(NormalPassRT1);
             RegisterRenderTarget(ColorPassRT0);
@@ -115,38 +141,93 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(NextColorPassRT0);
             RegisterRenderTarget(FinalRenderTarget);
             RegisterRenderTarget(SamplerAlphaDepth);
+            RegisterRenderTarget(LowRezRT0);
+            RegisterRenderTarget(LowRezRT1);
+            RegisterRenderTarget(LowRezSmokeRT0);
+            RegisterRenderTarget(LowRezSmokeRT0_New);
+            RegisterRenderTarget(LowRezSmokeRT1);
+            RegisterRenderTarget(DepthBuffer);
+
+            TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
+            TestOutlineTexture2 = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest2.dds"), GraphicsDevice);
+        }
+
+        private void SetRenderResolution()
+        {
+            RenderResolution[0] = GraphicsDevice.Viewport.Width * SettingsManager.settings.XenoKit_SuperSamplingFactor;
+            RenderResolution[1] = GraphicsDevice.Viewport.Height * SettingsManager.settings.XenoKit_SuperSamplingFactor;
+            RenderWidth = (int)RenderResolution[0];
+            RenderHeight = (int)RenderResolution[1];
+
         }
 
         public override void Draw()
         {
+            //Clear the common depth buffer
+            GraphicsDevice.SetRenderTarget(RenderSystem.DepthBuffer.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+
             //Shadow Pass (Chara + Stage Enviroment)
-            GraphicsDevice.SetRenderTarget(ShadowPassRT0);
+            GraphicsDevice.SetRenderTarget(ShadowPassRT0.RenderTarget);
             GraphicsDevice.Clear(Color.White);
             DrawEntityList(Characters, true, false);
             DrawEntityList(Stages, true, false);
 
             //Normals Pass (Chara)
-            GraphicsDevice.SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);
+            SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);
             GraphicsDevice.Clear(new Color(0.50196f, 0.50196f, 0, 0));
             DrawEntityList(Characters, true, true);
 
             //Color Pass (Chara + Stage Enviroment)
-            GraphicsDevice.SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
+            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
+            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
             DrawEntityList(Characters, false, false);
             DrawEntityList(Stages, false, false);
 
             //Black Chara Outline Shader
-            GraphicsDevice.SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
+            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
             SetTexture(NormalPassRT0.RenderTarget);
-            PostFilter.DisplayPostFilter(AGE_TEST_EDGELINE_MRT);
+            PostFilter.Apply(AGE_TEST_EDGELINE_MRT);
 
             //Create SamplerAlphaDepth
-            GraphicsDevice.SetRenderTarget(SamplerAlphaDepth.RenderTarget);
+            SetRenderTargets(SamplerAlphaDepth.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
-            GraphicsDevice.SetDepthAsTexture(ColorPassRT0.RenderTarget, 0);
-            PostFilter.DisplayPostFilter(AGE_TEST_DEPTH_TO_PFXD);
+            GraphicsDevice.SetDepthAsTexture(DepthBuffer.RenderTarget, 0);
+            PostFilter.Apply(AGE_TEST_DEPTH_TO_PFXD);
             GraphicsDevice.Textures[0] = null;
+
+
+            //LowRez Pass
+            SetRenderTargets(LowRezRT0.RenderTarget, LowRezRT1.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            UseDepthToDepth();
+
+
+            //LowRezSmoke Pass
+            SetRenderTargets(LowRezSmokeRT0.RenderTarget, LowRezSmokeRT1.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            UseDepthToDepth();
+
+            //Render EdgeLine
+            SetTextures(NormalPassRT1.RenderTarget, TestOutlineTexture);
+            PostFilter.Apply(EDGELINE_VFX);
+
+            //Apply blur filter to LowRezSmoke
+            SetRenderTargets(LowRezSmokeRT0_New.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            SetTexture(LowRezSmokeRT0.RenderTarget);
+            PostFilter.SetTextureCoordinates(0.00052f, 0.00093f);
+            PostFilter.Apply(NineConeFilter);
+
+
+            //Merge onto main RT
+            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
+            SetTextures(LowRezRT0.RenderTarget, LowRezSmokeRT0_New.RenderTarget, LowRezRT1.RenderTarget, LowRezSmokeRT1.RenderTarget);
+            PostFilter.SetDefaultTexCord2();
+            PostFilter.Apply(AGE_MERGE_AddLowRez_AddMrt);
 
             //SetTexture(ColorPassRT0.RenderTarget);
             //GraphicsDevice.SetRenderTarget(NextColorPassRT0.RenderTarget);
@@ -181,7 +262,8 @@ namespace XenoKit.Engine.Rendering
 
             //-----------------------------
             //Old Code
-            GraphicsDevice.SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
+            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
             _particleCount = 0;
 
             DrawEntityList(Effects);
@@ -190,14 +272,10 @@ namespace XenoKit.Engine.Rendering
 
 
             //Create final RenderTarget
-            GraphicsDevice.SetRenderTarget(FinalRenderTarget.RenderTarget);
+            SetRenderTargets(FinalRenderTarget.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
-            //GraphicsDevice.BlendState = BlendState.AlphaBlend;
 
             DisplayRenderTarget(ColorPassRT0.RenderTarget);
-            //DrawQuad(NormalPassRT1.RenderTarget);
-            //DrawQuad(NextColorPassRT0.RenderTarget);
-            //DrawQuad(SamplerAlphaDepth.RenderTarget);
 
             if (DumpRenderTargetsNextFrame)
             {
@@ -205,14 +283,41 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        public void DrawParticlesTest()
+        private void UseDepthToDepth()
         {
-            _particleCount = 0;
-
-            DrawEntityList(Effects);
-
-            ActiveParticleCount = _particleCount;
+            GraphicsDevice.SetDepthAsTexture(DepthBuffer.RenderTarget, 0);
+            PostFilter.Apply(DepthToDepth);
+            GraphicsDevice.Textures[0] = null;
         }
+
+        public void SetTexture(Texture texture, int textureSlot = 0)
+        {
+            if (textureSlot >= 4)
+                throw new ArgumentOutOfRangeException("RenderSystem.SetTexture: textureSlot value passed into the method was 4 or greater, which is not allowed!");
+
+            GraphicsDevice.Textures[textureSlot] = texture;
+        }
+
+        public void SetTextures(params Texture[] textures)
+        {
+            for(int i = 0; i < textures.Length; i++)
+            {
+                SetTexture(textures[i], i);
+            }
+        }
+
+        public void SetRenderTargets(params RenderTargetBinding[] renderTargets)
+        {
+            if(renderTargets[0].RenderTarget is RenderTarget2D rt)
+            {
+                CurrentRT_Width = rt.Width;
+                CurrentRT_Height = rt.Height;
+            }
+
+            GraphicsDevice.SetRenderTargets(renderTargets);
+        }
+        
+        #region Update
 
         private void DrawEntityList(List<Entity> entities, bool simpleDraw, bool normalPass)
         {
@@ -265,6 +370,8 @@ namespace XenoKit.Engine.Rendering
 
         public override void Update()
         {
+            SetRenderResolution();
+
             EntityListUpdate(Characters, CharasToRemove);
             EntityListUpdate(Stages, StagesToRemove);
             EntityListUpdate(Effects, EffectsToRemove);
@@ -320,19 +427,22 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        public void SetTexture(Texture texture, int textureSlot = 0)
-        {
-            if (textureSlot >= 4)
-                throw new ArgumentOutOfRangeException("RenderSystem.SetTexture: textureSlot value passed into the method was 4 or greater, which is not allowed!");
-
-            GraphicsDevice.Textures[textureSlot] = texture;
-        }
+        #endregion
 
         #region RenderTarget
-        public void DisplayRenderTarget(RenderTarget2D renderTarget)
+        public void TestRTMerge(RenderTarget2D renderTarget1, RenderTarget2D renderTarget2)
         {
-            GameBase.spriteBatch.Begin();
-            GameBase.spriteBatch.Draw(renderTarget, new Rectangle(0, 0, renderTarget.Width, renderTarget.Height), Color.White);
+            SetTexture(renderTarget1, 0);
+            SetTexture(renderTarget2, 1);
+            PostFilter.Apply(AddTex);
+        }
+
+        public void DisplayRenderTarget(RenderTarget2D renderTarget, bool scaleToViewport = false)
+        {
+            Rectangle destination = scaleToViewport ? new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height) : new Rectangle(0, 0, renderTarget.Width, renderTarget.Height);
+
+            GameBase.spriteBatch.Begin(depthStencilState: DepthStencilState.DepthRead);
+            GameBase.spriteBatch.Draw(renderTarget, destination, Color.White);
             GameBase.spriteBatch.End();
         }
 
@@ -340,13 +450,10 @@ namespace XenoKit.Engine.Rendering
         {
             DumpRenderTargetsNextFrame = false;
 
-            Directory.CreateDirectory(SettingsManager.Instance.GetAbsPathInAppFolder("RT_Dump"));
+            //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
+            //return;
 
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ShadowPassRT0.SaveAsPng(ms, ShadowPassRT0.Width, ShadowPassRT0.Height);
-                File.WriteAllBytes(SettingsManager.Instance.GetAbsPathInAppFolder($"RT_Dump/ShadowPassRT0.png"), ms.ToArray());
-            }
+            Directory.CreateDirectory(SettingsManager.Instance.GetAbsPathInAppFolder("RT_Dump"));
 
             foreach (RenderTargetWrapper renderTarget in registeredRenderTargets)
             {

@@ -50,6 +50,13 @@ namespace XenoKit.Engine.Shader
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
                     ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 0);
                     break;
+                case PostProccessShader.EDGELINE_VFX:
+                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 0);
+                    ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 0);
+                    break;
+                case PostProccessShader.DepthToDepth:
+                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 0);
+                    break;
             }
 
             //Create remaining samplers
@@ -112,13 +119,17 @@ namespace XenoKit.Engine.Shader
 
             switch (Shader)
             {
+                case PostProccessShader.EDGELINE_VFX:
+                    Parameters["g_vParam0_PS"].SetValue(new Vector4(0.00104f, 0.00185f, 0.00026f, 0.00046f));
+                    Parameters["g_vParam1_PS"].SetValue(new Vector4(0, 1f, 10f, 0));
+                    break;
                 case PostProccessShader.AGE_TEST_EDGELINE_MRT:
                     Parameters["g_vParam0_PS"].SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
                     Parameters["g_vParam1_PS"].SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
                     break;
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
                     Parameters["g_vParam0_PS"].SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));
-                    Parameters["g_vScreen_VS"].SetValue(new Vector4(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0.10f, 10106.85645f));
+                    Parameters["g_vScreen_VS"].SetValue(new Vector4(GameBase.RenderSystem.RenderWidth, GameBase.RenderSystem.RenderHeight, 0.10f, 10106.85645f));
                     break;
             }
         }
@@ -133,6 +144,10 @@ namespace XenoKit.Engine.Shader
 
             switch (Shader)
             {
+                case PostProccessShader.EDGELINE_VFX:
+                    blendState.ApplyCustom(0, BlendFunction.Add, Blend.One, Blend.One);
+                    blendState.ApplyCustom(1, BlendFunction.Add, Blend.One, Blend.One);
+                    break;
                 case PostProccessShader.AGE_TEST_EDGELINE_MRT:
                     blendState[1].ColorWriteChannels = 0;
                     blendState[2].ColorWriteChannels = ColorWriteChannels.Green;
@@ -144,6 +159,14 @@ namespace XenoKit.Engine.Shader
                     break;
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
                     blendState.ApplyNone(0);
+                    break;
+                case PostProccessShader.DepthToDepth:
+                    blendState.ApplyNone(0);
+                    blendState.ApplyNone(1);
+                    break;
+                case PostProccessShader.AGE_MERGE_AddLowRez_AddMrt:
+                    blendState.ApplyCustom(0, BlendFunction.Add, Blend.One, Blend.SourceAlpha, ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue);
+                    blendState.ApplyCustom(1, BlendFunction.Add, Blend.One, Blend.SourceAlpha);
                     break;
             }
 
@@ -168,6 +191,11 @@ namespace XenoKit.Engine.Shader
                     depth.StencilFunction = CompareFunction.Equal;
                     break;
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
+                    depth.DepthBufferFunction = CompareFunction.Always;
+                    break;
+                case PostProccessShader.DepthToDepth:
+                    depth.DepthBufferEnable = true;
+                    depth.DepthBufferWriteEnable = true;
                     depth.DepthBufferFunction = CompareFunction.Always;
                     break;
             }

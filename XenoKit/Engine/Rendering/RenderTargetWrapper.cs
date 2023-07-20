@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Rendering
 {
@@ -8,49 +9,93 @@ namespace XenoKit.Engine.Rendering
     /// </summary>
     public class RenderTargetWrapper
     {
-        private GraphicsDevice graphicsDevice;
+        private RenderSystem renderSystem;
         public RenderTarget2D RenderTarget { get; private set; }
         public string Name { get; private set; }
 
-        private bool useDepthBuffer;
+        private DepthFormat depthFormat;
         private SurfaceFormat surfaceFormat;
         private int ResolutionScale;
         private int WidthAtInit;
         private int HeightAtInit;
+        private bool FullLowRezAtInit = SettingsManager.settings.XenoKit_FullLowRez;
 
+        private bool isShadowMap = false;
         public int Width => RenderTarget.Width;
         public int Height => RenderTarget.Height;
 
-        public RenderTargetWrapper(GraphicsDevice graphicsDevice, int resScale, SurfaceFormat surfaceFormat, bool depthBuffer, string name = "")
+        public RenderTargetWrapper(RenderSystem renderSystem, int resScale, SurfaceFormat surfaceFormat, bool depthBuffer, string name = "")
         {
             if (resScale == 0)
                 throw new ArgumentException("RenderTargetWrapper: resScale cannot be 0.");
 
             Name = name;
-            this.useDepthBuffer = depthBuffer;
+            this.depthFormat = depthBuffer ? DepthFormat.Depth24Stencil8 : DepthFormat.None;
             this.surfaceFormat = surfaceFormat;
-            this.graphicsDevice = graphicsDevice;
+            this.renderSystem = renderSystem;
             ResolutionScale = resScale;
             UpdateRenderTarget();
         }
 
+        private RenderTargetWrapper(RenderSystem renderSystem, SurfaceFormat surfaceFormat, DepthFormat depthFormat, string name = "") 
+        {
+            this.renderSystem = renderSystem;
+            Name = name;
+            this.surfaceFormat = surfaceFormat;
+            this.depthFormat = depthFormat;
+            ResolutionScale = 1;
+        }
+
+        public static RenderTargetWrapper CreateShadowMap(RenderSystem renderSystem)
+        {
+            RenderTargetWrapper rt = new RenderTargetWrapper(renderSystem, SurfaceFormat.Single, DepthFormat.Depth16, nameof(RenderSystem.ShadowPassRT0));
+            rt.WidthAtInit = SettingsManager.settings.XenoKit_ShadowMapRes;
+            rt.HeightAtInit = SettingsManager.settings.XenoKit_ShadowMapRes;
+            rt.isShadowMap = true;
+            rt.UpdateRenderTarget();
+            return rt;
+        }
+
         public void UpdateRenderTarget()
         {
-            WidthAtInit = graphicsDevice.Viewport.Width;
-            HeightAtInit = graphicsDevice.Viewport.Height;
+            int height, width;
 
-            //Some RenderTargets are rendered at a lower internal resolution than the screen res, such as "LowRez" (1/2) and "LowRezSmoke" (1/4) material draw passes
-            int height = graphicsDevice.Viewport.Height / ResolutionScale;
-            int width = graphicsDevice.Viewport.Width / ResolutionScale;
+            if (isShadowMap)
+            {
+                height = HeightAtInit;
+                width = WidthAtInit;
+            }
+            else
+            {
+                WidthAtInit = (int)renderSystem.RenderResolution[0];
+                HeightAtInit = (int)renderSystem.RenderResolution[1];
 
-            RenderTarget = new RenderTarget2D(graphicsDevice, width, height, false, surfaceFormat, useDepthBuffer ? DepthFormat.Depth24Stencil8 : DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                int resScale = (SettingsManager.settings.XenoKit_FullLowRez) ? 1 : ResolutionScale;
 
+                //Some RenderTargets are rendered at a lower internal resolution than the screen res, such as "LowRez" (1/2) and "LowRezSmoke" (1/4) material draw passes
+                height = HeightAtInit / resScale;
+                width = WidthAtInit / resScale;
+            }
+
+            RenderTarget = new RenderTarget2D(renderSystem.GraphicsDevice, width, height, false, surfaceFormat, depthFormat, 0, RenderTargetUsage.PreserveContents);
+
+            FullLowRezAtInit = SettingsManager.settings.XenoKit_FullLowRez;
             //Disposal of previous RenderTarget is handled in RenderSystem.cs
         }
 
         public bool ShouldUpdate()
         {
-            return WidthAtInit != graphicsDevice.Viewport.Width || HeightAtInit != graphicsDevice.Viewport.Height;
+            if (isShadowMap)
+            {
+                return WidthAtInit != SettingsManager.settings.XenoKit_ShadowMapRes || HeightAtInit != SettingsManager.settings.XenoKit_ShadowMapRes;
+            }
+            else
+            {
+                //If FullLowRez option has been changed and this RT has a ResScale applied, then it needs to be updated as well.
+                if (ResolutionScale > 1 && FullLowRezAtInit != SettingsManager.settings.XenoKit_FullLowRez) return true;
+
+                return WidthAtInit != renderSystem.RenderResolution[0] || HeightAtInit != renderSystem.RenderResolution[1];
+            }
         }
     }
 }

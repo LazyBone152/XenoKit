@@ -1197,6 +1197,27 @@ namespace Microsoft.Xna.Framework.Graphics
             return renderTarget;
         }
 
+        //XenoKit: XV2 shares the depth buffer between many Render Targets and passes, while MonoGame by default couples it to the first RT. With this added method the depth buffer can be set independently.
+        /// <summary>
+        /// Set the depth buffer on this <see cref="RenderTarget2D"/> as the active depth buffer.
+        /// </summary>
+        public void SetDepthBuffer(RenderTarget2D renderTarget)
+        {
+            IRenderTarget _renderTarget = (IRenderTarget)renderTarget;
+            DepthStencilView depthView = _renderTarget.GetDepthStencilView();
+
+            if(depthView == null)
+            {
+                throw new Exception("SetDepthBuffer: This render target does not include a depth buffer!");
+            }
+            //return;
+            _currentDepthStencilView = depthView;
+
+            // Set the targets.
+            lock (_d3dContext)
+                _d3dContext.OutputMerger.SetTargets(_currentDepthStencilView, _currentRenderTargets);
+        }
+
         //XenoKit: MG lacks the ability to use the depth buffer as a texture, so this method will implement that functionality. A little hacky since it bypasses MG and sets resources through SharpDX directly.
         /// <summary>
         /// Set the depth buffer from the specified RenderTarget as a texture resource on the GPU. <para />

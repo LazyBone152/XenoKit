@@ -5723,6 +5723,11 @@
             Zero if multiSampleCount is not supported.
             </returns>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.SetDepthBuffer(Microsoft.Xna.Framework.Graphics.RenderTarget2D)">
+            <summary>
+            Set the depth buffer on this <see cref="T:Microsoft.Xna.Framework.Graphics.RenderTarget2D"/> as the active depth buffer.
+            </summary>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.SetDepthAsTexture(Microsoft.Xna.Framework.Graphics.RenderTarget2D,System.Int32)">
             <summary>
             Set the depth buffer from the specified RenderTarget as a texture resource on the GPU. <para />

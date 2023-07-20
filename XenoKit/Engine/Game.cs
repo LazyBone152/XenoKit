@@ -65,7 +65,7 @@ namespace XenoKit.Engine
             RenderSystem = new RenderSystem(this);
             VfxPreview = new VfxPreview(this);
 
-            MainRenderTarget = new RenderTargetWrapper(GraphicsDevice, 1, SurfaceFormat.Color, true, "MainRenderTarget");
+            MainRenderTarget = new RenderTargetWrapper(RenderSystem, 1, SurfaceFormat.Color, true, "MainRenderTarget");
             RenderSystem.RegisterRenderTarget(MainRenderTarget);
         }
 
@@ -153,6 +153,8 @@ namespace XenoKit.Engine
 
             //Next, render everything else (gizmos, grid)
             GraphicsDevice.SetRenderTarget(MainRenderTarget.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            GraphicsDevice.SetDepthBuffer(RenderSystem.DepthBuffer.RenderTarget);
 
             //ShaderManager.Instance.SetAllGlobalSamplers();
             base.Draw(time);
@@ -176,9 +178,11 @@ namespace XenoKit.Engine
 
             //Draw MainRenderTarget onto screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);
+            GraphicsDevice.Clear(BackgroundColor);
+            GraphicsDevice.SetDepthBuffer(RenderSystem.DepthBuffer.RenderTarget);
 
-            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget);
-            RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget());
+            RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget(), true);
+            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget, true);
         }
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)

@@ -7,17 +7,21 @@ namespace XenoKit.Engine.Rendering
 {
     public class PostFilter : Entity
     {
+        RenderSystem _renderSystem;
+
         private VertexPositionTexture2[] vertices;
         private short[] indices = new short[] { 0, 1, 2, 3, 2, 1 };
 
         private int CurrentHeight;
         private int CurrentWidth;
 
+        private bool UseDefaultTexCord2 = false;
         private float CurrentU;
         private float CurrentV;
 
-        public PostFilter(GameBase game) : base(game)
+        public PostFilter(GameBase game, RenderSystem renderSystem) : base(game)
         {
+            _renderSystem = renderSystem;
             vertices = new VertexPositionTexture2[4];
             CreateVertices();
         }
@@ -25,64 +29,85 @@ namespace XenoKit.Engine.Rendering
         private void CreateVertices()
         {
             Vector2 position = Vector2.Zero;
-            Vector2 size = new Vector2(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+            Vector2 size = new Vector2(_renderSystem.CurrentRT_Width, _renderSystem.CurrentRT_Height);
 
             // Top-left vertex
             vertices[0] = new VertexPositionTexture2(
                 new Vector3(position, 0),
                 new Vector2(0, 0),
-                new Vector2(CurrentU, CurrentV));
+                UseDefaultTexCord2 ? new Vector2(0, 0) : new Vector2(CurrentU, CurrentV));
 
             // Top-right vertex
             vertices[1] = new VertexPositionTexture2(
                 new Vector3(position + new Vector2(size.X, 0), 0),
                 new Vector2(1, 0),
-                new Vector2(CurrentU, CurrentV));
+                UseDefaultTexCord2 ? new Vector2(1, 0) : new Vector2(CurrentU, CurrentV));
 
             // Bottom-left vertex
             vertices[2] = new VertexPositionTexture2(
                 new Vector3(position + new Vector2(0, size.Y), 0),
                 new Vector2(0, 1),
-                new Vector2(CurrentU, CurrentV));
+                UseDefaultTexCord2 ? new Vector2(0, 1) : new Vector2(CurrentU, CurrentV));
 
             // Bottom-right vertex
             vertices[3] = new VertexPositionTexture2(
                 new Vector3(position + size, 0),
                 new Vector2(1, 1),
-                new Vector2(CurrentU, CurrentV));
+                UseDefaultTexCord2 ? new Vector2(1, 1) : new Vector2(CurrentU, CurrentV));
 
-            CurrentHeight = GraphicsDevice.Viewport.Height;
-            CurrentWidth = GraphicsDevice.Viewport.Width;
+            CurrentHeight = _renderSystem.CurrentRT_Height;
+            CurrentWidth = _renderSystem.CurrentRT_Width;
         }
 
         private void SetUV2()
         {
-            vertices[0].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
-            vertices[1].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
-            vertices[2].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
-            vertices[3].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
+            if (!UseDefaultTexCord2)
+            {
+                vertices[0].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
+                vertices[1].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
+                vertices[2].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
+                vertices[3].TextureCoordinate2 = new Vector2(CurrentU, CurrentV);
+            }
         }
 
         public void SetTextureCoordinates(float u, float v)
         {
-            if(CurrentU != u || CurrentV != v)
+            if(CurrentU != u || CurrentV != v || UseDefaultTexCord2)
             {
+                UseDefaultTexCord2 = false;
                 CurrentU = u;
                 CurrentV = v;
                 SetUV2();
+            }
+
+        }
+
+        public void SetDefaultTexCord2()
+        {
+            if (!UseDefaultTexCord2)
+            {
+                UseDefaultTexCord2 = true;
+                CreateVertices();
             }
         }
 
         public override void DelayedUpdate()
         {
-            if(GraphicsDevice.Viewport.Width != CurrentWidth || GraphicsDevice.Viewport.Height != CurrentHeight)
+            VerticeUpdateCheck();
+        }
+
+        private void VerticeUpdateCheck()
+        {
+            if (_renderSystem.CurrentRT_Width != CurrentWidth || _renderSystem.CurrentRT_Height != CurrentHeight)
             {
                 CreateVertices();
             }
         }
 
-        public void DisplayPostFilter(PostShaderEffect effect)
+        public void Apply(PostShaderEffect effect)
         {
+            VerticeUpdateCheck();
+
             for (int i = 0; i < effect.ImageSampler.Length; i++)
                 GraphicsDevice.SamplerStates[i] = effect.ImageSampler[i];
 

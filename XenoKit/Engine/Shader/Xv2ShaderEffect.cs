@@ -633,13 +633,16 @@ namespace XenoKit.Engine.Shader
             {
                 Matrix viewMatrix = GameBase.ActiveCameraBase.ViewMatrix;
                 Matrix projMatrix = GameBase.ActiveCameraBase.ProjectionMatrix;
+                //Matrix spotlightMatrix = Matrix.CreateTranslation(GameBase.LightSource.SpotLightPos);
 
                 g_mWVP_VS.SetValue(World * viewMatrix * projMatrix);
                 g_mVP_VS.SetValue(viewMatrix * projMatrix);
                 g_mWVP_Prev_VS.SetValue(PrevWVP);
                 g_mWV_VS.SetValue(World * viewMatrix);
                 g_mW_VS.SetValue(World);
-                g_mWLP_SM_VS.SetValue(projMatrix);
+                //g_mWLP_SM_VS.SetValue(projMatrix);
+
+                //g_mWLP_SM_VS.SetValue(spotlightMatrix);
 
                 PrevWVP = World * viewMatrix * projMatrix;
             }
@@ -650,13 +653,18 @@ namespace XenoKit.Engine.Shader
                 g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
                 g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
                 g_vParam3_PS.SetValue(new Vector4(0.001f, 1000, 0.92638f, 0.90798f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
+                
+                //Testing:
+                g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f));
+                g_vParam2_PS.SetValue(new Vector4(0.00391f * 6, 0.00f, 1.00f, 0.00f)); //X = Pixel color in main color pallete texture (0.00391 * index)
+                g_vParam3_PS.SetValue(new Vector4(0.001f, 10000.00f, 0.40f, 0.00f)); //Z = Outline strength
                 return;
             }
 
             //vs_stage_cb.
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
-                g_vScreen_VS.SetValue(SceneManager.ScreenSize);
+                g_vScreen_VS.SetVector4(GameBase.RenderSystem.RenderResolution);
                 g_SystemTime_VS.SetValue(SceneManager.SystemTime);
 
                 //VFX Testing
@@ -913,7 +921,7 @@ namespace XenoKit.Engine.Shader
             blendState.IndependentBlendEnable = true;
             IsSubtractiveBlending = false;
 
-            if (ShaderType == ShaderType.CharaNormals)
+            if (ShaderType == ShaderType.CharaNormals || ShaderType == ShaderType.CharaShadow)
             {
                 blendState.ApplyNone(0);
                 blendState.ApplyNone(1);
@@ -1019,7 +1027,7 @@ namespace XenoKit.Engine.Shader
         {
             DepthStencilState depth = new DepthStencilState();
 
-            if(ShaderType == ShaderType.CharaNormals)
+            if(ShaderType == ShaderType.CharaNormals || ShaderType == ShaderType.CharaShadow)
             {
                 depth.DepthBufferEnable = true;
                 depth.DepthBufferWriteEnable = true;
@@ -1108,15 +1116,14 @@ namespace XenoKit.Engine.Shader
             state.FillMode = SceneManager.WireframeModeCharacters ? FillMode.WireFrame : FillMode.Solid;
             state.CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullCounterClockwiseFace;
 
-            return state;
-
-            /*
-            return new RasterizerState
+            switch (ShaderType)
             {
-                CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullCounterClockwiseFace,
-                FillMode = SceneManager.WireframeModeCharacters ? FillMode.WireFrame : FillMode.Solid,
-            };
-            */
+                case ShaderType.CharaShadow:
+                    state.CullMode = CullMode.CullCounterClockwiseFace;
+                    break;
+            }
+
+            return state;
         }
 
         public static Xv2ShaderEffect CreateDefaultMaterial(ShaderType type, GameBase gameBase)
@@ -1269,8 +1276,10 @@ namespace XenoKit.Engine.Shader
     {
         Default, //Effects (PBIND, TBIND, EMO)
         Chara,
-        CharaNormals,
+        CharaNormals, //NORMAL_FADE_WATERDEPTH_W_M
+        CharaShadow, //ShadowModel_W
         Stage,
+        StageShadow, //ShadowModel
         PostFilter,
     }
 }

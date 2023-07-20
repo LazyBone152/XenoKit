@@ -144,7 +144,7 @@ namespace XenoKit.Engine
 
         protected override void Draw(GameTime time)
         {
-            GraphicsDevice.Clear(BackgroundColor);
+            //GraphicsDevice.Clear(BackgroundColor);
 
             //Entities
             for (int i = 0; i < Entities.Count; i++)

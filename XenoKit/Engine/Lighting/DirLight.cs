@@ -6,6 +6,8 @@ namespace XenoKit.Engine.Lighting
 {
     public class DirLight : Entity
     {
+        public Vector3 SpotLightPos = new Vector3(5, 10, 10);
+
         public Vector4 Position { get; protected set; } = new Vector4(-1f, 0, -1f, 0f);
         public Vector4 Direction { get; protected set; } = DefaultLightDirection;
 
