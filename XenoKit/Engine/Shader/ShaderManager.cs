@@ -19,18 +19,6 @@ namespace XenoKit.Engine.Shader
         private GameBase game;
         private bool IsRenderSystemActive => game.RenderSystem != null;
 
-        public ShaderManager(GameBase game)
-        {
-            this.game = game;
-            DefaultSdsFile = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_default_sds.emz", false, true);
-            AgeSdsFile = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_age_sds.emz", false, true);
-            AgeEmb_VS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_vs.emz", false, true);
-            AgeEmb_PS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_ps.emz", false, true);
-            DefaultEmb_VS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_vs.emz", false, true);
-            DefaultEmb_PS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_ps.emz", false, true);
-
-            //DebugParseAllShaders();
-        }
 
         private readonly SDS_File DefaultSdsFile;
         private readonly SDS_File AgeSdsFile;
@@ -53,6 +41,22 @@ namespace XenoKit.Engine.Shader
         private const int SamplerCurrentScene = 11;
         private const int SamplerSmallScene = 12;
 
+        private Texture2D NoRimLightTexture;
+
+        public ShaderManager(GameBase game)
+        {
+            this.game = game;
+            DefaultSdsFile = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_default_sds.emz", false, true);
+            AgeSdsFile = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_age_sds.emz", false, true);
+            AgeEmb_VS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_vs.emz", false, true);
+            AgeEmb_PS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_ps.emz", false, true);
+            DefaultEmb_VS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_vs.emz", false, true);
+            DefaultEmb_PS = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_ps.emz", false, true);
+
+            NoRimLightTexture = new Texture2D(game.GraphicsDevice, 128, 8);
+
+            //DebugParseAllShaders();
+        }
 
         public ShaderProgram GetShaderProgram(string shaderProgramName)
         {
@@ -78,7 +82,7 @@ namespace XenoKit.Engine.Shader
                         byte[] ps = GetPixelShader(sdsEntry.PixelShader, isDefaultSds);
                         byte[] vs = GetVertexShader(sdsEntry.VertexShader, isDefaultSds);
 
-                        shaderProgram = new ShaderProgram(shaderProgramName, vs, ps, HasSkinningEnable(sdsEntry), game.GraphicsDevice);
+                        shaderProgram = new ShaderProgram(sdsEntry, vs, ps, HasSkinningEnable(sdsEntry), game.GraphicsDevice);
                         ShaderPrograms.Add(shaderProgram);
                     }
                     else
@@ -115,7 +119,8 @@ namespace XenoKit.Engine.Shader
                     case 7:
                         //ShadowMap / SamplerProjectionMap
                         {
-                            sampler = new GlobalSampler(slot, game.RenderSystem.SamplerAlphaDepth,
+                            //Texture2D texture = TextureLoader.ConvertToTexture2D(GetPathInShaderDir("Texture/ShadowMap.dds"), game.GraphicsDevice);
+                            sampler = new GlobalSampler(slot, game.RenderSystem.ShadowPassRT0,
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Border,
@@ -135,8 +140,7 @@ namespace XenoKit.Engine.Shader
                     case 10:
                         //SamplerAlphaDepth
                         {
-                            Texture2D texture = TextureLoader.ConvertToTexture2D(GetPathInShaderDir("Texture/ShadowMap.dds"), game.GraphicsDevice);
-                            sampler = new GlobalSampler(slot, texture,
+                            sampler = new GlobalSampler(slot, game.RenderSystem.SamplerAlphaDepth,
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Wrap,
@@ -177,32 +181,22 @@ namespace XenoKit.Engine.Shader
                     case 15:
                         //Stage lighting
                         {
-                            EMB_File lightingEmb;
+                            Texture2D texture;
 
                             if (SettingsManager.Instance.Settings.XenoKit_RimLightingEnabled)
                             {
-                                lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFpot.emb", false); //ToP
-                                //lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFtwf.emb", false); //Future In Ruins
-                                //lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFten.emb", false); //World Tournament
+                                EMB_File lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFpot.emb", false); //ToP
+                                //EMB_File lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFtwf.emb", false); //Future In Ruins
+                                //EMB_File lightingEmb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("lighting/environment/BFten.emb", false); //World Tournament
+                                texture = TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), game.GraphicsDevice);
                             }
                             else
                             {
-                                byte[] dds = File.ReadAllBytes(GetPathInShaderDir("texture/NoRimLight.dds"));
-                                lightingEmb = new EMB_File()
-                                {
-                                    Entry = new Xv2CoreLib.Resource.AsyncObservableCollection<EmbEntry>()
-                                    {
-                                        new EmbEntry()
-                                        {
-                                            Data = dds,
-                                            Name = "DATA1.dds"
-                                        }
-                                    }
-                                };
+                                texture = NoRimLightTexture;
                             }
 
                             sampler = new GlobalSampler(slot,
-                                                        TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), game.GraphicsDevice),
+                                                        texture,
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Clamp,
@@ -256,14 +250,14 @@ namespace XenoKit.Engine.Shader
             SetGlobalSampler(6, true);
             SetGlobalSampler(7, false);
             SetGlobalSampler(6, false);
+            SetGlobalSampler(10, false);
             SetGlobalSampler(14, false);
-            SetGlobalSampler(14, false);
-            SetGlobalSampler(15, false);
             SetGlobalSampler(15, false);
         }
 
         public void ClearGlobalSampler(int slot)
         {
+            GlobalSamplers[slot]?.Texture?.Dispose();
             GlobalSamplers[slot] = null;
         }
 

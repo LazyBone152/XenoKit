@@ -516,6 +516,8 @@ namespace XenoKit.Engine.Model
 
     public class Xv2Submesh : Entity
     {
+        public override EntityType EntityType => EntityType.Model;
+
         public int SubmeshIndex { get; private set; }
         public ModelType Type { get; private set; }
         public object SourceSubmesh { get; set; }
@@ -529,6 +531,8 @@ namespace XenoKit.Engine.Model
 
         //Samplers:
         public SamplerInfo[] Samplers { get; set; }
+        public float[] TexTile01 { get; private set; } = new float[4];
+        public float[] TexTile23 { get; private set; } = new float[4];
 
         //Custom Color DYT
         private int CustomColrDytCreatedFromIndex = 0;
@@ -609,6 +613,8 @@ namespace XenoKit.Engine.Model
                 */
             }
 
+            materials[SubmeshIndex].SetTextureTile(TexTile01, TexTile23);
+
             DrawEnd(actor, materials[SubmeshIndex], skeleton);
         }
 
@@ -617,34 +623,21 @@ namespace XenoKit.Engine.Model
             material.World = world * Matrix.CreateScale(-1, 1f, 1f);
             material.PrevWVP = PrevWVP[actor];
 
+            DrawEnd(actor, material, skeleton);
+        }
+
+        private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton)
+        {
             if (Type == ModelType.Emd)
             {
                 if (BoneIdx[actor] == null && skeleton != null)
                     SetBoneIndices(actor, skeleton);
             }
 
-            DrawEnd(actor, material, skeleton);
-        }
-
-        private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton)
-        {
-
-            //Perform skinning on the vertices (animation). 
-            VertexPositionNormalTextureBlend[] vertices = CpuVertexes;
-
             if (EnableSkinning && skeleton != null)
             {
-                if (SettingsManager.Instance.Settings.XenoKit_EnableGpuSkinning)
-                {
-                    CreateSkinningMatrices(skeleton.Bones, actor);
-                    material.SetSkinningMatrices(SkinningMatrices);
-                }
-                else
-                {
-                    vertices = GpuVertexes;
-                    material.DisableSkinning();
-                    UpdateVertices(skeleton.Bones, actor);
-                }
+                CreateSkinningMatrices(skeleton.Bones, actor);
+                material.SetSkinningMatrices(SkinningMatrices);
             }
 
             //Shader passes and vertex drawing
@@ -657,10 +650,10 @@ namespace XenoKit.Engine.Model
 
                 pass.Apply();
 
-                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, GpuVertexes.Length, Indices, 0, Indices.Length / 3);
+                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, CpuVertexes, 0, GpuVertexes.Length, Indices, 0, Indices.Length / 3);
             }
 
-            PrevWVP[actor] = material.PrevWVP;
+            PrevWVP[actor] = material.WVP;
         }
 
         private void CreateSkinningMatrices(Xv2Bone[] bones, int actor)
@@ -829,6 +822,31 @@ namespace XenoKit.Engine.Model
                 //Force AF x16
                 Samplers[i].state.Filter = TextureFilter.Anisotropic;
                 Samplers[i].state.MaxAnisotropy = 16;
+            }
+        
+            //Set the texture tile parameters. These are used by the vertex shader to apply the correct tiling to the textures
+            if(samplerDefs.Count >= 1)
+            {
+                TexTile01[0] = samplerDefs[0].ScaleU;
+                TexTile01[1] = samplerDefs[0].ScaleV;
+            }
+
+            if (samplerDefs.Count >= 2)
+            {
+                TexTile01[2] = samplerDefs[1].ScaleU;
+                TexTile01[3] = samplerDefs[1].ScaleV;
+            }
+
+            if (samplerDefs.Count >= 3)
+            {
+                TexTile23[0] = samplerDefs[2].ScaleU;
+                TexTile23[1] = samplerDefs[2].ScaleV;
+            }
+
+            if (samplerDefs.Count >= 4)
+            {
+                TexTile23[2] = samplerDefs[3].ScaleU;
+                TexTile23[3] = samplerDefs[3].ScaleV;
             }
         }
 

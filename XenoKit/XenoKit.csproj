@@ -554,7 +554,6 @@
     <Compile Include="Engine\Lighting\DirLight.cs" />
     <Compile Include="Engine\Pool\ObjectPoolManager.cs" />
     <Compile Include="Engine\Pool\PoolInstance.cs" />
-    <Compile Include="Engine\Rendering\IRenderEntity.cs" />
     <Compile Include="Engine\Rendering\RenderSystem.cs" />
     <Compile Include="Engine\Rendering\RenderTargetWrapper.cs" />
     <Compile Include="Engine\Rendering\PostFilter.cs" />

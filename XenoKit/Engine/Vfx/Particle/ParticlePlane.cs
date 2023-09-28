@@ -104,6 +104,10 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 VelocityOrientedAdjustment = Matrix.CreateTranslation(new Vector3(0, (ScaleV + ScaleV_Variance) / 2f, 0));
             }
+            else
+            {
+                VelocityOrientedAdjustment = Matrix.Identity;
+            }
 
             StartUpdate();
 
@@ -119,23 +123,29 @@ namespace XenoKit.Engine.Vfx.Particle
                 {
                     Matrix attachBone = GetAttachmentBone();
                     float rotAmount = RandomDirection ? -RotationAmount : RotationAmount;
-                    Matrix world = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
+
+                    //Used for setting the translation component of the final billboard matrix
+                    Matrix worldTranslation = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
 
                     if (Node.EmissionNode.VelocityOriented)
                     {
                         //Skip rendering all together if velocity is zero
-                        if (Velocity == Vector3.Zero) return;
+                        if (Velocity == Vector3.Zero)
+                        {
+                            DrawThisFrame = false;
+                        }
 
-                        //Billboard normally always faces the opposite direction for an unknown reason, this is why there is a rotation (180 degrees). TODO: More testing with this, removing for now
-                        //EmissionData.Material.World = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null);
-                        newWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null);
+                        Matrix world = Transform * attachBone * Matrix.CreateScale(-1f, 1, 1);
+
+                        //This is not entirely correct.
+                        //Matrix.CreateBillboard does not create the same result as in game. This method makes the particle always look at the current camera position, while in game it only cares about camera direction
+                        newWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null) * Matrix.CreateScale(ParticleSystem.Scale);
+                        newWorld.Translation = worldTranslation.Translation;
                     }
                     else
                     {
-                        //rotAmount and Camera Up vector need to be inverted... apparantly
-                        newWorld = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateFromAxisAngle(Vector3.Left, MathHelper.Pi) * Matrix.CreateBillboard(world.Translation, CameraBase.CameraState.Position, -Vector3.Up, null);
-                        newWorld.Translation = world.Translation;
-
+                        newWorld = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.Invert(CameraBase.ViewMatrix) * Matrix.CreateScale(ParticleSystem.Scale);
+                        newWorld.Translation = worldTranslation.Translation;
                     }
                 }
                 else if (Node.EmissionNode.BillboardType == ParticleBillboardType.Front)
@@ -144,7 +154,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     float rotAmount = RandomDirection ? -RotationAmount : RotationAmount;
                     Matrix world = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
 
-                    newWorld = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateBillboard(world.Translation, attachBone.Translation, Vector3.Up, null);
+                    newWorld = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateBillboard(world.Translation, attachBone.Translation, Vector3.Up, null) * Matrix.CreateScale(ParticleSystem.Scale);
                     newWorld.Translation = world.Translation;
                 }
                 else

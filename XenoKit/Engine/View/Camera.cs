@@ -49,11 +49,11 @@ namespace XenoKit.Engine.View
             locked = true;
 
             //Update camera animation only if playing
-            if (cameraInstance != null && GameBase.IsPlaying)
+            if (cameraInstance != null && SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Camera) && GameBase.IsPlaying)
                 UpdateCameraAnimation(GameBase.IsPlaying);
 
             //Enable manual camera controls (if no anim is playing)
-            if ((GameBase.IsPlaying && cameraInstance == null) || !GameBase.IsPlaying || !SceneManager.UseCameras)
+            if ((GameBase.IsPlaying && cameraInstance == null) || !GameBase.IsPlaying || !SceneManager.UseCameras || SceneManager.CurrentSceneState != EditorTabs.Camera)
             {
                 BackupCameraState = null;
                 ValidateCamera();

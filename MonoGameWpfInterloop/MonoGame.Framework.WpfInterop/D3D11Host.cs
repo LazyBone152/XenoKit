@@ -68,7 +68,7 @@ namespace MonoGame.Framework.WpfInterop
         /// </summary>
         private Format _commonSurfaceFormatDXGIEquivalent;
 
-        protected RenderTarget2D InternalRenderTarget => _sharedRenderTarget;
+        protected RenderTarget2D InternalRenderTarget => _cachedRenderTarget;
 
         private bool _resetBackBuffer, _dpiChanged;
         private bool _isActive;

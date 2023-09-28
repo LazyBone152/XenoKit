@@ -78,7 +78,7 @@
 
         </StackPanel>
 
-        <Slider Grid.Row="1" Maximum="{Binding ElementName=UserControl, Path=MaxFrameValue}" Value="{Binding ElementName=UserControl, Path=CurrentFrame}" Minimum="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="10,0,80,29"/>
+        <Slider Grid.Row="1" Maximum="{Binding ElementName=UserControl, Path=MaxFrameValue}" Value="{Binding ElementName=UserControl, Path=CurrentFrame}" Minimum="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="10,0,80,29" ToolTip="Seek" Cursor="Hand"/>
         <Label Grid.Row="1" VerticalContentAlignment="Center" VerticalAlignment="Bottom" HorizontalAlignment="Right" Content="{Binding ElementName=UserControl, Path=CurrentFramePreview}" FontSize="14" Margin="0,0,0,20" Height="37" Width="75"/>
 
     </Grid>

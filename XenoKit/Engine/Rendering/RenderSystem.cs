@@ -87,8 +87,8 @@ namespace XenoKit.Engine.Rendering
         private PostShaderEffect DepthToColor;
         private PostShaderEffect AddTex; //Merge up to 2 textures into a RenderTarget
 
-        private Texture2D TestOutlineTexture;
-        private Texture2D TestOutlineTexture2;
+        //private Texture2D TestOutlineTexture;
+        //private Texture2D TestOutlineTexture2;
 
         public RenderSystem(GameBase game) : base(game)
         {
@@ -148,8 +148,8 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(LowRezSmokeRT1);
             RegisterRenderTarget(DepthBuffer);
 
-            TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
-            TestOutlineTexture2 = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest2.dds"), GraphicsDevice);
+            //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
+            //TestOutlineTexture2 = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest2.dds"), GraphicsDevice);
         }
 
         private void SetRenderResolution()
@@ -163,6 +163,10 @@ namespace XenoKit.Engine.Rendering
 
         public override void Draw()
         {
+            const int LOW_REZ_NONE = 0, LOW_REZ = 1, LOW_REZ_SMOKE = 2;
+
+            if (!DrawThisFrame) return;
+
             //Clear the common depth buffer
             GraphicsDevice.SetRenderTarget(RenderSystem.DepthBuffer.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
@@ -198,89 +202,65 @@ namespace XenoKit.Engine.Rendering
             PostFilter.Apply(AGE_TEST_DEPTH_TO_PFXD);
             GraphicsDevice.Textures[0] = null;
 
+            //Stage Outline, NewColorPassRT
+            GraphicsDevice.SetRenderTarget(NextColorPassRT0.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
+            SetTexture(ColorPassRT0.RenderTarget);
+            PostFilter.SetTextureCoordinates(0.0002f, 0.00035f);
+            PostFilter.Apply(BIRD_BG_EDGELINE_RGB_HF);
+
+            //Initial Effect Pass
+            SetRenderTargets(NextColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
+            _particleCount = 0;
+            DrawEntityList(Effects, LOW_REZ_NONE);
 
             //LowRez Pass
             SetRenderTargets(LowRezRT0.RenderTarget, LowRezRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             UseDepthToDepth();
-
+            DrawEntityList(Effects, LOW_REZ);
+            DrawEntityList(Effects, LOW_REZ_SMOKE); //LowRezSmoke pass is broken... effects dont render. So for now, render them in LowRez pass until its fixed
 
             //LowRezSmoke Pass
             SetRenderTargets(LowRezSmokeRT0.RenderTarget, LowRezSmokeRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             UseDepthToDepth();
+            UseDepthToDepth(); //Very weird bug... without TWO of these all rendered effects dont show on this RT? If the initial call on LowRez is removed, only 1 is needed, but that breaks that pass
 
-            //Render EdgeLine
-            SetTextures(NormalPassRT1.RenderTarget, TestOutlineTexture);
-            PostFilter.Apply(EDGELINE_VFX);
+            //DrawEntityList(Effects, LOW_REZ_SMOKE);
+
+            //Render EdgeLine (BPE Outline Test)
+            //SetTextures(NormalPassRT1.RenderTarget, TestOutlineTexture);
+            //PostFilter.Apply(EDGELINE_VFX);
 
             //Apply blur filter to LowRezSmoke
             SetRenderTargets(LowRezSmokeRT0_New.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             SetTexture(LowRezSmokeRT0.RenderTarget);
-            PostFilter.SetTextureCoordinates(0.00052f, 0.00093f);
+            PostFilter.SetTextureCoordinates(1f / (CurrentRT_Width * 2), 1f / (CurrentRT_Height * 2));
             PostFilter.Apply(NineConeFilter);
 
-
             //Merge onto main RT
-            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
+            SetRenderTargets(NextColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
             GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
             SetTextures(LowRezRT0.RenderTarget, LowRezSmokeRT0_New.RenderTarget, LowRezRT1.RenderTarget, LowRezSmokeRT1.RenderTarget);
             PostFilter.SetDefaultTexCord2();
             PostFilter.Apply(AGE_MERGE_AddLowRez_AddMrt);
 
-            //SetTexture(ColorPassRT0.RenderTarget);
-            //GraphicsDevice.SetRenderTarget(NextColorPassRT0.RenderTarget);
-            //GraphicsDevice.Clear(Color.Transparent);
-            //QuadRenderer.SetTextureCoordinates(0.02220052f, 0.0002f);
-            //QuadRenderer.DrawQuad(NineConeFilter);
-
-            //Black Stage Outline Shader
-            //GraphicsDevice.SetRenderTarget(NextColorPassRT0.RenderTarget);
-            //GraphicsDevice.Clear(Color.Transparent);
-            //SetTexture(ColorPassRT0.RenderTarget);
-            //QuadRenderer.DrawQuad(BIRD_BG_EDGELINE_RGB_HF);
-
-            //Copy Depth from ColorRT0 onto NextColorRT0
-            //DrawQuad(null, DepthToDepth);
-
-            //Next Color Pass (Remaining Stage Elements, props, billboards...)
-            //GraphicsDevice.SetRenderTargets(NextColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
-            //....
-
-            //Effects
-
-            /*
-            //TESTING CODE:
-            GraphicsDevice.SetRenderTarget(NextColorPassRT0.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-
-            SetTexture(ColorPassRT0.RenderTarget);
-            //QuadRenderer.SetTextureCoordinates(0.0002f, 0.00035f);
-            QuadRenderer.DrawQuad(Sampler0);
-            */
-
-            //-----------------------------
-            //Old Code
-            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
-            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            _particleCount = 0;
-
-            DrawEntityList(Effects);
-
-            ActiveParticleCount = _particleCount;
-
-
             //Create final RenderTarget
             SetRenderTargets(FinalRenderTarget.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
 
-            DisplayRenderTarget(ColorPassRT0.RenderTarget);
+            DisplayRenderTarget(NextColorPassRT0.RenderTarget);
 
             if (DumpRenderTargetsNextFrame)
             {
                 DumpRenderTargets();
             }
+
+            ActiveParticleCount = _particleCount;
         }
 
         private void UseDepthToDepth()
@@ -338,12 +318,14 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        private void DrawEntityList(List<Entity> entities)
+        private void DrawEntityList(List<Entity> entities, int lowRezMode)
         {
             int particleCount = 0;
 
             foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.ActualPosition, x.AbsoluteTransform.Translation)))
             {
+                if (entity.LowRezMode != lowRezMode) continue;
+
                 if (entity.DrawThisFrame && entity.AlphaBlendType <= 1)
                 {
                     entity.Draw();
@@ -356,6 +338,8 @@ namespace XenoKit.Engine.Rendering
             //Render subtractive blend type last
             foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.ActualPosition, x.AbsoluteTransform.Translation)))
             {
+                if (entity.LowRezMode != lowRezMode) continue;
+
                 if (entity.DrawThisFrame && entity.AlphaBlendType == 2)
                 {
                     entity.Draw();
@@ -379,6 +363,7 @@ namespace XenoKit.Engine.Rendering
 
         public override void DelayedUpdate()
         {
+            DrawThisFrame = false;
             PostFilter.DelayedUpdate();
 
             //Dispose of previous RTs. (Apparantly this should be done on the next frame of when it was last used, so this goes before the render target update, instead of at the end of this method)
@@ -404,6 +389,8 @@ namespace XenoKit.Engine.Rendering
                     rt.UpdateRenderTarget();
                 }
             }
+
+            DrawThisFrame = true;
         }
 
         private void EntityListUpdate(List<Entity> entities, List<Entity> entitiesToRemove)
@@ -499,6 +486,7 @@ namespace XenoKit.Engine.Rendering
                     Stages.Add(entity);
                     break;
                 case EntityType.VFX:
+                case EntityType.Model: //Currently Xv2Submesh is only used in this case for an EMO. If that ever changes, this will also need to be changed
                     Effects.Add(entity);
                     break;
                 default:
@@ -518,6 +506,7 @@ namespace XenoKit.Engine.Rendering
                     StagesToRemove.Add(entity);
                     break;
                 case EntityType.VFX:
+                case EntityType.Model: //Currently Xv2Submesh is only used in this case for an EMO. If that ever changes, this will also need to be changed
                     EffectsToRemove.Add(entity);
                     break;
                 default:

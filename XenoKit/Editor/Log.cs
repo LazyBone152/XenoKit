@@ -52,6 +52,12 @@ namespace XenoKit.Editor
                     return;
                 }
 
+                //Debug code
+                //if(type == LogType.Error && exception != null)
+                //{
+                    //System.IO.File.WriteAllText("xenokit_error_log.txt", exception);
+                //}
+
                 var newEntry = new LogEntry(message, exception, type, Entries.Count);
                 Entries.Add(newEntry);
                 LogEntryAddedEvent?.Invoke(newEntry, null);

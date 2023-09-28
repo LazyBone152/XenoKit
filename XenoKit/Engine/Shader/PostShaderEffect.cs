@@ -131,6 +131,11 @@ namespace XenoKit.Engine.Shader
                     Parameters["g_vParam0_PS"].SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));
                     Parameters["g_vScreen_VS"].SetValue(new Vector4(GameBase.RenderSystem.RenderWidth, GameBase.RenderSystem.RenderHeight, 0.10f, 10106.85645f));
                     break;
+                case PostProccessShader.BIRD_BG_EDGELINE_RGB_HF:
+                    Parameters["g_vEdge_PS"].SetValue(new Vector4(0.1f, 0.1f, 0.1f, 5f));
+                    Parameters["g_vParam0_PS"].SetValue(new Vector4(0.034f, 0.885f, 0.85f, 0.138f));
+                    Parameters["g_vParam1_PS"].SetValue(new Vector4(1.724f, 0.00f, 0.00f, 0.00f));
+                    break;
             }
         }
 
@@ -189,6 +194,7 @@ namespace XenoKit.Engine.Shader
                     depth.ReferenceStencil = 80;
                     depth.CounterClockwiseStencilFunction = CompareFunction.Equal;
                     depth.StencilFunction = CompareFunction.Equal;
+                    depth.DepthBufferFunction = CompareFunction.LessEqual;
                     break;
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
                     depth.DepthBufferFunction = CompareFunction.Always;

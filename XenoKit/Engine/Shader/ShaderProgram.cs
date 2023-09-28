@@ -7,7 +7,8 @@ namespace XenoKit.Engine.Shader
 {
     public class ShaderProgram
     {
-        public string Name { get; private set; }
+        public string Name => SdsEntry.Name;
+        public Xv2CoreLib.SDS.SDSShaderProgram SdsEntry { get; private set; }
         public VertexShader VS;
         public PixelShader PS;
         public byte[] VS_Bytecode;
@@ -22,9 +23,9 @@ namespace XenoKit.Engine.Shader
         public readonly bool[] UsePixelShaderBuffer = new bool[9];
         public readonly bool[] UseVertexShaderBuffer = new bool[9];
 
-        public ShaderProgram(string name, byte[] vsByteCode, byte[] psByteCode, bool allowHardwareSkinning, GraphicsDevice graphicsDevice)
+        public ShaderProgram(Xv2CoreLib.SDS.SDSShaderProgram shaderProgram, byte[] vsByteCode, byte[] psByteCode, bool allowHardwareSkinning, GraphicsDevice graphicsDevice)
         {
-            Name = name;
+            SdsEntry = shaderProgram;
             HardwareSkinning = allowHardwareSkinning;
 
             VS_Bytecode = vsByteCode;

@@ -5723,6 +5723,17 @@
             Zero if multiSampleCount is not supported.
             </returns>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.SetDepthBuffer(Microsoft.Xna.Framework.Graphics.RenderTarget2D)">
+            <summary>
+            Set the depth buffer on this <see cref="T:Microsoft.Xna.Framework.Graphics.RenderTarget2D"/> as the active depth buffer.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.SetDepthAsTexture(Microsoft.Xna.Framework.Graphics.RenderTarget2D,System.Int32)">
+            <summary>
+            Set the depth buffer from the specified RenderTarget as a texture resource on the GPU. <para />
+            WARNING: Do not use this method on a RenderTarget that is currently set as an active RenderTarget AND ensure that the texture is cleared once it is no longer needed.
+            </summary>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.Flush">
             <summary>
             Sends queued-up commands in the command buffer to the graphics processing unit (GPU).

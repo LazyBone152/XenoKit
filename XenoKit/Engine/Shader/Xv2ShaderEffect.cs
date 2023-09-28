@@ -6,6 +6,7 @@ using Xv2CoreLib.EMM;
 using XenoKit.Engine.Shader.DXBC;
 using XenoKit.Engine.Vfx;
 using XenoKit.Engine.Vfx.Asset;
+using Xv2CoreLib.SDS;
 
 namespace XenoKit.Engine.Shader
 {
@@ -50,6 +51,7 @@ namespace XenoKit.Engine.Shader
         private Xv2Shader[] _shaders;
 
         public Matrix World = Matrix.Identity;
+        public Matrix WVP = Matrix.Identity;
         public Matrix PrevWVP = Matrix.Identity;
 
         //Settings
@@ -59,6 +61,8 @@ namespace XenoKit.Engine.Shader
         public bool IsSubtractiveBlending { get; protected set; }
 
         private bool SkinningEnabled { get; set; }
+
+        private ShaderParameter[] SdsParameters;
 
         //Parameters
         protected EffectParameter g_mWVP_VS;
@@ -96,6 +100,8 @@ namespace XenoKit.Engine.Shader
         protected EffectParameter g_TexScroll1_PS;
         protected EffectParameter g_TexScroll0_VS;
         protected EffectParameter g_TexScroll1_VS;
+        protected EffectParameter g_vTexTile01_VS;
+        protected EffectParameter g_vTexTile23_VS;
 
         protected EffectParameter g_mMatrixPalette_VS;
         protected EffectParameter g_bSkinning_VS;
@@ -115,6 +121,9 @@ namespace XenoKit.Engine.Shader
         private float[] LIGHT_Radius = null;
         private float[] LIGHT_SourcePosition = null;
         private float[] LIGHT_Strength = null;
+
+        private float[] TexScrl0, TexScrl1 = null;
+        private float[] MatCol0, MatCol1, MatCol2, MatCol3 = null;
 
 
         public Xv2ShaderEffect(EmmMaterial material, ShaderType type, GameBase gameBase) : base(gameBase.GraphicsDevice)
@@ -161,6 +170,20 @@ namespace XenoKit.Engine.Shader
             //Only grab the shader program if this shader effect is for a material, and not a ShaderProgram itself
             if(ShaderType != ShaderType.PostFilter)
                 shaderProgram = GameBase.ShaderManager.GetShaderProgram(Material.ShaderProgram);
+
+            //Initialize the SDS parameter array. These are the list of parameters this shader uses and should be updated OnApply
+            SdsParameters = new ShaderParameter[shaderProgram.SdsEntry.Parameters.Count];
+
+            for(int i = 0; i < shaderProgram.SdsEntry.Parameters.Count; i++)
+            {
+                if (!Enum.TryParse(shaderProgram.SdsEntry.Parameters[i].Name, out ShaderParameter param))
+                {
+                    param = ShaderParameter.Unknown;
+                    Editor.Log.Add($"Unknown ShaderParameter: {shaderProgram.SdsEntry.Parameters[i].Name}", Editor.LogType.Debug);
+                }
+
+                SdsParameters[i] = param;
+            }
 
             //Start load parametrs
             EffectParameter[] parameters = new EffectParameter[shaderProgram.VsParser.CBuffers.Sum(x => x.Variables.Length) + shaderProgram.PsParser.CBuffers.Sum(x => x.Variables.Length)];
@@ -394,16 +417,16 @@ namespace XenoKit.Engine.Shader
 
         protected virtual void SetParameters()
         {
-            //NOTE: A lot of these default values are taken from XenoViewer. Others are taken from frames captured with RenderDoc.
+            //Set initial parameters
 
             //vs_stage_cb
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
-                Parameters["g_vHeightFog_VS"].SetValue(new Vector4(-1.0f, 1 / 100, -2, 1 / 1000));
-                Parameters["g_vFog_VS"].SetValue(new Vector4(-2, 1 / 1000, -2, 1 / 1000));
+                Parameters["g_vAmbOcl_VS"].SetValue(new Vector4(0, 0, 0, 1));
 
-                //Parameters["g_vTexTile01_VS"].SetValue(new Vector4(MatParam.TexScrl0.U, MatParam.TexScrl0.V, MatParam.TexScrl1.U, MatParam.TexScrl1.V));
-                //Parameters["g_vTexTile23_VS"].SetValue(new Vector4(1f, 1f, 0f, 0f));
+                //Values from BFten
+                Parameters["g_vHeightFog_VS"].SetValue(new Vector4(0.13714f, 0.02857f, 1.00033f, -0.00333f));
+                Parameters["g_vFog_VS"].SetValue(new Vector4(30.00f, 300.00f, 1.11111f, -0.0037f));
 
                 Parameters["g_vTexTile01_VS"].SetValue(new Vector4(1, 1, 1, 1));
                 Parameters["g_vTexTile23_VS"].SetValue(new Vector4(1, 1, 1, 1));
@@ -417,9 +440,8 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vRimColor_VS"].SetValue(new Vector4(0.77876f, 0.90265f, 1, 1));
                 Parameters["g_vSpecular_VS"].SetValue(new Vector4(MatParam.SpcCoeff, MatParam.SpcPower, 0, 0));
                 Parameters["g_vEyePos_VS"].SetVector4(MatParam.gCamPos.Values);
-                //Parameters["g_vLightVec0_VS"].SetValue(MatParam.g_vLightVec);
-                Parameters["g_vLightDif0_VS"].SetVector4(MatParam.gLightDif.Values);
-                Parameters["g_vLightSpc0_VS"].SetVector4(MatParam.gLightSpc.Values);
+                Parameters["g_vLightDif0_VS"].SetVector4(MatParam.MatDif.Values, MatParam.MatDifScale);
+                Parameters["g_vLightSpc0_VS"].SetVector4(MatParam.MatSpc.Values);
 
                 Parameters["g_vLightVec1_VS"].SetValue(new Vector3(0f, 1f, 0f));
                 Parameters["g_vLightVec2_VS"].SetValue(new Vector3(0f, 1f, 0f));
@@ -436,6 +458,8 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_MaterialCol3_VS"].SetVector4(MatParam.MatCol3.Values);
                 Parameters["g_MaterialScale0_VS"].SetVector4(MatParam.MatScale0.Values);
                 Parameters["g_MaterialScale1_VS"].SetVector4(MatParam.MatScale1.Values);
+                Parameters["g_MaterialOffset0_VS"].SetVector4(MatParam.MatOffset0.Values);
+                Parameters["g_MaterialOffset1_VS"].SetVector4(MatParam.MatOffset1.Values);
                 Parameters["g_AlphaFade_VS"].SetValue(new Vector4(MatParam.FadeInit, MatParam.FadeSpeed, 0, 0));
                 Parameters["g_Incidence_VS"].SetValue(new Vector4(MatParam.IncidencePower, MatParam.IncidenceAlphaBias, 0, 0));
                 Parameters["g_Gradient_VS"].SetValue(new Vector4(MatParam.GradientInit, MatParam.GradientSpeed, 0, 0));
@@ -463,6 +487,7 @@ namespace XenoKit.Engine.Shader
             if (shaderProgram.UseVertexShaderBuffer[CB_VS_BOOL])
             {
                 Parameters["g_bSkinning_VS"].SetValue(SkinningEnabled);
+                Parameters["g_bAmbOcl_VS"].SetValue(SdsParameters.Contains(ShaderParameter.AmbOclColor));
 
                 Parameters["g_bVersatile0_VS"].SetValue(MatParam.VsFlag0);
                 Parameters["g_bVersatile1_VS"].SetValue(MatParam.VsFlag1);
@@ -483,14 +508,11 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vEdge_PS"].SetValue(MatParam.NoEdge > 0 ? Vector4.Zero : Vector4.One);
                 Parameters["g_vGlare_PS"].SetValue(Vector4.Zero);
                 Parameters["g_vTone_PS"].SetValue(Vector4.One);
-
-                //Parameters["g_vFogMultiColor_PS"].SetValue(new Vector4(1, 1, 1, 0.2f));
-                //Parameters["g_vFogAddColor_PS"].SetValue(Vector4.Zero);
-
-                Parameters["g_vFogMultiColor_PS"].SetValue(new Vector4(0.75229f, 0.79817f, 0.875f, 1.00f));
-                Parameters["g_vFogAddColor_PS"].SetValue(new Vector4(0.11009f, 0.15596f, 0.38095f, 1.00f));
                 Parameters["g_vScale_PS"].SetValue(new Vector4(1.00f, 0.00f, 0.50f, 0.50f));
 
+                //Values from BFten
+                Parameters["g_vFogMultiColor_PS"].SetValue(new Vector4(0.75229f, 0.79817f, 0.875f, 1.00f));
+                Parameters["g_vFogAddColor_PS"].SetValue(new Vector4(0.11009f, 0.15596f, 0.38095f, 1.00f));
             }
 
             //ps_alphatest_cb
@@ -560,7 +582,7 @@ namespace XenoKit.Engine.Shader
             //cb_ps_bool
             if (shaderProgram.UsePixelShaderBuffer[CB_PS_BOOL])
             {
-                Parameters["g_bFog_PS"].SetValue(true);
+                Parameters["g_bFog_PS"].SetValue(false); //Disable for now. Default values are set from BFten, but that may not look good on all stages. Likely the stage spm contains these values which XenoKit has no way of loading as of now.
                 Parameters["g_bOutputGlareMRT_PS"].SetValue(MatParam.Glare == 1);
                 Parameters["ps_bool_padding0"].SetValue(true);
             }
@@ -603,9 +625,109 @@ namespace XenoKit.Engine.Shader
             g_TexScroll1_PS = Parameters["g_TexScroll1_PS"];
             g_TexScroll0_VS = Parameters["g_TexScroll0_VS"];
             g_TexScroll1_VS = Parameters["g_TexScroll1_VS"];
+            g_vTexTile01_VS = Parameters["g_vTexTile01_VS"];
+            g_vTexTile23_VS = Parameters["g_vTexTile23_VS"];
 
             g_bSkinning_VS = Parameters["g_bSkinning_VS"];
             g_mMatrixPalette_VS = Parameters["g_mMatrixPalette_VS"];
+        }
+
+        private void ApplyParameter(ShaderParameter parameter)
+        {
+            switch (parameter)
+            {
+                case ShaderParameter.W:
+                    g_mW_VS.SetValue(World);
+                    break;
+                case ShaderParameter.WV:
+                    g_mWV_VS.SetValue(World * GameBase.ActiveCameraBase.ViewMatrix);
+                    break;
+                case ShaderParameter.WVP:
+                    WVP = World * GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix;
+                    g_mWVP_VS.SetValue(WVP);
+                    break;
+                case ShaderParameter.VP:
+                    g_mVP_VS.SetValue(GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
+                    break;
+                case ShaderParameter.WLPB_SM:
+                    break;
+                case ShaderParameter.WLPB_PM:
+                    break;
+                case ShaderParameter.WLP_PM:
+                    break;
+                case ShaderParameter.WLP_SM:
+                    break;
+                case ShaderParameter.WIT:
+                    break;
+                case ShaderParameter.WVP_Prev:
+                    g_mWVP_Prev_VS.SetValue(PrevWVP);
+                    break;
+
+                case ShaderParameter.MatCol0_PS:
+                    g_MaterialCol0_PS.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
+                    break;
+                case ShaderParameter.MatCol1_PS:
+                    g_MaterialCol1_PS.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
+                    break;
+                case ShaderParameter.MatCol2_PS:
+                    g_MaterialCol2_PS.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
+                    break;
+                case ShaderParameter.MatCol3_PS:
+                    g_MaterialCol3_PS.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
+                    break;
+                case ShaderParameter.MatCol0_VS:
+                    g_MaterialCol0_VS.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
+                    break;
+                case ShaderParameter.MatCol1_VS:
+                    g_MaterialCol1_VS.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
+                    break;
+                case ShaderParameter.MatCol2_VS:
+                    g_MaterialCol2_VS.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
+                    break;
+                case ShaderParameter.MatCol3_VS:
+                    g_MaterialCol3_VS.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
+                    break;
+
+                case ShaderParameter.TexScrl0_VS:
+                    g_TexScroll0_VS.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
+                    break;
+                case ShaderParameter.TexScrl1_VS:
+                    g_TexScroll1_VS.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
+                    break;
+                case ShaderParameter.TexScrl0_PS:
+                    g_TexScroll0_PS.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
+                    break;
+                case ShaderParameter.TexScrl1_PS:
+                    g_TexScroll1_PS.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
+                    break;
+
+                case ShaderParameter.LightVec0_VS:
+                    g_vLightVec0_VS.SetValue(GameBase.LightSource.Direction);
+                    break;
+                case ShaderParameter.LightVec0_PS:
+                    g_vLightVec0_PS.SetValue(GameBase.LightSource.Direction);
+                    break;
+                case ShaderParameter.UserFlag0_VS:
+                    g_vUserFlag0_VS.SetValue(GameBase.LightSource.Position);
+                    break;
+
+                case ShaderParameter.FadeColor:
+                    if (ECF_Multi != null)
+                    {
+                        g_vFadeMulti_PS.SetVector4(ECF_Multi);
+                        g_vFadeRim_PS.SetVector4(ECF_Rim);
+                        g_vFadeAdd_PS.SetVector4(ECF_Add);
+                    }
+                    else
+                    {
+                        //Set default values
+                        g_vFadeMulti_PS.SetValue(Vector4.One);
+                        g_vFadeRim_PS.SetValue(Vector4.Zero);
+                        g_vFadeAdd_PS.SetValue(Vector4.Zero);
+                    }
+                    break;
+
+            }
         }
 
         /// <summary>
@@ -627,217 +749,13 @@ namespace XenoKit.Engine.Shader
                 IsShaderProgramDirty = false;
             }
 
-
-            //If shader has vs_matrix_cb, update these parameters every frame.
-            if (shaderProgram.UseVertexShaderBuffer[VS_MATRIX_CB])
+            foreach(ShaderParameter parameter in SdsParameters)
             {
-                Matrix viewMatrix = GameBase.ActiveCameraBase.ViewMatrix;
-                Matrix projMatrix = GameBase.ActiveCameraBase.ProjectionMatrix;
-                //Matrix spotlightMatrix = Matrix.CreateTranslation(GameBase.LightSource.SpotLightPos);
-
-                g_mWVP_VS.SetValue(World * viewMatrix * projMatrix);
-                g_mVP_VS.SetValue(viewMatrix * projMatrix);
-                g_mWVP_Prev_VS.SetValue(PrevWVP);
-                g_mWV_VS.SetValue(World * viewMatrix);
-                g_mW_VS.SetValue(World);
-                //g_mWLP_SM_VS.SetValue(projMatrix);
-
-                //g_mWLP_SM_VS.SetValue(spotlightMatrix);
-
-                PrevWVP = World * viewMatrix * projMatrix;
+                ApplyParameter(parameter);
             }
 
-            if (ShaderType == ShaderType.CharaNormals)
+            if(ShaderType == ShaderType.Chara)
             {
-                //Controls the final vertex color of NormalPassRT0 and 1, which is key for the black body outline around characters as well as BPE BodyOutlines 
-                g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
-                g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
-                g_vParam3_PS.SetValue(new Vector4(0.001f, 1000, 0.92638f, 0.90798f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
-                
-                //Testing:
-                g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f));
-                g_vParam2_PS.SetValue(new Vector4(0.00391f * 6, 0.00f, 1.00f, 0.00f)); //X = Pixel color in main color pallete texture (0.00391 * index)
-                g_vParam3_PS.SetValue(new Vector4(0.001f, 10000.00f, 0.40f, 0.00f)); //Z = Outline strength
-                return;
-            }
-
-            //vs_stage_cb.
-            if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
-            {
-                g_vScreen_VS.SetVector4(GameBase.RenderSystem.RenderResolution);
-                g_SystemTime_VS.SetValue(SceneManager.SystemTime);
-
-                //VFX Testing
-                /*
-                Parameters["g_vAmbOcl_VS"].SetValue(new Vector4(0, 0, 0, 1f));
-                Parameters["g_vTexTile01_VS"].SetValue(new Vector4(1,1,1,1));
-                Parameters["g_vTexTile23_VS"].SetValue(new Vector4(1,1,1,1));
-                Parameters["g_vFog_VS"].SetValue(new Vector4(30.00f, 300.00f, 1.11111f, -0.0037f));
-                Parameters["g_vHeightFog_VS"].SetValue(new Vector4(0.11466f, 0.02857f, 1.00033f, -0.00333f));
-                Parameters["g_vLayerCastShadow_VS"].SetValue(new Vector4(5.00f, 10.00f, 20.00f, 1000.00f));
-                Parameters["g_vLayerReceiveShadow_VS"].SetValue(new Vector4(0.20f, 0.10f, 0.05f, 0.001f));
-                Parameters["g_vColor_VS"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 0f));
-                */
-
-                //Parameters["g_vHeightFog_VS"].SetValue(new Vector4(40.00f, 300.00f, 1.15385f, -0.00385f));
-
-            }
-
-            //vs_common_material_cb
-            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
-            {
-                //VFX Testing
-                /*
-                Parameters["g_MaterialScale0_VS"].SetValue(new Vector4(0, 0, 0, 0f));
-                Parameters["g_MaterialScale1_VS"].SetValue(new Vector4(0, 0, 0, 0f));
-                Parameters["g_MaterialOffset0_VS"].SetValue(new Vector4(10, 4, 0, 0f));
-                Parameters["g_MaterialOffset1_VS"].SetValue(new Vector4(0, 0, 0, 0f));
-                Parameters["g_AlphaFade_VS"].SetValue(new Vector4(0.390f, 0f, 0f, 0f));
-                Parameters["g_Incidence_VS"].SetValue(new Vector4(1, 1, 8, 0));
-                Parameters["g_Gradient_VS"].SetValue(new Vector4(1, 0, 0, 0));
-                Parameters["g_Reflection_VS"].SetValue(new Vector4(0.3f, 0.5f, 1.00f, 0.00f));
-                Parameters["g_vLodViewport_VS"].SetValue(new Vector4(1,1,1,1));
-
-                */
-                
-            }
-
-            //vs_common_light_cb.
-            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_LIGHT_CB])
-            {
-                //Front Side: (Left in XenoKit)
-                //Parameters["g_vEyePos_VS"].SetValue(new Vector4(-0.31891f, 0.41145f, -3.78455f, 1.00f));
-                //Parameters["g_vLightVec0_VS"].SetValue(new Vector4(0.64923f, -0.42757f, -0.62904f, 0.00f));
-
-                //Back Side: (Right in XenoKit)
-                //Parameters["g_vEyePos_VS"].SetValue(new Vector4(-0.2219f, 0.94195f, 3.86588f, 1.00f));
-                //Parameters["g_vLightVec0_VS"].SetValue(new Vector4(-0.73446f, -0.3447f, 0.58459f, 0.00f));
-
-                //Right Side: (Front in XenoKit)
-                //g_vEyePos_VS.SetValue(new Vector4(-3.727f, 0.14767f, -0.20346f, 1.00f));
-                //g_vLightVec0_VS.SetValue(new Vector4(-0.50204f, -0.46655f, -0.7282f, 0.00f));
-
-
-                //Left Side: (Back in XenoKit)
-                //Parameters["g_vEyePos_VS"].SetValue(new Vector4(3.7336f, 0.9493f, -1.02876f, 1.00f));
-                //Parameters["g_vLightVec0_VS"].SetValue(new Vector4(0.78974f, -0.34353f, 0.50823f, 0.00f));
-
-                //Light direction / origin point relative to character. Light range is infinite, so large numbers have the same effect as small numbers (unless the sign changes, which then inverts that axis).
-
-                g_vLightVec0_VS.SetValue(GameBase.LightSource.Direction);
-                //g_vLightVec0_VS.SetValue(GameBase.LightSource.GetLightDirection(World.Translation));
-
-            }
-
-            //vs_versatile_cb.
-            if (shaderProgram.UseVertexShaderBuffer[VS_VERSATILE_CB])
-            {
-                //Camera position / Shade caster. This is where the "shadow" over a character originates.
-                //g_vUserFlag0_VS.SetValue(new Vector4(0,-1,-1, 0));
-                //g_vUserFlag0_VS.SetValue(new Vector4(SceneManager.CameraInstance.CameraState.Position.X, SceneManager.CameraInstance.CameraState.Position.Y, SceneManager.CameraInstance.CameraState.Position.Z, 0));
-
-                //g_vUserFlag0_VS.SetValue(new Vector4(GameBase.ActiveCameraBase.CameraState.Position.X, GameBase.ActiveCameraBase.CameraState.Position.Y, GameBase.ActiveCameraBase.CameraState.Position.Z, 0));
-                g_vUserFlag0_VS.SetValue(GameBase.LightSource.Position);
-            }
-
-            //cb_vs_bool
-            if (shaderProgram.UseVertexShaderBuffer[CB_VS_BOOL])
-            {
-                //VFX Testing
-                /*
-                Parameters["g_bVersatile0_VS"].SetValue(true);
-                Parameters["g_bUserFlag2_VS"].SetValue(true);
-                Parameters["g_bUserFlag3_VS"].SetValue(true);
-                */
-            }
-
-            //ps_stage_cb
-            if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB])
-            {
-                if (ECF_Multi != null)
-                {
-                    g_vFadeMulti_PS.SetVector4(ECF_Multi);
-                    g_vFadeRim_PS.SetVector4(ECF_Rim);
-                    g_vFadeAdd_PS.SetVector4(ECF_Add);
-                }
-                else
-                {
-                    //Set default values
-                    g_vFadeMulti_PS.SetValue(Vector4.One);
-                    g_vFadeRim_PS.SetValue(Vector4.Zero);
-                    g_vFadeAdd_PS.SetValue(Vector4.Zero);
-                }
-
-                //Parameters["g_vShadowMap_PS"].SetValue(new Vector4(8192, 0.00012f, 0.00006f, 1));
-                //Parameters["g_vShadowColor_PS"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 0));
-                
-            }
-
-            //ps_user_cb
-            if (shaderProgram.UsePixelShaderBuffer[PS_USER_CB])
-            {
-                //Parameters["g_vShadowParam_PS"].SetValue(new Vector4(0, 0, 0, 1)); //Y must be equal or greater than X, else no shadow
-            }
-
-            //ps_common_cb.
-            if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
-            {
-                //Parameters["g_vEyePos_PS"].SetValue(new Vector4(-0.50204f, -0.46655f, -0.7282f, 0.00f));
-
-                //Front Side:
-                //Parameters["g_vLightVec0_PS"].SetValue(new Vector4(0.64923f, -0.42757f, -0.62904f, 0.00f));
-
-                //Back Side:
-                //Parameters["g_vLightVec0_PS"].SetValue(new Vector4(-0.73446f, -0.3447f, 0.58459f, 0.00f));
-
-                //Right Side:
-                //g_vLightVec0_PS.SetValue(new Vector4(-0.69975f, -0.25339f, 0.66794f, 0.00f));
-
-                //Left Side:
-                //Parameters["g_vLightVec0_PS"].SetValue(new Vector4(0.78974f, -0.34353f, 0.50823f, 0.00f));
-
-                //Parameters["g_vLightVec0_PS"].SetValue(lightVector);
-                //g_vLightVec0_PS.SetValue(Vector4.Transform(LightVector, GameBase.ActiveCameraBase.TestViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix));
-                g_vLightVec0_PS.SetValue(GameBase.LightSource.Direction);
-
-
-            }
-            //ps_versatile_cb
-            if (shaderProgram.UsePixelShaderBuffer[PS_VERSATILE_CB])
-            {
-                //Light animation parameters
-                /*
-                Parameters["g_vColor0_PS"].SetValue(new Vector4(0f, 2f, 0f, 10f)); //Light RGBA
-                Parameters["g_vParam4_PS"].SetValue(new Vector4(0.0f, 3.5f, 0f, 0f)); //Inner Radius, Outer Radius
-
-                Parameters["g_vParam3_PS"].SetValue(new Vector4(1, 1f, 0f, 0f)); //Ambient light strength (always 1?), Anim Light strength (A / 2, clamped to 0 - 10 range)
-                Parameters["g_vParam5_PS"].SetValue(new Vector4(-2.5f, 1.0f, 0, 1.00f)); //Light source position (relative to World)
-                */
-
-                /*
-                //Values from AGE_TEST_EDGELINE_MRT
-                Parameters["g_vColor0_PS"].SetValue(new Vector4(1f, 1f, 1f, 1));
-                Parameters["g_vColor1_PS"].SetValue(new Vector4(0f, 0f, 0f, 1));
-                Parameters["g_vColor2_PS"].SetValue(new Vector4(0f, 0f, 0f, 1));
-                Parameters["g_vParam0_PS"].SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
-                Parameters["g_vParam1_PS"].SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
-                Parameters["g_vParam2_PS"].SetValue(new Vector4(0, 0, 1f, 0));
-                Parameters["g_vParam3_PS"].SetValue(new Vector4(1, 0, 0, 0));
-                Parameters["g_vParam4_PS"].SetValue(new Vector4(0, 2.60427f, 0, 0));
-                Parameters["g_vParam5_PS"].SetValue(new Vector4(-2.04347f, -3.57628E-07f, -0.11416f, 1.00f));
-                Parameters["g_vParam6_PS"].SetValue(new Vector4(0, 0, 0, 0));
-                Parameters["g_vParam7_PS"].SetValue(new Vector4(0, 20, 0.04f, -0.1f));
-                */
-
-                //NORMAL_FADE_WATERDEPTH_W_M Values:
-                //Parameters["g_vParam1_PS"].SetValue(new Vector4(0, 50, 1, 0.6f));
-                //Parameters["g_vParam2_PS"].SetValue(new Vector4(0, 0, 1, 0));//1 in game shaders. Flipped for XenoKit, otherwise get wrong colors
-                //Parameters["g_vParam3_PS"].SetValue(new Vector4(10, 1000, 0, 0));
-
-                //Parameters["g_vParam1_PS"].SetValue(new Vector4(0, 50, 1, 0.6f));
-                //Parameters["g_vParam2_PS"].SetValue(new Vector4(0.00391f, 0, 1, 0));
-                //Parameters["g_vParam3_PS"].SetValue(new Vector4(0.001f, 3006.13501f, 0.82168f, 0.7771f));
-
                 if (LIGHT_RGBA != null)
                 {
                     g_vColor0_PS.SetVector4(LIGHT_RGBA);
@@ -854,25 +772,45 @@ namespace XenoKit.Engine.Shader
                 }
             }
 
-            //cb_ps_bool
-            if (shaderProgram.UsePixelShaderBuffer[CB_PS_BOOL])
+            if (ShaderType == ShaderType.CharaNormals)
             {
-                /*
-                Parameters["g_bFog_PS"].SetValue(false); //Enables fog (on stages)
-                Parameters["g_bOutputGlareMRT_PS"].SetValue(true);
-                Parameters["ps_bool_padding0"].SetValue(true);
-                Parameters["ps_bool_padding2"].SetValue(true);
-                Parameters["ps_bool_padding3"].SetValue(true);
-                Parameters["g_bDepthTex_PS"].SetValue(true);
-                Parameters["g_bShadowPCF1_PS"].SetValue(true);
-                Parameters["g_bShadowPCF4_PS"].SetValue(true);
-                Parameters["g_bShadowPCF8_PS"].SetValue(true);
-                Parameters["g_bShadowPCF16_PS"].SetValue(true);
-                Parameters["g_bShadowPCF24_PS"].SetValue(true);
-                */
-                //Parameters["g_bFog_PS"].SetValue(false); //Enables fog (on stages)
+                //Controls the final vertex color of NormalPassRT0 and 1, which is key for the black body outline around characters as well as BPE BodyOutlines 
+                g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
+                g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
+                g_vParam3_PS.SetValue(new Vector4(0.001f, 1000, 0.92638f, 0.90798f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
 
+                //Testing:
+                Parameters["g_vParam0_PS"].SetValue(Vector4.Zero);
+                g_vParam1_PS.SetValue(new Vector4(0, 1, 1f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
+                g_vParam2_PS.SetValue(new Vector4(0.00391f * 6, 0.00f, 1f, 0.00f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
+                g_vParam3_PS.SetValue(new Vector4(0.001f, 10000.00f, 0.40f, 0.00f)); //Z = BPE Outline strength
+                return;
             }
+
+            
+            //if(ShaderType == ShaderType.Default)
+            {
+                if (shaderProgram.UsePixelShaderBuffer[CB_PS_BOOL])
+                {
+                    Parameters["g_bFog_PS"].SetValue(true);
+                    Parameters["g_bDepthTex_PS"].SetValue(true);
+                }
+            }
+            
+            //Update global parameters
+            if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
+            {
+                g_vScreen_VS.SetVector4(GameBase.RenderSystem.RenderResolution);
+                g_SystemTime_VS.SetValue(SceneManager.SystemTime);
+            }
+
+            //Remove references to animated parameters from this pass
+            MatCol0 = null;
+            MatCol1 = null;
+            MatCol2 = null;
+            MatCol3 = null;
+            TexScrl0 = null;
+            TexScrl1 = null;
 
             //Set global samplers/textures
             foreach (Xv2Shader shader in _shaders)
@@ -1049,9 +987,14 @@ namespace XenoKit.Engine.Shader
                 depth.StencilWriteMask = 80;
                 depth.StencilMask = 80;
                 depth.ReferenceStencil = 80;
+                depth.StencilFail = StencilOperation.Keep;
+                depth.StencilDepthBufferFail = StencilOperation.Keep;
+                depth.CounterClockwiseStencilFail = StencilOperation.Keep;
+                depth.CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep;
                 depth.CounterClockwiseStencilPass = StencilOperation.Replace;
                 depth.StencilPass = StencilOperation.Replace;
                 depth.StencilFunction = CompareFunction.Always;
+                depth.CounterClockwiseStencilFunction = CompareFunction.Always;
 
                 return depth;
             }
@@ -1062,19 +1005,20 @@ namespace XenoKit.Engine.Shader
                 depth.DepthBufferWriteEnable = true;
                 depth.DepthBufferFunction = CompareFunction.LessEqual;
                 depth.StencilEnable = true;
-                depth.StencilWriteMask = 128;
-                depth.StencilMask = 128;
+                depth.StencilWriteMask = 80;
+                depth.StencilMask = 80;
                 depth.ReferenceStencil = 0;
                 depth.StencilFunction = CompareFunction.Always;
                 depth.CounterClockwiseStencilFunction = CompareFunction.Always;
 
                 depth.StencilFail = StencilOperation.Keep;
-                depth.StencilDepthBufferFail = StencilOperation.Keep;
-                depth.StencilPass = StencilOperation.Zero;
-
                 depth.CounterClockwiseStencilFail = StencilOperation.Keep;
+
                 depth.CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep;
+                depth.StencilDepthBufferFail = StencilOperation.Keep;
+
                 depth.CounterClockwiseStencilPass = StencilOperation.Zero;
+                depth.StencilPass = StencilOperation.Zero;
 
                 return depth;
             }
@@ -1210,25 +1154,12 @@ namespace XenoKit.Engine.Shader
 
         public void SetMaterialAnimationValues(VfxEmaMaterialNode materialAnimationNode)
         {
-            if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
-            {
-                g_TexScroll0_VS.SetVector4(materialAnimationNode.TexScrl[0]);
-                g_TexScroll1_VS.SetVector4(materialAnimationNode.TexScrl[1]);
-                g_MaterialCol0_VS.SetVector4(materialAnimationNode.MatCol[0]);
-                g_MaterialCol1_VS.SetVector4(materialAnimationNode.MatCol[1]);
-                g_MaterialCol2_VS.SetVector4(materialAnimationNode.MatCol[2]);
-                g_MaterialCol3_VS.SetVector4(materialAnimationNode.MatCol[3]);
-            }
-
-            if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
-            {
-                g_TexScroll0_PS.SetVector4(materialAnimationNode.TexScrl[0]);
-                g_TexScroll1_PS.SetVector4(materialAnimationNode.TexScrl[1]);
-                g_MaterialCol0_PS.SetVector4(materialAnimationNode.MatCol[0]);
-                g_MaterialCol1_PS.SetVector4(materialAnimationNode.MatCol[1]);
-                g_MaterialCol2_PS.SetVector4(materialAnimationNode.MatCol[2]);
-                g_MaterialCol3_PS.SetVector4(materialAnimationNode.MatCol[3]);
-            }
+            TexScrl0 = materialAnimationNode.TexScrl[0];
+            TexScrl1 = materialAnimationNode.TexScrl[1];
+            MatCol0 = materialAnimationNode.MatCol[0];
+            MatCol1 = materialAnimationNode.MatCol[1];
+            MatCol2 = materialAnimationNode.MatCol[2];
+            MatCol3 = materialAnimationNode.MatCol[3];
         }
 
         //Animation
@@ -1268,6 +1199,15 @@ namespace XenoKit.Engine.Shader
             if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
             {
                 g_TexScroll0_VS.SetVector4(uvScroll);
+            }
+        }
+    
+        public void SetTextureTile(float[] texTile01, float[] texTile23)
+        {
+            if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
+            {
+                g_vTexTile01_VS.SetVector4(texTile01);
+                g_vTexTile23_VS.SetVector4(texTile23);
             }
         }
     }

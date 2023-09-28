@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using XenoKit.Editor;
 using XenoKit.Engine.Pool;
 using XenoKit.Engine.Vfx.Asset;
 using XenoKit.Helper;
@@ -179,6 +180,22 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 State = NodeState.Active;
                 CurrentFrame = 0f;
+                NullEmitter();
+            }
+
+            //Handle DeactivationMode == LoopCancel.
+            //Looped nodes are not valid in this state and are ended immediately, but should still follow the normal node destroy rules
+            if (ParticleSystem.IsTerminating && Loop)
+            {
+                State = NodeState.WaitingOnChildren;
+                Loop = false;
+
+                if (Node.NodeType == ParticleNodeType.Emission)
+                {
+                    Emit();
+                }
+
+                return;
             }
 
             //Main logic loop
@@ -186,9 +203,10 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 if (CurrentFrame >= Lifetime)
                 {
-                    if (Loop && !ParticleSystem.IsTerminating)
+                    if (Loop)
                     {
                         CurrentFrame = 0f;
+                        NullEmitter();
 
                         //NOTE: Removed this code for now as this needs more research. Some EMPs seem to note follow how I had this documented, and caused a bug where particles were spawned endlessly
                         //The nodes created on a previous loop don't count as active children of the node (as above, not always true?)
@@ -200,10 +218,12 @@ namespace XenoKit.Engine.Vfx.Particle
                         State = NodeState.WaitingOnChildren;
 
                         //Emission and Null nodes only emit when they expire
-                        if (Node.NodeType != ParticleNodeType.Emitter)
+                        if (Node.NodeType == ParticleNodeType.Emission)
                         {
                             Emit();
                         }
+
+                        NullEmitter();
 
                         return;
                     }
@@ -364,6 +384,12 @@ namespace XenoKit.Engine.Vfx.Particle
                     if (Node.ChildParticleNodes[i].MaxInstances > 0 && Node.ChildParticleNodes[i].MaxInstances <= ActiveInstances[i] && !IsRootNode)
                         break;
 
+                    if (IsRootNode && Node.ChildParticleNodes[i].NodeType == ParticleNodeType.Null)
+                    {
+                        Log.Add("ParticleSystem: Null Node type cannot be at root level. The game will crash!", LogType.Error);
+                        return;
+                    }
+
                     //Position where the node is to be emitted. 
                     Vector3 velocity = Vector3.Zero;
                     Matrix emitTransform = GetEmitTransformationMatrix(ref velocity) * Rotation * Transform;
@@ -431,6 +457,14 @@ namespace XenoKit.Engine.Vfx.Particle
         protected Matrix GetAttachmentBone()
         {
             return EffectPart.InstantUpdate ? ParticleSystem.AttachmentBone : EmitBoneTransform;
+        }
+
+        private void NullEmitter()
+        {
+            if (Node.NodeType == ParticleNodeType.Null && !Loop)
+            {
+                Emit();
+            }
         }
 
     }

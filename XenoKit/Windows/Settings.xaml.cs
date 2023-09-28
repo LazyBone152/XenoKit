@@ -68,17 +68,6 @@ namespace XenoKit.Windows
                 }
             }
         }
-        public bool EnableGpuSkinning
-        {
-            get => SettingsManager.settings.XenoKit_EnableGpuSkinning;
-            set
-            {
-                if (SettingsManager.settings.XenoKit_EnableGpuSkinning != value)
-                {
-                    SettingsManager.settings.XenoKit_EnableGpuSkinning = value;
-                }
-            }
-        }
         public bool SuppressErrors
         {
             get => SettingsManager.settings.XenoKit_SuppressErrorsToLogOnly;
@@ -87,6 +76,76 @@ namespace XenoKit.Windows
                 if (SettingsManager.settings.XenoKit_SuppressErrorsToLogOnly != value)
                 {
                     SettingsManager.settings.XenoKit_SuppressErrorsToLogOnly = value;
+                }
+            }
+        }
+
+        public int ShadowMapRes
+        {
+            get
+            {
+                switch (settings.XenoKit_ShadowMapRes)
+                {
+                    case 2048:
+                        return 0;
+                    case 4096:
+                        return 1;
+                    case 8192:
+                        return 2;
+                    default:
+                        return 0;
+                }
+            }
+            set
+            {
+                switch (value)
+                {
+                    case 0:
+                        settings.XenoKit_ShadowMapRes = 2048;
+                        break;
+                    case 1:
+                        settings.XenoKit_ShadowMapRes = 4096;
+                        break;
+                    case 2:
+                        settings.XenoKit_ShadowMapRes = 8192;
+                        break;
+                }
+            }
+        }
+        public int SuperSampling
+        {
+            get
+            {
+                switch (settings.XenoKit_SuperSamplingFactor)
+                {
+                    case 1:
+                        return 0;
+                    case 2:
+                        return 1;
+                    case 4:
+                        return 2;
+                    //case 8:
+                    //    return 3;
+                    default:
+                        return 0;
+                }
+            }
+            set
+            {
+                switch (value)
+                {
+                    case 0:
+                        settings.XenoKit_SuperSamplingFactor = 1;
+                        break;
+                    case 1:
+                        settings.XenoKit_SuperSamplingFactor = 2;
+                        break;
+                    case 2:
+                        settings.XenoKit_SuperSamplingFactor = 4;
+                        break;
+                    case 3:
+                        settings.XenoKit_SuperSamplingFactor = 8;
+                        break;
                 }
             }
         }

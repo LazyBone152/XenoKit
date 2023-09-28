@@ -41,6 +41,16 @@ namespace XenoKit.Engine.Vfx.Particle
                 return EmissionData.Material.MatParam.AlphaBlendType;
             }
         }
+        public override int LowRezMode
+        {
+            get
+            {
+                if (EmissionData?.Material == null) return 0;
+                if (EmissionData.Material.MatParam.LowRez == 1) return 1;
+                if (EmissionData.Material.MatParam.LowRezSmoke == 1) return 2;
+                return 0;
+            }
+        }
 
         public override void Initialize(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, object effect)
         {
@@ -95,14 +105,14 @@ namespace XenoKit.Engine.Vfx.Particle
 
         protected void UpdateScale()
         {
-            ScaleBase = (Node.EmissionNode.Texture.ScaleBase.GetInterpolatedValue(CurrentTimeFactor) + ScaleBase_Variance) * ParticleSystem.Scale;
+            ScaleBase = (Node.EmissionNode.Texture.ScaleBase.GetInterpolatedValue(CurrentTimeFactor) + ScaleBase_Variance);
 
             if (Node.NodeFlags.HasFlag(NodeFlags1.EnableScaleXY))
             {
                 float[] values = Node.EmissionNode.Texture.ScaleXY.GetInterpolatedValue(CurrentTimeFactor);
 
-                ScaleU = (values[0] + ScaleU_Variance) * ParticleSystem.Scale;
-                ScaleV = (values[1] + ScaleV_Variance) * ParticleSystem.Scale;
+                ScaleU = (values[0] + ScaleU_Variance);
+                ScaleV = (values[1] + ScaleV_Variance);
             }
             else
             {

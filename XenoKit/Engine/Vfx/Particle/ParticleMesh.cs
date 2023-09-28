@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using XenoKit.Editor;
 using XenoKit.Engine.Model;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EMP_NEW;
@@ -9,6 +10,7 @@ namespace XenoKit.Engine.Vfx.Particle
     public class ParticleMesh : ParticleEmissionBase
     {
         protected Xv2Submesh EmgSubmesh = null;
+        private bool ChildrenWarning = false;
 
         public override void Initialize(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, object effect)
         {
@@ -107,5 +109,13 @@ namespace XenoKit.Engine.Vfx.Particle
             base.Draw();
         }
 
+        protected override void Emit()
+        {
+            if(Node.ChildParticleNodes.Count > 0 && !ChildrenWarning)
+            {
+                Log.Add("ParticleSystem: Mesh emissions cannot have children nodes. The game will crash!", LogType.Error);
+                ChildrenWarning = true;
+            }
+        }
     }
 }

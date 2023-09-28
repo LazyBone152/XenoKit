@@ -45,6 +45,7 @@ namespace XenoKit.Engine
         /// </summary>
         public virtual bool DrawThisFrame { get; protected set; }
         public virtual int AlphaBlendType => -1;
+        public virtual int LowRezMode => 0;
 
         //Entity Settings
         public bool IsDestroyable { get; set; } = true;
@@ -131,6 +132,7 @@ namespace XenoKit.Engine
     public enum EntityType
     {
         Undefined,
+        Model,
         Actor,
         Stage,
         VFX

@@ -100,11 +100,11 @@ namespace XenoKit.Engine.Vfx.Asset
         /// </summary>
         public virtual void Terminate()
         {
-            if (EffectPart.Deactivation == EffectPart.DeactivationMode.Always || (EffectPart.Deactivation == EffectPart.DeactivationMode.AfterAnimLoop && !FinishAnimationBeforeTerminating))
+            if (EffectPart.Deactivation == EffectPart.DeactivationMode.Immediate || (EffectPart.Deactivation == EffectPart.DeactivationMode.LoopCancel && !FinishAnimationBeforeTerminating))
             {
                 IsFinished = true;
             }
-            else if (EffectPart.Deactivation == EffectPart.DeactivationMode.AfterAnimLoop)
+            else if (EffectPart.Deactivation == EffectPart.DeactivationMode.LoopCancel)
             {
                 IsTerminating = true;
             }
@@ -148,7 +148,7 @@ namespace XenoKit.Engine.Vfx.Asset
                 }
                 else if (EffectPart.RotateUpdate)
                 {
-                    Transform = Actor.GetAbsoluteBoneMatrix(BoneIdx) * Matrix.Invert(Matrix.CreateTranslation(Actor.GetAbsoluteBoneMatrix(BoneIdx).Translation)) * InitialPosition;
+                    Transform = Actor.GetAbsoluteBoneMatrix(BoneIdx) * Matrix.Invert(Matrix.CreateTranslation(Actor.GetAbsoluteBoneMatrix(BoneIdx).Translation)) * InitialPosition * Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
                 }
                 else
                 {

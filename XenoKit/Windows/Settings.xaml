@@ -56,14 +56,6 @@
                             <Label Content="Delayed Update Interval"/>
                             <Controls:NumericUpDown Grid.Column="1" VerticalAlignment="Center" Value="{Binding settings.XenoKit_DelayedUpdateFrameInterval, UpdateSourceTrigger=PropertyChanged}" Minimum="1" Maximum="60"/>
                         </Grid>
-                        <Grid Margin="3,5,0,0" Width="250" ToolTip="The interval at which the internal Delayed Update function runs at. Lower values will result in some UI operations being more responsive (such as dragging the slider on BAC entries to change the current frame), but could cause performance issues on some PCs.">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Enable GPU Skinning" ToolTip="Enable hardware accelerated skinning (applying animations to a mesh). This will offer a significant performance uplift and reduce overall CPU usage by XenoKit."/>
-                            <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EnableGpuSkinning, UpdateSourceTrigger=PropertyChanged}"/>
-                        </Grid>
                     </StackPanel>
                 </Grid>
 
@@ -72,29 +64,52 @@
             <Controls:MetroTabItem Header="Rendering" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <Grid Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundAltMediumLow}">
                     <StackPanel HorizontalAlignment="Left">
-                        <Grid Margin="3,5,0,0" Width="200" ToolTip="Enable or disable rimlighting.">
+                        <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable or disable rimlighting.">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
                             </Grid.ColumnDefinitions>
                             <Label Content="Rimlight"/>
                             <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EnableRimlight, UpdateSourceTrigger=PropertyChanged}"/>
                         </Grid>
-                        <Grid Margin="3,5,0,0" Width="200" ToolTip="Enable dynamic lighting based on camera position.&#x0a;&#x0a;Very experiential and not game accurate right now!">
+                        <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable dynamic lighting based on camera position.&#x0a;&#x0a;Very experiential and not game accurate right now!">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="40"/>
                             </Grid.ColumnDefinitions>
                             <Label Content="Dynamic Lighting*" FontWeight="SemiBold"/>
                             <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding DynamicLighting, UpdateSourceTrigger=PropertyChanged}"/>
                         </Grid>
-                        <Grid Margin="3,5,0,0" Width="200">
+                        <Grid Margin="3,5,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Wireframe"/>
+                            <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding WireframeMode, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+                        <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Wireframe"/>
-                            <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding WireframeMode, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Label Content="Shadow Resolution" ToolTip="Sets the resolution of shadows. &#x0a;&#x0a;Not currently functional as shadows are not working!"/>
+                            <ComboBox Grid.Column="1" SelectedIndex="{Binding ShadowMapRes, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBoxItem Content="Low (2k)"/>
+                                <ComboBoxItem Content="Medium (4k)"/>
+                                <ComboBoxItem Content="High (8k)"/>
+                            </ComboBox>
+                        </Grid>
+                        <Grid Margin="3,5,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Super Sampling" ToolTip="Set a super sampling factor to use when rendering. This renders the scene at a higher resolution and then scales it down to fit the viewport, improving image quality."/>
+                            <ComboBox Grid.Column="1" SelectedIndex="{Binding SuperSampling, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBoxItem Content="Disabled"/>
+                                <ComboBoxItem Content="x2"/>
+                            </ComboBox>
                         </Grid>
                     </StackPanel>
 

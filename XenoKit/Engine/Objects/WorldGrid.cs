@@ -13,7 +13,7 @@ namespace XenoKit.Engine.Objects
         public int GridLines { get; private set; } = 60;
         public float GridLineSpacing { get; private set; } = 0.5f;
         public float AxisLength { get; private set; } = 5.0f;
-        public Color GridColor { get; private set; } = new Color(80, 80, 80);
+        public Color GridColor { get; private set; } = new Color(80, 80, 80, 0);
 
         public WorldGrid(GameBase gameBase) : base(gameBase)
         {
@@ -35,6 +35,7 @@ namespace XenoKit.Engine.Objects
             {
                 //VERTICAL
                 float lineOffset = startOffset + GridLineSpacing * i;
+
                 Vector3 vertStart = new Vector3(startOffset, 0, lineOffset);
                 _vertices.Add(new VertexPositionColor(vertStart, GridColor));
                 vertStart.X += size;

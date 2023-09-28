@@ -65,6 +65,9 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private void InitializeFiles()
         {
+            //if (Model != null)
+            //    RemoveFromRenderSystem();
+
             Model = null;
             Materials = null;
             Textures = null;
@@ -113,6 +116,45 @@ namespace XenoKit.Engine.Vfx.Asset
             }
 
             SetAnimation();
+            //AddToRenderSystem();
+        }
+
+        private void RemoveFromRenderSystem()
+        {
+            if (Model == null) return;
+
+            foreach(var model in Model.Models)
+            {
+                foreach(var mesh in model.Meshes)
+                {
+                    foreach(var submesh in mesh.Submeshes)
+                    {
+                        RenderSystem.RemoveRenderEntity(submesh);
+                    }
+                }
+            }
+        }
+
+        private void AddToRenderSystem()
+        {
+            if (Model == null) return;
+
+            foreach (var model in Model.Models)
+            {
+                foreach (var mesh in model.Meshes)
+                {
+                    foreach (var submesh in mesh.Submeshes)
+                    {
+                        RenderSystem.AddRenderEntity(submesh);
+                    }
+                }
+            }
+        }
+
+        public override void Dispose()
+        {
+            //RemoveFromRenderSystem();
+            base.Dispose();
         }
 
         private void SetAnimation()
