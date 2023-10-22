@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using Microsoft.Win32;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -150,6 +151,8 @@ namespace XenoKit.Windows
             }
         }
 
+        private string OriginalGameDir;
+
         public SettingsWindow(MainWindow parent)
         {
             settings = SettingsManager.Instance.Settings;
@@ -158,6 +161,7 @@ namespace XenoKit.Windows
             Owner = System.Windows.Application.Current.MainWindow;
             DataContext = this;
             SettingsManager.SettingsReloaded += SettingsManager_SettingsReloaded;
+            OriginalGameDir = settings.GameDirectory;
         }
 
         ~SettingsWindow()
@@ -172,9 +176,10 @@ namespace XenoKit.Windows
             ThemeRadioButtons_CheckChanged(null, null);
         }
 
+
         private void Browse_Click(object sender, RoutedEventArgs e)
         {
-            var _browser = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+            Ookii.Dialogs.Wpf.VistaFolderBrowserDialog _browser = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
             _browser.UseDescriptionForTitle = true;
             _browser.Description = "Browse for DBXV2 Directory";
             _browser.ShowDialog();
@@ -187,17 +192,31 @@ namespace XenoKit.Windows
                 }
                 else
                 {
-                    MessageBox.Show(this, "The entered game directory is not valid.", "Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(this, "The entered game directory is not valid.\n\nPlease enter a valid directory. It should be the folder named \"DB Xenoverse 2\", and contain the bin and cpk folders within. You must select this FOLDER, not the game exe!", "Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void BrowseSave_Click(object sender, RoutedEventArgs e)
         {
-            if (!File.Exists(String.Format("{0}/bin/DBXV2.exe", settings.GameDirectory)) && !String.IsNullOrWhiteSpace(settings.GameDirectory))
+            OpenFileDialog _browser = new OpenFileDialog();
+            _browser.Title = "Browse for DBXV2 Save File";
+            _browser.Filter = "DNXV2 save file | *.sav";
+            _browser.ShowDialog();
+
+            if (!String.IsNullOrEmpty(_browser.FileName))
             {
-                MessageBox.Show("The entered game directory is not valid and it will be removed.", "Settings", MessageBoxButton.OK, MessageBoxImage.Error);
-                settings.GameDirectory = string.Empty;
+                settings.SaveFile = _browser.FileName;
+            }
+
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (!settings.ValidGameDir)
+            {
+                settings.GameDirectory = OriginalGameDir;
+                MessageBox.Show("The entered game directory is not valid and it will be removed, with the original directory being restored.", "Settings", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

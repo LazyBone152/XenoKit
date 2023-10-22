@@ -117,11 +117,31 @@
                 
             </Controls:MetroTabItem>
             
-            <Controls:MetroTabItem Header="Game Directory" Controls:HeaderedControlHelper.HeaderFontSize="14">
+            <Controls:MetroTabItem Header="Setup" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <Grid Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundAltMediumLow}">
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="20,41,0,0" TextWrapping="NoWrap" IsReadOnly="True" Text="{Binding settings.GameDirectory, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="375"/>
-                    <Button Click="Browse_Click" Content="Browse" HorizontalAlignment="Left" Margin="400,41,0,0" VerticalAlignment="Top" Width="75"/>
+                    <StackPanel>
+                        <Grid  Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Game Directory" ToolTip="This is the directory that DB Xenoverse 2 is installed into. It should be the folder named DB Xenoverse 2, and contain the bin folder. &#x0a;&#x0a;Required for XenoKit to function."/>
+                            <TextBox TextWrapping="NoWrap" IsReadOnly="True" Text="{Binding settings.GameDirectory, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                            <Button Click="Browse_Click" Content="Browse" Grid.Column="2" Margin="10,0"/>
+                        </Grid>
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="80"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Save File" FontSize="12" ToolTip="Optional. If you specify a save file, then XenoKit will be able to load custom characters from the game, with some customization options available."/>
+                            <TextBox TextWrapping="NoWrap" IsReadOnly="True" Text="{Binding settings.SaveFile, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1"/>
+                            <Button Click="BrowseSave_Click" Content="Browse" Grid.Column="2" Margin="10,0"/>
+                        </Grid>
 
+                    </StackPanel>
                 </Grid>
             </Controls:MetroTabItem>
 

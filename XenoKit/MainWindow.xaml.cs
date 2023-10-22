@@ -103,7 +103,6 @@ namespace XenoKit
             Closing += MainWindow_Closing;
         }
 
-
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             e.Cancel = true;
@@ -152,14 +151,13 @@ namespace XenoKit
         {
             if (!SettingsManager.settings.ValidGameDir)
             {
-                var gameDirWindow = new SetGameDir();
-                gameDirWindow.ShowDialog();
+                InitialSetup setup = new InitialSetup();
+                setup.ShowDialog();
             }
 
             if (!SettingsManager.settings.ValidGameDir)
             {
-                await this.ShowMessageAsync("The game directory was not found. \n\nThe application will now close.", "Game Directory Not Found", MessageDialogStyle.Affirmative);
-                //MessageBox.Show("The game directory was not found. \n\nThe application will now close.", "Game Directory Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("The game directory was not found. \n\nThe application will now close.", "Game Directory Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(0);
             }
         }

@@ -824,6 +824,9 @@
     <Compile Include="Windows\FindAndReplace.xaml.cs">
       <DependentUpon>FindAndReplace.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\InitialSetup.xaml.cs">
+      <DependentUpon>InitialSetup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\OutlinerItemProperties.xaml.cs">
       <DependentUpon>OutlinerItemProperties.xaml</DependentUpon>
     </Compile>
@@ -835,9 +838,6 @@
     </Compile>
     <Compile Include="Windows\PasteCopyItem.xaml.cs">
       <DependentUpon>PasteCopyItem.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\SetGameDir.xaml.cs">
-      <DependentUpon>SetGameDir.xaml</DependentUpon>
     </Compile>
     <Compile Include="Engine\Character\Actor.cs" />
     <Compile Include="Editor\Data\CopyItem.cs" />
@@ -1282,6 +1282,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Windows\InitialSetup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\OutlinerItemProperties.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1295,10 +1299,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\PasteCopyItem.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\SetGameDir.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1362,6 +1362,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="XenoKitIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="costura64\AesCtrLibrary.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
