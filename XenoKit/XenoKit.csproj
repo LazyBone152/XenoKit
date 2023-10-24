@@ -528,6 +528,7 @@
       <Link>Views\EEPK Organiser\View\Vectors\CustomVector4.xaml.cs</Link>
     </Compile>
     <Compile Include="DialogSettings.cs" />
+    <Compile Include="Editor\Data\CustomAvatar.cs" />
     <Compile Include="Editor\Files\OutlinerItem.cs" />
     <Compile Include="Editor\Files\EditorVisibility.cs" />
     <Compile Include="Engine\Animation\AnimationPlayerBase.cs" />

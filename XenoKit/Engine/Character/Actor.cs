@@ -74,6 +74,16 @@ namespace XenoKit.Engine
         public Xv2Character CharacterData { get; set; }
         public Move Moveset { get; set; }
 
+        //Voice:
+        /// <summary>
+        /// What costumes voice to use.
+        /// </summary>
+        public int Voice { get; set; }
+        /// <summary>
+        /// A character code alias to use for skill voice lines.
+        /// </summary>
+        public string SkillVoiceAlias { get; set; }
+
         //Misc Settings:
         private Vector3 DefaultPosition
         {

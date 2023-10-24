@@ -10,7 +10,7 @@ namespace XenoKit.Editor
         //Types:
         public Visibility IsSkill { get { return (type == OutlinerItemType.Skill) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsMoveset { get { return (type == OutlinerItemType.Moveset) ? Visibility.Visible : Visibility.Collapsed; } }
-        public Visibility IsCharacter { get { return (type == OutlinerItemType.Character) ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility IsCharacter { get { return (type == OutlinerItemType.Character || type == OutlinerItemType.CaC) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsCommon { get { return (type == OutlinerItemType.CMN) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsManual { get { return (type == OutlinerItemType.EAN || type == OutlinerItemType.CAM || type == OutlinerItemType.EEPK || type == OutlinerItemType.ACB || type == OutlinerItemType.STAGE_MANUAL) ? Visibility.Visible : Visibility.Collapsed; } }
 

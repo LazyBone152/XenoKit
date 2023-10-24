@@ -123,7 +123,7 @@ namespace XenoKit.Views
                     if (SceneManager.Actors[0].PartSet?.IsPartSet(partSetContext) == true)
                     {
                         if(e.UndoArg == "COLOR")
-                            SceneManager.Actors[0].PartSet.ReapplyCustomColors();
+                            SceneManager.Actors[0].PartSet.ApplyCustomColors();
                         else
                             SceneManager.Actors[0].PartSet.LoadPartSet();
                     }
@@ -133,7 +133,7 @@ namespace XenoKit.Views
                     if (SceneManager.Actors[0].PartSet?.IsPartSet(partContext) == true)
                     {
                         SceneManager.Actors[0].PartSet.LoadPart((int)partContext.PartType);
-                        SceneManager.Actors[0].PartSet.ReapplyCustomColors();
+                        SceneManager.Actors[0].PartSet.ApplyCustomColors();
                     }
                 }
                 else if (e.UndoContext is PhysicsPart physicsPartContext)
@@ -694,7 +694,7 @@ namespace XenoKit.Views
                     if(!justColors)
                         SceneManager.Actors[0]?.PartSet.LoadPart((int)partType);
 
-                    SceneManager.Actors[0].PartSet.ReapplyCustomColors();
+                    SceneManager.Actors[0].PartSet.ApplyCustomColors();
                 }
             }
         }
@@ -708,7 +708,7 @@ namespace XenoKit.Views
                 if (SceneManager.Actors[0].PartSet.IsPartSet(partSet) && partSet != null)
                 {
                     SceneManager.Actors[0].PartSet.LoadPartSet();
-                    SceneManager.Actors[0].PartSet.ReapplyCustomColors();
+                    SceneManager.Actors[0].PartSet.ApplyCustomColors();
                 }
             }
         }

@@ -13,6 +13,7 @@ using System.IO;
 using System.Collections.Generic;
 using XenoKit.Engine.Model;
 using Xv2CoreLib.NSK;
+using XenoKit.Editor.Data;
 
 namespace XenoKit.Editor
 {
@@ -33,6 +34,7 @@ namespace XenoKit.Editor
         
         public enum OutlinerItemType
         {
+            CaC,
             Character,
             Skill,
             Moveset,
@@ -55,6 +57,7 @@ namespace XenoKit.Editor
         public Move move { get; set; }
         public Actor character { get; set; }
         public ManualFiles ManualFiles { get; set; }
+        public CustomAvatar CustomAvatar { get; set; }
 
         //UI
         public string DisplayName
@@ -63,6 +66,7 @@ namespace XenoKit.Editor
             {
                 if (Type == OutlinerItemType.CMN) return "Common";
                 if (IsManualLoaded) return ManualFiles.Name;
+                if (Type == OutlinerItemType.CaC) return $"{CustomAvatar.CaC.Name}";
                 return (Type == OutlinerItemType.Character) ? character.Name : move.Name;
             }
         }
@@ -243,6 +247,11 @@ namespace XenoKit.Editor
             Visibilities = new EditorVisibility(type);
         }
 
+        public OutlinerItem(Xv2CoreLib.SAV.CaC cac)
+        {
+            CustomAvatar = new CustomAvatar(cac, this);
+        }
+
         /// <summary>
         /// Fix references after pasting from clipboard.
         /// </summary>
@@ -323,6 +332,8 @@ namespace XenoKit.Editor
                     return $"CHARA_{character.ShortName}";
                 case OutlinerItemType.Skill:
                     return $"SKILL_{move.CusEntry.ID1}";
+                case OutlinerItemType.CaC:
+                    return $"CAC_{CustomAvatar.CaC.Name}";
             }
 
             return null;

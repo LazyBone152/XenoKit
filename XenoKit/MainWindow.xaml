@@ -132,6 +132,7 @@
                     <MenuItem Header="Blast Skill" Command="{Binding LoadBlastSkillCommand}"/>
                     <MenuItem Header="Awoken Skill" Command="{Binding LoadAwokenSkillCommand}"/>
                 </MenuItem>
+                <MenuItem Header="Load CaC" Command="{Binding LoadCacCommand}"/>
                 <Separator/>
                 <MenuItem Header="Save (current)" Command="{Binding SaveCurrentCommand}"/>
                 <MenuItem Header="Save (all)" Command="{Binding SaveAllCommand}"/>

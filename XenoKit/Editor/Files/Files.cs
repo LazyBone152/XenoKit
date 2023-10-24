@@ -28,6 +28,8 @@ using System.Runtime.ExceptionServices;
 using Application = System.Windows.Application;
 using Xv2CoreLib.Resource;
 using Xv2CoreLib.ValuesDictionary;
+using XenoKit.Editor.Data;
+using System.Windows;
 
 namespace XenoKit.Editor
 {
@@ -178,7 +180,7 @@ namespace XenoKit.Editor
                 }
 
                 //Show an error message to the user and quit
-                await window.ShowMessageAsync("Already Exists", $"This {item.DisplayType.ToLower()} is already loaded.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessageBox.Show($"This {item.DisplayType.ToLower()} is already loaded.", "Already Exists", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -383,6 +385,35 @@ namespace XenoKit.Editor
             BAC.AddMissing(moveFiles.BacFile?.File);
         }
 
+
+        public async Task AsyncLoadCac(Xv2CoreLib.SAV.CaC cac)
+        {
+            var progressBarController = await window.ShowProgressAsync("Loading", $"Loading avatar \"{cac.Name}\"", false, DialogSettings.Default);
+            progressBarController.SetIndeterminate();
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var item = new OutlinerItem(cac);
+                    item.CustomAvatar.InitActor();
+                    item.CustomAvatar.SetActorAppearence();
+                    item.CustomAvatar.SetCustomColors();
+                    item.CustomAvatar.SetActorSize();
+
+                    AddOutlinerItem(item);
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Add($"Load Error: {ex.Message}", LogType.Error);
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
+            finally
+            {
+                await progressBarController.CloseAsync();
+            }
+        }
         #endregion
 
         #region Save
@@ -539,8 +570,10 @@ namespace XenoKit.Editor
         public List<Actor> GetLoadedCharacters()
         {
             List<Actor> chars = new List<Actor>();
-            foreach (var item in OutlinerItems.Where(x => x.Type == OutlinerItem.OutlinerItemType.Character))
+
+            foreach (OutlinerItem item in OutlinerItems.Where(x => x.Type == OutlinerItem.OutlinerItemType.Character || x.Type == OutlinerItem.OutlinerItemType.CaC))
                 chars.Add(item.character);
+
             return chars;
         }
 
@@ -747,11 +780,12 @@ namespace XenoKit.Editor
                 case Xv2CoreLib.BAC.AcbType.Skill_VOX:
                     if (character == null && logErrors)
                         Log.Add("Files.GetAcbFile: Cannot get Skill_VOX ACB as no character is present!", LogType.Error);
-                    return move?.Files.GetVoxFile(character.ShortName, 0, true);
+
+                    return move?.Files.GetVoxFile(character.SkillVoiceAlias != null ? character.SkillVoiceAlias : character.ShortName, 0, true);
                 case Xv2CoreLib.BAC.AcbType.Character_VOX:
                     if (character == null && logErrors)
                         Log.Add("Files.GetAcbFile: Cannot get Character_VOX ACB as no character is present!", LogType.Error);
-                    return character?.Moveset.Files.GetVoxFile(0, true);
+                    return character?.Moveset.Files.GetVoxFile(character.Voice, true);
 
             }
             return null;

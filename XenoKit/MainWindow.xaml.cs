@@ -5,6 +5,7 @@ using MahApps.Metro;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -17,6 +18,7 @@ using XenoKit.Engine;
 using XenoKit.Windows;
 using Xv2CoreLib;
 using Xv2CoreLib.Resource.App;
+using Xv2CoreLib.SAV;
 
 namespace XenoKit
 {
@@ -243,6 +245,34 @@ namespace XenoKit
         {
             Files.Instance.AsyncLoadCharacter();
         }
+
+        public RelayCommand LoadCacCommand => new RelayCommand(LoadCac);
+        private async void LoadCac()
+        {
+            if (!File.Exists(SettingsManager.settings.SaveFile))
+            {
+                await this.ShowMessageAsync("No Save File", "A save file must be set in the settings to use this feature.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                return;
+            }
+
+            SAV_File savFile = SAV_File.Load(SettingsManager.settings.SaveFile, false);
+            List<Xv2Item> items = new List<Xv2Item>();
+
+            for(int i = 0; i < savFile.Characters.Count; i++)
+            {
+                if(!string.IsNullOrWhiteSpace(savFile.Characters[i].Name))
+                    items.Add(new Xv2Item(i, savFile.Characters[i].Name));
+            }
+
+            EntitySelector itemSelector = new EntitySelector(items, "CaC", this);
+            itemSelector.ShowDialog();
+
+            if(itemSelector.SelectedItem != null)
+            {
+                await Files.Instance.AsyncLoadCac(savFile.Characters[itemSelector.SelectedItem.ID]);
+            }
+        }
+
         #endregion
 
         #region SaveCommands

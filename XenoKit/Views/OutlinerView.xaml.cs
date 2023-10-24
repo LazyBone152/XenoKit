@@ -59,7 +59,7 @@ namespace XenoKit.Controls
         private bool CanSetActor()
         {
             if (files.SelectedItem == null) return false;
-            return files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character;
+            return files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.Type == OutlinerItem.OutlinerItemType.CaC;
         }
 
         private bool CanSetStage()

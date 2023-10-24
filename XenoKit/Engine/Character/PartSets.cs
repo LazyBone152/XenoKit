@@ -40,6 +40,9 @@ namespace XenoKit.Engine
         public PartTypeFlags HideFlags = 0;
         public PartTypeFlags HideMatFlags = 0;
 
+        //Custom Colors
+        public List<CustomColorGroup> BcsColors = new List<CustomColorGroup>();
+
         public CharaPartSet(GameBase gameBase, Actor chara, int partSetId) : base(gameBase)
         {
             GameBase = gameBase;
@@ -71,6 +74,10 @@ namespace XenoKit.Engine
             LoadPart(7, false, false);
             LoadPart(8, false, false);
             LoadPart(9, false, false);
+
+            //Apply BCS colors after all parts have been loaded
+            SetBcsColors(partSet);
+            ApplyCustomColors();
 
             //Load flags
             LoadHideFlags();
@@ -248,9 +255,11 @@ namespace XenoKit.Engine
         #endregion
 
         #region LoadTransformation
-        public void ApplyTransformation(int index)
+        public void ApplyTransformation(int index, PartTypeFlags partFlags = PartTypeFlags.AllParts, bool permanent = false)
         {
-            var partSetTrans = chara.CharacterData.BcsFile.File.PartSets.FirstOrDefault(x => x.ID == index);
+            if (index == -1) return;
+
+            PartSet partSetTrans = chara.CharacterData.BcsFile.File.PartSets.FirstOrDefault(x => x.ID == index);
             if (partSetTrans == null)
             {
                 Log.Add($"CharaPartSet.ApplyTransformation: PartSet {index} not found.", LogType.Warning);
@@ -258,27 +267,39 @@ namespace XenoKit.Engine
             }
 
             //Load parts
-            ApplyTransformedPart(0, partSetTrans);
-            ApplyTransformedPart(1, partSetTrans);
-            ApplyTransformedPart(2, partSetTrans);
-            ApplyTransformedPart(3, partSetTrans);
-            ApplyTransformedPart(4, partSetTrans);
-            ApplyTransformedPart(5, partSetTrans);
-            ApplyTransformedPart(6, partSetTrans);
-            ApplyTransformedPart(7, partSetTrans);
-            ApplyTransformedPart(8, partSetTrans);
-            ApplyTransformedPart(9, partSetTrans);
+            for (int i = 0; i < 10; i++)
+            {
+                if (partFlags.HasFlag(CharaPart.GetPartTypeAsFlag((PartType)i)))
+                {
+                    ApplyTransformedPart(i, partSetTrans, permanent);
+                }
+            }
+
+            //Apply BCS colors after all parts have been loaded
+            ApplyCustomColors();
 
             //Reload fce.ean
             GetFceEan();
         }
 
-        private void ApplyTransformedPart(int index, PartSet partSet)
+        private void ApplyTransformedPart(int index, PartSet partSet, bool permanent)
         {
             Part part = partSet.GetPart(index);
 
             if (part != null)
-                TransformedParts[index] = new CharaPart(GameBase, chara, part, (PartType)index);
+            {
+                SetBcsColors(part);
+
+                if (permanent)
+                {
+                    Parts[index] = new CharaPart(GameBase, chara, part, (PartType)index);
+                    TransformedParts[index] = null;
+                }
+                else
+                {
+                    TransformedParts[index] = new CharaPart(GameBase, chara, part, (PartType)index);
+                }
+            }
         }
 
         public void ResetTransformation()
@@ -389,26 +410,93 @@ namespace XenoKit.Engine
         }
         #endregion
 
-        public void ReapplyCustomColors()
+        #region BcsColors
+        public void ApplyCustomColors()
         {
-            foreach (var part in Parts)
+            foreach (CharaPart part in Parts)
             {
                 if (part != null)
                 {
                     part.ResetCustomColors();
-                    part.LoadCustomColors();
+                    part.LoadCustomColors(BcsColors);
                 }
             }
         }
 
-        public void ReapplyCustomColors(int partType)
+        private void SetBcsColor(int group, int color)
         {
-            if (Parts[partType] != null)
+            CustomColorGroup partColor = BcsColors.FirstOrDefault(x => x.Group == group);
+
+            if(partColor == null)
             {
-                Parts[partType].ResetCustomColors();
-                Parts[partType].LoadCustomColors();
+                BcsColors.Add(new CustomColorGroup(group, color));
+            }
+            else
+            {
+                partColor.Color = color;
             }
         }
+
+        public void SetBcsColors(PartSet partSet)
+        {
+            BcsColors.Clear();
+            SetBcsColors(partSet.Boots);
+            SetBcsColors(partSet.Bust);
+            SetBcsColors(partSet.FaceBase);
+            SetBcsColors(partSet.FaceEar);
+            SetBcsColors(partSet.FaceEye);
+            SetBcsColors(partSet.FaceForehead);
+            SetBcsColors(partSet.FaceNose);
+            SetBcsColors(partSet.Hair);
+            SetBcsColors(partSet.Pants);
+            SetBcsColors(partSet.Rist);
+        }
+
+        private void SetBcsColors(Part part)
+        {
+            if (part == null) return;
+
+            foreach(ColorSelector colSel in part.ColorSelectors)
+            {
+                SetBcsColor(colSel.PartColorGroup, colSel.ColorIndex);
+            }
+        }
+
+        public void SetCacCustomColors(Xv2CoreLib.SAV.CaC cac, int preset)
+        {
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.HAIR_, cac.Appearence.I_44);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.EYE_, cac.Appearence.I_46);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.PAINT_A_, cac.Appearence.I_48);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.PAINT_B_, cac.Appearence.I_50);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.PAINT_C_, cac.Appearence.I_52);
+
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.SKIN_, cac.Appearence.I_36);
+            SetBcsColor(1, cac.Appearence.I_38);
+            SetBcsColor(2, cac.Appearence.I_40);
+            SetBcsColor(3, cac.Appearence.I_42);
+
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC00_BUST_, cac.Presets[preset].I_28);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC01_BUST_, cac.Presets[preset].I_30);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC02_BUST_, cac.Presets[preset].I_32);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC03_BUST_, cac.Presets[preset].I_34);
+
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC00_PANTS_, cac.Presets[preset].I_36);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC01_PANTS_, cac.Presets[preset].I_38);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC02_PANTS_, cac.Presets[preset].I_40);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC03_PANTS_, cac.Presets[preset].I_42);
+
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC00_RIST_, cac.Presets[preset].I_44);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC01_RIST_, cac.Presets[preset].I_46);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC02_RIST_, cac.Presets[preset].I_48);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC03_RIST_, cac.Presets[preset].I_50);
+
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC00_BOOTS_, cac.Presets[preset].I_52);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC01_BOOTS_, cac.Presets[preset].I_54);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC02_BOOTS_, cac.Presets[preset].I_56);
+            SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC03_BOOTS_, cac.Presets[preset].I_58);
+        }
+
+        #endregion
 
         public bool IsPartSet(PartSet partSet)
         {
@@ -438,6 +526,7 @@ namespace XenoKit.Engine
             CharaPart eye = GetActiveEyePartSet();
             return eye != null ? eye.part.F_40 : 1f;
         }
+
     }
 
     public class CharaPart : Entity
@@ -564,8 +653,6 @@ namespace XenoKit.Engine
                 LoadMaterials();
                 LoadTextures();
                 LoadDyts();
-                LoadCustomColors();
-
             }
         }
 
@@ -661,10 +748,37 @@ namespace XenoKit.Engine
             Skeleton = CompiledObjectManager.GetCompiledObject<Xv2Skeleton>(EskFile, GameBase);
         }
 
-        public void LoadCustomColors()
+        public void LoadCustomColors(List<CustomColorGroup> colors)
         {
-            //We have to load colors from ALL the parts, because they draw the colors from all the parts for whatever reason. No idea on the reasoning for this
+            foreach(CustomColorGroup color in colors)
+            {
+                if(color.Color != -1 && color.Group != -1)
+                {
+                    Xv2CoreLib.BCS.PartColor colorGroup = chara.CharacterData.BcsFile.File.PartColors?.FirstOrDefault(x => x.ID == color.Group);
+                    if (colorGroup == null) continue;
 
+                    if (Model != null)
+                    {
+                        foreach (Xv2Model model in Model.Models)
+                        {
+                            foreach (Xv2Mesh mesh in model.Meshes)
+                            {
+                                foreach (Xv2Submesh submesh in mesh.Submeshes)
+                                {
+                                    if (IsCustomColorMaterial(submesh.Name, colorGroup.Name))
+                                    {
+                                        submesh.ApplyCustomColor(color.Group, color.Color);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //We have to load colors from ALL the parts, because they draw the colors from all the parts for whatever reason. No idea on the reasoning for this
+            //i am now enlightened
+            /*
             foreach (var _part in parentPartSet.Parts)
             {
                 foreach (var colSel in _part.ColorSelectors)
@@ -690,17 +804,19 @@ namespace XenoKit.Engine
                     }
                 }
             }
+
+            */
         }
 
         public void ResetCustomColors()
         {
             if (Model == null) return;
 
-            foreach (var model in Model.Models)
+            foreach (Xv2Model model in Model.Models)
             {
-                foreach (var mesh in model.Meshes)
+                foreach (Xv2Mesh mesh in model.Meshes)
                 {
-                    foreach (var submesh in mesh.Submeshes)
+                    foreach (Xv2Submesh submesh in mesh.Submeshes)
                     {
                         submesh.ResetCustomColor();
                     }
@@ -1235,9 +1351,14 @@ namespace XenoKit.Engine
             return flags;
         }
 
-        private PartTypeFlags GetPartTypeAsFlag()
+        public PartTypeFlags GetPartTypeAsFlag()
         {
-            switch (partType)
+            return GetPartTypeAsFlag(partType);
+        }
+
+        public static PartTypeFlags GetPartTypeAsFlag(PartType type)
+        {
+            switch (type)
             {
                 case PartType.Boots:
                     return PartTypeFlags.Boots;
@@ -1265,4 +1386,48 @@ namespace XenoKit.Engine
         }
     }
 
+    public class CustomColorGroup
+    {
+        //For CAC reference only. Get the actual material prefix from the BCS file, as it can change!
+        public enum PartColorMaterials
+        {
+            SKIN_ = 0,
+            HAIR_ = 4,
+            EYE_ = 5,
+            CC00_BUST_ = 6,
+            CC01_BUST_ = 7,
+            CC02_BUST_ = 8,
+            CC03_BUST_ = 9,
+            CC00_PANTS_ = 10,
+            CC01_PANTS_ = 11,
+            CC02_PANTS_ = 12,
+            CC03_PANTS_ = 13,
+            CC00_RIST_ = 14,
+            CC01_RIST_ = 15,
+            CC02_RIST_ = 16,
+            CC03_RIST_ = 17,
+            CC00_BOOTS_ = 18,
+            CC01_BOOTS_ = 19,
+            CC02_BOOTS_ = 20,
+            CC03_BOOTS_ = 21,
+            PAINT_A_ = 22,
+            PAINT_B_ = 23,
+            PAINT_C_ = 24
+        }
+
+        public int Group { get; set; }
+        public int Color { get; set; }
+
+        public CustomColorGroup(int group, int color)
+        {
+            Group = group;
+            Color = color;
+        }
+
+        public void Reset()
+        {
+            Group = -1;
+            Color = -1;
+        }
+    }
 }
