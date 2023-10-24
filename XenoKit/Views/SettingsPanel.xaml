@@ -95,6 +95,24 @@
                         <CheckBox IsChecked="{Binding FocusedBoneView}" VerticalContentAlignment="Center" Grid.Column="1"/>
                     </Grid>
 
+                    <Grid Margin="0,3,0,0" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Scatches" FontSize="8"/>
+                        <Slider Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Scratches}"/>
+                    </Grid>
+                    <Grid Margin="0,3,0,0" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="105"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="5"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Blood" FontSize="8"/>
+                        <Slider Grid.Column="1" Minimum="0" Maximum="1" Value="{Binding Blood}"/>
+                    </Grid>
 
 
                 </StackPanel>

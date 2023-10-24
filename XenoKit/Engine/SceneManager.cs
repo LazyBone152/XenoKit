@@ -278,6 +278,8 @@ namespace XenoKit.Engine
         public static bool AutoPlay => SettingsManager.settings.XenoKit_AutoPlay;
         public static bool UseCameras => SettingsManager.settings.XenoKit_EnableCameraAnimations;
         public static bool ShowVisualSkeleton => SettingsManager.settings.XenoKit_EnableVisualSkeleton;
+        public static float BattleDamageScratches = 0f;
+        public static float BattleDamageBlood = 0f;
 
         //public static float BacTimeScale = 1f; //TimeScale specified by a TimeScale bacType
         //public static float MainAnimTimeScale = 1f;

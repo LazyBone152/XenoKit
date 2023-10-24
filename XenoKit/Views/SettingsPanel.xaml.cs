@@ -118,6 +118,16 @@ namespace XenoKit.Views
                 }
             }
         }
+        public float Scratches
+        {
+            get => SceneManager.BattleDamageScratches;
+            set => SceneManager.BattleDamageScratches = value;
+        }
+        public float Blood
+        {
+            get => SceneManager.BattleDamageBlood;
+            set => SceneManager.BattleDamageBlood = value;
+        }
 
         public SettingsPanel()
         {

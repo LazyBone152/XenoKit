@@ -546,7 +546,7 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_MaterialCol0_PS"].SetVector4(MatParam.MatCol0.Values);
                 Parameters["g_MaterialCol1_PS"].SetVector4(MatParam.MatCol1.Values);
                 Parameters["g_MaterialCol2_PS"].SetVector4(MatParam.MatCol2.Values);
-                Parameters["g_MaterialCol3_PS"].SetVector4(MatParam.MatCol3.Values);
+                Parameters["g_MaterialCol3_PS"].SetVector4(MatParam.MatCol3.Values); //(Characters) R = scratches, G = blood
                 Parameters["g_MaterialOffset0_PS"].SetVector4(MatParam.MatOffset0.Values);
                 Parameters["g_MaterialOffset1_PS"].SetVector4(MatParam.MatOffset1.Values);
                 Parameters["g_MaterialScale0_PS"].SetVector4(MatParam.MatScale0.Values);
@@ -769,6 +769,11 @@ namespace XenoKit.Engine.Shader
                     g_vParam3_PS.SetValue(Vector4.One);
                     g_vParam4_PS.SetValue(Vector4.Zero);
                     g_vParam5_PS.SetValue(Vector4.Zero);
+                }
+
+                if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
+                {
+                    g_MaterialCol3_PS.SetValue(new Vector4(SceneManager.BattleDamageScratches, SceneManager.BattleDamageBlood, Material.DecompiledParameters.MatCol3.B, Material.DecompiledParameters.MatCol3.A));
                 }
             }
 
