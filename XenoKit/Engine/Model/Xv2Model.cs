@@ -747,21 +747,32 @@ namespace XenoKit.Engine.Model
 
                     for (int width = 0; width < dyt.EmbEntry.Texture.PixelWidth; width++)
                     {
-                        Xv2CoreLib.HslColor.HslColor color = new Xv2CoreLib.HslColor.RgbColor(colors.GetColor(c)).ToHsl();
+                        var bcsColor = colors.GetColor(c);
+                        Xv2CoreLib.HslColor.HslColor color = new Xv2CoreLib.HslColor.RgbColor(bcsColor).ToHsl();
 
-                        var pixel = dyt.EmbEntry.Texture.GetPixel(width, height + dytLine);
-                        Xv2CoreLib.HslColor.HslColor pixelColor = new Xv2CoreLib.HslColor.RgbColor(pixel.R, pixel.G, pixel.B).ToHsl();
+                        var pixelRgb = dyt.EmbEntry.Texture.GetPixel(width, height + dytLine);
+                        Xv2CoreLib.HslColor.HslColor pixelColor = new Xv2CoreLib.HslColor.RgbColor(pixelRgb.R, pixelRgb.G, pixelRgb.B).ToHsl();
                         pixelColor.SetHue(color.Hue);
                         pixelColor.Saturation = color.Saturation;
-                        //pixelColor.Saturation = (pixelColor.Saturation * 0.5) + (color.Saturation * 0.5);
-                        //pixelColor.Lightness = (pixelColor.Lightness * 0.75) + (color.Lightness * 0.25);
+                        pixelColor.Lightness = (color.Lightness * 0.8f) + (pixelColor.Lightness * 0.2f); //BCS colors only keep 20% of the pixels original lightness
 
                         var newPixelRgb = pixelColor.ToRgb();
 
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixel.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixel.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 2, pixel.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 3, pixel.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
+                        //The pixel is colored by a factor of the original color and that defined in the BCS color (e.g: if BCS A is 0, then only the original pixels color is kept, but if its 1, then it should only be the BCS color, or if its somewhere inbetween, then they are merged)
+                        float originalFactor = 1f - bcsColor.A;
+                        byte r = (byte)((newPixelRgb.R_int * bcsColor.A) + (pixelRgb.R * originalFactor));
+                        byte g = (byte)((newPixelRgb.G_int * bcsColor.A) + (pixelRgb.G * originalFactor));
+                        byte b = (byte)((newPixelRgb.B_int * bcsColor.A) + (pixelRgb.B * originalFactor));
+
+                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 2, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 3, pixelRgb.A, r, g, b);
+
+                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
+                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
+                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 2, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
+                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 3, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
 
                     }
                 }
