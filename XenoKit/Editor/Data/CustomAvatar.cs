@@ -14,23 +14,26 @@ namespace XenoKit.Editor.Data
     {
         private OutlinerItem OutlinerItem;
 
+        public int CaCIndex { get; set; }
         public CaC CaC { get; set; }
         public Actor[] Actor { get; set; }
+        public int Preset { get; set; }
 
-        private int Race => (int)CaC.I_20;
-        private int CmsID => (int)GetAvatarID(CaC.I_20);
+        public int Race => (int)CaC.I_20;
+        public int CmsID => (int)GetAvatarID(CaC.I_20);
 
-        public CustomAvatar(CaC cac, OutlinerItem parentItem)
+        public bool IsAppearenceDirty { get; set; } = false;
+        public bool IsColorsDirty { get; set; } = false;
+        public bool IsSizeDirty { get; set; } = false;
+
+        public CustomAvatar(int cacIndex, CaC cac, OutlinerItem parentItem)
         {
             OutlinerItem = parentItem;
             CaC = cac;
             Actor = new Actor[8];
+            CaCIndex = cacIndex;
         }
 
-        public void ResetAppearence()
-        {
-            CaC.Appearence.ResetBasicAppearence();
-        }
 
         public void InitActor()
         {
@@ -72,16 +75,16 @@ namespace XenoKit.Editor.Data
             Actor[Race].PartSet.ApplyTransformation(CaC.Appearence.I_152, Xv2CoreLib.BCS.PartTypeFlags.Hair, true);
 
             //ID refers to an IDB entry, not part set
-            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[0].I_00), Xv2CoreLib.BCS.PartTypeFlags.Bust, true);
-            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[0].I_04), Xv2CoreLib.BCS.PartTypeFlags.Pants, true);
-            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[0].I_12), Xv2CoreLib.BCS.PartTypeFlags.Boots, true);
-            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[0].I_08), Xv2CoreLib.BCS.PartTypeFlags.Rist, true);
+            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[Preset].I_00), Xv2CoreLib.BCS.PartTypeFlags.Bust, true);
+            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[Preset].I_04), Xv2CoreLib.BCS.PartTypeFlags.Pants, true);
+            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[Preset].I_12), Xv2CoreLib.BCS.PartTypeFlags.Boots, true);
+            Actor[Race].PartSet.ApplyTransformation(Xenoverse2.Instance.GetTopPartSetID(CaC.Presets[Preset].I_08), Xv2CoreLib.BCS.PartTypeFlags.Rist, true);
 
         }
 
         public void SetCustomColors()
         {
-            Actor[Race].PartSet.SetCacCustomColors(CaC, 0);
+            Actor[Race].PartSet.SetCacCustomColors(CaC, Preset);
             Actor[Race].PartSet.ApplyCustomColors();
         }
 
@@ -103,6 +106,28 @@ namespace XenoKit.Editor.Data
         private CustomCharacter GetAvatarID(Race race)
         {
             return (CustomCharacter)Enum.Parse(typeof(CustomCharacter), race.ToString());
+        }
+
+        public void Update()
+        {
+            if (IsSizeDirty)
+            {
+                SetActorSize();
+                IsSizeDirty = false;
+            }
+
+            if (IsColorsDirty)
+            {
+                SetCustomColors();
+                IsColorsDirty = false;
+            }
+
+            if (IsAppearenceDirty)
+            {
+                SetActorAppearence();
+                SetCustomColors();
+                IsAppearenceDirty = false;
+            }
         }
     }
 }

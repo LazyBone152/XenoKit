@@ -26,6 +26,7 @@ namespace XenoKit.Editor
         public Visibility ProjectileVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility CameraVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility SystemVisibility { get; private set; } = Visibility.Collapsed;
+        public Visibility CacVisibility { get; private set; } = Visibility.Collapsed;
 
         //SubTabs:
         public Visibility ShotBdmVisibility { get; private set; } = Visibility.Collapsed;
@@ -41,7 +42,11 @@ namespace XenoKit.Editor
 
         private void SetVisibilities()
         {
-            if (type == OutlinerItemType.CMN)
+            if(type == OutlinerItemType.CaC)
+            {
+                CacVisibility = Visibility.Visible;
+            }
+            else if (type == OutlinerItemType.CMN)
             {
                 AnimationVisibility = Visibility.Visible;
                 ActionVisibility = Visibility.Visible;

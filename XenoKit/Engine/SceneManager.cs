@@ -28,7 +28,8 @@ namespace XenoKit.Engine
         Hitbox = 6,
         Effect = 7,
         Audio = 8,
-        System = 9
+        System = 9,
+        CAC = 10
     }
 
     public enum BcsEditorTabs
@@ -69,7 +70,8 @@ namespace XenoKit.Engine
         Effect_EMO,
         Audio_VOX,
         Audio_SE,
-        System
+        System,
+        CAC
     }
 
     public static class SceneManager
@@ -206,6 +208,9 @@ namespace XenoKit.Engine
                     break;
                 case MainEditorTabs.System:
                     CurrentSceneState = EditorTabs.System;
+                    break;
+                case MainEditorTabs.CAC:
+                    CurrentSceneState = EditorTabs.CAC;
                     break;
             }
 
@@ -517,6 +522,11 @@ namespace XenoKit.Engine
             else
             {
                 SlowUpdateTimer++;
+            }
+
+            if(Files.Instance.SelectedItem != null)
+            {
+                Files.Instance.SelectedItem.Update();
             }
 
         }

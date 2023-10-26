@@ -6,9 +6,9 @@
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:XenoKit.Windows"
         mc:Ignorable="d"
-        Title="Color Selector" Height="440" Width="330" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" Name="Window" TitleCharacterCasing="Normal">
+        Title="Color Selector" Height="480" Width="330" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" Name="Window" TitleCharacterCasing="Normal">
     <Grid>
-        <ListBox x:Name="colorListBox" ItemsSource="{Binding ElementName=Window, Path=ColorGroup.ColorsList.Binding}" SelectedValuePath="ID" SelectedValue="{Binding ElementName=Window, Path=SelectedValue}" Height="390" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center" SelectionMode="Single" Margin="5" SelectionChanged="colorListBox_SelectionChanged">
+        <ListBox x:Name="colorListBox" ItemsSource="{Binding ElementName=Window, Path=ColorGroup.ColorsList.Binding}" SelectedValuePath="ID" SelectedValue="{Binding ElementName=Window, Path=SelectedValue}" Height="420" Width="310" HorizontalAlignment="Center" VerticalAlignment="Center" SelectionMode="Single" Margin="10" SelectionChanged="colorListBox_SelectionChanged">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel Orientation="Horizontal" IsItemsHost="True" MaxWidth="300">

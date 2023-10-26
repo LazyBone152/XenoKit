@@ -30,6 +30,8 @@ using Xv2CoreLib.Resource;
 using Xv2CoreLib.ValuesDictionary;
 using XenoKit.Editor.Data;
 using System.Windows;
+using Xv2CoreLib.Resource.App;
+using Xv2CoreLib.SAV;
 
 namespace XenoKit.Editor
 {
@@ -386,7 +388,7 @@ namespace XenoKit.Editor
         }
 
 
-        public async Task AsyncLoadCac(Xv2CoreLib.SAV.CaC cac)
+        public async Task AsyncLoadCac(int cacIndex, Xv2CoreLib.SAV.CaC cac)
         {
             var progressBarController = await window.ShowProgressAsync("Loading", $"Loading avatar \"{cac.Name}\"", false, DialogSettings.Default);
             progressBarController.SetIndeterminate();
@@ -395,7 +397,7 @@ namespace XenoKit.Editor
             {
                 await Task.Run(() =>
                 {
-                    var item = new OutlinerItem(cac);
+                    var item = new OutlinerItem(cacIndex, cac);
                     item.CustomAvatar.InitActor();
                     item.CustomAvatar.SetActorAppearence();
                     item.CustomAvatar.SetCustomColors();
@@ -461,6 +463,9 @@ namespace XenoKit.Editor
                             break;
                         case OutlinerItem.OutlinerItemType.CMN:
                             SaveCMN(item.move);
+                            break;
+                        case OutlinerItem.OutlinerItemType.CaC:
+                            SaveCac(item);
                             break;
                     }
                 });
@@ -552,6 +557,24 @@ namespace XenoKit.Editor
             {
                 xv2.Instance.SaveCharacter(item.move.ConvertToXv2Character(), true);
             }
+        }
+
+        private void SaveCac(OutlinerItem item)
+        {
+            if (!File.Exists(SettingsManager.settings.SaveFile))
+            {
+                MessageBox.Show("A save file must be set in the settings to use this feature.", "No Save File", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            //Reload the save file, because XenoKit doesn't keep it in memory
+            SAV_File savFile = SAV_File.Load(SettingsManager.settings.SaveFile, false);
+            
+            //Only the appearence settings are saved back to the save file
+            savFile.Characters[item.CustomAvatar.CaCIndex].Appearence = item.CustomAvatar.CaC.Appearence;
+            savFile.Characters[item.CustomAvatar.CaCIndex].Presets = item.CustomAvatar.CaC.Presets;
+
+            savFile.Save(SettingsManager.settings.SaveFile, true);
         }
 
         #endregion

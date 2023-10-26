@@ -773,6 +773,9 @@
     <Compile Include="Views\BCS\BcsSkeletonDataView.xaml.cs">
       <DependentUpon>BcsSkeletonDataView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\CacView.xaml.cs">
+      <DependentUpon>CacView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CameraTabView.xaml.cs">
       <DependentUpon>CameraTabView.xaml</DependentUpon>
     </Compile>
@@ -1223,6 +1226,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\BCS\BcsSkeletonDataView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CacView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

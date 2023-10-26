@@ -112,6 +112,10 @@
 
             </Controls:MetroTabItem>
             <Controls:MetroTabItem Header="System" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.SystemVisibility}"/>
+            <Controls:MetroTabItem Header="CAC" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.CacVisibility}">
+                <_views:CacView x:Name="cacView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            </Controls:MetroTabItem>
         </TabControl>
 
         <TabControl x:Name="scenLogTab" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.ColumnSpan="2" Margin="5.145,0.182,15.545,28.327">

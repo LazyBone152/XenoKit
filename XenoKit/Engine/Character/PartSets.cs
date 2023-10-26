@@ -1392,6 +1392,9 @@ namespace XenoKit.Engine
         public enum PartColorMaterials
         {
             SKIN_ = 0,
+            SKIN2 = 1,
+            SKIN3 = 2,
+            SKIN4 = 3,
             HAIR_ = 4,
             EYE_ = 5,
             CC00_BUST_ = 6,

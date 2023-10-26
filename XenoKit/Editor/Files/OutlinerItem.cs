@@ -247,9 +247,10 @@ namespace XenoKit.Editor
             Visibilities = new EditorVisibility(type);
         }
 
-        public OutlinerItem(Xv2CoreLib.SAV.CaC cac)
+        public OutlinerItem(int cacIndex, Xv2CoreLib.SAV.CaC cac)
         {
-            CustomAvatar = new CustomAvatar(cac, this);
+            CustomAvatar = new CustomAvatar(cacIndex, cac, this);
+            Visibilities = new EditorVisibility(OutlinerItemType.CaC);
         }
 
         /// <summary>
@@ -288,7 +289,10 @@ namespace XenoKit.Editor
 
         public bool SaveValidate(MetroWindow window)
         {
-            if (!GetMove().SaveValidate(window)) return false;
+            Move move = GetMove();
+
+            if(move != null)
+                if (!move.SaveValidate(window)) return false;
 
             return true;
         }
@@ -319,7 +323,7 @@ namespace XenoKit.Editor
                     return 0;
             }
         }
-    
+
         private string GetUniqueID()
         {
             if (IsManualLoaded) return null;
@@ -337,6 +341,14 @@ namespace XenoKit.Editor
             }
 
             return null;
+        }
+    
+        public void Update()
+        {
+            if(Type == OutlinerItemType.CaC)
+            {
+                CustomAvatar.Update();
+            }
         }
     }
 

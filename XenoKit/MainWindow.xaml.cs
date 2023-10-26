@@ -114,6 +114,19 @@ namespace XenoKit
         private void Files_SelectedMoveChanged(object sender, EventArgs e)
         {
             mainTabControl.Visibility = Files.Instance.SelectedItem != null ? Visibility.Visible : Visibility.Hidden;
+
+            //Change tabs based on selected item type
+            if (Files.Instance.SelectedItem != null)
+            {
+                //CAC: Go to CAC tab
+                if(Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CaC)
+                {
+                    mainTabControl.SelectedIndex = (int)MainEditorTabs.CAC;
+                }
+
+                //todo: create a system for detecting if a invalid tab is selected, and unset it. maybe check its visibility?
+            }
+
             UpdateSelectedTab();
         }
 
@@ -269,7 +282,7 @@ namespace XenoKit
 
             if(itemSelector.SelectedItem != null)
             {
-                await Files.Instance.AsyncLoadCac(savFile.Characters[itemSelector.SelectedItem.ID]);
+                await Files.Instance.AsyncLoadCac(itemSelector.SelectedItem.ID, savFile.Characters[itemSelector.SelectedItem.ID]);
             }
         }
 
