@@ -97,7 +97,7 @@ namespace XenoKit.Engine
 
         protected override void Draw(GameTime time)
         {
-            base.Draw(time);
+            GraphicsDevice.Clear(Color.Transparent);
             worldGrid.Draw();
 
             //Handle Dyt texture and Sampler
