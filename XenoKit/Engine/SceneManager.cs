@@ -397,9 +397,9 @@ namespace XenoKit.Engine
             ActorChanged?.Invoke(character, new ActorChangedEventArgs(character, actorSlot));
         }
 
-        public static void UnsetActor(Actor actor)
+        public static int UnsetActor(Actor actor)
         {
-            if (actor == null) return;
+            if (actor == null) return -1;
             int actorSlot = IndexOfCharacter(actor, true);
 
             if (actorSlot != -1)
@@ -416,6 +416,8 @@ namespace XenoKit.Engine
 
                 ActorChanged?.Invoke(null, new ActorChangedEventArgs(null, actorSlot));
             }
+
+            return actorSlot;
         }
 
         public static void FocusActor(Actor actor)

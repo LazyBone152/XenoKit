@@ -32,6 +32,7 @@ using XenoKit.Editor.Data;
 using System.Windows;
 using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.SAV;
+using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Editor
 {
@@ -150,6 +151,43 @@ namespace XenoKit.Editor
             }
         }
 
+        public RelayCommand ReloadSelectedItemCommand => new RelayCommand(ReloadSelectedItem, CanReload);
+        private async void ReloadSelectedItem()
+        {
+            FileManager.Instance.ForceReloadFiles = true;
+
+            try
+            {
+                UndoManager.Instance.Clear();
+                int index = OutlinerItems.IndexOf(_selectedItem);
+                string name = _selectedItem.DisplayName;
+
+                switch (_selectedItem.Type)
+                {
+                    case OutlinerItem.OutlinerItemType.Skill:
+                        await AsyncLoadSkill(_selectedItem.move.CusEntry.ID1, _selectedItem.move.SkillType, _selectedItem.OnlyLoadFromCPK, index);
+                        break;
+                    case OutlinerItem.OutlinerItemType.Character:
+                        int actorSlot = SceneManager.UnsetActor(_selectedItem.character);
+                        Actor actor = await AsyncLoadCharacter(_selectedItem.character.CharacterData.CmsEntry.ID, _selectedItem.character.PartSet.ID, _selectedItem.ReadOnly, index);
+
+                        //Set new actor as actor if the reloaded character was previously an actor
+                        if(actorSlot != -1)
+                            SceneManager.SetActor(actor, actorSlot);
+                        break;
+                    case OutlinerItem.OutlinerItemType.CMN:
+                        await Task.Run(LoadCmnFiles);
+                        break;
+                }
+
+                Log.Add($"\"{name}\" reloaded!", LogType.Info);
+            }
+            finally
+            {
+                FileManager.Instance.ForceReloadFiles = false;
+            }
+        }
+
 
         private bool CanSave()
         {
@@ -164,29 +202,42 @@ namespace XenoKit.Editor
             }
             return false;
         }
+
+        private bool CanReload()
+        {
+            if (_selectedItem == null) return false;
+            return _selectedItem.Type == OutlinerItem.OutlinerItemType.Skill || _selectedItem.Type == OutlinerItem.OutlinerItemType.Character;
+        }
         #endregion
 
-        private async void AddOutlinerItem(OutlinerItem item)
+        private async void AddOutlinerItem(OutlinerItem item, int replaceItemIndex = -1)
         {
-            OutlinerItem existingItem = OutlinerItems.FirstOrDefault(x => x.ID == item.ID && !x.IsManualLoaded);
-
-            if (existingItem != null && !item.IsManualLoaded)
+            if(replaceItemIndex != -1)
             {
-                //Special case: we can replace the existing moveset item with the character here, since the character contains everything the moveset has.
-                if (existingItem.Type == OutlinerItem.OutlinerItemType.Moveset && item.Type == OutlinerItem.OutlinerItemType.Character)
-                {
-                    OutlinerItems[OutlinerItems.IndexOf(existingItem)] = item;
+                OutlinerItems[replaceItemIndex] = item;
+            }
+            else
+            {
+                OutlinerItem existingItem = OutlinerItems.FirstOrDefault(x => x.ID == item.ID && !x.IsManualLoaded);
 
-                    Log.Add($"Replaced the moveset {existingItem.DisplayName} with the character {item.DisplayName}.");
+                if (existingItem != null && !item.IsManualLoaded)
+                {
+                    //Special case: we can replace the existing moveset item with the character here, since the character contains everything the moveset has.
+                    if (existingItem.Type == OutlinerItem.OutlinerItemType.Moveset && item.Type == OutlinerItem.OutlinerItemType.Character)
+                    {
+                        OutlinerItems[OutlinerItems.IndexOf(existingItem)] = item;
+
+                        Log.Add($"Replaced the moveset {existingItem.DisplayName} with the character {item.DisplayName}.");
+                        return;
+                    }
+
+                    //Show an error message to the user and quit
+                    MessageBox.Show($"This {item.DisplayType.ToLower()} is already loaded.", "Already Exists", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                //Show an error message to the user and quit
-                MessageBox.Show($"This {item.DisplayType.ToLower()} is already loaded.", "Already Exists", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                OutlinerItems.Add(item);
             }
-
-            OutlinerItems.Add(item);
         }
 
 
@@ -212,7 +263,7 @@ namespace XenoKit.Editor
                 await AsyncLoadSkill(selector.SelectedItem.ID, skillType, selector.OnlyLoadFromCPK);
         }
 
-        public async Task AsyncLoadSkill(int id1, CUS_File.SkillType skillType, bool onlyCpk)
+        public async Task AsyncLoadSkill(int id1, CUS_File.SkillType skillType, bool onlyCpk, int replaceItemIndex = -1)
         {
             ProgressDialogController progressBarController = await window.ShowProgressAsync("Loading", $"Loading skill \"{Xenoverse2.Instance.GetSkillName(skillType, CUS_File.ConvertToID2(id1, skillType), id1.ToString(), xv2.Language.English)}\"", false, DialogSettings.Default);
             progressBarController.SetIndeterminate();
@@ -232,7 +283,7 @@ namespace XenoKit.Editor
 
                         if (move != null)
                         {
-                            AddOutlinerItem(new OutlinerItem(move, false, OutlinerItem.OutlinerItemType.Skill));
+                            AddOutlinerItem(new OutlinerItem(move, false, OutlinerItem.OutlinerItemType.Skill, onlyCpk), replaceItemIndex);
                         }
                     }
                 });
@@ -268,7 +319,7 @@ namespace XenoKit.Editor
             }
         }
 
-        public async Task<Actor> AsyncLoadCharacter(int id, int partSetId, bool readOnly = false)
+        public async Task<Actor> AsyncLoadCharacter(int id, int partSetId, bool readOnly = false, int replaceItemIndex = -1)
         {
             var progressBarController = await window.ShowProgressAsync("Loading", $"Loading character \"{Xenoverse2.Instance.GetCharacterName(id, xv2.Language.English)}\"", false, DialogSettings.Default);
             progressBarController.SetIndeterminate();
@@ -285,7 +336,7 @@ namespace XenoKit.Editor
 
                     VerifyValues(chara.Moveset.Files);
 
-                    AddOutlinerItem(new OutlinerItem(chara, readOnly, OutlinerItem.OutlinerItemType.Character));
+                    AddOutlinerItem(new OutlinerItem(chara, readOnly, OutlinerItem.OutlinerItemType.Character), replaceItemIndex);
                 });
             }
             catch (Exception ex)
@@ -335,7 +386,7 @@ namespace XenoKit.Editor
 
                 if (move != null)
                 {
-                    AddOutlinerItem(new OutlinerItem(move, false, OutlinerItem.OutlinerItemType.Moveset));
+                    AddOutlinerItem(new OutlinerItem(move, false, OutlinerItem.OutlinerItemType.Moveset, false));
                 }
             }
         }
@@ -370,7 +421,7 @@ namespace XenoKit.Editor
             }
             else
             {
-                OutlinerItems.Add(new OutlinerItem(move, true, OutlinerItem.OutlinerItemType.CMN));
+                OutlinerItems.Add(new OutlinerItem(move, true, OutlinerItem.OutlinerItemType.CMN, false));
             }
         }
 

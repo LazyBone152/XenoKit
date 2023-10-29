@@ -14,6 +14,9 @@ using System.Collections.Generic;
 using XenoKit.Engine.Model;
 using Xv2CoreLib.NSK;
 using XenoKit.Editor.Data;
+using System.Threading.Tasks;
+using MahApps.Metro.Controls.Dialogs;
+using Xv2CoreLib.CUS;
 
 namespace XenoKit.Editor
 {
@@ -52,6 +55,7 @@ namespace XenoKit.Editor
         public OutlinerItemType Type { get; set; }
         public bool ReadOnly { get; set; }
         public bool IsManualLoaded { get; private set; } = false;
+        public bool OnlyLoadFromCPK { get; private set; } = false;
 
         //Data
         public Move move { get; set; }
@@ -228,22 +232,23 @@ namespace XenoKit.Editor
             Visibilities = new EditorVisibility(Type);
         }
 
-        public OutlinerItem(Move move, bool readOnly, OutlinerItemType type) : this(readOnly, type)
+        public OutlinerItem(Move move, bool readOnly, OutlinerItemType type, bool onlyLoadFromCpk) : this(readOnly, type, onlyLoadFromCpk)
         {
             this.move = move;
             SetSelectedItems();
         }
 
-        public OutlinerItem(Actor chara, bool readOnly, OutlinerItemType type) : this(readOnly, type)
+        public OutlinerItem(Actor chara, bool readOnly, OutlinerItemType type) : this(readOnly, type, false)
         {
             character = chara;
             SetSelectedItems();
         }
 
-        private OutlinerItem(bool readOnly, OutlinerItemType type)
+        private OutlinerItem(bool readOnly, OutlinerItemType type, bool onlyLoadFromCpk)
         {
             Type = type;
             ReadOnly = readOnly;
+            OnlyLoadFromCPK = onlyLoadFromCpk;
             Visibilities = new EditorVisibility(type);
         }
 
@@ -342,7 +347,7 @@ namespace XenoKit.Editor
 
             return null;
         }
-    
+
         public void Update()
         {
             if(Type == OutlinerItemType.CaC)
@@ -350,6 +355,7 @@ namespace XenoKit.Editor
                 CustomAvatar.Update();
             }
         }
+
     }
 
     public class ManualFiles
