@@ -33,7 +33,7 @@
 
 
         <Button Content="Ok" HorizontalAlignment="Left" Margin="113,341,0,0" VerticalAlignment="Top" Width="75" Command="{Binding ElementName=Window, Path=SelectItemCommand}"/>
-        <CheckBox ToolTip="Ignore loose files and load directly from CPK." IsChecked="{Binding OnlyLoadFromCPK}" Content="Only Load From CPK" HorizontalAlignment="Left" Margin="78,317,0,0" VerticalAlignment="Top" Width="153" Visibility="Hidden"/>
+        <CheckBox x:Name="fromCpkCheckBox" ToolTip="Ignore loose files and load directly from CPK." IsChecked="{Binding OnlyLoadFromCPK}" FontWeight="SemiBold" Content="Only Load From CPK" HorizontalAlignment="Left" Margin="78,317,0,0" VerticalAlignment="Top" Width="153" Visibility="Hidden"/>
         <TextBox Text="{Binding ElementName=Window, Path=SearchFilter, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource MahApps.Styles.TextBox.Search}" Controls:TextBoxHelper.Watermark="Search..." Controls:TextBoxHelper.ButtonCommand="{Binding ElementName=Window, Path=ClearSearchCommand}" Controls:TextBoxHelper.ClearTextButton="True" HorizontalAlignment="Left" VerticalContentAlignment="Center" Height="23" Margin="51,283,0,0" VerticalAlignment="Top" Width="188" TextWrapping="Wrap" />
 
     </Grid>

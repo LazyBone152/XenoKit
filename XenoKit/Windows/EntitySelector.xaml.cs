@@ -124,5 +124,10 @@ namespace XenoKit.Windows
             SearchFilter = string.Empty;
         }
         #endregion
+
+        public void EnableLoadFromCpk()
+        {
+            fromCpkCheckBox.Visibility = Visibility.Visible;
+        }
     }
 }

@@ -203,26 +203,25 @@ namespace XenoKit.Editor
 
         public async void AsyncLoadSkill(CUS_File.SkillType skillType)
         {
-            var skills = xv2.Instance.GetSkillList(skillType);
+            List<Xv2Item> skills = xv2.Instance.GetSkillList(skillType);
             EntitySelector selector = new EntitySelector(skills, skillType.ToString(), Application.Current.MainWindow);
+            selector.EnableLoadFromCpk();
             selector.ShowDialog();
 
             if (selector.SelectedItem != null)
-                await AsyncLoadSkill(selector.SelectedItem.ID, skillType);
-
-
+                await AsyncLoadSkill(selector.SelectedItem.ID, skillType, selector.OnlyLoadFromCPK);
         }
 
-        public async Task AsyncLoadSkill(int id1, CUS_File.SkillType skillType)
+        public async Task AsyncLoadSkill(int id1, CUS_File.SkillType skillType, bool onlyCpk)
         {
-            var progressBarController = await window.ShowProgressAsync("Loading", $"Loading skill \"{Xenoverse2.Instance.GetSkillName(skillType, CUS_File.ConvertToID2(id1, skillType), id1.ToString(), xv2.Language.English)}\"", false, DialogSettings.Default);
+            ProgressDialogController progressBarController = await window.ShowProgressAsync("Loading", $"Loading skill \"{Xenoverse2.Instance.GetSkillName(skillType, CUS_File.ConvertToID2(id1, skillType), id1.ToString(), xv2.Language.English)}\"", false, DialogSettings.Default);
             progressBarController.SetIndeterminate();
 
             try
             {
                 await Task.Run(() =>
                 {
-                    Xv2Skill skill = xv2.Instance.GetSkill(skillType, id1);
+                    Xv2Skill skill = xv2.Instance.GetSkill(skillType, id1, true, onlyCpk);
 
                     //Add to outliner
                     if (skill != null)
