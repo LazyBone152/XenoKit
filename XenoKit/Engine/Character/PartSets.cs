@@ -549,6 +549,7 @@ namespace XenoKit.Engine
         public Xv2Texture[] Textures { get; private set; }
         public Xv2Texture[] Dyts { get; private set; }
         public Xv2Skeleton Skeleton { get; private set; }
+        private int[] SkeletoBoneIndices;
 
         //Source Files:
         private bool nullPartSet = false;
@@ -746,6 +747,11 @@ namespace XenoKit.Engine
             }
 
             Skeleton = CompiledObjectManager.GetCompiledObject<Xv2Skeleton>(EskFile, GameBase);
+
+            if(Skeleton != null)
+            {
+                SkeletoBoneIndices = Skeleton.ScdGetBoneIndices(chara.Skeleton);
+            }
         }
 
         public void LoadCustomColors(List<CustomColorGroup> colors)
@@ -1135,10 +1141,7 @@ namespace XenoKit.Engine
         #region Rendering
         public override void Update()
         {
-            if (Model != null)
-            {
-                Model.Update(chara.ActorSlot, chara.Skeleton);
-            }
+            Model?.Update(chara.ActorSlot, chara.Skeleton);
 
             if (!IsPhysicsPart)
             {
@@ -1151,10 +1154,9 @@ namespace XenoKit.Engine
 
         public void UpdatePhysicsPart()
         {
-            if (Model != null)
-            {
-                Model.Update(0, Skeleton);
-            }
+            Skeleton?.ScdUpdate(chara.Skeleton, SkeletoBoneIndices);
+
+            Model?.Update(0, Skeleton);
         }
 
         /// <summary>
@@ -1240,14 +1242,7 @@ namespace XenoKit.Engine
 
             if (Model != null)
             {
-                //Matrix bone = Skeleton.BoneAbsoluteMatrices[Skeleton.GetBoneIndex(physicsPart.BoneToAttach)] * chara.Skeleton.BoneAbsoluteMatrices[chara.Skeleton.GetBoneIndex(physicsPart.BoneToAttach)];
-                Matrix charaBone = chara.AnimationPlayer.GetCurrentAbsoluteMatrix(physicsPart.BoneToAttach);
-                //Matrix scdBone = Skeleton.Bones[Skeleton.GetBoneIndex(physicsPart.BoneToAttach)].AbsoluteMatrix;
-
-                if (Skeleton != null)
-                    Skeleton.CopySkinningState(chara.Skeleton);
-
-                Model.Draw(charaBone * chara.Transform, 0, Materials, Textures, Dyts, texIdx, Skeleton);
+                Model.Draw(chara.Transform, 0, Materials, Textures, Dyts, texIdx, Skeleton);
             }
         }
 
@@ -1281,12 +1276,7 @@ namespace XenoKit.Engine
         {
             if (Model != null)
             {
-                Matrix charaBone = chara.AnimationPlayer.GetCurrentAbsoluteMatrix(physicsPart.BoneToAttach);
-
-                if (Skeleton != null)
-                    Skeleton.CopySkinningState(chara.Skeleton);
-
-                Model.Draw(charaBone * chara.Transform, 0, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, Skeleton);
+                Model.Draw(chara.Transform, 0, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, Skeleton);
             }
         }
 

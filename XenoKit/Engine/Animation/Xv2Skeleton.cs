@@ -32,7 +32,6 @@ namespace XenoKit.Engine.Animation
         //Bone Scale:
         private Body CurrentBoneScale = null;
 
-
         public Xv2Skeleton(ESK_File eskFile)
         {
             //Init bone index cache
@@ -48,7 +47,7 @@ namespace XenoKit.Engine.Animation
 
             //Init skeleton
             EskFile = eskFile;
-            LoadSkeletonFromEsk();
+            LoadSkeletonFromEsk(eskFile);
         }
 
         public Xv2Skeleton(Skeleton emoSkeleton)
@@ -63,7 +62,7 @@ namespace XenoKit.Engine.Animation
         {
             if(EskFile != null)
             {
-                LoadSkeletonFromEsk();
+                LoadSkeletonFromEsk(EskFile);
             }
             else if(EmoSkeleton != null)
             {
@@ -101,27 +100,27 @@ namespace XenoKit.Engine.Animation
             }
         }
 
-        private void LoadSkeletonFromEsk()
+        protected void LoadSkeletonFromEsk(ESK_File esk)
         {
             BoneIndexCache.Clear();
 
             //Always recreate the bone list when this function is called, since the bone structure may have changed
-            EskFile.Skeleton.CreateNonRecursiveBoneList();
-            int boneCount = EskFile.Skeleton.NonRecursiveBones.Count;
+            esk.Skeleton.CreateNonRecursiveBoneList();
+            int boneCount = esk.Skeleton.NonRecursiveBones.Count;
 
             Bones = new Xv2Bone[boneCount];
 
             for (int i = 0; i < boneCount; i++)
             {
-                int parentIdx = EskFile.Skeleton.NonRecursiveBones[i].Index1;
+                int parentIdx = esk.Skeleton.NonRecursiveBones[i].Index1;
 
                 Bones[i] = new Xv2Bone();
-                Bones[i].Name = EskFile.Skeleton.NonRecursiveBones[i].Name;
+                Bones[i].Name = esk.Skeleton.NonRecursiveBones[i].Name;
                 Bones[i].Parent = (parentIdx != -1) ? Bones[parentIdx] : null;
                 Bones[i].ParentIndex = parentIdx;
-                Bones[i].IsFaceBone = EskFile.Skeleton.NonRecursiveBones[i].Name.StartsWith("f_");
+                Bones[i].IsFaceBone = esk.Skeleton.NonRecursiveBones[i].Name.StartsWith("f_");
 
-                Bones[i].RelativeMatrix = ConvertEskTransformToMatrix(EskFile.Skeleton.NonRecursiveBones[i].RelativeTransform);
+                Bones[i].RelativeMatrix = ConvertEskTransformToMatrix(esk.Skeleton.NonRecursiveBones[i].RelativeTransform);
 
                 if(Bones[i].Name == ESK_File.BaseBone)
                 {
@@ -147,7 +146,8 @@ namespace XenoKit.Engine.Animation
             {
                 Bones[i].BindPoseMatrix = Bones[i].AbsoluteMatrix;
                 Bones[i].InverseBindPoseMatrix = Matrix.Invert(Bones[i].BindPoseMatrix);
-                Bones[i].SkinningMatrix = Bones[i].AbsoluteMatrix;
+                //Bones[i].SkinningMatrix = Bones[i].AbsoluteMatrix;
+                Bones[i].SkinningMatrix = Matrix.Identity;
 
                 BoneIndexCache.Add(Bones[i].Name, i);
             }
@@ -348,6 +348,58 @@ namespace XenoKit.Engine.Animation
                 }
             }
         }
+
+        #endregion
+
+        #region SCD
+
+        /// <summary>
+        /// Create a index reference for matching bones in the parent skeleton. The resulting array is to be used in the <see cref="ScdUpdate(Xv2Skeleton, int[])"/> method.
+        /// </summary>
+        public int[] ScdGetBoneIndices(Xv2Skeleton parentSkeleton)
+        {
+            int[] boneIndices = new int[parentSkeleton.Bones.Length];
+
+            if (boneIndices?.Length != Bones.Length || boneIndices == null)
+                boneIndices = new int[Bones.Length];
+
+            for (int i = 0; i < Bones.Length; i++)
+                boneIndices[i] = -1;
+
+            if (parentSkeleton != null)
+            {
+                for (int i = 0; i < Bones.Length; i++)
+                {
+                    boneIndices[i] = parentSkeleton.GetBoneIndex(Bones[i].Name);
+                }
+            }
+
+            return boneIndices;
+        }
+
+        public void ScdUpdate(Xv2Skeleton parentSkeleton, int[] boneIndices)
+        {
+            if (parentSkeleton != null)
+            {
+                //Create skinning matrix from animation data of parent skeleton
+                for (int i = 0; i < boneIndices.Length; i++)
+                {
+                    if (boneIndices[i] != -1)
+                    {
+                        Bones[i].SkinningMatrix = Bones[i].InverseBindPoseMatrix * parentSkeleton.Bones[boneIndices[i]].AbsoluteAnimationMatrix;
+                    }
+                }
+
+                //Set SCD bones to use the parent bone skinning matrix. 
+                for (int i = 0; i < Bones.Length; i++)
+                {
+                    if (boneIndices[i] == -1 && Bones[i].Parent != null)
+                    {
+                        Bones[i].SkinningMatrix = Bones[i].Parent.SkinningMatrix;
+                    }
+                }
+            }
+        }
         #endregion
     }
 
@@ -376,5 +428,10 @@ namespace XenoKit.Engine.Animation
 
         //Face bone awareness:
         public bool IsFaceBone { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Name}";
+        }
     }
 }
