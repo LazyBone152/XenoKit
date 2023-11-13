@@ -32,7 +32,7 @@
             </Grid.ColumnDefinitions>
 
 
-            <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Viewer File Tree" VerticalAlignment="Top" Width="60"/>
+            <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Viewer File Tree" VerticalAlignment="Top" Width="100"/>
             <TreeView x:Name="treeView" Grid.Row="1" Margin="0, 5" VirtualizingStackPanel.IsVirtualizing="True" BorderBrush="{DynamicResource MahApps.Brushes.Accent2}" BorderThickness="1" ItemsSource="{Binding ElementName=UserControl, Path=Inspector.Entities.Binding}"
                       dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.UseDefaultDragAdorner="True" dd:DragDrop.DropHandler="{Binding}" AllowDrop="True" SelectedItemChanged="treeView_SelectedItemChanged">
                 <TreeView.Resources>
