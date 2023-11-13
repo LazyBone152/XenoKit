@@ -78,6 +78,7 @@ namespace XenoKit.Engine
             };
 
             VfxManager = new VfxManager(this);
+            camera.CameraState.FieldOfView = 20;
         }
 
         protected override void LoadContent()

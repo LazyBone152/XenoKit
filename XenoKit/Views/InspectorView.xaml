@@ -1,0 +1,141 @@
+﻿<UserControl x:Class="XenoKit.Views.InspectorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:XenoKit.Views"
+             xmlns:inspect="clr-namespace:XenoKit.Inspector.InspectorEntities"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+             xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:dd="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
+             mc:Ignorable="d" 
+             d:DesignHeight="500" d:DesignWidth="600" Name="UserControl">
+    <Grid Controls:ControlsHelper.ContentCharacterCasing="Normal">
+        <Grid.Resources>
+            <lbUtils:BindingProxy x:Key="Proxy" Data="{Binding}" />
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="0.57*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="85"/>
+            </Grid.ColumnDefinitions>
+
+
+            <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Viewer File Tree" VerticalAlignment="Top" Width="60"/>
+            <TreeView x:Name="treeView" Grid.Row="1" Margin="0, 5" VirtualizingStackPanel.IsVirtualizing="True" BorderBrush="{DynamicResource MahApps.Brushes.Accent2}" BorderThickness="1" ItemsSource="{Binding ElementName=UserControl, Path=Inspector.Entities.Binding}"
+                      dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.UseDefaultDragAdorner="True" dd:DragDrop.DropHandler="{Binding}" AllowDrop="True" SelectedItemChanged="treeView_SelectedItemChanged">
+                <TreeView.Resources>
+                    <HierarchicalDataTemplate DataType="{x:Type inspect:InspectorEntity}" ItemsSource="{Binding ChildEntities.Binding}">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.Resources>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Margin" Value="2,0,0,0"/>
+                                    </Style>
+                                    <Style TargetType="{x:Type Separator}">
+                                        <Setter Property="Margin" Value="2,0,0,0"/>
+                                    </Style>
+                                    <Style TargetType="{x:Type iconPacks:PackIconMaterialDesign}">
+                                        <Setter Property="Margin" Value="2,0,0,0"/>
+                                    </Style>
+                                    <Style TargetType="{x:Type iconPacks:PackIconMaterial}">
+                                        <Setter Property="Margin" Value="2,0,0,0"/>
+                                    </Style>
+                                </StackPanel.Resources>
+
+                                <ToggleButton IsChecked="{Binding Visible}" Width="40" Margin="0, 0, 5, 0">
+                                    <ToggleButton.Resources>
+                                        <iconPacks:PackIconMaterialDesign x:Key="iconVisible" Kind="Visibility" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                                        <iconPacks:PackIconMaterialDesign x:Key="iconNotVisible" Kind="VisibilityOff" Foreground="{DynamicResource MahApps.Brushes.Accent3}"/>
+                                    </ToggleButton.Resources>
+                                    <ToggleButton.Style>
+                                        <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource MahApps.Styles.ToggleButton.Flat}">
+                                            <Setter Property="BorderBrush" Value="Transparent" />
+                                            <Setter Property="Foreground" Value="Transparent" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="Content" Value="{DynamicResource iconVisible}" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsChecked" Value="true">
+                                                    <Setter Property="Content" Value="{DynamicResource iconVisible}" />
+                                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                                    <Setter Property="Foreground" Value="Transparent" />
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="false">
+                                                    <Setter Property="Content" Value="{DynamicResource iconNotVisible}" />
+                                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                                    <Setter Property="Foreground" Value="Transparent" />
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ToggleButton.Style>
+                                </ToggleButton>
+
+                                <TextBlock Text="{Binding FileType}" FontSize="12"/>
+                                <Separator HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
+                                    <Separator.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform Angle="90"/>
+                                            <TranslateTransform/>
+                                        </TransformGroup>
+                                    </Separator.RenderTransform>
+                                </Separator>
+                                <TextBlock Text="{Binding FileName}" FontSize="12"/>
+
+
+                            </StackPanel>
+                        </Grid>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+
+                <TreeView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Save" Command="{Binding Source={StaticResource Proxy}, Path=Data.SaveFileCommand}"/>
+                        <MenuItem Header="Reload" Command="{Binding Source={StaticResource Proxy}, Path=Data.ReloadFileCommand}"/>
+                        <MenuItem Header="Reload (all children)" Command="{Binding Source={StaticResource Proxy}, Path=Data.ReloadChildrenFileCommand}"/>
+                        <MenuItem Header="Remove" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveFileCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Is Secondary Animation" IsCheckable="True" IsChecked="{Binding Source={StaticResource Proxy}, Path=Data.SelectedItem.IsSecondaryAnimation}" Visibility="{Binding Source={StaticResource Proxy}, Path=Data.EanVisibility}"/>
+                        <MenuItem Header="Edit" Command="{Binding Source={StaticResource Proxy}, Path=Data.EditFileCommand}"/>
+                        <MenuItem Header="Set Dyt Level" Visibility="{Binding Source={StaticResource Proxy}, Path=Data.TextureVisibility}">
+                            <MenuItem Header="0" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="0"/>
+                            <MenuItem Header="2" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="2"/>
+                            <MenuItem Header="4" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="4"/>
+                            <MenuItem Header="5" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="5"/>
+                            <MenuItem Header="8" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="8"/>
+                            <MenuItem Header="9" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="9"/>
+                        </MenuItem>
+                    </ContextMenu>
+                </TreeView.ContextMenu>
+                <TreeView.InputBindings>
+                    <KeyBinding Key="Delete" Command="{Binding ElementName=UserControl, Path=RemoveFileCommand}"/>
+                </TreeView.InputBindings>
+            </TreeView>
+
+            <StackPanel Grid.Column="1" Grid.Row="1" Margin="10, 2, 0, 0">
+                <Button Width="75" Height="20" Content="Add File(s)" Margin="0, 3" Command="{Binding ElementName=UserControl, Path=AddFileCommand}"/>
+                <Button Width="75" Height="20" Content="Clear List" Margin="0, 3" Command="{Binding ElementName=UserControl, Path=ClearFilesCommand}"/>
+                <Button Width="75" Height="20" Content="Reload All" Margin="0, 3" Command="{Binding ElementName=UserControl, Path=ReloadFilesCommand}"/>
+                <Button Width="75" Height="20" Content="Save All" Margin="0, 3" Command="{Binding ElementName=UserControl, Path=SaveAllFilesCommand}"/>
+                <CheckBox Content="Auto-Sort" IsChecked="{Binding ElementName=UserControl, Path=Inspector.SortOnLoadEnabled}" ToolTip="Automatically attach character files when loading them so that the models (.EMDs) are attached to the skeletons (.ESKs). Only applies to files that are loaded at the same time!" FontSize="10"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

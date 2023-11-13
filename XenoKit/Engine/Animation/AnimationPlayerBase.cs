@@ -51,8 +51,6 @@ namespace XenoKit.Engine.Animation
                 for (int i = 0; i < Skeleton.Bones.Length; i++)
                 {
                     Skeleton.Bones[i].SkinningMatrix = Matrix.Identity;
-
-                    //debugBones[i] = Skeleton.Bones[i].AbsoluteMatrix;
                 }
             }
             else
@@ -60,8 +58,6 @@ namespace XenoKit.Engine.Animation
                 for (int i = 0; i < Skeleton.Bones.Length; i++)
                 {
                     Skeleton.Bones[i].SkinningMatrix = Skeleton.Bones[i].InverseBindPoseMatrix * Skeleton.Bones[i].AbsoluteAnimationMatrix;
-
-                    //debugBones[i] = currentAbsoluteMatrices[i];
                 }
             }
         }

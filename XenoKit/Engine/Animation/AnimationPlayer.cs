@@ -8,12 +8,14 @@ using static Xv2CoreLib.BAC.BAC_Type0;
 using XenoKit.Editor;
 using XenoKit.Helper;
 using Xv2CoreLib.Resource.UndoRedo;
+using XenoKit.Inspector.InspectorEntities;
 
 namespace XenoKit.Engine.Animation
 {
     public class AnimationPlayer : AnimationPlayerBase
     {
         private readonly Actor Character;
+        private readonly SkinnedInspectorEntity Inspector;
 
         public AnimationInstance PrimaryAnimation = null;
         public List<AnimationInstance> SecondaryAnimations = new List<AnimationInstance>();
@@ -53,10 +55,29 @@ namespace XenoKit.Engine.Animation
         {
             Skeleton = skeleton ?? throw new ArgumentNullException("skeleton", "AnimationPlayer: skeleton was null. Cannot construct an AnimationPlayer.");
             Character = chara;
+            Inspector = null;
 
             SceneManager.AnimationDataChanged += SceneManager_AnimationDataChanged;
             UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
             SceneManager.SeekOccurred += SceneManager_SeekOccurred;
+        }
+
+        public AnimationPlayer(Xv2Skeleton skeleton, SkinnedInspectorEntity skinnedEntity) : base(skinnedEntity.GameBase)
+        {
+            Skeleton = skeleton ?? throw new ArgumentNullException("skeleton", "AnimationPlayer: skeleton was null. Cannot construct an AnimationPlayer.");
+            Inspector = skinnedEntity;
+            Character = null;
+
+            SceneManager.AnimationDataChanged += SceneManager_AnimationDataChanged;
+            UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
+            SceneManager.SeekOccurred += SceneManager_SeekOccurred;
+        }
+
+        public override void Dispose()
+        {
+            SceneManager.AnimationDataChanged -= SceneManager_AnimationDataChanged;
+            UndoManager.Instance.UndoOrRedoCalled -= Instance_UndoOrRedoCalled;
+            SceneManager.SeekOccurred -= SceneManager_SeekOccurred;
         }
 
 
@@ -117,7 +138,7 @@ namespace XenoKit.Engine.Animation
 
             //Advance frame
             if (GameBase.IsPlaying && IsUsingAnimation && PrimaryAnimation?.CurrentFrame < PrimaryAnimation?.EndFrame &&
-                SceneManager.IsOnTab(EditorTabs.Animation, EditorTabs.Action))
+                SceneManager.IsOnTab(EditorTabs.Animation, EditorTabs.Action, EditorTabs.Inspector, EditorTabs.InspectorAnimation))
             {
                 AdvanceFrame();
             }
@@ -154,11 +175,11 @@ namespace XenoKit.Engine.Animation
             {
                 if (PrimaryAnimation.CurrentFrame >= PrimaryAnimation.EndFrame)
                 {
-                    if (SceneManager.Loop && PrimaryAnimation.AutoTerminate && ((GameBase.IsPlaying && SceneManager.IsOnTab(EditorTabs.Animation) || !SceneManager.IsOnTab(EditorTabs.Animation))))
+                    if (SceneManager.Loop && PrimaryAnimation.AutoTerminate && (GameBase.IsPlaying && SceneManager.IsOnTab(EditorTabs.Animation, EditorTabs.Inspector, EditorTabs.InspectorAnimation, EditorTabs.CAC) || !SceneManager.IsOnTab(EditorTabs.Animation)))
                     {
                         PrimaryAnimation.CurrentFrame_Int = PrimaryAnimation.StartFrame;
                     }
-                    else if (SceneManager.IsOnTab(EditorTabs.Animation))
+                    else if (SceneManager.IsOnTab(EditorTabs.Animation, EditorTabs.Inspector, EditorTabs.InspectorAnimation))
                     {
                         SceneManager.Pause();
                     }
@@ -184,12 +205,12 @@ namespace XenoKit.Engine.Animation
         {
             if (PrimaryAnimation != null)
             {
-                PrimaryAnimation.AdvanceFrame(useTimeScale, Character.GameBase.ActiveTimeScale);
+                PrimaryAnimation.AdvanceFrame(useTimeScale, GameBase.ActiveTimeScale);
             }
 
             for (int i = 0; i < SecondaryAnimations.Count; i++)
             {
-                SecondaryAnimations[i].AdvanceFrame(useTimeScale, Character.GameBase.ActiveTimeScale);
+                SecondaryAnimations[i].AdvanceFrame(useTimeScale, GameBase.ActiveTimeScale);
             }
         }
 
@@ -201,7 +222,7 @@ namespace XenoKit.Engine.Animation
         private void UndoBasePosition(float frame, bool undoAll = false)
         {
             //Undo animation movement, if needed.
-            if (PrimaryAnimation == null) return;
+            if (PrimaryAnimation == null || Character == null) return;
             if (!PrimaryAnimation.hasMoved) return; //Safeguard
 
             if (undoAll)
@@ -282,6 +303,11 @@ namespace XenoKit.Engine.Animation
 
             if (removeSecondary)
                 SecondaryAnimations.Clear();
+        }
+
+        public void ClearSecondaryAnimations()
+        {
+            SecondaryAnimations.Clear();
         }
 
         /// <summary>
@@ -369,9 +395,9 @@ namespace XenoKit.Engine.Animation
             Vector3 ean_initialBoneScale = new Vector3(transform.ScaleX, transform.ScaleY, transform.ScaleZ) * transform.ScaleW;
 
             //Scale animations to fit current actor size
-            if (!animation.EanFile.IsCharaUnique && animNodeIndex == animation.b_C_Pelvis_Index)
+            if (!animation.EanFile.IsCharaUnique && animNodeIndex == animation.b_C_Pelvis_Index && Character != null)
             {
-                ean_initialBonePosition.Y -= (SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[0] - 1f) / 2f;
+                ean_initialBonePosition.Y -= (Character.CharacterData.BcsFile.File.F_48[0] - 1f) / 2f;
             }
 
             Matrix relativeMatrix_EanBone_inv = Matrix.Identity;
@@ -468,8 +494,9 @@ namespace XenoKit.Engine.Animation
                 animation.CurrentNodeFrameIndex_Scale[animNodeIndex] = frameIndex_Scale;
 
                 //Handle EYE animations
-                if (!Character.BacEyeMovementUsed)
+                if(Character?.BacEyeMovementUsed == false && Character != null)
                 {
+                    //Apply iris animation onto the Actor reference
                     if (animNodeIndex == animation.LeftEye_Index)
                     {
                         Character.EyeIrisLeft_UV[0] = -(pos_tmp.X * 10);
@@ -480,6 +507,21 @@ namespace XenoKit.Engine.Animation
                     {
                         Character.EyeIrisRight_UV[0] = -(pos_tmp.X * 10);
                         Character.EyeIrisRight_UV[1] = -(pos_tmp.Y * 10);
+                    }
+                }
+                else if(Inspector != null)
+                {
+                    //Apply iris animation onto the SkinnedInspectorEntity reference
+                    if (animNodeIndex == animation.LeftEye_Index)
+                    {
+                        Inspector.EyeIrisLeft_UV[0] = -(pos_tmp.X * 10);
+                        Inspector.EyeIrisLeft_UV[1] = -(pos_tmp.Y * 10);
+                    }
+
+                    if (animNodeIndex == animation.RightEye_Index)
+                    {
+                        Inspector.EyeIrisRight_UV[0] = -(pos_tmp.X * 10);
+                        Inspector.EyeIrisRight_UV[1] = -(pos_tmp.Y * 10);
                     }
                 }
             }
@@ -621,9 +663,12 @@ namespace XenoKit.Engine.Animation
 
             }
 
-            Character.ActionMovementTransform = transformSum;
-            Character.RootMotionTransform = rootMotion;
-            PrimaryAnimation.hasMoved = true;
+            if(Character != null)
+            {
+                Character.ActionMovementTransform = transformSum;
+                Character.RootMotionTransform = rootMotion;
+                PrimaryAnimation.hasMoved = true;
+            }
         }
         #endregion
 

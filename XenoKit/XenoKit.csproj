@@ -529,6 +529,16 @@
     </Compile>
     <Compile Include="DialogSettings.cs" />
     <Compile Include="Editor\Data\CustomAvatar.cs" />
+    <Compile Include="Engine\Animation\ISkinned.cs" />
+    <Compile Include="Engine\Gizmo\EntityTransformGizmo.cs" />
+    <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
+    <Compile Include="Inspector\InspectorEntity\EanInspectorEntity.cs" />
+    <Compile Include="Inspector\InspectorEntity\InspectorEntity.cs" />
+    <Compile Include="Inspector\InspectorEntity\MaterialInspectorEntity.cs" />
+    <Compile Include="Inspector\InspectorEntity\MeshInspectorEntity.cs" />
+    <Compile Include="Inspector\InspectorEntity\SkinnedInspectorEntity.cs" />
+    <Compile Include="Inspector\InspectorEntity\TextureInspectorEntity.cs" />
+    <Compile Include="Inspector\InspectorMode.cs" />
     <Compile Include="Editor\Files\OutlinerItem.cs" />
     <Compile Include="Editor\Files\EditorVisibility.cs" />
     <Compile Include="Engine\Animation\AnimationPlayerBase.cs" />
@@ -787,6 +797,9 @@
     </Compile>
     <Compile Include="Views\GameView.xaml.cs">
       <DependentUpon>GameView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\InspectorView.xaml.cs">
+      <DependentUpon>InspectorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\LogView.xaml.cs">
       <DependentUpon>LogView.xaml</DependentUpon>
@@ -1246,6 +1259,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\GameView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\InspectorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -118,16 +118,46 @@ namespace XenoKit
             //Change tabs based on selected item type
             if (Files.Instance.SelectedItem != null)
             {
-                //CAC: Go to CAC tab
-                if(Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CaC)
+                switch (Files.Instance.SelectedItem.Type)
                 {
-                    mainTabControl.SelectedIndex = (int)MainEditorTabs.CAC;
+                    case OutlinerItem.OutlinerItemType.CaC:
+                        mainTabControl.SelectedIndex = (int)MainEditorTabs.CAC;
+                        break;
+                    case OutlinerItem.OutlinerItemType.Inspector:
+                        mainTabControl.SelectedIndex = (int)MainEditorTabs.Inspector;
+                        break;
                 }
-
-                //todo: create a system for detecting if a invalid tab is selected, and unset it. maybe check its visibility?
             }
 
+            DetectInvalidTab();
             UpdateSelectedTab();
+        }
+
+        private void DetectInvalidTab()
+        {
+            if(mainTabControl.SelectedIndex != -1)
+            {
+                if(mainTabControl.Items[mainTabControl.SelectedIndex] is TabItem tabItem)
+                {
+                    if(tabItem.Visibility == Visibility.Collapsed)
+                    {
+                        foreach(var item in mainTabControl.Items)
+                        {
+                            if(item is TabItem _tabItem)
+                            {
+                                if(_tabItem.Visibility == Visibility.Visible)
+                                {
+                                    mainTabControl.SelectedIndex = mainTabControl.Items.IndexOf(item);
+                                    return;
+                                }
+                            }
+                        }
+
+                        mainTabControl.SelectedIndex = -1;
+                    }
+
+                }
+            }
         }
 
         #region Init
@@ -187,7 +217,6 @@ namespace XenoKit
             //ThemeManager.ChangeAppStyle(Application.Current,
             //                            ThemeManager.GetAccent("Red"),
             //                           ThemeManager.GetAppTheme("BaseDark")); // or appStyle.Item1
-
 
         }
 
@@ -508,35 +537,36 @@ namespace XenoKit
             SettingsManager.Instance.Settings.XenoKit_WindowSizeY = (int)e.NewSize.Height;
         }
 
-        private async void MetroWindow_Drop(object sender, DragEventArgs e)
+        private void MetroWindow_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] droppedFilePaths = e.Data.GetData(DataFormats.FileDrop, true) as string[];
+                bool hasModelFiles = droppedFilePaths.Any(x => Path.GetExtension(x) == ".emd" || Path.GetExtension(x) == ".esk" || Path.GetExtension(x) == ".emo" || Path.GetExtension(x) == ".emm" || Path.GetExtension(x) == ".emb" || Path.GetExtension(x) == ".nsk" || Path.GetExtension(x) == ".emg");
 
+                /*
+                 //nsk can be handled by inspector mode
                 if (Path.GetExtension(droppedFilePaths[0]) == ".nsk")
                 {
                     Files.Instance.ManualLoad(droppedFilePaths);
                     return;
                 }
+                */
 
-                bool error = false;
-                foreach (var drop in droppedFilePaths)
+                if (hasModelFiles || SceneManager.IsOnInspectorTab)
                 {
-                    switch (Path.GetExtension(drop))
+                    inspectorView.ProcessFileDrop(droppedFilePaths);
+
+                    if (!SceneManager.IsOnInspectorTab)
                     {
-                        case ".ean":
-                        case ".acb":
-                        case ".eepk":
-                        case ".vfxpackage":
-                            Files.Instance.ManualLoad(drop);
-                            break;
-                        default:
-                            if (!error)
-                                await this.ShowMessageAsync("File Drop", $"The filetype of \"{drop}\" is not supported.", MessageDialogStyle.Affirmative, DialogSettings.Default);
-                            error = true;
-                            break;
+                        //Go to inspector tab if not already there
+                        Files.Instance.SelectedItem = Files.Instance.OutlinerItems[0];
+                        mainTabControl.SelectedIndex = (int)EditorTabs.Inspector;
                     }
+                }
+                else
+                {
+                    Files.Instance.ProcessFileDrop(droppedFilePaths);
                 }
             }
         }

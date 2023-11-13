@@ -6,6 +6,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.Engine;
+using XenoKit.Inspector;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Controls
@@ -42,6 +43,9 @@ namespace XenoKit.Controls
             {
                 switch (SceneManager.CurrentSceneState)
                 {
+                    case EditorTabs.Inspector:
+                    case EditorTabs.InspectorAnimation:
+                        return (InspectorMode.Instance.ActiveSkinnedEntity != null) ? $"{InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryCurrentFrame}/{InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryDuration}" : "--/--";
                     case EditorTabs.Animation:
                         return (SceneManager.Actors[0] != null) ? $"{SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame}/{SceneManager.Actors[0].AnimationPlayer.PrimaryDuration}" : "--/--";
                     case EditorTabs.Camera:
@@ -77,6 +81,9 @@ namespace XenoKit.Controls
             {
                 switch (SceneManager.CurrentSceneState)
                 {
+                    case EditorTabs.Inspector:
+                    case EditorTabs.InspectorAnimation:
+                        return (InspectorMode.Instance.ActiveSkinnedEntity != null) ? (int)InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryDuration : 0;
                     case EditorTabs.Animation:
                         return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].AnimationPlayer.PrimaryDuration : 0;
                     case EditorTabs.Camera:
@@ -94,6 +101,9 @@ namespace XenoKit.Controls
             {
                 switch (SceneManager.CurrentSceneState)
                 {
+                    case EditorTabs.Inspector:
+                    case EditorTabs.InspectorAnimation:
+                        return (InspectorMode.Instance.ActiveSkinnedEntity != null) ? (int)InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryCurrentFrame : 0;
                     case EditorTabs.Animation:
                         return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame : 0;
                     case EditorTabs.Camera:
@@ -113,6 +123,11 @@ namespace XenoKit.Controls
 
                 switch (SceneManager.CurrentSceneState)
                 {
+                    case EditorTabs.Inspector:
+                    case EditorTabs.InspectorAnimation:
+                        if (InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.PrimaryAnimation != null)
+                            InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryAnimation.CurrentFrame_Int = value;
+                        break;
                     case EditorTabs.Animation:
                         if (SceneManager.Actors[0]?.AnimationPlayer?.PrimaryAnimation != null)
                             SceneManager.Actors[0].AnimationPlayer.PrimaryAnimation.CurrentFrame_Int = value;
@@ -209,7 +224,7 @@ namespace XenoKit.Controls
 #endif
             }
         }
-        public Visibility OverlayVisibility { get; set; } = Visibility.Visible;
+        public Visibility OverlayVisibility { get; set; } = Visibility.Collapsed;
 
         public bool Loop
         {

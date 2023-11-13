@@ -16,6 +16,8 @@ using GalaSoft.MvvmLight.CommandWpf;
 using MahApps.Metro.Controls.Dialogs;
 using System.Windows.Media;
 using XenoKit.Helper;
+using XenoKit.Inspector;
+using XenoKit.Engine.Animation;
 
 namespace XenoKit.Controls
 {
@@ -36,12 +38,128 @@ namespace XenoKit.Controls
         }
         #endregion
 
-        public static AnimationTabView Instance = null;
+        public static readonly DependencyProperty ModeProperty = DependencyProperty.Register(
+            "Mode", typeof(AnimationTabViewMode), typeof(AnimationTabView), new PropertyMetadata(ModeChangedCallback));
+
+        public AnimationTabViewMode Mode
+        {
+            get { return (AnimationTabViewMode)GetValue(ModeProperty); }
+            set
+            {
+                SetValue(ModeProperty, value);
+                NotifyPropertyChanged(nameof(Mode));
+            }
+        }
+
+        private static void ModeChangedCallback(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            if(obj is AnimationTabView animView)
+            {
+                /*
+                switch ((AnimationTabViewMode)e.NewValue)
+                {
+                    case AnimationTabViewMode.Actor:
+                        Instance = animView;
+                        animView.actorFiles.Visibility = Visibility.Visible;
+                        animView.inspectorFiles.Visibility = Visibility.Collapsed;
+                        break;
+                    case AnimationTabViewMode.Inspector:
+                        InspectorInstance = animView;
+                        animView.actorFiles.Visibility = Visibility.Collapsed;
+                        animView.inspectorFiles.Visibility = Visibility.Visible;
+                        break;
+                }
+                */
+            }
+        }
+
+        public static AnimationTabView Instance { get; private set; }
+        public static AnimationTabView InspectorInstance { get; private set; }
+
         public Files files { get { return Files.Instance; } }
-        public EAN_File SelectedEanFile => files.SelectedItem?.SelectedEanFile?.File;
-        public EAN_Animation SelectedAnimation => files.SelectedItem?.SelectedAnimation;
-        public float CurrentFrame => SceneManager.Actors[0] != null ? SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame : 0;
-        public float PreviousFrame => SceneManager.Actors[0] != null ? SceneManager.Actors[0].AnimationPlayer.PrimaryPrevFrame : 0;
+        public InspectorMode Inspector { get { return InspectorMode.Instance; } }
+
+        public ISkinned SkinnedEntity
+        {
+            get
+            {
+                switch (Mode)
+                {
+                    case AnimationTabViewMode.Inspector:
+                        return InspectorMode.Instance.ActiveSkinnedEntity;
+                    default:
+                        return SceneManager.Actors[0];
+                }
+            }
+        }
+        public EAN_File SelectedEanFile
+        {
+            get
+            {
+                switch (Mode)
+                {
+                    case AnimationTabViewMode.Inspector:
+                        return InspectorMode.Instance.ActiveEanFile?.EanFile;
+                    default:
+                        return files.SelectedItem?.SelectedEanFile?.File;
+                }
+            }
+        }
+        private EAN_Animation _selectedAnim = null;
+        public EAN_Animation SelectedAnimation
+        {
+            get
+            {
+                switch (Mode)
+                {
+                    case AnimationTabViewMode.Inspector:
+                        return _selectedAnim;
+                    default:
+                        return files.SelectedItem?.SelectedAnimation;
+                }
+            }
+            set
+            {
+                switch (Mode)
+                {
+                    case AnimationTabViewMode.Inspector:
+                        _selectedAnim = value;
+                        break;
+                    default:
+                        if(files.SelectedItem != null)
+                            files.SelectedItem.SelectedAnimation = value;
+                        break;
+                }
+
+                NotifyPropertyChanged(nameof(SelectedAnimation));
+            }
+        }
+        public float CurrentFrame
+        {
+            get
+            {
+                switch (Mode)
+                {
+                    case AnimationTabViewMode.Inspector:
+                        return InspectorMode.Instance.ActiveSkinnedEntity != null ? InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryCurrentFrame : 0;
+                    default:
+                        return SceneManager.Actors[0] != null ? SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame : 0;
+                }
+            }
+        }
+        public float PreviousFrame
+        {
+            get
+            {
+                switch (Mode)
+                {
+                    case AnimationTabViewMode.Inspector:
+                        return InspectorMode.Instance.ActiveSkinnedEntity != null ? InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryPrevFrame : 0;
+                    default:
+                        return SceneManager.Actors[0] != null ? SceneManager.Actors[0].AnimationPlayer.PrimaryPrevFrame : 0;
+                }
+}
+        }
 
         //Values
         private EAN_Node _selectedBone = null;
@@ -49,20 +167,19 @@ namespace XenoKit.Controls
         //Editing
         public int SelectedFrame
         {
-            get 
+            get
             {
-
-                if (SceneManager.Actors[0]?.AnimationPlayer?.PrimaryAnimation != null)
+                if (SkinnedEntity?.AnimationPlayer?.PrimaryAnimation != null)
                 {
-                    return SceneManager.Actors[0].AnimationPlayer.PrimaryAnimation.CurrentFrame_Int;
+                    return SkinnedEntity.AnimationPlayer.PrimaryAnimation.CurrentFrame_Int;
                 }
                 return 0;
             }
             set
             {
-                if(SceneManager.Actors[0]?.AnimationPlayer?.PrimaryAnimation != null)
+                if (SkinnedEntity?.AnimationPlayer?.PrimaryAnimation != null)
                 {
-                    SceneManager.Actors[0].AnimationPlayer.PrimaryAnimation.SkipToFrame(value);
+                    SkinnedEntity.AnimationPlayer.PrimaryAnimation.SkipToFrame(value);
                     NotifyPropertyChanged(nameof(SelectedFrame));
                 }
             }
@@ -364,18 +481,27 @@ namespace XenoKit.Controls
 
         public AnimationTabView()
         {
-            Instance = this;
             InitializeComponent();
             DataContext = this;
             Game.GameUpdate += SceneManager_UpdateEvent;
-            Engine.Animation.VisualSkeleton.SelectedBoneChanged += VisualSkeleton_SelectedBoneChanged;
+            VisualSkeleton.SelectedBoneChanged += VisualSkeleton_SelectedBoneChanged;
             UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
             SceneManager.AnimationDataChanged += SceneManager_AnimationDataChanged;
             SceneManager.PlayStateChanged += SceneManager_PlayStateChanged;
+            InspectorMode.Instance.PropertyChanged += Instance_PropertyChanged;
 
             //Load colors for keyframe values
             AccentBrush = (Brush)UserControl.FindResource("accentBrush");
             BackgroundBrush = (Brush)UserControl.FindResource("backgroundBrush");
+
+        }
+
+        private void Instance_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if(Mode == AnimationTabViewMode.Inspector && e.PropertyName == nameof(InspectorMode.ActiveEanFile))
+            {
+                NotifyPropertyChanged(nameof(SelectedEanFile));
+            }
         }
 
 
@@ -411,7 +537,7 @@ namespace XenoKit.Controls
         private async void ChangeAnimIdAsync(int id)
         {
             string result = id.ToString();
-            if (files.SelectedItem?.SelectedEanFile?.File.Animations.FirstOrDefault(a => a.Index == result && a != SelectedAnimation) != null)
+            if (SelectedEanFile?.Animations.FirstOrDefault(a => a.Index == result && a != SelectedAnimation) != null)
             {
                 await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another animation. Please enter a unique one.", MessageDialogStyle.Affirmative, DialogSettings.Default);
             }
@@ -421,12 +547,12 @@ namespace XenoKit.Controls
                 SelectedAnimation.Index = result;
             }
 
-            files.SelectedItem?.SelectedEanFile?.File.SortEntries();
+            SelectedEanFile.SortEntries();
         }
 
         private async void ChangeAnimName(string name)
         {
-            if (files.SelectedItem?.SelectedEanFile?.File.Animations.FirstOrDefault(a => a.Name == name && a != SelectedAnimation) != null)
+            if (SelectedEanFile?.Animations.FirstOrDefault(a => a.Name == name && a != SelectedAnimation) != null)
             {
                 await DialogCoordinator.Instance.ShowMessageAsync(this, "Name Already Used", "The entered name is already used by another animation. Please enter a unique one.", MessageDialogStyle.Affirmative, DialogSettings.Default);
             }
@@ -554,9 +680,30 @@ namespace XenoKit.Controls
         public RelayCommand PlayAnimationCommand => new RelayCommand(PlaySelectedAnimation, IsAnimationSelected);
         private void PlaySelectedAnimation()
         {
-            if(animListBox.SelectedItem is EAN_Animation anim)
+            if(SelectedAnimation != null)
             {
-                SceneManager.PlayAnimation(files.SelectedItem?.SelectedEanFile?.File, anim.ID_UShort, 0, true);
+                switch (Mode)
+                {
+                    case AnimationTabViewMode.Inspector:
+                        if (Inspector.ActiveEanFile == null) return;
+
+                        if (Inspector.ActiveEanFile.IsSecondaryAnimation)
+                        {
+                            SkinnedEntity?.AnimationPlayer?.ClearSecondaryAnimations();
+                            SkinnedEntity?.AnimationPlayer?.PlaySecondaryAnimation(SelectedEanFile, SelectedAnimation.ID_UShort, 0, ushort.MaxValue, 1, 0, 1, false);
+                        }
+                        else
+                        {
+                            SkinnedEntity?.AnimationPlayer?.PlayPrimaryAnimation(SelectedEanFile, SelectedAnimation.ID_UShort, 0, ushort.MaxValue, 1, 0, 0, false, 1f, true);
+
+                            if (SceneManager.AutoPlay)
+                                SceneManager.MainGameBase.IsPlaying = true;
+                        }
+                        break;
+                    default:
+                        SceneManager.PlayAnimation(SelectedEanFile, SelectedAnimation.ID_UShort, 0, SceneManager.AutoPlay);
+                        break;
+                }
             }
         }
 
@@ -568,7 +715,7 @@ namespace XenoKit.Controls
 
             UndoManager.Instance.AddCompositeUndo(undos, "New Animation", UndoGroup.Animation);
 
-            files.SelectedItem.SelectedAnimation = anim;
+            SelectedAnimation = anim;
             animListBox.ScrollIntoView(anim);
         }
 
@@ -698,7 +845,7 @@ namespace XenoKit.Controls
         private void ExtendAnimation()
         {
             EanModiferForm form = new EanModiferForm("Extend Animation");
-            form.NewDuration = files.SelectedItem.SelectedAnimation.FrameCount;
+            form.NewDuration = SelectedAnimation.FrameCount;
             form.NewDurationEnabled = true;
             form.ShowDialog();
 
@@ -790,11 +937,11 @@ namespace XenoKit.Controls
             foreach (var bone in bones)
             {
                 if(result == MessageDialogResult.Affirmative)
-                    bone.RescaleNode(files.SelectedItem.SelectedAnimation.FrameCount);
+                    bone.RescaleNode(SelectedAnimation.FrameCount);
             }
 
             //Paste
-            List<IUndoRedo> undos = files.SelectedItem.SelectedAnimation.PasteNodes(bones);
+            List<IUndoRedo> undos = SelectedAnimation.PasteNodes(bones);
             UndoManager.Instance.AddCompositeUndo(undos, "Paste Bones", UndoGroup.Animation);
             SceneManager.InvokeAnimationDataChangedEvent();
         }
@@ -806,7 +953,7 @@ namespace XenoKit.Controls
 
             if (bones != null)
             {
-                List<IUndoRedo> undos = files.SelectedItem.SelectedAnimation.RemoveNodes(bones);
+                List<IUndoRedo> undos = SelectedAnimation.RemoveNodes(bones);
                 UndoManager.Instance.AddCompositeUndo(undos, "Delete Bones", UndoGroup.Animation);
                 SceneManager.InvokeAnimationDataChangedEvent();
             }
@@ -821,7 +968,7 @@ namespace XenoKit.Controls
             {
                 EanModiferForm form = new EanModiferForm("Rescale Bone");
                 form.EndFrame = SelectedAnimation.FrameCount - 1;
-                form.NewDuration = files.SelectedItem.SelectedAnimation.FrameCount;
+                form.NewDuration = SelectedAnimation.FrameCount;
                 form.StartFrameEnabled = true;
                 form.EndFrameEnabled = true;
                 form.NewDurationEnabled = true;
@@ -904,10 +1051,10 @@ namespace XenoKit.Controls
         {
             return SelectedBone != null;
         }
-        
+
         private bool CanPasteNode()
         {
-            return Clipboard.ContainsData(ClipboardConstants.EanNode) && files.SelectedItem?.SelectedAnimation != null;
+            return Clipboard.ContainsData(ClipboardConstants.EanNode) && SelectedAnimation != null;
         }
 
         //Events:
@@ -1195,9 +1342,9 @@ namespace XenoKit.Controls
 
         private void VisualSkeleton_SelectedBoneChanged(object sender, EventArgs e)
         {
-            if (sender is int value && SceneManager.Actors[0] != null && SceneManager.IsOnTab(EditorTabs.Animation))
+            if (sender is int value && SkinnedEntity != null && (SceneManager.IsOnTab(EditorTabs.Animation) || SceneManager.IsOnTab(EditorTabs.InspectorAnimation)))
             {
-                string boneName = SceneManager.Actors[0].Skeleton.Bones[value].Name;
+                string boneName = SkinnedEntity.Skeleton.Bones[value].Name;
                 SelectedBoneChanged(boneName);
             }
         }
@@ -1213,7 +1360,7 @@ namespace XenoKit.Controls
 
             if (SelectedBone?.BoneName != boneName)
             {
-                EAN_Node node = files.SelectedItem.SelectedAnimation.GetNode(boneName);
+                EAN_Node node = SelectedAnimation.GetNode(boneName);
                 SelectedBone = node;
 
                 if (SelectedBone != null)
@@ -1221,9 +1368,9 @@ namespace XenoKit.Controls
             }
 
             //Update AnimatorGizmo
-            if (files.SelectedItem?.SelectedEanFile?.File.Skeleton?.Exists(boneName) == true && Files.Instance.SelectedItem?.SelectedAnimation != null)
+            if (SelectedEanFile?.Skeleton?.Exists(boneName) == true && SelectedAnimation != null)
             {
-                SceneManager.AnimatorGizmo.SetContext(SceneManager.Actors[0], boneName);
+                SceneManager.AnimatorGizmo.SetContext(SkinnedEntity, boneName);
             }
             else
             {
@@ -1256,10 +1403,7 @@ namespace XenoKit.Controls
         private void AnimListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateKeyframeValues();
-            if (IsAnimationSelected())
-            {
-                SceneManager.PlayAnimation(files.SelectedItem?.SelectedEanFile?.File, files.SelectedItem.SelectedAnimation.ID_UShort, 0, SceneManager.AutoPlay);
-            }
+            PlaySelectedAnimation();
         }
 
         private void KeyframeDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1333,7 +1477,32 @@ namespace XenoKit.Controls
             return bones;
         }
 
+        private void filesComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            NotifyPropertyChanged(nameof(SelectedEanFile));
+        }
 
-        
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            switch (Mode)
+            {
+                case AnimationTabViewMode.Actor:
+                    Instance = this;
+                    actorFiles.Visibility = Visibility.Visible;
+                    inspectorFiles.Visibility = Visibility.Collapsed;
+                    break;
+                case AnimationTabViewMode.Inspector:
+                    InspectorInstance = this;
+                    actorFiles.Visibility = Visibility.Collapsed;
+                    inspectorFiles.Visibility = Visibility.Visible;
+                    break;
+            }
+        }
+    }
+
+    public enum AnimationTabViewMode
+    {
+        Actor,
+        Inspector
     }
 }

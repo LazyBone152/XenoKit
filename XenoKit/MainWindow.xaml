@@ -84,7 +84,7 @@
             
             <Controls:MetroTabItem Header="Animation" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.AnimationVisibility}">
                 <Grid>
-                    <_controls:AnimationTabView x:Name="animationTabView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch"/>
+                    <_controls:AnimationTabView x:Name="animationTabView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch" Mode="Actor"/>
                 </Grid>
             </Controls:MetroTabItem>
             <Controls:MetroTabItem Header="Camera" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.CameraVisibility}">
@@ -115,6 +115,15 @@
             <Controls:MetroTabItem Header="CAC" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.CacVisibility}">
                 <_views:CacView x:Name="cacView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Files" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsInspector}">
+                <_views:InspectorView x:Name="inspectorView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Animation" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsInspector}">
+                <Grid>
+                    <_controls:AnimationTabView x:Name="inspectorAnimView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch" Mode="Inspector"/>
+                </Grid>
             </Controls:MetroTabItem>
         </TabControl>
 

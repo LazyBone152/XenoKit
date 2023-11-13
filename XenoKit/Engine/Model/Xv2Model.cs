@@ -109,6 +109,18 @@ namespace XenoKit.Engine.Model
             return xv2Submesh;
         }
 
+        public static Xv2ModelFile LoadEmgInContainer(GameBase gameBase, EMG_File emgFile)
+        {
+            Xv2ModelFile modelFile = new Xv2ModelFile(gameBase);
+            modelFile.Type = ModelType.Emg;
+
+            modelFile.Models.Add(new Xv2Model("root_model", gameBase));
+            modelFile.Models[0].Meshes.Add(new Xv2Mesh("root_mesh", gameBase));
+            modelFile.Models[0].Meshes[0].Submeshes.Add(LoadEmg(gameBase, emgFile));
+
+            return modelFile;
+        }
+
         /// <summary>
         /// Creates a materials list to use for renderering. Materials are indexed by the submesh index. 
         /// </summary>
@@ -297,13 +309,10 @@ namespace XenoKit.Engine.Model
                             xv2Submesh.EnableSkinning = mesh.VertexFlags.HasFlag(VertexFlags.BlendWeight);
 
                             //Generate bone index list
-                            xv2Submesh.BoneIdx[0] = new short[24];
                             xv2Submesh.BoneNames = new string[24];
 
-                            //For EMOs the bone list is static, since the skeleton isn't gonna change after creation. So we can just use the skeleton from the EMO file (the OBJ.EMA skeleton should be identical).
                             for (short i = 0; i < submesh.Bones.Count; i++)
                             {
-                                xv2Submesh.BoneIdx[0][i] = (short)submesh.Bones[i];
                                 xv2Submesh.BoneNames[i] = SourceEmoFile.Skeleton.Bones[submesh.Bones[i]].Name;
                             }
 
@@ -427,20 +436,6 @@ namespace XenoKit.Engine.Model
 
         #endregion
 
-        #region HelperFunctions
-        public void UnsetActor(int actor)
-        {
-            foreach (var model in Models)
-            {
-                foreach (var mesh in model.Meshes)
-                {
-                    foreach (var submesh in mesh.Submeshes)
-                        submesh.UnsetActor(actor);
-                }
-            }
-        }
-        #endregion
-
         public List<Xv2Submesh> GetCompiledSubmeshes(IList<EMD_Submesh> sourceSubmeshes)
         {
             List<Xv2Submesh> submeshes = new List<Xv2Submesh>();
@@ -543,11 +538,18 @@ namespace XenoKit.Engine.Model
         //Skinning:
         public bool EnableSkinning { get; set; }
         public string[] BoneNames;
-        public short[][] BoneIdx = new short[SceneManager.NumActors][]; //[Actor][BoneIdxInVertex]
+        public readonly Dictionary<Xv2Skeleton, short[]> BoneIdx = new Dictionary<Xv2Skeleton, short[]>(); //Bone indices are cached per skeleton instance
         public Matrix[] SkinningMatrices = new Matrix[24];
+        private static Matrix[] DefaultSkinningMatrices = new Matrix[24];
 
         //Actor-Specific Information:
         private Matrix[] PrevWVP = new Matrix[SceneManager.NumActors];
+
+        static Xv2Submesh()
+        {
+            for (int i = 0; i < 24; i++)
+                DefaultSkinningMatrices[i] = Matrix.Identity;
+        }
 
         public Xv2Submesh(GameBase gameBase, string name, int submeshIndex, ModelType type, object sourceSubmesh) : base(gameBase)
         {
@@ -594,25 +596,6 @@ namespace XenoKit.Engine.Model
                 }
             }
 
-            if (Type == ModelType.Emd)
-            {
-                if (BoneIdx[actor] == null && skeleton != null)
-                    SetBoneIndices(actor, skeleton);
-                /*
-                //Set bone indices for this actor if needed. These will be cached so it will only actually happen once per actor (BoneIdx[actor] will only become null on an actor change).
-                if (actor == -1)
-                {
-                    //Mesh is for a physics part, so we must use the SCD ESK instead of the main character esk
-                    SetBoneIndices(charaSkeleton);
-                }
-                else
-                {
-                    if (BoneIdx[actor] == null)
-                        SetBoneIndices(actor);
-                }
-                */
-            }
-
             materials[SubmeshIndex].SetTextureTile(TexTile01, TexTile23);
 
             DrawEnd(actor, materials[SubmeshIndex], skeleton);
@@ -628,16 +611,14 @@ namespace XenoKit.Engine.Model
 
         private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton)
         {
-            if (Type == ModelType.Emd)
-            {
-                if (BoneIdx[actor] == null && skeleton != null)
-                    SetBoneIndices(actor, skeleton);
-            }
-
             if (EnableSkinning && skeleton != null)
             {
-                CreateSkinningMatrices(skeleton.Bones, actor);
+                CreateSkinningMatrices(skeleton);
                 material.SetSkinningMatrices(SkinningMatrices);
+            }
+            else
+            {
+                material.SetSkinningMatrices(DefaultSkinningMatrices);
             }
 
             //Shader passes and vertex drawing
@@ -656,15 +637,40 @@ namespace XenoKit.Engine.Model
             PrevWVP[actor] = material.WVP;
         }
 
-        private void CreateSkinningMatrices(Xv2Bone[] bones, int actor)
+        private short[] GetBoneIndices(Xv2Skeleton skeleton)
         {
+            short[] indices;
+
+            if (BoneIdx.TryGetValue(skeleton, out indices))
+                return indices;
+
+            indices = new short[BoneNames.Length];
+
             for (int i = 0; i < BoneNames.Length; i++)
             {
-                int boneIdx = BoneIdx[actor][i];
+                indices[i] = (short)skeleton.GetBoneIndex(BoneNames[i]);
+            }
+
+            BoneIdx.Add(skeleton, indices);
+
+            return indices;
+        }
+
+        private void CreateSkinningMatrices(Xv2Skeleton skeleton)
+        {
+            short[] baseBoneIndices = GetBoneIndices(skeleton);
+
+            for (int i = 0; i < BoneNames.Length; i++)
+            {
+                int boneIdx = baseBoneIndices[i];
 
                 if (boneIdx != -1)
                 {
-                    SkinningMatrices[i] = bones[boneIdx].SkinningMatrix;
+                    SkinningMatrices[i] = skeleton.Bones[boneIdx].SkinningMatrix;
+                }
+                else
+                {
+                    SkinningMatrices[i] = Matrix.Identity;
                 }
             }
         }
@@ -672,7 +678,8 @@ namespace XenoKit.Engine.Model
         private void UpdateVertices(Xv2Bone[] bones, int actor)
         {
             //Old CPU skinning method.The renderer has since been updated to use the shaders for skinning.
-
+            //No longer works with the change to bone index caching
+            /*
             if (UsedIndices == null)
                 CreateUsedIndices();
 
@@ -706,6 +713,7 @@ namespace XenoKit.Engine.Model
                 }
 
             }
+            */
         }
 
         private void CreateUsedIndices()
@@ -912,28 +920,6 @@ namespace XenoKit.Engine.Model
         }
         #endregion
 
-        //Bone Index:
-        private void SetBoneIndices(int actor, Xv2Skeleton skeleton)
-        {
-            if (actor < 0 || actor > SceneManager.NumActors - 1) return;
-
-            if (SceneManager.Actors[actor] != null)
-            {
-                BoneIdx[actor] = new short[BoneNames.Length];
-
-                for (int i = 0; i < BoneNames.Length; i++)
-                {
-                    BoneIdx[actor][i] = (short)skeleton.GetBoneIndex(BoneNames[i]);
-                }
-            }
-        }
-
-        public void UnsetActor(int actor)
-        {
-            if (actor < 0 || actor > SceneManager.NumActors - 1) return;
-
-            BoneIdx[actor] = null;
-        }
     }
 
     public enum ModelType

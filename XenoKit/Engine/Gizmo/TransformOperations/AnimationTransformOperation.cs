@@ -14,6 +14,8 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
         private List<IUndoRedo> undos = new List<IUndoRedo>();
         public override RotationType RotationType => RotationType.Quaternion;
 
+        private ISkinned SkinnedEntity;
+
         public EAN_Keyframe PosKeyframe;
         public EAN_Keyframe RotKeyframe;
         public EAN_Keyframe ScaleKeyframe;
@@ -34,12 +36,13 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
         private Vector3 totalScaleDetla = Vector3.Zero;
 
 
-        public AnimationTransformOperation(AnimationPlayer animator, string nodeName, GizmoMode mode)
+        public AnimationTransformOperation(ISkinned skinnedEntity, string nodeName, GizmoMode mode)
         {
             //Nodes, components and keyframes will all be created on the animation as an undoable operation.
+            SkinnedEntity = skinnedEntity;
             this.mode = mode;
-            frame = animator.PrimaryAnimation.CurrentFrame_Int;
-            node = animator.PrimaryAnimation.Animation.GetNode(nodeName, true, undos);
+            frame = SkinnedEntity.AnimationPlayer.PrimaryAnimation.CurrentFrame_Int;
+            node = SkinnedEntity.AnimationPlayer.PrimaryAnimation.Animation.GetNode(nodeName, true, undos);
 
             PosKeyframe = node.GetKeyframe(frame, EAN_AnimationComponent.ComponentType.Position, mode == GizmoMode.Translate, undos);
             RotKeyframe = node.GetKeyframe(frame, EAN_AnimationComponent.ComponentType.Rotation, mode == GizmoMode.Rotate, undos);
@@ -58,7 +61,7 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
             OriginalKeyframeValues = node.GetKeyframeValues(frame);
 
             //Get all selected keyframes
-            List<int> keyframes = AnimationTabView.Instance.keyframeDataGrid.SelectedItems.Cast<int>().ToList();
+            List<int> keyframes = SkinnedEntity.AnimationViewInstance.keyframeDataGrid.SelectedItems.Cast<int>().ToList();
             keyframes.Remove(frame);
 
             foreach (var keyframe in keyframes)
@@ -158,7 +161,7 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
 
         public override Matrix GetWorldMatrix()
         {
-            return SceneManager.Actors[0].AnimationPlayer.GetCurrentParentAbsoluteMatrix(node.BoneName) * GetLocalMatrix();
+            return SkinnedEntity.AnimationPlayer.GetCurrentParentAbsoluteMatrix(node.BoneName) * GetLocalMatrix();
         }
 
         public override Quaternion GetRotation()
@@ -193,7 +196,7 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
                 keyframe.ScaleByWorld(addUndo ? undos : null);
 
                 //Get absolute matrix of parent so that we can translate the keyframe from local space into world space
-                Matrix absoluteMatrix = SceneManager.Actors[0].AnimationPlayer.GetCurrentParentAbsoluteMatrix(node.BoneName);
+                Matrix absoluteMatrix = SkinnedEntity.AnimationPlayer.GetCurrentParentAbsoluteMatrix(node.BoneName);
 
                 Vector3 pos = Vector3.Transform(new Vector3(keyframe.X, keyframe.Y, keyframe.Z), absoluteMatrix);
 

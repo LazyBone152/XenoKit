@@ -7,10 +7,11 @@ using XenoKit.Engine.View;
 using XenoKit.Engine.Scripting.BAC;
 using Microsoft.Xna.Framework.Graphics;
 using Xv2CoreLib.EAN;
+using XenoKit.Controls;
 
 namespace XenoKit.Engine
 {
-    public class Actor : Entity
+    public class Actor : Entity, ISkinned
     {
         //TODO: Clean this mess up!
         public override Matrix AbsoluteTransform => Transform;
@@ -21,6 +22,7 @@ namespace XenoKit.Engine
         public int ForceDytOverride = -1;
 
         //Animation:
+        public AnimationTabView AnimationViewInstance => AnimationTabView.Instance;
         private Xv2Skeleton _skeleton = null;
         public Xv2Skeleton Skeleton
         {

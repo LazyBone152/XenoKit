@@ -12,7 +12,6 @@
         <ResourceDictionary>
             <converters:VisibilityToNullableBooleanConverter x:Key="visibilityConverter"/>
 
-            <!-- EEPK Organiser -->
             <BitmapImage x:Key="gridlines" UriSource="Resources/transparent_checkerboard.png" />
 
             <Style x:Key="ButtonNoGlow" TargetType="Button">

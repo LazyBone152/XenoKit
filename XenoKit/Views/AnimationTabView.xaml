@@ -11,7 +11,7 @@
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              Dialog:DialogParticipation.Register="{Binding}"
-             d:DesignHeight="500" d:DesignWidth="600" Name="UserControl">
+             d:DesignHeight="500" d:DesignWidth="600" Name="UserControl" Loaded="UserControl_Loaded">
     <UserControl.Resources>
         <SolidColorBrush x:Key="accentBrush" Color="{DynamicResource MahApps.Colors.Accent2}"/>
         <SolidColorBrush x:Key="backgroundBrush" Color="{DynamicResource MahApps.Colors.ThemeBackground}"/>
@@ -28,9 +28,9 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0"  Orientation="Horizontal">
+        <StackPanel x:Name="actorFiles" Grid.Row="0"  Orientation="Horizontal">
             <Grid Margin="5"/>
-            <ComboBox x:Name="filesComboBox" Controls:TextBoxHelper.ClearTextButton="True" Controls:TextBoxHelper.ButtonCommand="{Binding DeleteEanFileCommand}" SelectedItem="{Binding files.SelectedItem.SelectedEanFile, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding files.SelectedMove.Files.EanFile.Binding}" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
+            <ComboBox x:Name="filesComboBox" Controls:TextBoxHelper.ClearTextButton="True" Controls:TextBoxHelper.ButtonCommand="{Binding DeleteEanFileCommand}" SelectedItem="{Binding files.SelectedItem.SelectedEanFile, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding files.SelectedMove.Files.EanFile.Binding}" DisplayMemberPath="DisplayName" SelectionChanged="filesComboBox_SelectionChanged" Height="23" Width="182" Margin="2, 0"/>
             
             <Button Command="{Binding AddEanFileCommand}" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Create a new EAN file" HorizontalAlignment="Center" VerticalAlignment="Center" Width="20" Height="20" Margin="2">
                 <iconPacks:PackIconModern Kind="Add" Width="12" Height="12"/>
@@ -39,7 +39,25 @@
             <Button Command="{Binding RenameEanFileCommand}" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Change character ID" HorizontalAlignment="Center" VerticalAlignment="Center" Width="20" Height="20" Margin="2">
                 <iconPacks:PackIconModern Kind="Edit" Width="10" Height="10"/>
             </Button>
-            
+
+        </StackPanel>
+        <StackPanel x:Name="inspectorFiles" Grid.Row="0"  Orientation="Horizontal" Margin="5" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Content="Animation File" VerticalContentAlignment="Center"/>
+                <ComboBox Grid.Column="1" Height="23" SelectedItem="{Binding ElementName=UserControl, Path=Inspector.ActiveEanFile, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding ElementName=UserControl, Path=Inspector.AllEanEntities.Binding}" DisplayMemberPath="DisplayName" Margin="2, 0"/>
+
+                <Label Grid.Column="3" Content="Skeleton" VerticalContentAlignment="Center" ToolTip="The skeleton to play animations on."/>
+                <ComboBox Grid.Column="4" Height="23" SelectedItem="{Binding ElementName=UserControl, Path=Inspector.ActiveSkinnedEntity, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding ElementName=UserControl, Path=Inspector.AllSkinnedEntities.Binding}" DisplayMemberPath="DisplayName" Margin="2, 0"/>
+
+            </Grid>
+
         </StackPanel>
 
         <Grid Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -67,7 +85,7 @@
                 </StackPanel>
             </StackPanel>
 
-            <DataGrid Grid.Column="1" x:Name="animListBox" MouseDoubleClick="AnimListBox_MouseDoubleClick" SelectedItem="{Binding files.SelectedItem.SelectedAnimation}" ItemsSource="{Binding SelectedItem.File.Animations.Binding, ElementName=filesComboBox}"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectionChanged="AnimListBox_SelectionChanged" Style="{DynamicResource MahApps.Styles.DataGrid.Azure}" Margin="5, 0">
+            <DataGrid Grid.Column="1" x:Name="animListBox" MouseDoubleClick="AnimListBox_MouseDoubleClick" SelectedItem="{Binding ElementName=UserControl, Path=SelectedAnimation}" ItemsSource="{Binding ElementName=UserControl, Path=SelectedEanFile.Animations.Binding}"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" SelectionChanged="AnimListBox_SelectionChanged" Style="{DynamicResource MahApps.Styles.DataGrid.Azure}" Margin="5, 0">
                 <DataGrid.InputBindings>
                     <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyAnimationCommand}"/>
                     <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteAnimationCommand}"/>
@@ -255,8 +273,8 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <!-- TODO: Add search feature for bones -->
-                
-                <DataGrid Grid.Row="1" x:Name="boneDataGrid" Controls:ControlsHelper.ContentCharacterCasing="Normal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding files.SelectedItem.SelectedAnimation.Nodes.Binding}" SelectedItem="{Binding SelectedBone, UpdateSourceTrigger=PropertyChanged}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5, 5" SelectionChanged="boneDataGrid_SelectionChanged" >
+
+                <DataGrid Grid.Row="1" x:Name="boneDataGrid" Controls:ControlsHelper.ContentCharacterCasing="Normal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ItemsSource="{Binding ElementName=UserControl, Path=SelectedAnimation.Nodes.Binding}" SelectedItem="{Binding ElementName=UserControl, Path=SelectedBone, UpdateSourceTrigger=PropertyChanged}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="5, 5" SelectionChanged="boneDataGrid_SelectionChanged" >
                     <DataGrid.InputBindings>
                         <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBoneCommand}"/>
                         <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteBoneCommand}"/>

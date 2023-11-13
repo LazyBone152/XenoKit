@@ -145,19 +145,6 @@ namespace XenoKit.Engine
 
         #endregion
 
-        #region ModelFunctions
-        public void UnsetActorOnModels(int actor)
-        {
-            foreach(KeyValuePair<object, CompiledObjectCacheEntry> model in CachedObjects.Where(x => x.Value.IsOfType(typeof(Xv2ModelFile))))
-            {
-                if(model.Value.CachedObject.Target is Xv2ModelFile xv2Model)
-                {
-                    xv2Model.UnsetActor(actor);
-                }
-            }
-        }
-        #endregion
-
         public void ForceShaderUpdate()
         {
             foreach(KeyValuePair<object, CompiledObjectCacheEntry> obj in CachedObjects)

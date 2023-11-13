@@ -379,8 +379,25 @@ namespace XenoKit.Engine.Animation
 
         public void ScdUpdate(Xv2Skeleton parentSkeleton, int[] boneIndices)
         {
-            if (parentSkeleton != null)
+            if (parentSkeleton != null && boneIndices != null)
             {
+                //Check for an mismatch between the cached bone indices and the actual bone count
+                //Logging will only be done once to prevent log spam
+                if (boneIndices.Length != Bones.Length)
+                {
+                    if (!ScdBoneCountMismatch)
+                    {
+                        ScdBoneCountMismatch = true;
+                        Editor.Log.Add($"SCD: There was a mismatch between the cached bone indices and the actual amount of bones in the SCD skeleton!", Editor.LogType.Error);
+                    }
+
+                    return;
+                }
+                else if (ScdBoneCountMismatch)
+                {
+                    ScdBoneCountMismatch = false;
+                }
+
                 //Create skinning matrix from animation data of parent skeleton
                 for (int i = 0; i < boneIndices.Length; i++)
                 {
@@ -400,6 +417,8 @@ namespace XenoKit.Engine.Animation
                 }
             }
         }
+
+        private bool ScdBoneCountMismatch = false;
         #endregion
     }
 

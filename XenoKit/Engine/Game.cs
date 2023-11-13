@@ -17,6 +17,7 @@ using XenoKit.Editor;
 using XenoKit.Engine.Model;
 using XenoKit.Engine.Vfx.Particle;
 using XenoKit.Engine.Rendering;
+using XenoKit.Inspector;
 
 namespace XenoKit.Engine
 {
@@ -38,6 +39,7 @@ namespace XenoKit.Engine
         public BoneScaleGizmo BoneScaleGizmo;
         public BacMatrixGizmo BacMatrixGizmo;
         public HitboxGizmo BacHitboxGizmo;
+        public EntityTransformGizmo EntityTransformGizmo;
 
         //Stage. Not final design just a quick hacky way to get stages into the application.
         public ManualFiles ActiveStage = null;
@@ -57,6 +59,7 @@ namespace XenoKit.Engine
             BoneScaleGizmo = new  BoneScaleGizmo(this);
             BacMatrixGizmo = new BacMatrixGizmo(this);
             BacHitboxGizmo = new HitboxGizmo(this);
+            EntityTransformGizmo = new EntityTransformGizmo(this);
             CurrentGizmo = AnimatorGizmo;
 
             camera = new Camera(this);
@@ -84,33 +87,41 @@ namespace XenoKit.Engine
             ShaderManager.Update();
             CurrentGizmo.Update();
             BacHitboxGizmo.Update();
+            EntityTransformGizmo.Update();
 
             AudioEngine.Update();
 
-            if (SceneManager.IsOnEffectTab)
+            if (SceneManager.IsOnInspectorTab)
             {
-                VfxPreview.Update();
+                InspectorMode.Instance.Update();
             }
             else
             {
-                VfxManager.Update();
-            }
-
-            //Stage
-            if (ActiveStage != null)
-            {
-                foreach (StageModel model in ActiveStage.StageModels)
+                if (SceneManager.IsOnEffectTab)
                 {
-                    model.Update();
+                    VfxPreview.Update();
                 }
-            }
-
-            //Actors
-            for (int i = 0; i < SceneManager.Actors.Length; i++)
-            {
-                if(SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
+                else
                 {
-                    SceneManager.Actors[i].Update();
+                    VfxManager.Update();
+                }
+
+                //Stage
+                if (ActiveStage != null)
+                {
+                    foreach (StageModel model in ActiveStage.StageModels)
+                    {
+                        model.Update();
+                    }
+                }
+
+                //Actors
+                for (int i = 0; i < SceneManager.Actors.Length; i++)
+                {
+                    if (SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
+                    {
+                        SceneManager.Actors[i].Update();
+                    }
                 }
             }
 
@@ -119,13 +130,10 @@ namespace XenoKit.Engine
             //Update camera last - this way it has the lowest priority for mouse click events
             camera.Update(time);
 
-
             if (GameUpdate != null)
                 GameUpdate.Invoke(this, null);
 
             SceneManager.Update(time);
-
-
         }
 
         protected override void DelayedUpdate()
@@ -175,6 +183,7 @@ namespace XenoKit.Engine
             //Draw last and over everything else
             CurrentGizmo.Draw();
             BacHitboxGizmo.Draw();
+            EntityTransformGizmo.Draw();
 
             //Draw MainRenderTarget onto screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);
@@ -265,6 +274,10 @@ namespace XenoKit.Engine
 
             switch (SceneManager.CurrentSceneState)
             {
+                case EditorTabs.Inspector:
+                case EditorTabs.InspectorAnimation:
+                    InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.PrevFrame();
+                    break;
                 case EditorTabs.Animation:
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].AnimationPlayer.PrevFrame();
@@ -289,6 +302,10 @@ namespace XenoKit.Engine
 
             switch (SceneManager.CurrentSceneState)
             {
+                case EditorTabs.Inspector:
+                case EditorTabs.InspectorAnimation:
+                    InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.NextFrame();
+                    break;
                 case EditorTabs.Animation:
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].AnimationPlayer.NextFrame();

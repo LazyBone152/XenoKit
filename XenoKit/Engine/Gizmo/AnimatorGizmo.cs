@@ -1,16 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using XenoKit.Engine.Animation;
 using XenoKit.Engine.Gizmo.TransformOperations;
 
 namespace XenoKit.Engine.Gizmo
 {
     public class AnimatorGizmo : GizmoBase
     {
-        //Bone and character info
-        private Actor character = null;
+        //Bone and skinned entity info
+        private ISkinned skinnedEntity = null;
         private string boneName = string.Empty;
         private int boneIdx = -1;
-        protected override Matrix WorldMatrix => character.GetAbsoluteBoneMatrix(boneIdx);
+        protected override Matrix WorldMatrix => skinnedEntity.GetAbsoluteBoneMatrix(boneIdx);
 
         //Keyframe
         protected override ITransformOperation TransformOperation
@@ -42,15 +43,15 @@ namespace XenoKit.Engine.Gizmo
             SetContext(null, null);
         }
 
-        public void SetContext(Actor _character, string boneName)
+        public void SetContext(ISkinned _character, string boneName)
         {
-            character = _character;
+            skinnedEntity = _character;
             boneIdx = _character != null ? _character.Skeleton.GetBoneIndex(boneName) : -1;
 
             if (boneIdx == -1)
             {
                 //Bone not on this characters skeleton.
-                character = null;
+                skinnedEntity = null;
                 Disable();
                 return;
             }
@@ -63,13 +64,13 @@ namespace XenoKit.Engine.Gizmo
 
         public override bool IsContextValid()
         {
-            return (character != null && !string.IsNullOrWhiteSpace(boneName) && SceneManager.IsOnTab(EditorTabs.Animation));
+            return (skinnedEntity != null && !string.IsNullOrWhiteSpace(boneName) && SceneManager.IsOnTab(EditorTabs.Animation, EditorTabs.InspectorAnimation));
         }
 
         protected override void StartTransformOperation()
         {
-            if(character?.AnimationPlayer.PrimaryAnimation != null)
-                transformOperation = new AnimationTransformOperation(character?.AnimationPlayer, boneName, ActiveMode);
+            if(skinnedEntity?.AnimationPlayer.PrimaryAnimation != null)
+                transformOperation = new AnimationTransformOperation(skinnedEntity, boneName, ActiveMode);
         }
 
         public override bool IsEnabledOnBone(int bone)

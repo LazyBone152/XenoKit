@@ -296,7 +296,7 @@ namespace XenoKit.Engine.Rendering
 
             GraphicsDevice.SetRenderTargets(renderTargets);
         }
-        
+
         #region Update
 
         private void DrawEntityList(List<Entity> entities, bool simpleDraw, bool normalPass)
@@ -480,14 +480,17 @@ namespace XenoKit.Engine.Rendering
             switch (entity.EntityType)
             {
                 case EntityType.Actor:
-                    Characters.Add(entity);
+                    if(!Characters.Contains(entity))
+                        Characters.Add(entity);
                     break;
                 case EntityType.Stage:
-                    Stages.Add(entity);
+                    if (!Stages.Contains(entity))
+                        Stages.Add(entity);
                     break;
                 case EntityType.VFX:
                 case EntityType.Model: //Currently Xv2Submesh is only used in this case for an EMO. If that ever changes, this will also need to be changed
-                    Effects.Add(entity);
+                    if (!Effects.Contains(entity))
+                        Effects.Add(entity);
                     break;
                 default:
                     Log.Add($"RenderSystem: Cannot add EntityType {entity.EntityType}!", LogType.Debug);

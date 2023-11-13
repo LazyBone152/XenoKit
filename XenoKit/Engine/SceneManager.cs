@@ -29,7 +29,9 @@ namespace XenoKit.Engine
         Effect = 7,
         Audio = 8,
         System = 9,
-        CAC = 10
+        CAC = 10,
+        Inspector = 11,
+        InspectorAnimation = 12
     }
 
     public enum BcsEditorTabs
@@ -71,7 +73,9 @@ namespace XenoKit.Engine
         Audio_VOX,
         Audio_SE,
         System,
-        CAC
+        CAC,
+        Inspector,
+        InspectorAnimation
     }
 
     public static class SceneManager
@@ -109,6 +113,7 @@ namespace XenoKit.Engine
         public static EditorTabs PrevSceneState = EditorTabs.Nothing;
         public static EditorTabs CurrentSceneState = 0;
         public static bool IsOnEffectTab = false;
+        public static bool IsOnInspectorTab = false;
 
         public static Vector4 SystemTime; //Seconds elsapsed while "IsPlaying". For use in DBXV2 Shaders.
         public static Vector4 ScreenSize;
@@ -126,6 +131,7 @@ namespace XenoKit.Engine
             BcsEditorTabs bcsTab = (BcsEditorTabs)bcsTabIdx;
 
             IsOnEffectTab = false;
+            IsOnInspectorTab = false;
             ShowActorsInCurrentScene = true;
 
             switch (mainTab)
@@ -211,6 +217,14 @@ namespace XenoKit.Engine
                     break;
                 case MainEditorTabs.CAC:
                     CurrentSceneState = EditorTabs.CAC;
+                    break;
+                case MainEditorTabs.Inspector:
+                    CurrentSceneState = EditorTabs.Inspector;
+                    IsOnInspectorTab = true;
+                    break;
+                case MainEditorTabs.InspectorAnimation:
+                    CurrentSceneState = EditorTabs.InspectorAnimation;
+                    IsOnInspectorTab = true;
                     break;
             }
 
@@ -389,9 +403,6 @@ namespace XenoKit.Engine
             character.ResetPosition();
             Stop();
 
-            //Remove all current bone indices for this actorSlots character models. This is required because the skeletons are different and bone idx wont point to the same thing.
-            MainGameBase.CompiledObjectManager.UnsetActorOnModels(actorSlot);
-
             Log.Add($"{character.Name} set as the {GetActorName(actorSlot)} actor.");
 
             ActorChanged?.Invoke(character, new ActorChangedEventArgs(character, actorSlot));
@@ -405,9 +416,6 @@ namespace XenoKit.Engine
             if (actorSlot != -1)
             {
                 Actors[actorSlot] = null;
-
-                //Remove all current bone indices for this actorSlots character models. This is required because the skeletons are different and bone idx wont point to the same thing.
-                MainGameBase.CompiledObjectManager.UnsetActorOnModels(actorSlot);
 
                 //Remove actor from RenderDepthSystem
                 MainGameBase.RenderSystem.RemoveRenderEntity(actor);
@@ -556,6 +564,10 @@ namespace XenoKit.Engine
                         Actors[i].AnimationPlayer.Resume();
                 }
             }
+            else if (IsOnInspectorTab)
+            {
+                Inspector.InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.Resume();
+            }
             else if (CurrentSceneState == EditorTabs.Camera)
             {
                 MainCamera.Resume();
@@ -599,6 +611,8 @@ namespace XenoKit.Engine
                     Actors[i].ActionControl.Stop();
                 }
             }
+
+            Inspector.InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.FirstFrame();
 
             MainGameBase.IsPlaying = false;
             PlayStateChanged?.Invoke(null, EventArgs.Empty);

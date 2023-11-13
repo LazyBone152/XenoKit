@@ -34,7 +34,7 @@ namespace XenoKit.Editor
         }
 
         #endregion
-        
+
         public enum OutlinerItemType
         {
             CaC,
@@ -42,6 +42,7 @@ namespace XenoKit.Editor
             Skill,
             Moveset,
             CMN,
+            Inspector,
 
             //Manual Loads Only:
             ACB,
@@ -68,6 +69,7 @@ namespace XenoKit.Editor
         {
             get
             {
+                if (Type == OutlinerItemType.Inspector) return "";
                 if (Type == OutlinerItemType.CMN) return "Common";
                 if (IsManualLoaded) return ManualFiles.Name;
                 if (Type == OutlinerItemType.CaC) return $"{CustomAvatar.CaC.Name}";
@@ -78,7 +80,13 @@ namespace XenoKit.Editor
         {
             get
             {
-                return Type.ToString().ToUpper();
+                switch (Type)
+                {
+                    case OutlinerItemType.Inspector:
+                        return "Viewer Mode";
+                    default:
+                        return Type.ToString().ToUpper();
+                }
             }
         }
         public EditorVisibility Visibilities { get; set; }
@@ -244,7 +252,7 @@ namespace XenoKit.Editor
             SetSelectedItems();
         }
 
-        private OutlinerItem(bool readOnly, OutlinerItemType type, bool onlyLoadFromCpk)
+        public OutlinerItem(bool readOnly, OutlinerItemType type, bool onlyLoadFromCpk)
         {
             Type = type;
             ReadOnly = readOnly;

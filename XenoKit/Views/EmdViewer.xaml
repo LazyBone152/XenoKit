@@ -311,7 +311,7 @@
                         </StackPanel>
 
                     </TabItem>
-                    <TabItem Header="Files" controls:HeaderedControlHelper.HeaderFontSize="12">
+                    <TabItem x:Name="filesTab" Header="Files" controls:HeaderedControlHelper.HeaderFontSize="12">
                         <StackPanel HorizontalAlignment="Left">
                             <Grid Margin="3,5,0,0" Width="300">
                                 <Grid.ColumnDefinitions>

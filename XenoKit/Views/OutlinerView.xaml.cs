@@ -3,13 +3,15 @@ using XenoKit.Editor;
 using XenoKit.Engine;
 using XenoKit.Windows;
 using GalaSoft.MvvmLight.CommandWpf;
+using GongSolutions.Wpf.DragDrop;
+using System.Windows;
 
 namespace XenoKit.Controls
 {
     /// <summary>
     /// Interaction logic for OutlinerView.xaml
     /// </summary>
-    public partial class OutlinerView : UserControl
+    public partial class OutlinerView : UserControl, IDropTarget
     {
         public Files files { get { return Files.Instance; } }
 
@@ -76,6 +78,43 @@ namespace XenoKit.Controls
             }
             return false;
         }
+        #endregion
+
+        #region Drop
+
+        void IDropTarget.DragOver(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is DataObject data)
+            {
+                if (data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    dropInfo.Effects = DragDropEffects.Copy;
+                    dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                }
+            }
+        }
+
+        void IDropTarget.Drop(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is DataObject data)
+            {
+                if (data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    string[] droppedFilePaths = data.GetData(DataFormats.FileDrop, true) as string[];
+                    Files.Instance.ProcessFileDrop(droppedFilePaths);
+                }
+            }
+        }
+
+        void IDropTarget.DragEnter(IDropInfo dropInfo)
+        {
+        }
+
+        void IDropTarget.DragLeave(IDropInfo dropInfo)
+        {
+
+        }
+
         #endregion
 
         private void listBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

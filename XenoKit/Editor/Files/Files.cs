@@ -91,12 +91,14 @@ namespace XenoKit.Editor
         /// <summary>
         /// Load game CPKs and name list files. A progress bar will appear on window as they load.
         /// </summary>
-        public async void Initialize(MetroWindow window)
+        public async void Initialize(MainWindow window)
         {
             this.window = window;
 
             var controller = await window.ShowProgressAsync("Initializing", "Reading game files...", false, DialogSettings.Default);
             controller.SetIndeterminate();
+
+            OutlinerItems.Add(new OutlinerItem(true, OutlinerItem.OutlinerItemType.Inspector, false));
 
             try
             {
@@ -122,6 +124,10 @@ namespace XenoKit.Editor
             finally
             {
                 await controller.CloseAsync();
+
+                //Go to viewer tab and select viewer mode
+                window.mainTabControl.SelectedIndex = (int)EditorTabs.Inspector;
+                SelectedItem = OutlinerItems[0];
             }
         }
 
@@ -198,7 +204,7 @@ namespace XenoKit.Editor
         {
             if (SelectedItem != null)
             {
-                return SelectedItem.Type != OutlinerItem.OutlinerItemType.CMN ? true : false;
+                return SelectedItem.Type != OutlinerItem.OutlinerItemType.CMN && SelectedItem.Type != OutlinerItem.OutlinerItemType.Inspector;
             }
             return false;
         }
@@ -242,6 +248,28 @@ namespace XenoKit.Editor
 
 
         #region Load
+        public void ProcessFileDrop(string[] paths)
+        {
+            bool error = false;
+            foreach (string drop in paths)
+            {
+                switch (Path.GetExtension(drop))
+                {
+                    case ".ean":
+                    case ".acb":
+                    case ".eepk":
+                    case ".vfxpackage":
+                        ManualLoad(drop);
+                        break;
+                    default:
+                        if (!error)
+                            MessageBox.Show($"The filetype of \"{drop}\" is not supported.", "File Drop", MessageBoxButton.OK, MessageBoxImage.Error);
+                        error = true;
+                        break;
+                }
+            }
+        }
+
         public void ManualLoad(string filePath)
         {
             OutlinerItems.Add(new OutlinerItem(filePath));
@@ -516,6 +544,9 @@ namespace XenoKit.Editor
                             break;
                         case OutlinerItem.OutlinerItemType.CaC:
                             SaveCac(item);
+                            break;
+                        case OutlinerItem.OutlinerItemType.Inspector:
+                            Inspector.InspectorMode.Instance.SaveFiles();
                             break;
                     }
                 });

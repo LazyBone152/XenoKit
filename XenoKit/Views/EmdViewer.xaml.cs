@@ -132,6 +132,23 @@ namespace XenoKit.Views
             LoadFiles();
         }
 
+        public EmdViewer(EMD_File emdFile, EMB_File embFile, EMB_File dytFile, EMM_File emmFile, string windowName)
+        {
+            EmdFile = emdFile;
+            DataContext = this;
+            InitializeComponent();
+            UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
+            Closed += EmdViewer_Closed;
+
+            Title += $" ({windowName})";
+            filesTab.Visibility = Visibility.Collapsed;
+            viewer.EmbFile = embFile;
+            viewer.EmmFile = emmFile;
+            viewer.DytFile = dytFile;
+            viewer.EmdFile = emdFile;
+            viewer.RefreshModel();
+        }
+
         private void EmdViewer_Closed(object sender, EventArgs e)
         {
             UndoManager.Instance.UndoOrRedoCalled -= Instance_UndoOrRedoCalled;

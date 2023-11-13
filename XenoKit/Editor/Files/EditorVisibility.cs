@@ -13,7 +13,9 @@ namespace XenoKit.Editor
         public Visibility IsCharacter { get { return (type == OutlinerItemType.Character || type == OutlinerItemType.CaC) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsCommon { get { return (type == OutlinerItemType.CMN) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsManual { get { return (type == OutlinerItemType.EAN || type == OutlinerItemType.CAM || type == OutlinerItemType.EEPK || type == OutlinerItemType.ACB || type == OutlinerItemType.STAGE_MANUAL) ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility IsInspector => type == OutlinerItemType.Inspector ? Visibility.Visible : Visibility.Collapsed;
 
+        public Visibility UseSecondSeperator => type == OutlinerItemType.Inspector ? Visibility.Collapsed : Visibility.Visible;
 
         //MainTabs:
         public Visibility BcsVisibility { get; private set; } = Visibility.Collapsed;

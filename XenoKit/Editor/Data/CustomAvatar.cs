@@ -42,7 +42,7 @@ namespace XenoKit.Editor.Data
             {
                 Xv2Character xv2Character = Xenoverse2.Instance.GetCharacter(CmsID);
                 Actor[Race] = new Actor(SceneManager.MainGameBase, xv2Character, 0);
-                Actor[Race].AnimationPlayer.PlayPrimaryAnimation(Actor[Race].CharacterData.MovesetFiles.EanFile[0].File, 0);
+                Actor[Race].AnimationPlayer.PlayPrimaryAnimation(Actor[Race].CharacterData.MovesetFiles.EanFile[0].File, 0, autoTerminate: true);
             }
 
             OutlinerItem.character = Actor[Race];

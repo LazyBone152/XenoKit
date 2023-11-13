@@ -6,8 +6,9 @@
              xmlns:editor="clr-namespace:XenoKit.Editor"
              xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:dd="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="200">
+             d:DesignHeight="450" d:DesignWidth="200" Name="UserControl">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
@@ -17,7 +18,8 @@
         <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="10,5,0,0" TextWrapping="Wrap" Text="Outliner" VerticalAlignment="Top" Width="60"/>
         <Separator Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent2}"/>
 
-        <ListBox Grid.Row="2" x:Name="listBox" ItemsSource="{Binding files.OutlinerItems.Binding}" SelectedItem="{Binding files.SelectedItem}" Margin="10, 10" MouseDoubleClick="listBox_MouseDoubleClick">
+        <ListBox Grid.Row="2" x:Name="listBox" ItemsSource="{Binding files.OutlinerItems.Binding}" SelectedItem="{Binding files.SelectedItem}" Margin="10, 10" MouseDoubleClick="listBox_MouseDoubleClick" 
+                 dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding}" AllowDrop="True" >
             <ListBox.InputBindings>
                 <KeyBinding Key="F" Command="{Binding FocusActorCommand}"/>
             </ListBox.InputBindings>
@@ -42,11 +44,13 @@
                                     <Setter Property="Margin" Value="2,0,0,0"/>
                                 </Style>
                             </StackPanel.Resources>
+
                             <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsManual}" Kind="Fish" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsSkill}" Kind="Karate" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsMoveset}" Kind="Walk" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <iconPacks:PackIconMaterialDesign Visibility="{Binding Visibilities.IsCharacter}" Kind="Accessibility" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsCommon}" Kind="AlphaCCircleOutline" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+                            <iconPacks:PackIconMaterialDesign Visibility="{Binding Visibilities.IsInspector}" Kind="LocationSearching" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
 
                             <Separator HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
                                 <Separator.RenderTransform>
@@ -59,7 +63,7 @@
                                 </Separator.RenderTransform>
                             </Separator>
                             <TextBlock Text="{Binding DisplayType}" FontSize="11"/>
-                            <Separator HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
+                            <Separator Visibility="{Binding Visibilities.UseSecondSeperator}" HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="20" RenderTransformOrigin="0.5,0.5">
                                 <Separator.RenderTransform>
                                     <TransformGroup>
                                         <ScaleTransform/>
