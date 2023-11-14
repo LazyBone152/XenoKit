@@ -112,6 +112,7 @@
                         <MenuItem Header="Reload (all children)" Command="{Binding Source={StaticResource Proxy}, Path=Data.ReloadChildrenFileCommand}"/>
                         <MenuItem Header="Remove" Command="{Binding Source={StaticResource Proxy}, Path=Data.RemoveFileCommand}"/>
                         <Separator/>
+                        <MenuItem Header="Draw Last (Fix Transparency)" Command="{Binding Source={StaticResource Proxy}, Path=Data.DrawLastCommand}"/>
                         <MenuItem Header="Is Secondary Animation" IsCheckable="True" IsChecked="{Binding Source={StaticResource Proxy}, Path=Data.SelectedItem.IsSecondaryAnimation}" Visibility="{Binding Source={StaticResource Proxy}, Path=Data.EanVisibility}"/>
                         <MenuItem Header="Edit" Command="{Binding Source={StaticResource Proxy}, Path=Data.EditFileCommand}"/>
                         <MenuItem Header="Set Dyt Level" Visibility="{Binding Source={StaticResource Proxy}, Path=Data.TextureVisibility}">

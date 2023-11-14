@@ -73,6 +73,7 @@ namespace XenoKit.Views
         #region ContextMenu
         public Visibility TextureVisibility => CanDytBeSet() ? Visibility.Visible : Visibility.Collapsed;
         public Visibility EanVisibility => SelectedItem is EanInspectorEntity ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility MeshVisibility => SelectedItem is MeshInspectorEntity ? Visibility.Visible : Visibility.Collapsed;
 
         public RelayCommand SaveFileCommand => new RelayCommand(SaveFile, IsFileSelected);
         private void SaveFile()
@@ -153,6 +154,21 @@ namespace XenoKit.Views
                 EmdViewer modelViewer = new EmdViewer(mesh.EmdFile, mesh.TextureFile?.EmbFile, mesh.DytFile?.EmbFile, mesh.MaterialFile?.EmmFile, mesh.Name);
                 modelViewer.Show();
             }
+        }
+
+        public RelayCommand DrawLastCommand => new RelayCommand(DrawLast, IsModelFile);
+        private void DrawLast()
+        {
+            if(SelectedItem is MeshInspectorEntity mesh)
+            {
+                SceneManager.MainGameBase.RenderSystem.MoveRenderEntityToFront(mesh);
+            }
+        }
+
+
+        private bool IsModelFile()
+        {
+            return SelectedItem is MeshInspectorEntity;
         }
 
         private bool CanEditFile()
@@ -319,6 +335,7 @@ namespace XenoKit.Views
                 NotifyPropertyChanged(nameof(SelectedItem));
                 NotifyPropertyChanged(nameof(TextureVisibility));
                 NotifyPropertyChanged(nameof(EanVisibility));
+                NotifyPropertyChanged(nameof(MeshVisibility));
             }
 
             //Set context for transform gizmo (move skeletons around)

@@ -533,6 +533,25 @@ namespace XenoKit.Engine.Rendering
                 RemoveRenderEntity(entity);
             }
         }
+        
+        public void MoveRenderEntityToFront(Entity entity)
+        {
+            if (Characters.Contains(entity))
+            {
+                Characters.Remove(entity);
+                Characters.Add(entity);
+            }
+            else if (Stages.Contains(entity))
+            {
+                Stages.Remove(entity);
+                Stages.Add(entity);
+            }
+            else if (Effects.Contains(entity))
+            {
+                Effects.Remove(entity);
+                Effects.Add(entity);
+            }
+        }
         #endregion
     }
 }

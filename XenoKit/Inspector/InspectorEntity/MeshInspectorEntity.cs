@@ -231,5 +231,22 @@ namespace XenoKit.Inspector.InspectorEntities
                 Model.Draw(Parent != null ? Parent.Transform : Matrix.Identity, 0, RenderSystem.NORMAL_FADE_WATERDEPTH_W_M, Parent?.Skeleton);
             }
         }
+    
+        /// <summary>
+        /// Hacky method for drawing transparent parts in the correct order.
+        /// </summary>
+        public static void CheckDrawOrder(IList<InspectorEntity> files)
+        {
+            foreach(InspectorEntity file in files)
+            {
+                if(file.Path.Contains("Face_Ear.emd") || file.Path.Contains("Face_ear.emd") || file.Path.Contains("face_ear.emd"))
+                {
+                    if(file is MeshInspectorEntity mesh)
+                    {
+                        SceneManager.MainGameBase.RenderSystem.MoveRenderEntityToFront(mesh);
+                    }
+                }
+            }
+        }
     }
 }

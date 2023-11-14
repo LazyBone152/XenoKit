@@ -255,6 +255,8 @@ namespace XenoKit.Inspector
                         AddFile(sortedFiles[i], skinnedParent.ChildEntities);
                         sortedFiles.RemoveAt(i);
                     }
+
+                    MeshInspectorEntity.CheckDrawOrder(attachTo.ChildEntities);
                 }
             }
 
@@ -277,7 +279,14 @@ namespace XenoKit.Inspector
             foreach (InspectorEntity file in files)
             {
                 AddFile(file);
+
+                if(file is SkinnedInspectorEntity skinned)
+                {
+                    MeshInspectorEntity.CheckDrawOrder(skinned.ChildEntities);
+                }
             }
+
+            MeshInspectorEntity.CheckDrawOrder(Entities);
         }
 
         public void AddFile(InspectorEntity file, IList<InspectorEntity> entities = null)
@@ -453,6 +462,16 @@ namespace XenoKit.Inspector
 
                 if (newParent != null && AllSkinnedEntities.Contains(skinned))
                     AllSkinnedEntities.Remove(skinned);
+            }
+
+            //Check draw order
+            if(newParent != null && file is MeshInspectorEntity)
+            {
+                MeshInspectorEntity.CheckDrawOrder(newParent.ChildEntities);
+            }
+            else
+            {
+                MeshInspectorEntity.CheckDrawOrder(Entities);
             }
         }
         #endregion
