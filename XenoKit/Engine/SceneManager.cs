@@ -143,7 +143,7 @@ namespace XenoKit.Engine
                     CurrentSceneState = EditorTabs.Animation;
                     break;
                 case MainEditorTabs.Audio:
-                    CurrentSceneState = audioTabIdx == 0 ? EditorTabs.Audio_VOX : EditorTabs.Audio_SE;
+                    CurrentSceneState = audioTabIdx > 0 ? EditorTabs.Audio_VOX : EditorTabs.Audio_SE;
                     ShowActorsInCurrentScene = false;
                     break;
                 case MainEditorTabs.BCS:

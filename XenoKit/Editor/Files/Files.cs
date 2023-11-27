@@ -55,7 +55,10 @@ namespace XenoKit.Editor
         private static Lazy<Files> instance = new Lazy<Files>(() => new Files());
         public static Files Instance => instance.Value;
 
-        private Files() { }
+        private Files() 
+        {
+            SelectedItemChanged += SelectedItemOrTabChanged;
+        }
         #endregion
 
         private MetroWindow window = null;
@@ -82,6 +85,16 @@ namespace XenoKit.Editor
             get
             {
                 return SelectedItem?.GetMove();
+            }
+        }
+
+        public string SaveContextMenuString
+        {
+            get
+            {
+                var str = SelectedItem?.GetSaveContextFileName();
+
+                return str == null ? $"Save File (N/A)" : $"_Save File ({str})";
             }
         }
 
@@ -137,6 +150,13 @@ namespace XenoKit.Editor
         {
             SaveItem(_selectedItem);
         }
+
+        public RelayCommand SaveContextFileCommand => new RelayCommand(SaveContextFile, () => SelectedItem?.GetSaveContextFileName() != null);
+        private void SaveContextFile()
+        {
+            SelectedItem.SaveContextFile();
+        }
+
 
         public async void RemoveSelectedItem(IList<OutlinerItem> items)
         {
@@ -207,7 +227,6 @@ namespace XenoKit.Editor
             return _selectedItem?.ReadOnly == false;
         }
 
-
         private bool CanReload()
         {
             if (_selectedItem == null) return false;
@@ -245,6 +264,10 @@ namespace XenoKit.Editor
             }
         }
 
+        public void SelectedItemOrTabChanged(object sender, EventArgs e)
+        {
+            NotifyPropertyChanged(nameof(SaveContextMenuString));
+        }
 
         #region Load
         public void ProcessFileDrop(string[] paths)

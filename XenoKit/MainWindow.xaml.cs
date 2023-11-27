@@ -127,6 +127,8 @@ namespace XenoKit
                         mainTabControl.SelectedIndex = (int)MainEditorTabs.Inspector;
                         break;
                 }
+
+                effectTab_EepkComboBox.Visibility = Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN ? Visibility.Visible : Visibility.Collapsed;
             }
 
             DetectInvalidTab();
@@ -506,6 +508,7 @@ namespace XenoKit
         private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateSelectedTab();
+            Files.Instance.SelectedItemOrTabChanged(sender, e);
         }
 
         private void UpdateSelectedTab()

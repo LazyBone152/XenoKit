@@ -76,12 +76,12 @@ namespace XenoKit.Engine.Vfx
 
             if (SceneManager.IsOnTab(EditorTabs.Effect))
             {
-                Effect.Initialize();
+                Effect?.Initialize();
                 GameBase.IsPlaying = false;
             }
             else
             {
-                Asset.InitializeFromAsset();
+                Asset?.InitializeFromAsset();
                 GameBase.IsPlaying = false;
             }
         }

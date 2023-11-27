@@ -109,7 +109,20 @@ namespace XenoKit.Editor
         private Xv2File<ACB_Wrapper> _selectedVoxAcbFile = null;
         private EAN_Animation _selectedAnimation = null;
         private EAN_Animation _selectedCamera = null;
+        private Xv2File<EffectContainerFile> _selectedEepk = null;
 
+        public Xv2File<EffectContainerFile> SelectedEepk
+        {
+            get => Type == OutlinerItemType.CMN ? _selectedEepk : move?.Files?.EepkFile;
+            set
+            {
+                if (Type == OutlinerItemType.CMN && value != _selectedEepk)
+                {
+                    _selectedEepk = value;
+                    NotifyPropertyChanged(nameof(SelectedEepk));
+                }
+            }
+        }
         public Xv2File<EAN_File> SelectedEanFile
         {
             get { return _selectedEanFile; }
@@ -182,7 +195,7 @@ namespace XenoKit.Editor
                 }
             }
         }
-
+        
         #endregion
 
         /// <summary>
@@ -323,6 +336,7 @@ namespace XenoKit.Editor
             SelectedCamFile = (GetMove().Files.CamEanFile.Count > 0) ? GetMove().Files.CamEanFile[0] : null;
             SelectedSeAcbFile = (GetMove().Files.SeAcbFile.Count > 0) ? GetMove().Files.SeAcbFile[0] : null;
             SelectedVoxAcbFile = (GetMove().Files.VoxAcbFile.Count > 0) ? GetMove().Files.VoxAcbFile[0] : null;
+            SelectedEepk = Type == OutlinerItemType.CMN ? GetMove().Files.EepkFile : null;
         }
 
         public xv2.MoveType GetMoveType()
@@ -368,6 +382,101 @@ namespace XenoKit.Editor
             }
         }
 
+        #region Save Context File
+        //The Save Context feature will save whatever the currently active file is (e.g: on Anim tab, this would be the selected EAN file)
+        //This is an alternative way to save files without having to save the entire item (character/skill/cmn), which can take some time depending on how big it is.
+
+        /// <summary>
+        /// Gets the file name (with extension) of the current context file (file on current tab). If there is no context, or the current tab/file is not supported, then null will be returned.
+        /// </summary>
+        public string GetSaveContextFileName()
+        {
+            switch (SceneManager.CurrentSceneState)
+            {
+                case EditorTabs.Animation:
+                    return SelectedEanFile != null ? Path.GetFileName(SelectedEanFile.Path) : null;
+                case EditorTabs.Camera:
+                    return SelectedCamFile != null ? Path.GetFileName(SelectedCamFile.Path) : null;
+                case EditorTabs.Effect:
+                case EditorTabs.Effect_LIGHT:
+                case EditorTabs.Effect_CBIND:
+                case EditorTabs.Effect_TBIND:
+                case EditorTabs.Effect_PBIND:
+                case EditorTabs.Effect_EMO:
+                    return SelectedEepk != null ? Path.GetFileName(SelectedEepk.Path) : null;
+                case EditorTabs.Audio_SE:
+                    return SelectedSeAcbFile != null ? Path.GetFileName(SelectedSeAcbFile.Path) : null;
+                case EditorTabs.Audio_VOX:
+                    return SelectedVoxAcbFile != null ? Path.GetFileName(SelectedVoxAcbFile.Path) : null;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Saves the current context file (file on current tab). If there is no context or the editor is on a tab/file that is unsupported by this method, then nothing will be saved. For determining if the current context can be saved, see <see cref="GetSaveContextFileName"/>.
+        /// </summary>
+        /// <returns>A bool indicating if the save was successful.</returns>
+        public bool SaveContextFile()
+        {
+            string pathSaved = null;
+
+            switch (SceneManager.CurrentSceneState)
+            {
+                case EditorTabs.Animation:
+                    if(SelectedEanFile.Path != null)
+                    {
+                        SelectedEanFile.File.Save(SelectedEanFile.Path);
+                        pathSaved = SelectedEanFile.Path;
+                    }
+                    break;
+                case EditorTabs.Camera:
+                    if (SelectedCamFile.Path != null)
+                    {
+                        SelectedCamFile.File.Save(SelectedCamFile.Path);
+                        pathSaved = SelectedCamFile.Path;
+                    }
+                    break;
+                case EditorTabs.Effect:
+                case EditorTabs.Effect_LIGHT:
+                case EditorTabs.Effect_CBIND:
+                case EditorTabs.Effect_TBIND:
+                case EditorTabs.Effect_PBIND:
+                case EditorTabs.Effect_EMO:
+                    if (SelectedEepk.Path != null)
+                    {
+                        SelectedEepk.File.ChangeFilePath(SelectedEepk.Path);
+                        SelectedEepk.File.Save();
+                        pathSaved = SelectedEepk.Path;
+                    }
+                    break;
+                case EditorTabs.Audio_SE:
+                    if (SelectedSeAcbFile.Path != null)
+                    {
+                        SelectedSeAcbFile.File.AcbFile.Save(SelectedSeAcbFile.Path);
+                        pathSaved = SelectedSeAcbFile.Path;
+                    }
+                    break;
+                case EditorTabs.Audio_VOX:
+                    if (SelectedVoxAcbFile.Path != null)
+                    {
+                        SelectedVoxAcbFile.File.AcbFile.Save(SelectedVoxAcbFile.Path);
+                        pathSaved = SelectedVoxAcbFile.Path;
+                    }
+                    break;
+                default:
+                    return false;
+            }
+
+            if(pathSaved != null)
+            {
+                Log.Add($"\"{pathSaved}\" saved!", LogType.Info);
+                return true;
+            }
+
+            return false;
+        }
+        #endregion
     }
 
     public class ManualFiles

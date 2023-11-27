@@ -104,8 +104,17 @@
             <Controls:MetroTabItem Header="Projectile" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.ProjectileVisibility}"/>
             <Controls:MetroTabItem Header="Hitbox" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.HitboxVisibility}"/>
             <Controls:MetroTabItem Header="Effect" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.EffectVisibility}">
-                <eepkView:EepkEditor x:Name="eepkEditor" effectContainerFile="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.EepkFile.File}"/>
-
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel x:Name="effectTab_EepkComboBox"  Orientation="Horizontal" Height="44">
+                        <Grid Margin="5"/>
+                        <ComboBox SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedEepk}" ItemsSource="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.EepkFiles.Binding}" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
+                    </StackPanel>
+                    <eepkView:EepkEditor Grid.Row="1" x:Name="eepkEditor" effectContainerFile="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedEepk.File}"/>
+                </Grid>
             </Controls:MetroTabItem>
             <Controls:MetroTabItem Header="Audio" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.AudioVisibility}">
                 <_views:AudioTab x:Name="audioControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
@@ -147,8 +156,9 @@
                 </MenuItem>
                 <MenuItem Header="Load CaC" Command="{Binding LoadCacCommand}"/>
                 <Separator/>
-                <MenuItem Header="Save (current)" Command="{Binding SaveCurrentCommand}"/>
-                <MenuItem Header="Save (all)" Command="{Binding SaveAllCommand}"/>
+                <MenuItem Header="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextMenuString}" Command="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextFileCommand}"/>
+                <MenuItem Header="Save (Current Item)" Command="{Binding SaveCurrentCommand}"/>
+                <MenuItem Header="Save (All Items)" Command="{Binding SaveAllCommand}"/>
                 <Separator/>
                 <MenuItem Header="Settings" Command="{Binding SettingsCommand}"/>
                 <Separator/>
