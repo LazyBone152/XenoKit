@@ -5,6 +5,9 @@ using XenoKit.Windows;
 using GalaSoft.MvvmLight.CommandWpf;
 using GongSolutions.Wpf.DragDrop;
 using System.Windows;
+using Xceed.Wpf.Toolkit.Primitives;
+using Xv2CoreLib.EffectContainer;
+using System.Linq;
 
 namespace XenoKit.Controls
 {
@@ -48,6 +51,21 @@ namespace XenoKit.Controls
             SceneManager.FocusActor(files.SelectedItem.character);
         }
 
+        public RelayCommand RemoveCommand => new RelayCommand(Remove, CanRemove);
+        private void Remove()
+        {
+            Files.Instance.RemoveSelectedItem(listBox.SelectedItems.Cast<OutlinerItem>().ToList());
+        }
+
+
+        private bool CanRemove()
+        {
+            if (Files.Instance.SelectedItem != null)
+            {
+                return Files.Instance.SelectedItem.CanDelete;
+            }
+            return false;
+        }
 
         private bool CanLoadProperties()
         {

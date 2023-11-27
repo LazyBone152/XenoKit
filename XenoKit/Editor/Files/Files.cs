@@ -138,22 +138,29 @@ namespace XenoKit.Editor
             SaveItem(_selectedItem);
         }
 
-        public RelayCommand RemoveSelectedItemCommand => new RelayCommand(RemoveSelectedItem, CanRemove);
-        private async void RemoveSelectedItem()
+        public async void RemoveSelectedItem(IList<OutlinerItem> items)
         {
-            var result = await window.ShowMessageAsync("Remove Item", $"Do you want to remove \"{SelectedItem.DisplayName}\"? It will be removed from the outliner and any edits will be lost if not saved.", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
+            int count = items.Where(x => x.CanDelete).Count();
+
+            string message = count == 1 ? $"Do you want to remove \"{SelectedItem.DisplayName}\"? It will be removed from the outliner and any edits will be lost if not saved." :
+                $"{count} items will be removed from the outliner and any edits made to them will be lost if not saved.";
+
+            MessageDialogResult result = await window.ShowMessageAsync(items.Count > 1 ? "Remove Items" : "Remove Item", message, MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
 
             if (result == MessageDialogResult.Affirmative)
             {
-                if(SceneManager.MainGameInstance.ActiveStage == SelectedItem?.ManualFiles)
-                {
-                    SceneManager.MainGameInstance.ActiveStage = null;
-                }
-
-                SceneManager.UnsetActor(SelectedItem?.character);
-                OutlinerItems.Remove(SelectedItem);
                 SelectedItem = null;
 
+                foreach (OutlinerItem item in items.Where(x => x.CanDelete))
+                {
+                    if (SceneManager.MainGameInstance.ActiveStage == item.ManualFiles)
+                    {
+                        SceneManager.MainGameInstance.ActiveStage = null;
+                    }
+
+                    SceneManager.UnsetActor(item.character);
+                    OutlinerItems.Remove(item);
+                }
             }
         }
 
@@ -200,14 +207,6 @@ namespace XenoKit.Editor
             return _selectedItem?.ReadOnly == false;
         }
 
-        private bool CanRemove()
-        {
-            if (SelectedItem != null)
-            {
-                return SelectedItem.Type != OutlinerItem.OutlinerItemType.CMN && SelectedItem.Type != OutlinerItem.OutlinerItemType.Inspector;
-            }
-            return false;
-        }
 
         private bool CanReload()
         {
@@ -261,6 +260,9 @@ namespace XenoKit.Editor
                     case ".vfxpackage":
                         ManualLoad(drop);
                         break;
+                    case ".nsk":
+                        ManualLoad(drop);
+                        return;
                     default:
                         if (!error)
                             MessageBox.Show($"The filetype of \"{drop}\" is not supported.", "File Drop", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -432,9 +434,16 @@ namespace XenoKit.Editor
             move.Files.ShotBdmFile = new Xv2File<BDM_File>((BDM_File)file.Instance.GetParsedFileFromGame(xv2.CMN_SHOT_BDM_PATH), file.Instance.GetAbsolutePath(xv2.CMN_SHOT_BDM_PATH), false, null, false, xv2.MoveFileTypes.SHOT_BDM, 0, true, xv2.MoveType.Common);
             move.Files.EanFile.Add(new Xv2File<EAN_File>((EAN_File)file.Instance.GetParsedFileFromGame(xv2.CMN_EAN_PATH), file.Instance.GetAbsolutePath(xv2.CMN_EAN_PATH), false, null, false, xv2.MoveFileTypes.EAN, 0, true, xv2.MoveType.Common));
             move.Files.CamEanFile.Add(new Xv2File<EAN_File>((EAN_File)file.Instance.GetParsedFileFromGame(xv2.CMN_CAM_EAN_PATH), file.Instance.GetAbsolutePath(xv2.CMN_CAM_EAN_PATH), false, null, false, xv2.MoveFileTypes.CAM_EAN, 0, true, xv2.MoveType.Common));
-            move.Files.EepkFile = new Xv2File<EffectContainerFile>((EffectContainerFile)file.Instance.GetParsedFileFromGame(xv2.CMN_EEPK_PATH), file.Instance.GetAbsolutePath(xv2.CMN_EEPK_PATH), false, null, false, xv2.MoveFileTypes.EEPK, 0, true, xv2.MoveType.Common);
             move.Files.SeAcbFile.Add(new Xv2File<ACB_Wrapper>((ACB_Wrapper)file.Instance.GetParsedFileFromGame(xv2.CMN_SE_ACB_PATH), file.Instance.GetAbsolutePath(xv2.CMN_SE_ACB_PATH), false, null, false, xv2.MoveFileTypes.SE_ACB, 0, true, xv2.MoveType.Common));
             move.Files.EanFile.Add(new Xv2File<EAN_File>((EAN_File)file.Instance.GetParsedFileFromGame(xv2.CMN_TAL_EAN), file.Instance.GetAbsolutePath(xv2.CMN_TAL_EAN), false, null, false, xv2.MoveFileTypes.TAL_EAN, 0, true, xv2.MoveType.Common));
+
+            foreach (var commonEepk in xv2.Instance.ErsFile.GetSubentryList(0))
+            {
+                if (commonEepk.ID >= 10) break; //Skip all the lobby EEPKs
+
+                string path = $"vfx/{commonEepk.FILE_PATH}";
+                move.Files.EepkFiles.Add(new Xv2File<EffectContainerFile>((EffectContainerFile)file.Instance.GetParsedFileFromGame(path), file.Instance.GetAbsolutePath(path), false, null, false, xv2.MoveFileTypes.EEPK, commonEepk.ID, true, xv2.MoveType.Common));
+            }
 
             move.Files.BacFile.File.InitializeIBacTypes();
             move.Files.BsaFile.File.InitializeIBsaTypes();
@@ -833,9 +842,6 @@ namespace XenoKit.Editor
 
         public EffectContainerFile GetEepkFile(BAC_Type8.EepkTypeEnum eepkType, ushort skillId, Move move, Actor character, bool logErrors)
         {
-            //Currently only returns Skills and Moveset EEPKs
-            if (move.MoveType == Move.Type.CMN) return null;
-
             switch (eepkType)
             {
                 case BAC_Type8.EepkTypeEnum.SuperSkill:
@@ -850,6 +856,9 @@ namespace XenoKit.Editor
                     if (character == null && logErrors)
                         Log.Add("Files.GetEepkFile: EEPK Type is Character but no character was passed in as a parameter, cannot return EEPK file.", LogType.Warning);
                     return character.Moveset.Files.EepkFile.File;
+                case BAC_Type8.EepkTypeEnum.Common:
+                    Xv2File<EffectContainerFile> eepk = GetCmnMove().Files.EepkFiles.FirstOrDefault(x => x.Costumes.Contains(skillId));
+                    return eepk?.File;
             }
             return null;
         }

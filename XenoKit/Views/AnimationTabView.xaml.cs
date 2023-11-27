@@ -496,6 +496,14 @@ namespace XenoKit.Controls
 
         }
 
+        private void Files_SelectedItemChanged(object sender, EventArgs e)
+        {
+            if(Mode == AnimationTabViewMode.Actor && Files.Instance.SelectedItem != null)
+            {
+                actorFiles.IsEnabled = Files.Instance.SelectedItem.Type != OutlinerItem.OutlinerItemType.EAN;
+            }
+        }
+
         private void Instance_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if(Mode == AnimationTabViewMode.Inspector && e.PropertyName == nameof(InspectorMode.ActiveEanFile))
@@ -1490,6 +1498,7 @@ namespace XenoKit.Controls
                     Instance = this;
                     actorFiles.Visibility = Visibility.Visible;
                     inspectorFiles.Visibility = Visibility.Collapsed;
+                    Files.SelectedItemChanged += Files_SelectedItemChanged;
                     break;
                 case AnimationTabViewMode.Inspector:
                     InspectorInstance = this;

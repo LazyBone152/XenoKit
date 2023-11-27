@@ -52,7 +52,9 @@ namespace XenoKit.Engine.Vfx
                 return;
             }
 
-            EffectContainerFile eepk = Files.Instance.GetEepkFile(bacEffect.EepkType, bacEffect.SkillID, bacInstance.SkillMove, bacInstance.User, true);
+            int skillId = bacEffect.UseSkillId == BAC_Type8.UseSkillIdEnum.True ? bacEffect.SkillID : 0;
+
+            EffectContainerFile eepk = Files.Instance.GetEepkFile(bacEffect.EepkType, (ushort)skillId, bacInstance.SkillMove, bacInstance.User, true);
 
             if (eepk != null)
             {

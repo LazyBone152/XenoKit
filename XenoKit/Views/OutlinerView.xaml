@@ -19,7 +19,7 @@
         <Separator Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent2}"/>
 
         <ListBox Grid.Row="2" x:Name="listBox" ItemsSource="{Binding files.OutlinerItems.Binding}" SelectedItem="{Binding files.SelectedItem}" Margin="10, 10" MouseDoubleClick="listBox_MouseDoubleClick" 
-                 dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding}" AllowDrop="True" >
+                 dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding}" AllowDrop="True" SelectionMode="Extended">
             <ListBox.InputBindings>
                 <KeyBinding Key="F" Command="{Binding FocusActorCommand}"/>
             </ListBox.InputBindings>
@@ -88,7 +88,7 @@
                     <Separator Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsCharacter}" />
                     <MenuItem Header="Reload" Command="{Binding Source={x:Static editor:Files.Instance}, Path=ReloadSelectedItemCommand}"/>
                     <MenuItem Header="Save" Command="{Binding Source={x:Static editor:Files.Instance}, Path=SaveSelectedItemCommand}"/>
-                    <MenuItem Header="Remove" Command="{Binding Source={x:Static editor:Files.Instance}, Path=RemoveSelectedItemCommand}"/>
+                    <MenuItem Header="Remove" Command="{Binding RemoveCommand}"/>
                     <MenuItem Header="Read Only" IsCheckable="True" IsChecked="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.ReadOnly, UpdateSourceTrigger=PropertyChanged}"/>
                     <Separator/>
                     <MenuItem Header="Properties" Command="{Binding PropertiesCommand}"/>

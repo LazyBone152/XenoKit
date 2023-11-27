@@ -544,15 +544,6 @@ namespace XenoKit
                 string[] droppedFilePaths = e.Data.GetData(DataFormats.FileDrop, true) as string[];
                 bool hasModelFiles = droppedFilePaths.Any(x => Path.GetExtension(x) == ".emd" || Path.GetExtension(x) == ".esk" || Path.GetExtension(x) == ".emo" || Path.GetExtension(x) == ".emm" || Path.GetExtension(x) == ".emb" || Path.GetExtension(x) == ".nsk" || Path.GetExtension(x) == ".emg");
 
-                /*
-                 //nsk can be handled by inspector mode
-                if (Path.GetExtension(droppedFilePaths[0]) == ".nsk")
-                {
-                    Files.Instance.ManualLoad(droppedFilePaths);
-                    return;
-                }
-                */
-
                 if (hasModelFiles || SceneManager.IsOnInspectorTab)
                 {
                     inspectorView.ProcessFileDrop(droppedFilePaths);

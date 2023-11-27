@@ -142,6 +142,10 @@ namespace XenoKit.Inspector.InspectorEntities
             {
                 AddMaterial(new MaterialInspectorEntity(emmPath));
             }
+            else
+            {
+                AddMaterial(null);
+            }
         }
 
         public void AddTexture(TextureInspectorEntity texture)
@@ -195,7 +199,7 @@ namespace XenoKit.Inspector.InspectorEntities
 
         public void AddMaterial(MaterialInspectorEntity material)
         {
-            if (MaterialFile == material) return;
+            if (MaterialFile == material && material != null) return;
 
             if (MaterialFile != null)
             {

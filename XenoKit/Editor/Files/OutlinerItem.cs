@@ -57,6 +57,10 @@ namespace XenoKit.Editor
         public bool ReadOnly { get; set; }
         public bool IsManualLoaded { get; private set; } = false;
         public bool OnlyLoadFromCPK { get; private set; } = false;
+        public bool CanDelete
+        {
+            get => Type != OutlinerItemType.CMN && Type != OutlinerItemType.Inspector;
+        }
 
         //Data
         public Move move { get; set; }
