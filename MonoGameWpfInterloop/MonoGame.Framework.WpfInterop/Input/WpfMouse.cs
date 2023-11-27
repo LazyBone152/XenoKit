@@ -16,6 +16,7 @@ namespace MonoGame.Framework.WpfInterop.Input
         #region Fields
 
         private readonly WpfGame _focusElement;
+        private Window _alternateFocusElement;
 
         private MouseState _mouseState;
         private bool _captureMouseWithin = true;
@@ -78,6 +79,37 @@ namespace MonoGame.Framework.WpfInterop.Input
 
         #region Methods
 
+        public void SetAlternateFocusElement(Window window)
+        {
+            //Remove events from previous focus element
+            if(_alternateFocusElement != null)
+            {
+                _alternateFocusElement.MouseWheel -= HandleMouse;
+                _alternateFocusElement.MouseMove -= HandleMouse;
+                _alternateFocusElement.MouseEnter -= HandleMouse;
+                _alternateFocusElement.MouseLeave -= HandleMouse;
+                _alternateFocusElement.MouseLeftButtonDown -= HandleMouse;
+                _alternateFocusElement.MouseLeftButtonUp -= HandleMouse;
+                _alternateFocusElement.MouseRightButtonDown -= HandleMouse;
+                _alternateFocusElement.MouseRightButtonUp -= HandleMouse;
+            }
+
+            //Set new focus element
+            _alternateFocusElement = window;
+
+            if(_alternateFocusElement != null)
+            {
+                _alternateFocusElement.MouseWheel += HandleMouse;
+                _alternateFocusElement.MouseMove += HandleMouse;
+                _alternateFocusElement.MouseEnter += HandleMouse;
+                _alternateFocusElement.MouseLeave += HandleMouse;
+                _alternateFocusElement.MouseLeftButtonDown += HandleMouse;
+                _alternateFocusElement.MouseLeftButtonUp += HandleMouse;
+                _alternateFocusElement.MouseRightButtonDown += HandleMouse;
+                _alternateFocusElement.MouseRightButtonUp += HandleMouse;
+            }
+        }
+
         public MouseState GetState() => _mouseState;
 
         private void HandleMouse(object sender, MouseEventArgs e)
@@ -85,21 +117,45 @@ namespace MonoGame.Framework.WpfInterop.Input
             if (e.Handled)
                 return;
 
+            IInputElement _focusElement = this._focusElement;
+
+            if (this._focusElement.alternateInputElement != null)
+                _focusElement = _alternateFocusElement;
+
             var pos = e.GetPosition(_focusElement);
+            double width, height;
+            bool focusOnMouseOver;
+            bool isFocused;
+            bool isFulScreen = this._focusElement.IsFullScreen;
+
+            if (_alternateFocusElement != null)
+            {
+                width = _alternateFocusElement.ActualWidth;
+                height = _alternateFocusElement.ActualHeight;
+                focusOnMouseOver = false;
+                isFocused = _alternateFocusElement.IsFocused;
+            }
+            else
+            {
+                width = this._focusElement.ActualWidth;
+                height = this._focusElement.ActualHeight;
+                focusOnMouseOver = this._focusElement.FocusOnMouseOver;
+                isFocused = this._focusElement.IsFocused;
+            }
 
             if (!CaptureMouseWithin)
             {
                 // clamp as fast moving mouse will somtimes still report values outside the control without explicit capture (e.g. negative values)
-                pos = new Point(Clamp(pos.X, 0, _focusElement.ActualWidth), Clamp(pos.Y, 0, _focusElement.ActualHeight));
+                pos = new Point(Clamp(pos.X, 0, width), Clamp(pos.Y, 0, height));
             }
-            if (_focusElement.IsMouseDirectlyOver && System.Windows.Input.Keyboard.FocusedElement != _focusElement)
+            if ((_focusElement.IsMouseDirectlyOver && System.Windows.Input.Keyboard.FocusedElement != _focusElement))
             {
                 if (WindowHelper.IsControlOnActiveWindow(_focusElement))
                 {
                     // however, only focus if we are the active window, otherwise the window will become active and pop into foreground just by hovering the mouse over the game panel
 
                     //finally check if user wants us to focus already on mouse over
-                    if (_focusElement.FocusOnMouseOver)
+                    if (focusOnMouseOver)
                     {
                         _focusElement.Focus();
                     }
@@ -121,10 +177,10 @@ namespace MonoGame.Framework.WpfInterop.Input
                 }
             }
 
-            if ((!_focusElement.IsMouseDirectlyOver || _focusElement.IsMouseCaptured) && CaptureMouseWithin)
+            if ((!_focusElement.IsMouseDirectlyOver || _focusElement.IsMouseCaptured || isFulScreen) && CaptureMouseWithin)
             {
                 // IsMouseDirectlyOver always returns true if the mouse is captured, so we need to do our own hit testing if the Mouse is captured to find out whether it is actually over the control or not
-                if (_focusElement.IsMouseCaptured)
+                if (_focusElement.IsMouseCaptured || isFulScreen)
                 {
                     // apparently all WPF IInputElements are always Visuals, so we can cast directly
                     var v = (Visual) _focusElement;
@@ -139,7 +195,7 @@ namespace MonoGame.Framework.WpfInterop.Input
                         return HitTestResultBehavior.Continue;
                     }, new PointHitTestParameters(pos));
 
-                    if (!hit)
+                    if (!hit && !isFulScreen)
                     {
                         // outside the hitbox
 
@@ -189,7 +245,7 @@ namespace MonoGame.Framework.WpfInterop.Input
             }
             else
             {
-                if (_focusElement.IsFocused && !WindowHelper.IsControlOnActiveWindow(_focusElement))
+                if (isFocused && !WindowHelper.IsControlOnActiveWindow(_focusElement))
             {
                 // don't update mouse events if we are just hovering over different window
                 return;

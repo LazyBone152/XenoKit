@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using System;
 using System.Collections.Generic;
+using System.Windows;
 
 namespace MonoGame.Framework.WpfInterop
 {
@@ -18,6 +19,7 @@ namespace MonoGame.Framework.WpfInterop
         private readonly List<IUpdateable> _sortedUpdateables;
         private readonly List<IDrawable> _sortedDrawables;
 
+        public Window alternateInputElement = null;
         #endregion
 
         #region Constructors

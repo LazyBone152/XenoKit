@@ -24,6 +24,25 @@ namespace MonoGame.Framework.WpfInterop
     {
         private static readonly object GraphicsDeviceLock = new object();
 
+        private bool _isFs = false;
+        /// <summary>
+        /// Sets a value determining whether the back buffer is sized to the WPF control size (false) or to the screen resolution (true).
+        /// Does NOT render to fullscreen by itself. You need to use another fullscreen WPF window for that.
+        /// </summary>
+        public bool IsFullScreen
+        {
+            get => _isFs;
+            set
+            {
+                if(value != _isFs)
+                {
+                    _isFs = value;
+                   CreateBackBuffer();
+                }
+            }
+        }
+        public D3D11Image OutputFullscreenImageSource => _d3D11Image;
+
         private bool _isRendering;
 
         // The Direct3D 11 device (shared by all D3D11Host elements)
@@ -405,8 +424,8 @@ namespace MonoGame.Framework.WpfInterop
                 _toBeDisposedNextFrame.Add(_cachedRenderTarget);
             }
 
-            int width = (int)(Math.Max(ActualWidth, 1) * DpiScalingFactor);
-            int height = (int)(Math.Max(ActualHeight, 1) * DpiScalingFactor);
+            int width = _isFs ? GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width : (int)(Math.Max(ActualWidth, 1) * DpiScalingFactor);
+            int height = _isFs ? GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height : (int)(Math.Max(ActualHeight, 1) * DpiScalingFactor);
 
             CreateGraphicsDeviceDependentResources(new PresentationParameters
             {

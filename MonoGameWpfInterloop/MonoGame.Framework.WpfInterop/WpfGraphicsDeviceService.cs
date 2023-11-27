@@ -62,6 +62,8 @@ namespace MonoGame.Framework.WpfInterop
 
         public bool PreferMultiSampling { get; set; }
 
+        public int MultiSampleCount { get; set; } = 0;
+
         /// <summary>
         /// Gets the scaling factor that is applied to the attached gamecontrol.
         /// For legacy compatibility this always defaults to a factor of 1.
@@ -90,6 +92,19 @@ namespace MonoGame.Framework.WpfInterop
 
         public int PreferredBackBufferHeight => (int)_host.ActualHeight;
 
+        private bool _isFullScreen = false;
+        public bool IsFullScreen
+        {
+            get => _isFullScreen;
+            set
+            {
+                if(value != _isFullScreen)
+                {
+                    _isFullScreen = value;
+                    ApplyChanges();
+                }
+            }
+        }
         #endregion
 
         #region Methods
@@ -112,15 +127,17 @@ namespace MonoGame.Framework.WpfInterop
 
         public void ApplyChanges()
         {
-            var w = Math.Max((int)_host.ActualWidth, 1);
-            var h = Math.Max((int)_host.ActualHeight, 1);
+            var w = IsFullScreen ? GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width : Math.Max((int)_host.ActualWidth, 1);
+            var h = IsFullScreen ? GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height : Math.Max((int)_host.ActualHeight, 1);
             var pp = new PresentationParameters
             {
                 // set to windows limit, if gpu doesn't support it, monogame will autom. scale it down to the next supported level
-                MultiSampleCount = PreferMultiSampling ? MsaaSampleLimit : 0,
+                MultiSampleCount = PreferMultiSampling ? MultiSampleCount : 0,
                 BackBufferWidth = w,
                 BackBufferHeight = h,
-                DeviceWindowHandle = IntPtr.Zero
+                DeviceWindowHandle = IntPtr.Zero,
+                IsFullScreen = IsFullScreen,
+                HardwareModeSwitch = !IsFullScreen
             };
             // would be so easy to just call reset. but for some reason monogame doesn't want the WindowHandle to be null on reset (but it's totally fine to be null on create)
             // GraphicsDevice.Reset(pp);

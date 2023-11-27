@@ -65,7 +65,13 @@ namespace MonoGame.Framework.WpfInterop.Input
                     }
                 }
             }
-            return new KeyboardState(GetKeys(_focusElement));
+
+            IInputElement inputElement = _focusElement;
+
+            if(_focusElement.alternateInputElement != null)
+                inputElement = _focusElement.alternateInputElement;
+
+            return new KeyboardState(GetKeys(inputElement));
         }
 
         private static Keys[] GetKeys(IInputElement focusElement)

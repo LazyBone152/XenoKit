@@ -13,7 +13,7 @@ namespace MonoGame.Framework.WpfInterop.Internals
     /// <remarks>
     /// The <see cref="D3D11Image"/> should be disposed if no longer needed!
     /// </remarks>
-    internal class D3D11Image : D3DImage, IDisposable
+    public class D3D11Image : D3DImage, IDisposable
     {
         #region Fields
 
