@@ -46,15 +46,14 @@ namespace XenoKit.Windows
                 }
             }
         }
-        public bool WireframeMode
+        public bool EnableOutline
         {
-            get => SettingsManager.settings.XenoKit_WireframeMode;
+            get => SettingsManager.settings.XenoKit_UseOutlinePostEffect;
             set
             {
-                if(SettingsManager.settings.XenoKit_WireframeMode != value)
+                if (SettingsManager.settings.XenoKit_UseOutlinePostEffect != value)
                 {
-                    SettingsManager.settings.XenoKit_WireframeMode = value;
-                    SceneManager.MainGameBase.CompiledObjectManager.ForceShaderUpdate();
+                    SettingsManager.settings.XenoKit_UseOutlinePostEffect = value;
                 }
             }
         }

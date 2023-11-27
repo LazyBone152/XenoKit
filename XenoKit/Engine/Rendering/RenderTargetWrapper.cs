@@ -16,6 +16,7 @@ namespace XenoKit.Engine.Rendering
         private DepthFormat depthFormat;
         private SurfaceFormat surfaceFormat;
         private int ResolutionScale;
+        private int MultiSampleCount;
         private int WidthAtInit;
         private int HeightAtInit;
         private bool FullLowRezAtInit = SettingsManager.settings.XenoKit_FullLowRez;
@@ -24,7 +25,7 @@ namespace XenoKit.Engine.Rendering
         public int Width => RenderTarget.Width;
         public int Height => RenderTarget.Height;
 
-        public RenderTargetWrapper(RenderSystem renderSystem, int resScale, SurfaceFormat surfaceFormat, bool depthBuffer, string name = "")
+        public RenderTargetWrapper(RenderSystem renderSystem, int resScale, SurfaceFormat surfaceFormat, bool depthBuffer, string name = "", int msaaCount = 0)
         {
             if (resScale == 0)
                 throw new ArgumentException("RenderTargetWrapper: resScale cannot be 0.");
@@ -33,16 +34,18 @@ namespace XenoKit.Engine.Rendering
             this.depthFormat = depthBuffer ? DepthFormat.Depth24Stencil8 : DepthFormat.None;
             this.surfaceFormat = surfaceFormat;
             this.renderSystem = renderSystem;
+            MultiSampleCount = msaaCount;
             ResolutionScale = resScale;
             UpdateRenderTarget();
         }
 
-        private RenderTargetWrapper(RenderSystem renderSystem, SurfaceFormat surfaceFormat, DepthFormat depthFormat, string name = "") 
+        private RenderTargetWrapper(RenderSystem renderSystem, SurfaceFormat surfaceFormat, DepthFormat depthFormat, string name = "", int msaaCount = 0) 
         {
             this.renderSystem = renderSystem;
             Name = name;
             this.surfaceFormat = surfaceFormat;
             this.depthFormat = depthFormat;
+            MultiSampleCount = msaaCount;
             ResolutionScale = 1;
         }
 
@@ -77,7 +80,7 @@ namespace XenoKit.Engine.Rendering
                 width = WidthAtInit / resScale;
             }
 
-            RenderTarget = new RenderTarget2D(renderSystem.GraphicsDevice, width, height, false, surfaceFormat, depthFormat, 0, RenderTargetUsage.PreserveContents);
+            RenderTarget = new RenderTarget2D(renderSystem.GraphicsDevice, width, height, false, surfaceFormat, depthFormat, MultiSampleCount, RenderTargetUsage.PreserveContents);
 
             FullLowRezAtInit = SettingsManager.settings.XenoKit_FullLowRez;
             //Disposal of previous RenderTarget is handled in RenderSystem.cs

@@ -780,14 +780,13 @@ namespace XenoKit.Engine.Shader
             if (ShaderType == ShaderType.CharaNormals)
             {
                 //Controls the final vertex color of NormalPassRT0 and 1, which is key for the black body outline around characters as well as BPE BodyOutlines 
-                g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
-                g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
-                g_vParam3_PS.SetValue(new Vector4(0.001f, 1000, 0.92638f, 0.90798f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
+                //g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
+                //g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
+                //g_vParam3_PS.SetValue(new Vector4(10f, 1000f, 0.0f, 0.0f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
 
                 //Testing:
-                Parameters["g_vParam0_PS"].SetValue(Vector4.Zero);
-                g_vParam1_PS.SetValue(new Vector4(0, 1, 1f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
-                g_vParam2_PS.SetValue(new Vector4(0.00391f * 6, 0.00f, 1f, 0.00f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
+                g_vParam1_PS.SetValue(new Vector4(0f, 1, 1.0f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
+                g_vParam2_PS.SetValue(new Vector4(0f, 0.00f, 1.0f, 0.0f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
                 g_vParam3_PS.SetValue(new Vector4(0.001f, 10000.00f, 0.40f, 0.00f)); //Z = BPE Outline strength
                 return;
             }
@@ -1062,7 +1061,7 @@ namespace XenoKit.Engine.Shader
         {
             RasterizerState state = new RasterizerState();
 
-            state.FillMode = SceneManager.WireframeModeCharacters ? FillMode.WireFrame : FillMode.Solid;
+            state.FillMode = GameBase.WireframeMode ? FillMode.WireFrame : FillMode.Solid;
             state.CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullCounterClockwiseFace;
 
             switch (ShaderType)

@@ -18,6 +18,10 @@ using XenoKit.Engine.Model;
 using XenoKit.Engine.Vfx.Particle;
 using XenoKit.Engine.Rendering;
 using XenoKit.Inspector;
+using XenoKit.Windows;
+using MahApps.Metro.Actions;
+using System.Configuration;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine
 {
@@ -41,10 +45,14 @@ namespace XenoKit.Engine
         public HitboxGizmo BacHitboxGizmo;
         public EntityTransformGizmo EntityTransformGizmo;
 
+
         //Stage. Not final design just a quick hacky way to get stages into the application.
         public ManualFiles ActiveStage = null;
 
         private RenderTargetWrapper MainRenderTarget;
+
+        //Fullscreen
+        private FullscreenWindow fullscreenWindow = null;
 
         protected override void Initialize()
         {
@@ -150,6 +158,15 @@ namespace XenoKit.Engine
             }
 
             camera.DelayedUpdate();
+
+            //Exit fullscreen state if the window is closed by some other means
+            if(fullscreenWindow != null)
+            {
+                if (IsFullScreen && !fullscreenWindow.IsActive)
+                {
+                    DisableFullscreen();
+                }
+            }
         }
 
         protected override void Draw(GameTime time)
@@ -167,7 +184,6 @@ namespace XenoKit.Engine
             //ShaderManager.Instance.SetAllGlobalSamplers();
             base.Draw(time);
 
-            //TODO: move other effects into RenderDepthSystem
             if (SceneManager.IsOnEffectTab)
             {
                 VfxPreview.Draw();
@@ -177,21 +193,21 @@ namespace XenoKit.Engine
                 VfxManager.Draw();
             }
 
-            //Sprite:
-            TextRenderer.Draw();
-
-            //Draw last and over everything else
-            CurrentGizmo.Draw();
-            BacHitboxGizmo.Draw();
-            EntityTransformGizmo.Draw();
-
             //Draw MainRenderTarget onto screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);
             GraphicsDevice.Clear(BackgroundColor);
             GraphicsDevice.SetDepthBuffer(RenderSystem.DepthBuffer.RenderTarget);
 
+            //Draw last and over everything else
+            TextRenderer.Draw();
+            CurrentGizmo.Draw();
+            BacHitboxGizmo.Draw();
+            EntityTransformGizmo.Draw();
+
+            //Merge RTs
             RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget(), true);
             RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget, true);
+
         }
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)
@@ -244,6 +260,59 @@ namespace XenoKit.Engine
             }
 
             ActiveStage = stage;
+        }
+
+        public void EnableFullscreen()
+        {
+            IsFullScreen = true;
+            _graphicsDeviceManager.IsFullScreen = true;
+
+            fullscreenWindow = new FullscreenWindow();
+            fullscreenWindow.Show();
+            alternateInputElement = fullscreenWindow;
+            _mouse.SetAlternateFocusElement(fullscreenWindow);
+            RenderSystem.RecreateRenderTargetsNextFrames = 2;
+        }
+
+        public void DisableFullscreen()
+        {
+            if(fullscreenWindow != null)
+            {
+                fullscreenWindow.Close();
+                fullscreenWindow = null;
+                alternateInputElement = null;
+            }
+
+            IsFullScreen = false;
+            _graphicsDeviceManager.IsFullScreen = false;
+            _mouse.SetAlternateFocusElement(null);
+            RenderSystem.RecreateRenderTargetsNextFrames = 2;
+        }
+
+        protected override void CheckHotkeys()
+        {
+            if(HotkeyCooldown == 0)
+            {
+                if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.O))
+                {
+                    SettingsManager.settings.XenoKit_UseOutlinePostEffect = !SettingsManager.settings.XenoKit_UseOutlinePostEffect;
+                    SetHotkeyCooldown();
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F11) || (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape) && IsFullScreen))
+                {
+                    SetHotkeyCooldown();
+                    if (IsFullScreen)
+                    {
+                        DisableFullscreen();
+                    }
+                    else
+                    {
+                        EnableFullscreen();
+                    }
+                }
+            }
+
+            base.CheckHotkeys();
         }
 
         #region UiButtons

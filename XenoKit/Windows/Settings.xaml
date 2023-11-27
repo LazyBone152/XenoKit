@@ -72,6 +72,14 @@
                             <Label Content="Rimlight"/>
                             <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EnableRimlight, UpdateSourceTrigger=PropertyChanged}"/>
                         </Grid>
+                        <Grid Margin="3,5,0,0" Width="250" ToolTip="Toggle the black outline effect around characters.">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Outline"/>
+                            <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EnableOutline, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
                         <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable dynamic lighting based on camera position.&#x0a;&#x0a;Very experiential and not game accurate right now!">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120"/>
@@ -79,14 +87,6 @@
                             </Grid.ColumnDefinitions>
                             <Label Content="Dynamic Lighting*" FontWeight="SemiBold"/>
                             <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding DynamicLighting, UpdateSourceTrigger=PropertyChanged}"/>
-                        </Grid>
-                        <Grid Margin="3,5,0,0" Width="250">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="40"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Wireframe"/>
-                            <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding WireframeMode, UpdateSourceTrigger=PropertyChanged}"/>
                         </Grid>
                         <Grid Margin="3,5,0,0" Width="250">
                             <Grid.ColumnDefinitions>
@@ -105,7 +105,7 @@
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Super Sampling" ToolTip="Set a super sampling factor to use when rendering. This renders the scene at a higher resolution and then scales it down to fit the viewport, improving image quality."/>
+                            <Label Content="Super Sampling" ToolTip="Set a super sampling factor to use when rendering. This renders the scene at a higher resolution and then scales it down to fit the viewport, improving image quality.&#x0a;&#x0a;NOTE: Only applies in the viewport. Fullscreen mode will always run at the screen resolution."/>
                             <ComboBox Grid.Column="1" SelectedIndex="{Binding SuperSampling, UpdateSourceTrigger=PropertyChanged}">
                                 <ComboBoxItem Content="Disabled"/>
                                 <ComboBoxItem Content="x2"/>

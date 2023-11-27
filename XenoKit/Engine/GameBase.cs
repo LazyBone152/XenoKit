@@ -45,6 +45,7 @@ namespace XenoKit.Engine
         public virtual bool IsMainInstance => false;
         public bool IsPlaying = false;
         public bool RenderCharacters = true;
+        public bool WireframeMode = false;
         public float BacTimeScale = 1f;
         public float AnimationTimeScale = 1f;
         public float ActiveTimeScale
@@ -65,6 +66,7 @@ namespace XenoKit.Engine
         //Other
         public virtual Color BackgroundColor { get; set; } = new Color(20, 20, 20, 255);
         private int DelayedTimer = 0;
+        protected int HotkeyCooldown = 0;
 
         protected override void Initialize()
         {
@@ -106,6 +108,7 @@ namespace XenoKit.Engine
         {
             GameTime = time;
             Input.Update(_mouse, _keyboard);
+            CheckHotkeys();
 
             LightSource.Update();
 
@@ -187,6 +190,33 @@ namespace XenoKit.Engine
         {
             if (reset) BacTimeScale = 1f;
             BacTimeScale *= timeScale;
+        }
+    
+        protected virtual void CheckHotkeys()
+        {
+            if(HotkeyCooldown == 0)
+            {
+                if(Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.W))
+                {
+                    WireframeMode = !WireframeMode;
+                    CompiledObjectManager.ForceShaderUpdate();
+                    SetHotkeyCooldown();
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.G))
+                {
+                    SceneManager.ShowWorldAxis = !SceneManager.ShowWorldAxis;
+                    SetHotkeyCooldown();
+                }
+            }
+            else
+            {
+                HotkeyCooldown -= 1;
+            }
+        }
+
+        protected void SetHotkeyCooldown()
+        {
+            HotkeyCooldown = 20;
         }
     }
 }

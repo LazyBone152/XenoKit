@@ -292,7 +292,6 @@ namespace XenoKit.Engine
         public static bool RetainActionMovement = false;
         public static bool ShowActorsInCurrentScene = true;
 
-        public static bool WireframeModeCharacters => SettingsManager.settings.XenoKit_WireframeMode;
         public static bool Loop => SettingsManager.settings.XenoKit_Loop;
         public static bool AutoPlay => SettingsManager.settings.XenoKit_AutoPlay;
         public static bool UseCameras => SettingsManager.settings.XenoKit_EnableCameraAnimations;

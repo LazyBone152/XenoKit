@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Framework.WpfInterop;
 using System;
@@ -61,6 +62,7 @@ namespace XenoKit.Engine.View
             set => Input.RightClickHeldDownContext = value ? this : null;
         }
         private Point mouse_old_position = new Point(-1, -1);
+        private Vector2 MouseMultFactor = Vector2.One;
 
         public CameraBase(GameBase gameBase) : base(gameBase)
         {
@@ -77,7 +79,7 @@ namespace XenoKit.Engine.View
         }
         private void mouseMoveEvent(Point position, Point delta, int factor)
         {
-            Vector2 delta_f = new Vector2(delta.X / (float)GraphicsDevice.Viewport.Width, delta.Y / (float)GraphicsDevice.Viewport.Height);
+            Vector2 delta_f = new Vector2(delta.X / (float)GraphicsDevice.Viewport.Width, delta.Y / (float)GraphicsDevice.Viewport.Height) * MouseMultFactor;
 
             if (enable_spinning)
                 spinCamera(delta_f);
@@ -158,20 +160,31 @@ namespace XenoKit.Engine.View
         //Control Loop
         protected void ProcessCameraControl()
         {
-            if(GameIsFocused && Input.IsKeyDown(Keys.W))
+            if (GameBase.IsFullScreen)
+            {
+                //With the camera code that Olganix originally implemented, camera pan and spin speed is determined by the viewport size. Whenever the viewport size is increased, the movement speed is decreased... this is undesirable for fullscreen mode
+                //By introducing this mult factor, we can keep the movement speed consistent between the main viewport and fullscreen. The idea is to increase the mouse delta by how much the viewport size has increased in fullscreen mode.
+                MouseMultFactor = new Vector2((float)(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / GameBase.ActualWidth), (float)(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / GameBase.ActualHeight));
+            }
+            else
+            {
+                MouseMultFactor = Vector2.One;
+            }
+
+            if (GameIsFocused && Input.IsKeyDown(Keys.W) && !Input.IsKeyDown(Keys.LeftAlt))
             {
                 Translate(-1f, 0f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }
-            else if (GameIsFocused && Input.IsKeyDown(Keys.S))
+            else if (GameIsFocused && Input.IsKeyDown(Keys.S) && !Input.IsKeyDown(Keys.LeftAlt))
             {
                 Translate(1f, 0f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }
 
-            if (GameIsFocused && Input.IsKeyDown(Keys.A))
+            if (GameIsFocused && Input.IsKeyDown(Keys.A) && !Input.IsKeyDown(Keys.LeftAlt))
             {
                 Translate(0f, 1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }
-            else if (GameIsFocused && Input.IsKeyDown(Keys.D))
+            else if (GameIsFocused && Input.IsKeyDown(Keys.D) && !Input.IsKeyDown(Keys.LeftAlt))
             {
                 Translate(0f, -1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }

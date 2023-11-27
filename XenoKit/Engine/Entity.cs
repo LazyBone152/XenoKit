@@ -28,7 +28,7 @@ namespace XenoKit.Engine
         /// <summary>
         /// Exposes GameBase.IsActive. Determines whether the game view is currently focused (mouse is over it).
         /// </summary>
-        public bool GameIsFocused => GameBase.IsActive;
+        public bool GameIsFocused => GameBase.IsActive || GameBase.IsFullScreen;
         /// <summary>
         /// GameTime for the current frame.
         /// </summary>

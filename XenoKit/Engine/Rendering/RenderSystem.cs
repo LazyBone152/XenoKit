@@ -33,6 +33,7 @@ namespace XenoKit.Engine.Rendering
         //Render Settings:
         private readonly Color NormalsBackgroundColor = new Color(0.50196f, 0.50196f, 0, 0);
         public bool DumpRenderTargetsNextFrame = false;
+        public int RecreateRenderTargetsNextFrames = 0;
 
         //Render Resolution:
         public readonly float[] RenderResolution = new float[4];
@@ -154,11 +155,19 @@ namespace XenoKit.Engine.Rendering
 
         private void SetRenderResolution()
         {
-            RenderResolution[0] = GraphicsDevice.Viewport.Width * SettingsManager.settings.XenoKit_SuperSamplingFactor;
-            RenderResolution[1] = GraphicsDevice.Viewport.Height * SettingsManager.settings.XenoKit_SuperSamplingFactor;
+            if(GameBase.IsFullScreen)
+            {
+                RenderResolution[0] = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+                RenderResolution[1] = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+            }
+            else
+            {
+                RenderResolution[0] = GraphicsDevice.Viewport.Width * SettingsManager.settings.XenoKit_SuperSamplingFactor;
+                RenderResolution[1] = GraphicsDevice.Viewport.Height * SettingsManager.settings.XenoKit_SuperSamplingFactor;
+            }
+
             RenderWidth = (int)RenderResolution[0];
             RenderHeight = (int)RenderResolution[1];
-
         }
 
         public override void Draw()
@@ -190,10 +199,13 @@ namespace XenoKit.Engine.Rendering
             DrawEntityList(Stages, false, false);
 
             //Black Chara Outline Shader
-            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
-            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            SetTexture(NormalPassRT0.RenderTarget);
-            PostFilter.Apply(AGE_TEST_EDGELINE_MRT);
+            if (SettingsManager.settings.XenoKit_UseOutlinePostEffect)
+            {
+                SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
+                GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
+                SetTexture(NormalPassRT0.RenderTarget);
+                PostFilter.Apply(AGE_TEST_EDGELINE_MRT);
+            }
 
             //Create SamplerAlphaDepth
             SetRenderTargets(SamplerAlphaDepth.RenderTarget);
@@ -356,6 +368,12 @@ namespace XenoKit.Engine.Rendering
         {
             SetRenderResolution();
 
+            if (RecreateRenderTargetsNextFrames > 0)
+            {
+                DelayedUpdate();
+                RecreateRenderTargetsNextFrames -= 1;
+            }
+
             EntityListUpdate(Characters, CharasToRemove);
             EntityListUpdate(Stages, StagesToRemove);
             EntityListUpdate(Effects, EffectsToRemove);
@@ -428,7 +446,7 @@ namespace XenoKit.Engine.Rendering
         {
             Rectangle destination = scaleToViewport ? new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height) : new Rectangle(0, 0, renderTarget.Width, renderTarget.Height);
 
-            GameBase.spriteBatch.Begin(depthStencilState: DepthStencilState.DepthRead);
+            GameBase.spriteBatch.Begin(depthStencilState: DepthStencilState.DepthRead, blendState: BlendState.AlphaBlend);
             GameBase.spriteBatch.Draw(renderTarget, destination, Color.White);
             GameBase.spriteBatch.End();
         }

@@ -13,7 +13,7 @@ namespace XenoKit.Engine.Objects
         public int GridLines { get; private set; } = 60;
         public float GridLineSpacing { get; private set; } = 0.5f;
         public float AxisLength { get; private set; } = 5.0f;
-        public Color GridColor { get; private set; } = new Color(80, 80, 80, 0);
+        public Color GridColor { get; private set; } = new Color(80, 80, 80, 0) * 0.8f;
 
         public WorldGrid(GameBase gameBase) : base(gameBase)
         {
@@ -47,14 +47,6 @@ namespace XenoKit.Engine.Objects
                 vertStart.Z += size;
                 _vertices.Add(new VertexPositionColor(vertStart, GridColor));
             }
-
-            //*AXIS
-            //_vertices.Add(new VertexPositionColor(new Vector3(0, 0.01f, 0), Color.DarkRed));
-            //_vertices.Add(new VertexPositionColor(new Vector3(AxisLength, 0.01f, 0), Color.DarkRed));
-            //_vertices.Add(new VertexPositionColor(new Vector3(0, 0.01f, 0), Color.DarkGreen));
-            //_vertices.Add(new VertexPositionColor(new Vector3(0, AxisLength, 0), Color.DarkGreen));
-            //_vertices.Add(new VertexPositionColor(new Vector3(0, 0.01f, 0), Color.DarkBlue));
-            //_vertices.Add(new VertexPositionColor(new Vector3(0, 0.01f, AxisLength), Color.DarkBlue));
 
             this.Vertices = _vertices.ToArray();
         }
