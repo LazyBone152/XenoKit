@@ -23,6 +23,8 @@
 
                     <CheckBox IsChecked="{Binding settings.UpdateNotifications, UpdateSourceTrigger=PropertyChanged}" Content="Check for updates on start-up" HorizontalAlignment="Left" Margin="18,36,0,0" VerticalAlignment="Top" Width="275"/>
                     <CheckBox IsChecked="{Binding XenoKit_SuppressErrorsToLogOnly, UpdateSourceTrigger=PropertyChanged}" Content="Suppress errors to log only" ToolTip="Disable the error dialog whenever an error happens.&#x0a;&#x0a;With this enabled, errors will only appear in the log and are more likely to be missed. Not recommended for the average user." HorizontalAlignment="Left" Margin="18,57,0,0" VerticalAlignment="Top" Width="275"/>
+                    <CheckBox IsChecked="{Binding settings.XenoKit_DelayLoadingCMN, UpdateSourceTrigger=PropertyChanged}" Content="Delay loading CMN files at start-up" ToolTip="Delay loading CMN files at start-up and instead only load them when there is a demand (e.g: loading a skill or character)." HorizontalAlignment="Left" Margin="18,78,0,0" VerticalAlignment="Top" Width="275"/>
+                    
                     <GroupBox Header="Theme" HorizontalAlignment="Left" Margin="298,10,0,0" VerticalAlignment="Top" Width="219">
 
                         <StackPanel>

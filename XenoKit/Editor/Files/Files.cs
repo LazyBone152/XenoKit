@@ -131,10 +131,9 @@ namespace XenoKit.Editor
                 });
 
 
-                if (GetCmnMove() == null)
+                if (GetCmnMove() == null && !SettingsManager.settings.XenoKit_DelayLoadingCMN)
                 {
-                    controller.SetMessage("Loading common files...");
-                    await Task.Run(LoadCmnFiles);
+                    await AsyncLoadCmnFiles(controller);
                 }
             }
             catch (Exception ex)
@@ -149,6 +148,12 @@ namespace XenoKit.Editor
                 window.mainTabControl.SelectedIndex = (int)EditorTabs.Inspector;
                 SelectedItem = OutlinerItems[0];
             }
+        }
+
+        private async Task AsyncLoadCmnFiles(ProgressDialogController controller)
+        {
+            controller.SetMessage("Loading common files...");
+            await Task.Run(LoadCmnFiles);
         }
 
         #region RightClickMenuCommands
@@ -326,13 +331,20 @@ namespace XenoKit.Editor
 
         public async Task AsyncLoadSkill(int id1, CUS_File.SkillType skillType, bool onlyCpk, int replaceItemIndex = -1)
         {
-            ProgressDialogController progressBarController = await window.ShowProgressAsync("Loading", $"Loading skill \"{Xenoverse2.Instance.GetSkillName(skillType, CUS_File.ConvertToID2(id1, skillType), id1.ToString(), xv2.Language.English)}\"", false, DialogSettings.Default);
+            string message = $"Loading skill \"{Xenoverse2.Instance.GetSkillName(skillType, CUS_File.ConvertToID2(id1, skillType), id1.ToString(), xv2.Language.English)}\"";
+            ProgressDialogController progressBarController = await window.ShowProgressAsync("Loading", message, false, DialogSettings.Default);
             progressBarController.SetIndeterminate();
 
             try
             {
-                await Task.Run(() =>
+                await Task.Run(async () =>
                 {
+                    if (GetCmnMove() == null)
+                    {
+                        await AsyncLoadCmnFiles(progressBarController);
+                        progressBarController.SetMessage(message);
+                    }
+
                     Xv2Skill skill = xv2.Instance.GetSkill(skillType, id1, true, onlyCpk);
 
                     //Add to outliner
@@ -382,13 +394,20 @@ namespace XenoKit.Editor
 
         public async Task<Actor> AsyncLoadCharacter(int id, int partSetId, bool readOnly = false, int replaceItemIndex = -1)
         {
-            var progressBarController = await window.ShowProgressAsync("Loading", $"Loading character \"{Xenoverse2.Instance.GetCharacterName(id, xv2.Language.English)}\"", false, DialogSettings.Default);
+            string message = $"Loading character \"{Xenoverse2.Instance.GetCharacterName(id, xv2.Language.English)}\"";
+            var progressBarController = await window.ShowProgressAsync("Loading", message, false, DialogSettings.Default);
             progressBarController.SetIndeterminate();
 
             Actor chara = null;
 
             try
             {
+                if (GetCmnMove() == null)
+                {
+                    await AsyncLoadCmnFiles(progressBarController);
+                    progressBarController.SetMessage(message);
+                }
+
                 await Task.Run(() =>
                 {
                     Xv2Character xv2Character = xv2.Instance.GetCharacter(id);
@@ -504,7 +523,7 @@ namespace XenoKit.Editor
             }
             else
             {
-                OutlinerItems.Add(new OutlinerItem(move, true, OutlinerItem.OutlinerItemType.CMN, false));
+                OutlinerItems.Insert(1, new OutlinerItem(move, true, OutlinerItem.OutlinerItemType.CMN, false));
             }
         }
 
