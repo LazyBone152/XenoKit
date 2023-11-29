@@ -140,6 +140,7 @@ namespace XenoKit.Editor
             SkillID = (skill.CusEntry != null) ? skill.CusEntry.ID2 : 47818;
 
             Files.BacFile.File.InitializeIBacTypes();
+            Files.AfterBacFile?.File?.InitializeIBacTypes();
             Files.BsaFile.File.InitializeIBsaTypes();
 
             if (PupEntries == null) PupEntries = new ObservableCollection<PUP_Entry>();

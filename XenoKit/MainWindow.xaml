@@ -157,8 +157,8 @@
                 <MenuItem Header="Load CaC" Command="{Binding LoadCacCommand}"/>
                 <Separator/>
                 <MenuItem Header="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextMenuString}" Command="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextFileCommand}"/>
-                <MenuItem Header="Save (Current Item)" Command="{Binding SaveCurrentCommand}"/>
-                <MenuItem Header="Save (All Items)" Command="{Binding SaveAllCommand}"/>
+                <MenuItem Header="{Binding Source={x:Static editor:Files.Instance}, Path=SaveCurrentMenuString}" Command="{Binding SaveCurrentCommand}"/>
+                <MenuItem Header="Save (All)" Command="{Binding SaveAllCommand}"/>
                 <Separator/>
                 <MenuItem Header="Settings" Command="{Binding SettingsCommand}"/>
                 <Separator/>

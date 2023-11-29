@@ -20,6 +20,7 @@ namespace XenoKit.Engine
         public int ActorSlot { get; set; }
         public CharaPartSet PartSet;
         public int ForceDytOverride = -1;
+        public bool IsVisible = true;
 
         //Animation:
         public AnimationTabView AnimationViewInstance => AnimationTabView.Instance;
@@ -184,6 +185,7 @@ namespace XenoKit.Engine
         public override void Update()
         {
             DrawThisFrame = true;
+            IsVisible = true;
 
             //Reset Eye positions to their defaults
             EyeIrisLeft_UV[0] = EyeIrisLeft_UV[1] = EyeIrisRight_UV[0] = EyeIrisRight_UV[1] = 0;
@@ -228,7 +230,7 @@ namespace XenoKit.Engine
         public override void Draw()
         {
             DrawThisFrame = false;
-            if (!GameBase.RenderCharacters || !SceneManager.ShowActorsInCurrentScene) return;
+            if (!GameBase.RenderCharacters || !SceneManager.ShowActorsInCurrentScene || !IsVisible) return;
 
             PartSet.Draw();
 

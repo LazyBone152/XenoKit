@@ -339,7 +339,7 @@ namespace XenoKit.Editor
         {
             if(bacId != -1 && bacId != ushort.MaxValue)
             {
-                var bacEntry = move.Files.BacFile.File.GetEntry(bacId);
+                var bacEntry = Files.Instance.SelectedItem.SelectedBacFile.File.GetEntry(bacId);
 
                 if(bacEntry != null && !Secondary.BacEntries.Any(x => x.SortID == bacId))
                 {
@@ -474,6 +474,11 @@ namespace XenoKit.Editor
         {
             if (entryType != EntryType.Main)
                 throw new InvalidOperationException($"{nameof(CopyItem)}.{nameof(PasteIntoMove_Main)}: function can only be called with entryType = Main!");
+
+            //move the parameter must match the SelectedItem in the Outliner. This is a quick dirty hack to account for selectable BAC files, which did not exist when this copy system was originally written
+            //TODO: Rework this
+            if (Files.Instance.SelectedMove != move)
+                throw new InvalidOperationException("PasteIntoMove_Main: The move passed into the method must be the one selected in the outliner.");
 
             RemoveDuplicates();
             List<IUndoRedo> undos = new List<IUndoRedo>();
@@ -624,9 +629,9 @@ namespace XenoKit.Editor
                 foreach (var bacEntry in bacEntries)
                 {
                     int oldId = bacEntry.SortID;
-                    int newId = move.Files.BacFile.File.AddEntry(bacEntry);
+                    int newId = Files.Instance.SelectedItem.SelectedBacFile.File.AddEntry(bacEntry);
                     ReplaceIdReference(ValueReference.InstanceRefType.Bac, oldId, newId);
-                    undos.Add(new UndoableListAdd<BAC_Entry>(move.Files.BacFile.File.BacEntries, bacEntry));
+                    undos.Add(new UndoableListAdd<BAC_Entry>(Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries, bacEntry));
                 }
             }
 

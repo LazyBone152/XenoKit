@@ -129,6 +129,11 @@ namespace XenoKit
                 }
 
                 effectTab_EepkComboBox.Visibility = Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN ? Visibility.Visible : Visibility.Collapsed;
+
+                //Set visibility of the bac file selection combobox on the bac tab. This should only appear for CMN and awoken skills.
+                bacControlView.bacFileSelector_StackPanel.Visibility = Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN || 
+                    (Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.Skill && Files.Instance.SelectedItem.move.SkillType == Xv2CoreLib.CUS.CUS_File.SkillType.Awoken) 
+                    ? Visibility.Visible : Visibility.Collapsed;
             }
 
             DetectInvalidTab();

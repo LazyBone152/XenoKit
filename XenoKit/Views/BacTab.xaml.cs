@@ -296,11 +296,11 @@ namespace XenoKit.Controls
 
         private void CreateFilteredList()
         {
-            if (files.SelectedMove?.Files?.BacFile?.File?.BacEntries != null)
+            if (files.SelectedItem?.SelectedBacFile != null)
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    ViewBacTypes = new ListCollectionView(files.SelectedMove.Files.BacFile.File.BacEntries.Binding);
+                    ViewBacTypes = new ListCollectionView(files.SelectedItem.SelectedBacFile.File.BacEntries.Binding);
                     ViewBacTypes.Filter = new Predicate<object>(BacFilterCheck);
                 }));
             }
@@ -364,13 +364,13 @@ namespace XenoKit.Controls
         private async void EditBacId(int newId)
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
-            var existing = Files.Instance.SelectedMove.Files.BacFile.File.BacEntries.FirstOrDefault(a => a.SortID == newId && a != SelectedBacEntry);
+            var existing = Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries.FirstOrDefault(a => a.SortID == newId && a != SelectedBacEntry);
 
             if (existing?.IsIBacEntryEmpty() == true)
             {
                 //An entry already exists with this ID but it is empty. We can safely remove it and just use the ID
-                undos.Add(new UndoableListRemove<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, existing));
-                Files.Instance.SelectedMove.Files.BacFile.File.BacEntries.Remove(existing);
+                undos.Add(new UndoableListRemove<BAC_Entry>(Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries, existing));
+                Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries.Remove(existing);
             }
 
             if (existing != null && undos.Count == 0)
@@ -412,7 +412,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(BacTypeListVisbility));
             if (bacEntryDataGrid.SelectedItem is BAC_Entry bacEntry)
             {
-                SceneManager.PlayBacEntry(files.SelectedMove.Files.BacFile.File, bacEntry, files.SelectedMove, 0, true);
+                SceneManager.PlayBacEntry(files.SelectedItem.SelectedBacFile.File, bacEntry, files.SelectedMove, 0, true);
             }
 
             //Default sorting:
@@ -426,7 +426,7 @@ namespace XenoKit.Controls
         public RelayCommand AddBacEntryCommand => new RelayCommand(AddBacEntry, IsBacFileLoaded);
         private void AddBacEntry()
         {
-            var newBacEntry = Files.Instance.SelectedMove.Files.BacFile.File.AddNewEntry();
+            var newBacEntry = Files.Instance.SelectedItem.SelectedBacFile.File.AddNewEntry();
             SelectBacEntry(newBacEntry);
             UndoManager.Instance.AddUndo(new UndoableListAdd<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, newBacEntry, "Bac Entry Add"));
         }
@@ -439,8 +439,8 @@ namespace XenoKit.Controls
             foreach (var entry in SelectedBacEntries)
             {
                 SceneManager.ForceStopBacPlayer();
-                undos.Add(new UndoableListRemove<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, entry));
-                Files.Instance.SelectedMove.Files.BacFile.File.BacEntries.Remove(entry);
+                undos.Add(new UndoableListRemove<BAC_Entry>(Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries, entry));
+                Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries.Remove(entry);
             }
 
             UndoManager.Instance.AddUndo(new CompositeUndo(undos, "Bac Entry Remove"));
@@ -649,6 +649,7 @@ namespace XenoKit.Controls
             Engine.Animation.VisualSkeleton.SelectedBoneChanged += VisualSkeleton_SelectedBoneChanged;
         }
 
+        #region Events
         private void VisualSkeleton_SelectedBoneChanged(object sender, EventArgs e)
         {
             if (SceneManager.IsOnTab(EditorTabs.Action) && SelectedIBacBone != null)
@@ -702,19 +703,12 @@ namespace XenoKit.Controls
 
         private void Files_SelectedMoveChanged(object sender, EventArgs e)
         {
-            NotifyPropertyChanged(nameof(BacTypeListVisbility));
-            NotifyPropertyChanged(nameof(files));
-            NotifyPropertyChanged(nameof(MaximumBacID));
-            CreateFilteredList();
+            UpdateSelectedBacFile();
+        }
 
-            if (files.SelectedItem?.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem?.Type == OutlinerItem.OutlinerItemType.Moveset)
-            {
-                nameColumn.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                nameColumn.Visibility = Visibility.Collapsed;
-            }
+        private void BacFileSelection_ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateSelectedBacFile();
         }
 
         private void BacEntryDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -722,6 +716,38 @@ namespace XenoKit.Controls
             if (SceneManager.IsOnTab(EditorTabs.Action))
             {
                 PlayBacEntry();
+            }
+        }
+
+        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            NotifyPropertyChanged(nameof(BacTypeListVisbility));
+            UpdateViewModels();
+            BacTypeSelectionChanged?.Invoke(this, new EventArgs());
+
+            TryEnableGizmos();
+            SetStaticBacTypes();
+        }
+
+        #endregion
+
+        private void UpdateSelectedBacFile()
+        {
+            NotifyPropertyChanged(nameof(BacTypeListVisbility));
+            NotifyPropertyChanged(nameof(files));
+            NotifyPropertyChanged(nameof(MaximumBacID));
+            CreateFilteredList();
+
+            if(files.SelectedItem != null)
+            {
+                if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.SelectedBacFile?.FileType == Xv2CoreLib.Xenoverse2.MoveFileTypes.AFTER_BAC)
+                {
+                    nameColumn.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    nameColumn.Visibility = Visibility.Collapsed;
+                }
             }
         }
 
@@ -759,16 +785,6 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(BacType29ViewModel));
             NotifyPropertyChanged(nameof(BacType30ViewModel));
             NotifyPropertyChanged(nameof(BacTypeBaseViewModel));
-        }
-
-        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            NotifyPropertyChanged(nameof(BacTypeListVisbility));
-            UpdateViewModels();
-            BacTypeSelectionChanged?.Invoke(this, new EventArgs());
-
-            TryEnableGizmos();
-            SetStaticBacTypes();
         }
 
         public void TryEnableGizmos()
@@ -837,5 +853,6 @@ namespace XenoKit.Controls
                 }
             }
         }
+
     }
 }

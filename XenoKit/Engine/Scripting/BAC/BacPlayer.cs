@@ -148,6 +148,7 @@ namespace XenoKit.Engine.Scripting.BAC
                         {
                             case BAC_Type0.EanTypeEnum.Character:
                             case BAC_Type0.EanTypeEnum.Common:
+                            case BAC_Type0.EanTypeEnum.MCM_DBA:
                             case BAC_Type0.EanTypeEnum.Skill:
                                 character.AnimationPlayer.PlayPrimaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.AnimFlags, true, animation.TimeScale, false, true);
                                 GameBase.AnimationTimeScale = animation.TimeScale;
@@ -236,7 +237,8 @@ namespace XenoKit.Engine.Scripting.BAC
 
                     Xv2CoreLib.ACB.ACB_Wrapper acb = Files.Instance.GetAcbFile(sound.AcbType, BacEntryInstance.SkillMove, character, true);
 
-                    if (acb != null && sound.CueId != ushort.MaxValue && GameBase.IsPlaying)
+                    //I've made it only play sounds if a primary animation is current playing - this prevents some audio crashes/errors
+                    if (acb != null && sound.CueId != ushort.MaxValue && GameBase.IsPlaying && character.AnimationPlayer.PrimaryAnimation != null)
                     {
                         SceneManager.AudioEngine.PlayCue(sound.CueId, acb, character, BacEntryInstance, sound.SoundFlags.HasFlag(SoundFlags.StopWhenParentEnds));
                     }
@@ -250,6 +252,9 @@ namespace XenoKit.Engine.Scripting.BAC
                         case 0x13: //Sets BCS PartSet (temp).
                         case 0x14: //Sets BCS PartSet (permanent).
                             character.PartSet.ApplyBacPartSetSwap((int)function.Param1, function.FunctionType == 0x14);
+                            break;
+                        case 0x6: //Invisibility
+                            character.IsVisible = false;
                             break;
                     }
                 }

@@ -86,7 +86,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 if (type is BAC_Type0 type0)
                 {
                     //Dont count this if its not a full body animation
-                    if (type0.EanType != BAC_Type0.EanTypeEnum.Character && type0.EanType != BAC_Type0.EanTypeEnum.Skill && type0.EanType != BAC_Type0.EanTypeEnum.Common)
+                    if (type0.EanType != BAC_Type0.EanTypeEnum.Character && type0.EanType != BAC_Type0.EanTypeEnum.Skill && type0.EanType != BAC_Type0.EanTypeEnum.Common && type0.EanType != BAC_Type0.EanTypeEnum.MCM_DBA)
                         continue;
 
                     int animTypeDuration = 0;
@@ -111,6 +111,7 @@ namespace XenoKit.Engine.Scripting.BAC
                                     case BAC_Type0.EanTypeEnum.Character:
                                     case BAC_Type0.EanTypeEnum.Common:
                                     case BAC_Type0.EanTypeEnum.Skill:
+                                    case BAC_Type0.EanTypeEnum.MCM_DBA:
                                         //animTypeDuration = anim.FrameCount + type.StartTime;
                                         animTypeDuration = anim.FrameCount;
                                         break;
@@ -134,7 +135,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 if (type is BAC_Type0 type0)
                 {
                     //Dont count this if its not a full body animation
-                    if (type0.EanType != BAC_Type0.EanTypeEnum.Character && type0.EanType != BAC_Type0.EanTypeEnum.Skill && type0.EanType != BAC_Type0.EanTypeEnum.Common)
+                    if (type0.EanType != BAC_Type0.EanTypeEnum.Character && type0.EanType != BAC_Type0.EanTypeEnum.Skill && type0.EanType != BAC_Type0.EanTypeEnum.Common && type0.EanType != BAC_Type0.EanTypeEnum.MCM_DBA)
                         continue;
 
                     if (type0.TimeScale != 1f)

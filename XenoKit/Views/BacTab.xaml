@@ -9,6 +9,7 @@
              xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:editor="clr-namespace:XenoKit.Editor"
              Dialog:DialogParticipation.Register="{Binding}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="600" Name="UserControl">
@@ -19,16 +20,23 @@
             <ColumnDefinition Width="306*" MinWidth="75"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="60"/>
             <RowDefinition Height="250*"/>
             <RowDefinition Height="3"/>
             <RowDefinition Height="200*"/>
         </Grid.RowDefinitions>
+        
+        <StackPanel x:Name="bacFileSelector_StackPanel" Orientation="Horizontal" Height="44">
+            <Grid Margin="5"/>
+            <ComboBox SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBacFile}" ItemsSource="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.BacFiles.Binding}" SelectionChanged="BacFileSelection_ComboBox_SelectionChanged" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
+        </StackPanel>
 
-        <GridSplitter Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Grid.Column="1" Grid.ColumnSpan="1"/>
-        <GridSplitter Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+        <GridSplitter Grid.Row="2" Grid.RowSpan="2" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Grid.Column="1" Grid.ColumnSpan="1"/>
+        <GridSplitter Grid.Row="3" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
 
 
-        <DataGrid x:Name="bacTypeDataGrid" SelectionChanged="DataGrid_SelectionChanged" ItemsSource="{Binding Path=SelectedItem.IBacTypes.Binding, ElementName=bacEntryDataGrid}" Margin="6.018,64,23.436,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Grid.Column="2" Controls:ControlsHelper.ContentCharacterCasing="Normal">
+        <DataGrid x:Name="bacTypeDataGrid" Grid.Row="2" Grid.Column="2" Margin="5" SelectionChanged="DataGrid_SelectionChanged" ItemsSource="{Binding Path=SelectedItem.IBacTypes.Binding, ElementName=bacEntryDataGrid}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Controls:ControlsHelper.ContentCharacterCasing="Normal">
 
             <DataGrid.InputBindings>
                 <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBacTypeCommand}"/>
@@ -91,7 +99,7 @@
                 </ContextMenu>
             </DataGrid.ContextMenu>
         </DataGrid>
-        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
+        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
             <StackPanel.Resources>
                 <Style TargetType="{x:Type StackPanel}">
                     <Setter Property="Margin" Value="10,0,0,0"/>
@@ -154,7 +162,7 @@
 
         </StackPanel>
 
-        <ScrollViewer Grid.Row="2" Grid.ColumnSpan="3" Margin="0,0.018,0.436,0.327">
+        <ScrollViewer Grid.Row="4" Grid.ColumnSpan="3" Margin="0,0.018,0.436,0.327">
             <StackPanel>
                 <bacView:BacTypeBaseView BacViewModel="{Binding BacTypeBaseViewModel}"/>
                 <bacView:BacType0View BacViewModel="{Binding BacType0ViewModel}"/>
@@ -190,7 +198,7 @@
                 <bacView:BacType30View BacViewModel="{Binding BacType30ViewModel}"/>
             </StackPanel>
         </ScrollViewer>
-        <DataGrid x:Name="bacEntryDataGrid" SelectionChanged="BacEntryDataGrid_SelectionChanged" ItemsSource="{Binding ViewBacTypes}" Margin="10,64,10.364,10.364" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Controls:ControlsHelper.ContentCharacterCasing="Normal">
+        <DataGrid x:Name="bacEntryDataGrid" Grid.Row="2" Margin="5" SelectionChanged="BacEntryDataGrid_SelectionChanged" ItemsSource="{Binding ViewBacTypes}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Controls:ControlsHelper.ContentCharacterCasing="Normal">
 
             <DataGrid.InputBindings>
                 <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBacEntryCommand}"/>
@@ -231,7 +239,7 @@
             </DataGrid.ContextMenu>
         </DataGrid>
 
-        <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
+        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
             <StackPanel.Resources>
                 <Style TargetType="{x:Type StackPanel}">
                     <Setter Property="Margin" Value="10,0,0,0"/>
