@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using XenoKit.Engine.Pool;
 using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Shader;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine
 {
@@ -205,6 +206,11 @@ namespace XenoKit.Engine
                 else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.G))
                 {
                     SceneManager.ShowWorldAxis = !SceneManager.ShowWorldAxis;
+                    SetHotkeyCooldown();
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.L))
+                {
+                    SettingsManager.settings.XenoKit_EnableDynamicLighting = !SettingsManager.settings.XenoKit_EnableDynamicLighting;
                     SetHotkeyCooldown();
                 }
             }

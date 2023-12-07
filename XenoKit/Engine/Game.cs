@@ -293,7 +293,12 @@ namespace XenoKit.Engine
         {
             if(HotkeyCooldown == 0)
             {
-                if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.O))
+                if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space))
+                {
+                    IsPlaying = !IsPlaying;
+                    HotkeyCooldown = 10;
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.O))
                 {
                     SettingsManager.settings.XenoKit_UseOutlinePostEffect = !SettingsManager.settings.XenoKit_UseOutlinePostEffect;
                     SetHotkeyCooldown();
