@@ -33,6 +33,8 @@ using System.Windows;
 using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.SAV;
 using Xv2CoreLib.Resource.UndoRedo;
+using System.Threading;
+using System.Globalization;
 
 namespace XenoKit.Editor
 {
@@ -101,7 +103,7 @@ namespace XenoKit.Editor
         {
             get
             {
-                return SelectedItem == null ? $"Save (N/A)" : $"_Save ({SelectedItem.DisplayName})";
+                return string.IsNullOrWhiteSpace(SelectedItem?.DisplayName) ? $"Save (N/A)" : $"_Save ({SelectedItem.DisplayName})";
             }
         }
 

@@ -484,6 +484,7 @@ namespace XenoKit.Editor
                 case EditorTabs.Action:
                     if (SelectedBacFile.Path != null)
                     {
+                        SelectedBacFile.File.SaveIBacTypes();
                         SelectedBacFile.File.Save(SelectedBacFile.Path);
                         pathSaved = SelectedBacFile.Path;
                     }
