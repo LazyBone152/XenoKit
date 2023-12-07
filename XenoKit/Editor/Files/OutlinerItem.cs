@@ -127,7 +127,11 @@ namespace XenoKit.Editor
         }
         public Xv2File<EffectContainerFile> SelectedEepk
         {
-            get => Type == OutlinerItemType.CMN ? _selectedEepk : move?.Files?.EepkFile;
+            get
+            {
+                if (Type == OutlinerItemType.CMN) return _selectedEepk;
+                return ManualFiles != null ? ManualFiles.Move.Files?.EepkFile : move?.Files?.EepkFile;
+            }
             set
             {
                 if (Type == OutlinerItemType.CMN && value != _selectedEepk)
