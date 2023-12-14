@@ -13,9 +13,9 @@
         <Expander Header="Aura" IsExpanded="True">
             <StackPanel>
 
-                <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                <Grid Margin="3,5,0,0" Width="350" HorizontalAlignment="Left">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="125"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Label Content="Aura Type"/>

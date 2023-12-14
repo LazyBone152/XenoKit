@@ -1,11 +1,12 @@
 ﻿using GalaSoft.MvvmLight;
+using System;
 using XenoKit.Engine;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.ViewModel.BAC
 {
-    public class BACTypeBaseViewModel : ObservableObject
+    public class BACTypeBaseViewModel : ObservableObject, IDisposable
     {
         private BAC_TypeBase bacType;
 
@@ -19,10 +20,11 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.StartTime != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_TypeBase>("StartTime", bacType, bacType.StartTime, value, "BAC Start Time"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_TypeBase>(nameof(bacType.StartTime), bacType, bacType.StartTime, value, "BAC Start Time"), UndoGroup.Action, nameof(bacType.StartTime), bacType);
                     bacType.StartTime = value;
                     RaisePropertyChanged(() => StartTime);
                     UpdateBacPlayer();
+                    UndoManager.Instance.ForceEventCall(UndoGroup.Action, nameof(bacType.StartTime), bacType);
                 }
             }
         }
@@ -36,10 +38,11 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.Duration != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_TypeBase>("Duration", bacType, bacType.Duration, value, "BAC Duration"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_TypeBase>(nameof(bacType.Duration), bacType, bacType.Duration, value, "BAC Duration"), UndoGroup.Action, nameof(bacType.Duration), bacType);
                     bacType.Duration = value;
                     RaisePropertyChanged(() => Duration);
                     UpdateBacPlayer();
+                    UndoManager.Instance.ForceEventCall(UndoGroup.Action, nameof(bacType.Duration), bacType);
                 }
             }
         }
@@ -53,7 +56,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.Flags != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_TypeBase>("Flags", bacType, bacType.Flags, value, "BAC Character Type"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_TypeBase>(nameof(bacType.Flags), bacType, bacType.Flags, value, "BAC Character Type"), UndoGroup.Action, nameof(bacType.Flags), bacType);
                     bacType.Flags = value;
                     RaisePropertyChanged(() => Flags);
                     UpdateBacPlayer();
@@ -78,7 +81,16 @@ namespace XenoKit.ViewModel.BAC
 
         private void BacType_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            RaisePropertyChanged(e.PropertyName);
+            //RaisePropertyChanged(e.PropertyName);
+            RaisePropertyChanged(nameof(StartTime));
+            RaisePropertyChanged(nameof(Duration));
+            RaisePropertyChanged(nameof(Flags));
+        }
+
+        public void Dispose()
+        {
+            UndoManager.Instance.UndoOrRedoCalled -= Instance_UndoOrRedoCalled;
+            bacType.PropertyChanged -= BacType_PropertyChanged;
         }
 
         private void UpdateProperties()

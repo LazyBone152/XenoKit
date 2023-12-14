@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight;
+using System;
 using XenoKit.Editor;
 using XenoKit.Engine;
 using Xv2CoreLib;
@@ -9,7 +10,7 @@ using static Xv2CoreLib.BAC.BAC_Type0;
 
 namespace XenoKit.ViewModel.BAC
 {
-    public class BACType0ViewModel : ObservableObject
+    public class BACType0ViewModel : ObservableObject, IDisposable
     {
         private BAC_Type0 bacType;
 
@@ -21,7 +22,7 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.EanType), bacType, bacType.EanType, (BAC_Type0.EanTypeEnum)value, "Animation EanType"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.EanType), bacType, bacType.EanType, (BAC_Type0.EanTypeEnum)value, "Animation EanType"), UndoGroup.Action, "Animation", bacType);
                 bacType.EanType = (BAC_Type0.EanTypeEnum)value;
                 RaisePropertyChanged(() => EanType);
                 RaisePropertyChanged(() => SpecifiedEan);
@@ -29,6 +30,7 @@ namespace XenoKit.ViewModel.BAC
                 RaisePropertyChanged(() => EanIndex);
                 bacType.RefreshType();
                 UpdateBacPlayer();
+                UndoManager.Instance.ForceEventCall(UndoGroup.Action, "Animation", bacType);
             }
         }
         public ushort EanIndex
@@ -39,11 +41,12 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.EanIndex), bacType, bacType.EanIndex, value, "Animation Ean Index"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.EanIndex), bacType, bacType.EanIndex, value, "Animation Ean Index"), UndoGroup.Action, "Animation", bacType);
                 bacType.EanIndex = value;
                 RaisePropertyChanged(() => EanIndex);
                 UpdateBacPlayer();
                 bacType.RefreshType();
+                UndoManager.Instance.ForceEventCall(UndoGroup.Action, "Animation", bacType);
             }
         }
         public ushort StartFrame
@@ -56,10 +59,11 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.StartFrame != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.StartFrame), bacType, bacType.StartFrame, value, "Animation Start Frame"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.StartFrame), bacType, bacType.StartFrame, value, "Animation Start Frame"), UndoGroup.Action, "Animation", bacType);
                     bacType.StartFrame = value;
                     RaisePropertyChanged(() => StartFrame);
-                    UpdateBacPlayer();
+                    UpdateBacPlayer(); 
+                    UndoManager.Instance.ForceEventCall(UndoGroup.Action, "Animation", bacType);
                 }
             }
         }
@@ -73,10 +77,11 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.EndFrame != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.EndFrame), bacType, bacType.EndFrame, value, "Animation End Frame"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.EndFrame), bacType, bacType.EndFrame, value, "Animation End Frame"), UndoGroup.Action, "Animation", bacType);
                     bacType.EndFrame = value;
                     RaisePropertyChanged(() => EndFrame);
                     UpdateBacPlayer();
+                    UndoManager.Instance.ForceEventCall(UndoGroup.Action, "Animation", bacType);
                 }
             }
         }
@@ -496,6 +501,12 @@ namespace XenoKit.ViewModel.BAC
 
             if(UndoManager.Instance != null)
                 UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
+        }
+
+        public void Dispose()
+        {
+            UndoManager.Instance.UndoOrRedoCalled -= Instance_UndoOrRedoCalled;
+            bacType.PropertyChanged -= BacType_PropertyChanged;
         }
 
         private void Instance_UndoOrRedoCalled(object sender, System.EventArgs e)

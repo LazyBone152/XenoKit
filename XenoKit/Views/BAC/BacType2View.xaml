@@ -11,8 +11,8 @@
     <Grid>
         <StackPanel>
             <Expander Header="Movement" IsExpanded="True">
-                <StackPanel Width="500" HorizontalAlignment="Left">
-                    <Grid Margin="3,3,0,0" Width="500">
+                <StackPanel HorizontalAlignment="Left">
+                    <Grid Margin="3,3,0,0" Width="500" HorizontalAlignment="Left">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="105"/>
                             <ColumnDefinition Width="20"/>
@@ -33,7 +33,7 @@
                         <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType2View}}, Path=BacViewModel.DirectionZ, UpdateSourceTrigger=Default}"/>
 
                     </Grid>
-                    <Grid Margin="3,3,0,0" Width="500">
+                    <Grid Margin="3,3,0,0" Width="500" HorizontalAlignment="Left">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="105"/>
                             <ColumnDefinition Width="20"/>

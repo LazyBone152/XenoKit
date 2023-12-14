@@ -15,7 +15,7 @@
 
                 <StackPanel >
                     
-                    <StackPanel Margin="10, 2" Width="500" HorizontalAlignment="Left">
+                    <StackPanel Margin="10, 2" HorizontalAlignment="Left">
                         <Label Content="Link Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
                         <Separator/>
                         <WrapPanel>

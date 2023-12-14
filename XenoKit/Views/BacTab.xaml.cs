@@ -37,243 +37,118 @@ namespace XenoKit.Controls
         #endregion
 
         public static event EventHandler BacTypeSelectionChanged;
-        public Files files { get { return Files.Instance; } }
+        public Files files => Files.Instance;
 
-        private BAC_Entry SelectedBacEntry { get { return bacEntryDataGrid.SelectedItem as BAC_Entry; } }
-        private IList<BAC_Entry> SelectedBacEntries { get { return bacEntryDataGrid.SelectedItems.Cast<BAC_Entry>().ToList(); } }
-        private IBacType SelectedBacType { get { return bacTypeDataGrid.SelectedItem as IBacType; } }
-        private IList<IBacType> SelectedBacTypes { get { return bacTypeDataGrid.SelectedItems.Cast<IBacType>().ToList(); } }
+        private BAC_Entry _selectedBacEntry = null;
+        public BAC_Entry SelectedBacEntry
+        {
+            get => _selectedBacEntry;
+            set
+            {
+                if(_selectedBacEntry != value) 
+                {
+                    _selectedBacEntry = value;
+                    NotifyPropertyChanged(nameof(SelectedBacEntry));
+
+                    if (SceneManager.IsOnTab(EditorTabs.Action))
+                    {
+                        PlayBacEntry();
+                    }
+                }
+            }
+        }
+        private IList<BAC_Entry> SelectedBacEntries => bacEntryDataGrid.SelectedItems.Cast<BAC_Entry>().ToList();
+        private IBacType SelectedBacType
+        {
+            get
+            {
+                if (ViewMode == BacViewMode.TimeLine)
+                    return timeline.SelectedItem as IBacType;
+                else
+                    return bacTypeDataGrid.SelectedItem as IBacType;
+            }
+        }
+        private IList<IBacType> SelectedBacTypes
+        {
+            get
+            {
+                if (ViewMode == BacViewMode.TimeLine)
+                    return timeline.SelectedItems.Cast<IBacType>().ToList();
+                else
+                    return bacTypeDataGrid.SelectedItems.Cast<IBacType>().ToList();
+
+            }
+        }
 
         //Selected BacTypes exposed as statics for gizmos to check against
         public static IBacBone SelectedIBacBone { get; private set; }
         public static IBacType StaticSelectedBacType { get; set; }
 
-        //ViewModels
-        public BACTypeBaseViewModel BacTypeBaseViewModel
+        #region ViewModels
+        //Current view models are kept around so they can the event references can be cleared up properly
+        private IDisposable _lastViewModelBase = null;
+        private IDisposable _lastViewModel = null;
+
+        private object SetBaseViewModel(IDisposable viewModel)
         {
-            get
+            if(viewModel != null)
             {
-                return (bacTypeDataGrid.SelectedItem is BAC_TypeBase) ? new BACTypeBaseViewModel(bacTypeDataGrid.SelectedItem as BAC_TypeBase) : null;
+                if (_lastViewModelBase != null)
+                    _lastViewModelBase.Dispose();
+
+                _lastViewModelBase = viewModel;
             }
-        }
-        public BACType0ViewModel BacType0ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type0) ? new BACType0ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type0) : null;
-            }
-        }
-        public BACType1ViewModel BacType1ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type1) ? new BACType1ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type1) : null;
-            }
-        }
-        public BACType2ViewModel BacType2ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type2) ? new BACType2ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type2) : null;
-            }
-        }
-        public BACType3ViewModel BacType3ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type3) ? new BACType3ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type3) : null;
-            }
-        }
-        public BACType4ViewModel BacType4ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type4) ? new BACType4ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type4) : null;
-            }
-        }
-        public BACType5ViewModel BacType5ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type5) ? new BACType5ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type5) : null;
-            }
-        }
-        public BACType6ViewModel BacType6ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type6) ? new BACType6ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type6) : null;
-            }
-        }
-        public BACType7ViewModel BacType7ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type7) ? new BACType7ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type7) : null;
-            }
-        }
-        public BACType8ViewModel BacType8ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type8) ? new BACType8ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type8) : null;
-            }
-        }
-        public BACType9ViewModel BacType9ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type9) ? new BACType9ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type9) : null;
-            }
-        }
-        public BACType10ViewModel BacType10ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type10) ? new BACType10ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type10) : null;
-            }
-        }
-        public BACType11ViewModel BacType11ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type11) ? new BACType11ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type11) : null;
-            }
-        }
-        public BACType12ViewModel BacType12ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type12) ? new BACType12ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type12) : null;
-            }
-        }
-        public BACType13ViewModel BacType13ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type13) ? new BACType13ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type13) : null;
-            }
-        }
-        public BACType14ViewModel BacType14ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type14) ? new BACType14ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type14) : null;
-            }
-        }
-        public BACType15ViewModel BacType15ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type15) ? new BACType15ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type15) : null;
-            }
-        }
-        public BACType16ViewModel BacType16ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type16) ? new BACType16ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type16) : null;
-            }
-        }
-        public BACType17ViewModel BacType17ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type17) ? new BACType17ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type17) : null;
-            }
-        }
-        public BACType18ViewModel BacType18ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type18) ? new BACType18ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type18) : null;
-            }
-        }
-        public BACType19ViewModel BacType19ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type19) ? new BACType19ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type19) : null;
-            }
-        }
-        public BACType20ViewModel BacType20ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type20) ? new BACType20ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type20) : null;
-            }
-        }
-        public BACType21ViewModel BacType21ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type21) ? new BACType21ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type21) : null;
-            }
-        }
-        public BACType22ViewModel BacType22ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type22) ? new BACType22ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type22) : null;
-            }
-        }
-        public BACType23ViewModel BacType23ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type23) ? new BACType23ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type23) : null;
-            }
-        }
-        public BACType24ViewModel BacType24ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type24) ? new BACType24ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type24) : null;
-            }
-        }
-        public BACType25ViewModel BacType25ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type25) ? new BACType25ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type25) : null;
-            }
-        }
-        public BACType26ViewModel BacType26ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type26) ? new BACType26ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type26) : null;
-            }
-        }
-        public BACType27ViewModel BacType27ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type27) ? new BACType27ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type27) : null;
-            }
-        }
-        public BACType28ViewModel BacType28ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type28) ? new BACType28ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type28) : null;
-            }
-        }
-        public BACType29ViewModel BacType29ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type29) ? new BACType29ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type29) : null;
-            }
-        }
-        public BACType30ViewModel BacType30ViewModel
-        {
-            get
-            {
-                return (bacTypeDataGrid.SelectedItem is BAC_Type30) ? new BACType30ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type30) : null;
-            }
+
+            return viewModel;
         }
 
+        private object SetViewModel(IDisposable viewModel)
+        {
+            if (viewModel != null)
+            {
+                if (_lastViewModel != null)
+                    _lastViewModel.Dispose();
+
+                _lastViewModel = viewModel;
+            }
+
+            return viewModel;
+        }
+
+        public BACTypeBaseViewModel BacTypeBaseViewModel => (BACTypeBaseViewModel)SetBaseViewModel((SelectedBacType is BAC_TypeBase) ? new BACTypeBaseViewModel(SelectedBacType as BAC_TypeBase) : null);
+        public BACType0ViewModel BacType0ViewModel => (BACType0ViewModel)SetViewModel((SelectedBacType is BAC_Type0) ? new BACType0ViewModel(SelectedBacType as BAC_Type0) : null);
+        public BACType1ViewModel BacType1ViewModel => (BACType1ViewModel)SetViewModel((SelectedBacType is BAC_Type1) ? new BACType1ViewModel(SelectedBacType as BAC_Type1) : null);
+        public BACType2ViewModel BacType2ViewModel => (BACType2ViewModel)SetViewModel((SelectedBacType is BAC_Type2) ? new BACType2ViewModel(SelectedBacType as BAC_Type2) : null);
+        public BACType3ViewModel BacType3ViewModel => (BACType3ViewModel)SetViewModel((SelectedBacType is BAC_Type3) ? new BACType3ViewModel(SelectedBacType as BAC_Type3) : null);
+        public BACType4ViewModel BacType4ViewModel => (BACType4ViewModel)SetViewModel((SelectedBacType is BAC_Type4) ? new BACType4ViewModel(SelectedBacType as BAC_Type4) : null);
+        public BACType5ViewModel BacType5ViewModel => (BACType5ViewModel)SetViewModel((SelectedBacType is BAC_Type5) ? new BACType5ViewModel(SelectedBacType as BAC_Type5) : null);
+        public BACType6ViewModel BacType6ViewModel => (BACType6ViewModel)SetViewModel((SelectedBacType is BAC_Type6) ? new BACType6ViewModel(SelectedBacType as BAC_Type6) : null);
+        public BACType7ViewModel BacType7ViewModel => (BACType7ViewModel)SetViewModel((SelectedBacType is BAC_Type7) ? new BACType7ViewModel(SelectedBacType as BAC_Type7) : null);
+        public BACType8ViewModel BacType8ViewModel => (BACType8ViewModel)SetViewModel((SelectedBacType is BAC_Type8) ? new BACType8ViewModel(SelectedBacType as BAC_Type8) : null);
+        public BACType9ViewModel BacType9ViewModel => (BACType9ViewModel)SetViewModel((SelectedBacType is BAC_Type9) ? new BACType9ViewModel(SelectedBacType as BAC_Type9) : null);
+        public BACType10ViewModel BacType10ViewModel => (BACType10ViewModel)SetViewModel((SelectedBacType is BAC_Type10) ? new BACType10ViewModel(SelectedBacType as BAC_Type10) : null);
+        public BACType11ViewModel BacType11ViewModel => (BACType11ViewModel)SetViewModel((SelectedBacType is BAC_Type11) ? new BACType11ViewModel(SelectedBacType as BAC_Type11) : null);
+        public BACType12ViewModel BacType12ViewModel => (BACType12ViewModel)SetViewModel((SelectedBacType is BAC_Type12) ? new BACType12ViewModel(SelectedBacType as BAC_Type12) : null);
+        public BACType13ViewModel BacType13ViewModel => (BACType13ViewModel)SetViewModel((SelectedBacType is BAC_Type13) ? new BACType13ViewModel(SelectedBacType as BAC_Type13) : null);
+        public BACType14ViewModel BacType14ViewModel => (BACType14ViewModel)SetViewModel((SelectedBacType is BAC_Type14) ? new BACType14ViewModel(SelectedBacType as BAC_Type14) : null);
+        public BACType15ViewModel BacType15ViewModel => (BACType15ViewModel)SetViewModel((SelectedBacType is BAC_Type15) ? new BACType15ViewModel(SelectedBacType as BAC_Type15) : null);
+        public BACType16ViewModel BacType16ViewModel => (BACType16ViewModel)SetViewModel((SelectedBacType is BAC_Type16) ? new BACType16ViewModel(SelectedBacType as BAC_Type16) : null);
+        public BACType17ViewModel BacType17ViewModel => (BACType17ViewModel)SetViewModel((SelectedBacType is BAC_Type17) ? new BACType17ViewModel(SelectedBacType as BAC_Type17) : null);
+        public BACType18ViewModel BacType18ViewModel => (BACType18ViewModel)SetViewModel((SelectedBacType is BAC_Type18) ? new BACType18ViewModel(SelectedBacType as BAC_Type18) : null);
+        public BACType19ViewModel BacType19ViewModel => (BACType19ViewModel)SetViewModel((SelectedBacType is BAC_Type19) ? new BACType19ViewModel(SelectedBacType as BAC_Type19) : null);
+        public BACType20ViewModel BacType20ViewModel => (BACType20ViewModel)SetViewModel((SelectedBacType is BAC_Type20) ? new BACType20ViewModel(SelectedBacType as BAC_Type20) : null);
+        public BACType21ViewModel BacType21ViewModel => (BACType21ViewModel)SetViewModel((SelectedBacType is BAC_Type21) ? new BACType21ViewModel(SelectedBacType as BAC_Type21) : null);
+        public BACType22ViewModel BacType22ViewModel => (BACType22ViewModel)SetViewModel((SelectedBacType is BAC_Type22) ? new BACType22ViewModel(SelectedBacType as BAC_Type22) : null);
+        public BACType23ViewModel BacType23ViewModel => (BACType23ViewModel)SetViewModel((SelectedBacType is BAC_Type23) ? new BACType23ViewModel(SelectedBacType as BAC_Type23) : null);
+        public BACType24ViewModel BacType24ViewModel => (BACType24ViewModel)SetViewModel((SelectedBacType is BAC_Type24) ? new BACType24ViewModel(SelectedBacType as BAC_Type24) : null);
+        public BACType25ViewModel BacType25ViewModel => (BACType25ViewModel)SetViewModel((SelectedBacType is BAC_Type25) ? new BACType25ViewModel(SelectedBacType as BAC_Type25) : null);
+        public BACType26ViewModel BacType26ViewModel => (BACType26ViewModel)SetViewModel((SelectedBacType is BAC_Type26) ? new BACType26ViewModel(SelectedBacType as BAC_Type26) : null);
+        public BACType27ViewModel BacType27ViewModel => (BACType27ViewModel)SetViewModel((SelectedBacType is BAC_Type27) ? new BACType27ViewModel(SelectedBacType as BAC_Type27) : null);
+        public BACType28ViewModel BacType28ViewModel => (BACType28ViewModel)SetViewModel((SelectedBacType is BAC_Type28) ? new BACType28ViewModel(SelectedBacType as BAC_Type28) : null);
+        public BACType29ViewModel BacType29ViewModel => (BACType29ViewModel)SetViewModel((SelectedBacType is BAC_Type29) ? new BACType29ViewModel(SelectedBacType as BAC_Type29) : null);
+        public BACType30ViewModel BacType30ViewModel => (BACType30ViewModel)SetViewModel((SelectedBacType is BAC_Type30) ? new BACType30ViewModel(SelectedBacType as BAC_Type30) : null);
+
+        #endregion
 
         //List Filter
         private ListCollectionView _viewbacTypes = null;
@@ -338,11 +213,39 @@ namespace XenoKit.Controls
         }
 
         //Visibilities
-        public Visibility BacTypeListVisbility
+        public Visibility BacTypeListVisbility => (bacEntryDataGrid.SelectedItem is BAC_Entry) ? Visibility.Visible : Visibility.Hidden;
+
+        //BAC Type View
+        private BacViewMode _viewMode = BacViewMode.TimeLine;
+        public BacViewMode ViewMode
         {
-            get
+            get => _viewMode;
+            set
             {
-                return (bacEntryDataGrid.SelectedItem is BAC_Entry bacEntry) ? Visibility.Visible : Visibility.Hidden;
+                if (_viewMode != value)
+                {
+                    _viewMode = value;
+                    NotifyPropertyChanged(nameof(ViewMode));
+                    NotifyPropertyChanged(nameof(IsDataGridMode));
+                    NotifyPropertyChanged(nameof(IsTimeLineMode));
+                    BacType_SelectionChanged(this, null);
+                }
+            }
+        }
+        public bool IsDataGridMode
+        {
+            get => _viewMode == BacViewMode.DataGrid;
+            set
+            {
+                ViewMode = value ? BacViewMode.DataGrid : BacViewMode.TimeLine;
+            }
+        }
+        public bool IsTimeLineMode
+        {
+            get => _viewMode == BacViewMode.TimeLine;
+            set
+            {
+                ViewMode = value ? BacViewMode.TimeLine : BacViewMode.DataGrid;
             }
         }
 
@@ -404,15 +307,26 @@ namespace XenoKit.Controls
 
         #endregion
 
-        #region Commands
-        //Bac Entry
+        public BacTab()
+        {
+            InitializeComponent();
+            DataContext = this;
+            NotifyPropertyChanged("files");
+            Files.SelectedItemChanged += Files_SelectedMoveChanged;
+            UndoManager.Instance.UndoOrRedoCalled += UndoManager_UndoOrRedoCalled;
+            SettingsManager.SettingsReloaded += SettingsManager_SettingsLoadOrSave;
+            SettingsManager.SettingsSaved += SettingsManager_SettingsLoadOrSave;
+            Engine.Animation.VisualSkeleton.SelectedBoneChanged += VisualSkeleton_SelectedBoneChanged;
+        }
+
+        #region BacEntryCommands
         public RelayCommand PlayBacEntryCommand => new RelayCommand(PlayBacEntry, IsBacEntrySelected);
         public void PlayBacEntry()
         {
             NotifyPropertyChanged(nameof(BacTypeListVisbility));
-            if (bacEntryDataGrid.SelectedItem is BAC_Entry bacEntry)
+            if (SelectedBacEntry != null && files.SelectedItem?.SelectedBacFile != null)
             {
-                SceneManager.PlayBacEntry(files.SelectedItem.SelectedBacFile.File, bacEntry, files.SelectedMove, 0, true);
+                SceneManager.PlayBacEntry(files.SelectedItem.SelectedBacFile.File, SelectedBacEntry, files.SelectedMove, 0, true);
             }
 
             //Default sorting:
@@ -508,13 +422,57 @@ namespace XenoKit.Controls
             }
         }
 
+        //Bools
+        private bool IsBacFileLoaded()
+        {
+            if (Files.Instance.SelectedMove != null)
+            {
+                return Files.Instance.SelectedMove.Files.BacFile != null;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-        //Bac Type
+        private bool IsBacEntrySelected()
+        {
+            return bacEntryDataGrid.SelectedItem is BAC_Entry;
+        }
+
+        private bool IsBacTypeSelected()
+        {
+            return bacTypeDataGrid.SelectedItem is IBacType;
+        }
+
+        private bool CanFocus()
+        {
+            return SelectedBacType != null && SceneManager.Actors[0] != null;
+        }
+
+        private bool CanPasteBacEntries()
+        {
+            return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded();
+        }
+
+        private bool CanPasteReplaceBacEntries()
+        {
+            return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded() && IsBacEntrySelected();
+        }
+
+        private bool CanPasteBacTypes()
+        {
+            return Clipboard.ContainsData(ClipboardConstants.BacType_CopyItem) && IsBacEntrySelected();
+        }
+        #endregion
+
+        #region BacTypeListCommands
         public RelayCommand<int> AddBacTypeCommand => new RelayCommand<int>(AddBacType);
         private void AddBacType(int bacType)
         {
             if (!IsBacEntrySelected()) return;
-            SelectedBacEntry.UndoableAddIBacType(bacType);
+            bacTypeDataGrid.SelectedItem = SelectedBacEntry.UndoableAddIBacType(bacType);
+            bacTypeDataGrid.ScrollIntoView(bacTypeDataGrid.SelectedItem);
             SceneManager.InvokeBacDataChangedEvent();
         }
 
@@ -591,63 +549,7 @@ namespace XenoKit.Controls
             }
         }
 
-
-        //Bools
-        private bool IsBacFileLoaded()
-        {
-            if (Files.Instance.SelectedMove != null)
-            {
-                return Files.Instance.SelectedMove.Files.BacFile != null;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private bool IsBacEntrySelected()
-        {
-            return bacEntryDataGrid.SelectedItem is BAC_Entry;
-        }
-
-        private bool IsBacTypeSelected()
-        {
-            return bacTypeDataGrid.SelectedItem is IBacType;
-        }
-
-        private bool CanFocus()
-        {
-            return bacTypeDataGrid.SelectedItem is IBacType && SceneManager.Actors[0] != null;
-        }
-
-        private bool CanPasteBacEntries()
-        {
-            return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded();
-        }
-
-        private bool CanPasteReplaceBacEntries()
-        {
-            return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded() && IsBacEntrySelected();
-        }
-
-        private bool CanPasteBacTypes()
-        {
-            return Clipboard.ContainsData(ClipboardConstants.BacType_CopyItem) && IsBacEntrySelected();
-        }
         #endregion
-
-
-        public BacTab()
-        {
-            InitializeComponent();
-            DataContext = this;
-            NotifyPropertyChanged("files");
-            Files.SelectedItemChanged += Files_SelectedMoveChanged;
-            UndoManager.Instance.UndoOrRedoCalled += UndoManager_UndoOrRedoCalled;
-            SettingsManager.SettingsReloaded += SettingsManager_SettingsLoadOrSave;
-            SettingsManager.SettingsSaved += SettingsManager_SettingsLoadOrSave;
-            Engine.Animation.VisualSkeleton.SelectedBoneChanged += VisualSkeleton_SelectedBoneChanged;
-        }
 
         #region Events
         private void VisualSkeleton_SelectedBoneChanged(object sender, EventArgs e)
@@ -711,15 +613,7 @@ namespace XenoKit.Controls
             UpdateSelectedBacFile();
         }
 
-        private void BacEntryDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (SceneManager.IsOnTab(EditorTabs.Action))
-            {
-                PlayBacEntry();
-            }
-        }
-
-        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void BacType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             NotifyPropertyChanged(nameof(BacTypeListVisbility));
             UpdateViewModels();
@@ -729,6 +623,18 @@ namespace XenoKit.Controls
             SetStaticBacTypes();
         }
 
+        private void TimeLine_Toggled(object sender, RoutedEventArgs e)
+        {
+            //Going from DataGrid -> TimeLine we must sort the layers on the bac entry, assigning layers to any types added through the DataGrid add/paste methods.
+            if (ViewMode == BacViewMode.DataGrid && SelectedBacEntry != null)
+            {
+                SelectedBacEntry.SortTimeLineLayers();
+                timeline.BacEntryChanged();
+            }
+
+            ViewMode = timelineToggle.IsOn ? BacViewMode.TimeLine : BacViewMode.DataGrid;
+
+        }
         #endregion
 
         private void UpdateSelectedBacFile()
@@ -740,7 +646,9 @@ namespace XenoKit.Controls
 
             if(files.SelectedItem != null)
             {
-                if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.SelectedBacFile?.FileType == Xv2CoreLib.Xenoverse2.MoveFileTypes.AFTER_BAC)
+                if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || 
+                    files.SelectedItem.SelectedBacFile?.FileType == Xv2CoreLib.Xenoverse2.MoveFileTypes.AFTER_BAC || 
+                    (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN && bacFileComboBox.SelectedIndex == 0))
                 {
                     nameColumn.Visibility = Visibility.Visible;
                 }
@@ -753,33 +661,33 @@ namespace XenoKit.Controls
 
         private void UpdateViewModels()
         {
-            NotifyPropertyChanged("BacType0ViewModel");
-            NotifyPropertyChanged("BacType1ViewModel");
-            NotifyPropertyChanged("BacType2ViewModel");
-            NotifyPropertyChanged("BacType3ViewModel");
-            NotifyPropertyChanged("BacType4ViewModel");
-            NotifyPropertyChanged("BacType5ViewModel");
-            NotifyPropertyChanged("BacType6ViewModel");
-            NotifyPropertyChanged("BacType7ViewModel");
-            NotifyPropertyChanged("BacType8ViewModel");
-            NotifyPropertyChanged("BacType9ViewModel");
-            NotifyPropertyChanged("BacType10ViewModel");
-            NotifyPropertyChanged("BacType11ViewModel");
-            NotifyPropertyChanged("BacType12ViewModel");
-            NotifyPropertyChanged("BacType13ViewModel");
-            NotifyPropertyChanged("BacType14ViewModel");
-            NotifyPropertyChanged("BacType15ViewModel");
-            NotifyPropertyChanged("BacType16ViewModel");
-            NotifyPropertyChanged("BacType17ViewModel");
-            NotifyPropertyChanged("BacType18ViewModel");
-            NotifyPropertyChanged("BacType19ViewModel");
-            NotifyPropertyChanged("BacType20ViewModel");
-            NotifyPropertyChanged("BacType21ViewModel");
-            NotifyPropertyChanged("BacType22ViewModel");
-            NotifyPropertyChanged("BacType23ViewModel");
-            NotifyPropertyChanged("BacType24ViewModel");
-            NotifyPropertyChanged("BacType25ViewModel");
-            NotifyPropertyChanged("BacType26ViewModel");
+            NotifyPropertyChanged(nameof(BacType0ViewModel));
+            NotifyPropertyChanged(nameof(BacType1ViewModel));
+            NotifyPropertyChanged(nameof(BacType2ViewModel));
+            NotifyPropertyChanged(nameof(BacType3ViewModel));
+            NotifyPropertyChanged(nameof(BacType4ViewModel));
+            NotifyPropertyChanged(nameof(BacType5ViewModel));
+            NotifyPropertyChanged(nameof(BacType6ViewModel));
+            NotifyPropertyChanged(nameof(BacType7ViewModel));
+            NotifyPropertyChanged(nameof(BacType8ViewModel));
+            NotifyPropertyChanged(nameof(BacType9ViewModel));
+            NotifyPropertyChanged(nameof(BacType10ViewModel));
+            NotifyPropertyChanged(nameof(BacType11ViewModel));
+            NotifyPropertyChanged(nameof(BacType12ViewModel));
+            NotifyPropertyChanged(nameof(BacType13ViewModel));
+            NotifyPropertyChanged(nameof(BacType14ViewModel));
+            NotifyPropertyChanged(nameof(BacType15ViewModel));
+            NotifyPropertyChanged(nameof(BacType16ViewModel));
+            NotifyPropertyChanged(nameof(BacType17ViewModel));
+            NotifyPropertyChanged(nameof(BacType18ViewModel));
+            NotifyPropertyChanged(nameof(BacType19ViewModel));
+            NotifyPropertyChanged(nameof(BacType20ViewModel));
+            NotifyPropertyChanged(nameof(BacType21ViewModel));
+            NotifyPropertyChanged(nameof(BacType22ViewModel));
+            NotifyPropertyChanged(nameof(BacType23ViewModel));
+            NotifyPropertyChanged(nameof(BacType24ViewModel));
+            NotifyPropertyChanged(nameof(BacType25ViewModel));
+            NotifyPropertyChanged(nameof(BacType26ViewModel));
             NotifyPropertyChanged(nameof(BacType27ViewModel));
             NotifyPropertyChanged(nameof(BacType28ViewModel));
             NotifyPropertyChanged(nameof(BacType29ViewModel));
@@ -854,5 +762,11 @@ namespace XenoKit.Controls
             }
         }
 
+    }
+
+    public enum BacViewMode
+    {
+        DataGrid,
+        TimeLine
     }
 }

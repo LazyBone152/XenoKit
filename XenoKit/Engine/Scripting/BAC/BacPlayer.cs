@@ -501,9 +501,5 @@ namespace XenoKit.Engine.Scripting.BAC
         }
         #endregion
 
-
     }
-
-
-
 }

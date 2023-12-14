@@ -8,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -67,6 +69,10 @@ namespace XenoKit
 #if DEBUG
             DebugMenuVisible = Visibility.Visible;
 #endif
+
+            //Force en-US culture accross whole application to ensure error messages will always be in english
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("en-US");
 
             //Tooltips
             ToolTipService.ShowDurationProperty.OverrideMetadata(

@@ -11,6 +11,7 @@
   <Application.Resources>
         <ResourceDictionary>
             <converters:VisibilityToNullableBooleanConverter x:Key="visibilityConverter"/>
+            <converters:UInt16ToDoubleConverter x:Key="uint16Converter"/>
 
             <BitmapImage x:Key="gridlines" UriSource="Resources/transparent_checkerboard.png" />
 

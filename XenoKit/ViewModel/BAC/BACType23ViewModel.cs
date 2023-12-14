@@ -9,7 +9,7 @@ using static Xv2CoreLib.BAC.BAC_Type23;
 
 namespace XenoKit.ViewModel.BAC
 {
-    public class BACType23ViewModel : ObservableObject
+    public class BACType23ViewModel : ObservableObject, IDisposable
     {
         private BAC_Type23 bacType;
 
@@ -237,6 +237,12 @@ namespace XenoKit.ViewModel.BAC
 
             if (UndoManager.Instance != null)
                 UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
+        }
+
+        public void Dispose()
+        {
+            UndoManager.Instance.UndoOrRedoCalled -= Instance_UndoOrRedoCalled;
+            bacType.PropertyChanged -= BacType_PropertyChanged;
         }
 
         private void Instance_UndoOrRedoCalled(object sender, EventArgs e)

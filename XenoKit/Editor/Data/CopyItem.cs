@@ -41,9 +41,11 @@ namespace XenoKit.Editor
         public Move.Type MoveType;
         public int SkillID;
 
-        private readonly CopyEntries Primary = new CopyEntries(); //Includes all entries directly copied
-        private readonly CopyEntries Secondary = new CopyEntries(); //Includes all entries referenced in Primary (Optional)
-        
+        public readonly CopyEntries Primary = new CopyEntries(); //Includes all entries directly copied
+        public readonly CopyEntries Secondary = new CopyEntries(); //Includes all entries referenced in Primary (Optional)
+
+        public bool ResetTimeLineLayers = true;
+
         //ID References, used for changing IDs before pasting
         private readonly List<ValueReference> ValueRefs = new List<ValueReference>();
 
@@ -462,6 +464,9 @@ namespace XenoKit.Editor
             
             foreach(var bacEntry in Primary.BacEntries[0].IBacTypes)
             {
+                if(ResetTimeLineLayers)
+                    bacEntry.Layer = -1;
+
                 undos.Add(mainEntry.AddEntry(bacEntry));
                 //mainEntry.IBacTypes.Add(bacEntry);
                 //undos.Add(new UndoableListAdd<IBacType>(mainEntry.IBacTypes, bacEntry));

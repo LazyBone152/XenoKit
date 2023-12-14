@@ -1,0 +1,207 @@
+﻿<UserControl x:Class="XenoKit.Views.TimeLines.BacTimeLine"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:XenoKit.Views.TimeLines"
+             xmlns:bac="clr-namespace:Xv2CoreLib.BAC;assembly=Xv2CoreLib"
+             xmlns:dd="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
+             xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="UserControl" PreviewMouseWheel="UserControl_PreviewMouseWheel" Focusable="True">
+    <UserControl.InputBindings>
+        <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding ElementName=UserControl, Path=CopyBacTypeCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding ElementName=UserControl, Path=PasteBacTypeCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="D" Command="{Binding ElementName=UserControl, Path=DuplicateBacTypeCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding ElementName=UserControl, Path=RemoveBacTypeCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="N" Command="{Binding ElementName=UserControl, Path=MoveToNewLayerCommand}"/>
+    </UserControl.InputBindings>
+    <UserControl.Resources>
+        <lbUtils:BindingProxy x:Key="proxy" Data="{Binding}"/>
+        <Style TargetType="{x:Type local:TimeLineItemControl}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type local:TimeLineItemControl}">
+                        <Grid>
+                            <Border Background="Blue" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0" />
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="PART_ContentHostPART_ContentHost" />
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Stretch" x:Name="PART_LeftIndicator">
+                                <ContentPresenter.Content>
+                                    <Button />
+                                </ContentPresenter.Content>
+
+                            </ContentPresenter>
+                            <ContentPresenter HorizontalAlignment="Right" VerticalAlignment="Stretch" x:Name="PART_RightIndicator">
+                                <ContentPresenter.Content>
+                                    <Button />
+                                </ContentPresenter.Content>
+
+                            </ContentPresenter>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <DataTemplate DataType="{x:Type bac:BAC_TypeBase}" x:Key="UsedTemplateProperty">
+            <Grid>
+                <!-- IF CHANGING THE HEIGHT: Adjust the height in MainGrid_ContextMenuOpening to match! (Height + Margins). Used for calculating the correct layer the mouse is over. -->
+                <Border BorderThickness="1" BorderBrush="{Binding TimeLineBorderBrush}" CornerRadius="3" Margin="0,10,0,10" Height="20">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid x:Name="MainGrid" Background="{Binding TimeLineMainBrush}" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Button}}, Path=MainWidth}"/>
+                        <Grid x:Name="TrailGrid" Background="{Binding TimeLineMainBrush}" Opacity="0.2" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Button}}, Path=TrailWidth}"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,10">
+                    <TextBlock Text="{Binding DisplayName}" Foreground="{Binding TimeLineTextBrush}"/>
+                </StackPanel>
+
+                <Grid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="{Binding DisplayName}" IsEnabled="False"/>
+                        <Separator/>
+                        <MenuItem Header="Copy" Command="{Binding Data.CopyBacTypeCommand, Source={StaticResource proxy}}" InputGestureText="Ctrl + C"/>
+                        <MenuItem Header="Paste" Command="{Binding Data.PasteBacTypeCommand, Source={StaticResource proxy}}" InputGestureText="Ctrl + V"/>
+                        <MenuItem Header="Duplicate" Command="{Binding Data.DuplicateBacTypeCommand, Source={StaticResource proxy}}" InputGestureText="Ctrl + D"/>
+                        <MenuItem Header="Delete" Command="{Binding Data.RemoveBacTypeCommand, Source={StaticResource proxy}}" InputGestureText="Del"/>
+                        <Separator/>
+                        <MenuItem Header="Move To New Layer..." Command="{Binding Data.MoveToNewLayerCommand, Source={StaticResource proxy}}" InputGestureText="Ctrl + N"/>
+                    </ContextMenu>
+                </Grid.ContextMenu>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Setter Property="Margin" Value="10,0,0,0"/>
+                </Style>
+                <Style TargetType="{x:Type Grid}">
+                    <Setter Property="Margin" Value="5,0,0,0"/>
+                </Style>
+            </StackPanel.Resources>
+            <StackPanel VerticalAlignment="Center">
+                <Button lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="[0] Animation" Command="{Binding AddTimelineLayerCommand}" CommandParameter="0" FontSize="10"/>
+                            <MenuItem Header="[1] Hitbox" Command="{Binding AddTimelineLayerCommand}" CommandParameter="1" FontSize="10"/>
+                            <MenuItem Header="[2] Movement" Command="{Binding AddTimelineLayerCommand}" CommandParameter="2" FontSize="10"/>
+                            <MenuItem Header="[3] Invulnerability" Command="{Binding AddTimelineLayerCommand}" CommandParameter="3" FontSize="10"/>
+                            <MenuItem Header="[4] TimeScale" Command="{Binding AddTimelineLayerCommand}" CommandParameter="4" FontSize="10"/>
+                            <MenuItem Header="[5] Tracking" Command="{Binding AddTimelineLayerCommand}" CommandParameter="5" FontSize="10"/>
+                            <MenuItem Header="[6] Charge Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="6" FontSize="10"/>
+                            <MenuItem Header="[7] BCM Callback" Command="{Binding AddTimelineLayerCommand}" CommandParameter="7" FontSize="10"/>
+                            <MenuItem Header="[8] Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="8" FontSize="10"/>
+                            <MenuItem Header="[9] Projectile" Command="{Binding AddTimelineLayerCommand}" CommandParameter="9" FontSize="10"/>
+                            <MenuItem Header="[10] Camera" Command="{Binding AddTimelineLayerCommand}" CommandParameter="10" FontSize="10"/>
+                            <MenuItem Header="[11] Sound" Command="{Binding AddTimelineLayerCommand}" CommandParameter="11" FontSize="10"/>
+                            <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddTimelineLayerCommand}" CommandParameter="12" FontSize="10"/>
+                            <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddTimelineLayerCommand}" CommandParameter="13" FontSize="10"/>
+                            <MenuItem Header="[14] Bone Modification" Command="{Binding AddTimelineLayerCommand}" CommandParameter="14" FontSize="10"/>
+                            <MenuItem Header="[15] Functions" Command="{Binding AddTimelineLayerCommand}" CommandParameter="15" FontSize="10"/>
+                            <MenuItem Header="[16] Post Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="16" FontSize="10"/>
+                            <MenuItem Header="[17] ThrowHandler" Command="{Binding AddTimelineLayerCommand}" CommandParameter="17" FontSize="10"/>
+                            <MenuItem Header="[18] Physics Object" Command="{Binding AddTimelineLayerCommand}" CommandParameter="18" FontSize="10"/>
+                            <MenuItem Header="[19] Aura" Command="{Binding AddTimelineLayerCommand}" CommandParameter="19" FontSize="10"/>
+                            <MenuItem Header="[20] Homing Movement" Command="{Binding AddTimelineLayerCommand}" CommandParameter="20" FontSize="10"/>
+                            <MenuItem Header="[21] Eye Movement" Command="{Binding AddTimelineLayerCommand}" CommandParameter="21" FontSize="10"/>
+                            <MenuItem Header="[22] BAC_Type22" Command="{Binding AddTimelineLayerCommand}" CommandParameter="22" FontSize="10"/>
+                            <MenuItem Header="[23] Transparency Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="23" FontSize="10"/>
+                            <MenuItem Header="[24] Dual Skill Handler" Command="{Binding AddTimelineLayerCommand}" CommandParameter="24" FontSize="10"/>
+                            <MenuItem Header="[25] Extended Charge Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="25" FontSize="10"/>
+                            <MenuItem Header="[26] Extended Camera Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="26" FontSize="10"/>
+                            <MenuItem Header="[27] Effect Property Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="27" FontSize="10"/>
+                            <MenuItem Header="[28] BAC_Type28" Command="{Binding AddTimelineLayerCommand}" CommandParameter="28" FontSize="10"/>
+                            <MenuItem Header="[29] BAC_Type29" Command="{Binding AddTimelineLayerCommand}" CommandParameter="29" FontSize="10"/>
+                            <MenuItem Header="[30] BAC_Type30" Command="{Binding AddTimelineLayerCommand}" CommandParameter="30" FontSize="10"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+                <TextBlock Text="Add Layer" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
+
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" x:Name="timeScroll" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Stretch">
+            <Grid Cursor="Hand">
+                <Canvas x:Name="canvasForFrameMarkings" VerticalAlignment="Top" HorizontalAlignment="Left" Height="20" Width="{Binding ElementName=UserControl, Path=CurrentWidth}"/>
+                <Slider Style="{DynamicResource MahApps.Styles.Slider.Flat}" VerticalAlignment="Top" HorizontalAlignment="Left" Height="20" Width="{Binding ElementName=UserControl, Path=CurrentWidth}" 
+                        Minimum="0" Maximum="{Binding ElementName=UserControl, Path=CurrentLength}" Interval="1" Value="{Binding ElementName=UserControl, Path=SelectedFrame, UpdateSourceTrigger=PropertyChanged}"
+                        Foreground="Transparent" BorderBrush="Transparent" Background="Transparent" IsMoveToPointEnabled="True"/>
+            </Grid>
+        </ScrollViewer>
+        <ScrollViewer Grid.Row="2" x:Name="mainScroll" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch" ScrollChanged="mainScroll_ScrollChanged">
+            <Grid x:Name="mainScollGrid" MouseDown="Grid_MouseDown" MouseUp="Grid_MouseUp" MouseMove="Grid_MouseMove" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="Auto">
+                <StackPanel x:Name="mainScrollPanel">
+                    <Grid Height="Auto" ContextMenuOpening="MainGrid_ContextMenuOpening">
+                        <Grid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="{Binding ContextMenuLayerToolTip}" IsEnabled="False"/>
+                                <MenuItem Header="Add Layer...">
+                                    <MenuItem Header="[0] Animation" Command="{Binding AddTimelineLayerCommand}" CommandParameter="0" FontSize="10"/>
+                                    <MenuItem Header="[1] Hitbox" Command="{Binding AddTimelineLayerCommand}" CommandParameter="1" FontSize="10"/>
+                                    <MenuItem Header="[2] Movement" Command="{Binding AddTimelineLayerCommand}" CommandParameter="2" FontSize="10"/>
+                                    <MenuItem Header="[3] Invulnerability" Command="{Binding AddTimelineLayerCommand}" CommandParameter="3" FontSize="10"/>
+                                    <MenuItem Header="[4] TimeScale" Command="{Binding AddTimelineLayerCommand}" CommandParameter="4" FontSize="10"/>
+                                    <MenuItem Header="[5] Tracking" Command="{Binding AddTimelineLayerCommand}" CommandParameter="5" FontSize="10"/>
+                                    <MenuItem Header="[6] Charge Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="6" FontSize="10"/>
+                                    <MenuItem Header="[7] BCM Callback" Command="{Binding AddTimelineLayerCommand}" CommandParameter="7" FontSize="10"/>
+                                    <MenuItem Header="[8] Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="8" FontSize="10"/>
+                                    <MenuItem Header="[9] Projectile" Command="{Binding AddTimelineLayerCommand}" CommandParameter="9" FontSize="10"/>
+                                    <MenuItem Header="[10] Camera" Command="{Binding AddTimelineLayerCommand}" CommandParameter="10" FontSize="10"/>
+                                    <MenuItem Header="[11] Sound" Command="{Binding AddTimelineLayerCommand}" CommandParameter="11" FontSize="10"/>
+                                    <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddTimelineLayerCommand}" CommandParameter="12" FontSize="10"/>
+                                    <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddTimelineLayerCommand}" CommandParameter="13" FontSize="10"/>
+                                    <MenuItem Header="[14] Bone Modification" Command="{Binding AddTimelineLayerCommand}" CommandParameter="14" FontSize="10"/>
+                                    <MenuItem Header="[15] Functions" Command="{Binding AddTimelineLayerCommand}" CommandParameter="15" FontSize="10"/>
+                                    <MenuItem Header="[16] Post Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="16" FontSize="10"/>
+                                    <MenuItem Header="[17] ThrowHandler" Command="{Binding AddTimelineLayerCommand}" CommandParameter="17" FontSize="10"/>
+                                    <MenuItem Header="[18] Physics Object" Command="{Binding AddTimelineLayerCommand}" CommandParameter="18" FontSize="10"/>
+                                    <MenuItem Header="[19] Aura" Command="{Binding AddTimelineLayerCommand}" CommandParameter="19" FontSize="10"/>
+                                    <MenuItem Header="[20] Homing Movement" Command="{Binding AddTimelineLayerCommand}" CommandParameter="20" FontSize="10"/>
+                                    <MenuItem Header="[21] Eye Movement" Command="{Binding AddTimelineLayerCommand}" CommandParameter="21" FontSize="10"/>
+                                    <MenuItem Header="[22] BAC_Type22" Command="{Binding AddTimelineLayerCommand}" CommandParameter="22" FontSize="10"/>
+                                    <MenuItem Header="[23] Transparency Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="23" FontSize="10"/>
+                                    <MenuItem Header="[24] Dual Skill Handler" Command="{Binding AddTimelineLayerCommand}" CommandParameter="24" FontSize="10"/>
+                                    <MenuItem Header="[25] Extended Charge Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="25" FontSize="10"/>
+                                    <MenuItem Header="[26] Extended Camera Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="26" FontSize="10"/>
+                                    <MenuItem Header="[27] Effect Property Control" Command="{Binding AddTimelineLayerCommand}" CommandParameter="27" FontSize="10"/>
+                                    <MenuItem Header="[28] BAC_Type28" Command="{Binding AddTimelineLayerCommand}" CommandParameter="28" FontSize="10"/>
+                                    <MenuItem Header="[29] BAC_Type29" Command="{Binding AddTimelineLayerCommand}" CommandParameter="29" FontSize="10"/>
+                                    <MenuItem Header="[30] BAC_Type30" Command="{Binding AddTimelineLayerCommand}" CommandParameter="30" FontSize="10"/>
+                                </MenuItem>
+                                <MenuItem Header="{Binding ContextMenuNewLayerName}" Command="{Binding NewCurrentLayerCommand}"/>
+                                <Separator/>
+                                <MenuItem Header="Add Here" Command="{Binding AddItemToLayerCommand}"/>
+                                <MenuItem Header="Paste Here" Command="{Binding PasteHereLayerCommand}"/>
+                                <MenuItem Header="Paste" Command="{Binding PasteBacTypeCommand}" InputGestureText="Ctrl + V"/>
+                                <Separator/>
+                                <MenuItem Header="Move Layer Up" Command="{Binding MoveLayerUpCommand}"/>
+                                <MenuItem Header="Move Layer Down" Command="{Binding MoveLayerDownCommand}"/>
+                                <MenuItem Header="Delete Layer" Command="{Binding DeleteLayerCommand}"/>
+                            </ContextMenu>
+                        </Grid.ContextMenu>
+                        
+                        <Canvas x:Name="canvasForFrameLines" VerticalAlignment="Top" HorizontalAlignment="Left" Width="{Binding ElementName=UserControl, Path=CurrentWidth}" Height="{Binding ElementName=UserControl, Path=CurrentHeight}"/>
+                        <Canvas x:Name="canvasForSecondLines" VerticalAlignment="Top" HorizontalAlignment="Left" Width="{Binding ElementName=UserControl, Path=CurrentWidth}" Height="{Binding ElementName=UserControl, Path=CurrentHeight}"/>
+                        <ItemsControl x:Name="itemsControl" ItemsSource="{Binding ElementName=UserControl, Path=Layers}" VerticalAlignment="Top" HorizontalAlignment="Left"
+                                      dd:DragDrop.IsDropTarget="True" dd:DragDrop.UseDefaultDragAdorner="False" dd:DragDrop.DropHandler="{Binding}" AllowDrop="True" dd:DragDrop.CanDragWithMouseRightButton="True"/>
+                        <Canvas Width="{Binding ElementName=UserControl, Path=CurrentWidth}" Height="{Binding ElementName=UserControl, Path=CurrentHeight}">
+                            <Rectangle x:Name="selectionBox" Visibility="Collapsed" Stroke="{DynamicResource MahApps.Brushes.Accent}" StrokeThickness="1" StrokeDashArray="2,1"/>
+                        </Canvas>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

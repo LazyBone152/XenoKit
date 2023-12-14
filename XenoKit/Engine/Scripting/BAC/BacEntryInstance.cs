@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BAC.Simulation;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.EAN;
 
 namespace XenoKit.Engine.Scripting.BAC
 {
@@ -71,93 +73,118 @@ namespace XenoKit.Engine.Scripting.BAC
                 Log.Add($"Bac Entry {bacEntry} not found!", LogType.Error);
         }
 
+        #region AnimationLengthCalculation
         public void CalculateEntryDuration()
         {
-            //int duration = 0;
             if (BacEntry == null) return;
 
+            int duration = 0;
+            float scaledDuration = 0;
+            bool hasTimeScale = false;
+            CalculateEntryDuration(BacEntry, SkillMove, User, true, ref duration, ref scaledDuration, ref hasTimeScale);
+
+            Duration = duration;
+            ScaledDuration = scaledDuration;
+            HasTimeScale = hasTimeScale;
+        }
+
+        public static int CalculateEntryDuration(BAC_Entry bacEntry, Move files, Actor user)
+        {
+            int duration = 0;
+            float scaled = 0;
+            bool hasScale = false;
+            CalculateEntryDuration(bacEntry, files, user, false, ref duration, ref scaled, ref hasScale);
+
+            return duration;
+        }
+
+        public static void CalculateEntryDuration(BAC_Entry bacEntry, Move files, Actor user, bool calculateScaledDuration, ref int duration, ref float scaledDuration, ref bool hasTimeScale)
+        {
             int currentStartTime = 0;
             int currentAnimDuration = 0;
 
             //Calulcate base duration
-            foreach (IBacType type in BacEntry.IBacTypes.OrderBy(x => x.StartTime))
+            foreach (IBacType type in bacEntry.IBacTypes.OrderBy(x => x.StartTime))
             {
                 //Animations
-                if (type is BAC_Type0 type0)
+                if (type is BAC_Type0 animation)
                 {
                     //Dont count this if its not a full body animation
-                    if (type0.EanType != BAC_Type0.EanTypeEnum.Character && type0.EanType != BAC_Type0.EanTypeEnum.Skill && type0.EanType != BAC_Type0.EanTypeEnum.Common && type0.EanType != BAC_Type0.EanTypeEnum.MCM_DBA)
+                    if (!BAC_Type0.IsFullBodyAnimation(animation.EanType))
                         continue;
 
-                    int animTypeDuration = 0;
-                    //Check for hard coded duration set in bac type (endFrame - startFrame).
-                    //If endFrame is 0xffff, then get duration from the ean
-                    if (type0.EndFrame != ushort.MaxValue)
-                    {
-                        //animTypeDuration = (type0.EndFrame - type0.StartFrame) + ((type.StartTime == 0) ? type0.StartFrame : (ushort)type.StartTime);
-                        animTypeDuration = type.StartTime == 0 ? type0.EndFrame : type0.EndFrame - type0.StartFrame;
-                    }
-                    else
-                    {
-                        var eanFile = Files.Instance.GetEanFile(type0.EanType, SkillMove, User, true, true);
+                    int animTypeDuration = CalculateAnimationDuration(files, user, animation);
 
-                        if (eanFile != null)
-                        {
-                            var anim = eanFile.GetAnimation(type0.EanIndex, true);
-                            if (anim != null)
-                            {
-                                switch (type0.EanType)
-                                {
-                                    case BAC_Type0.EanTypeEnum.Character:
-                                    case BAC_Type0.EanTypeEnum.Common:
-                                    case BAC_Type0.EanTypeEnum.Skill:
-                                    case BAC_Type0.EanTypeEnum.MCM_DBA:
-                                        //animTypeDuration = anim.FrameCount + type.StartTime;
-                                        animTypeDuration = anim.FrameCount;
-                                        break;
-                                }
-                            }
-                        }
-                    }
-
-                    currentStartTime = type0.StartTime;
+                    currentStartTime = animation.StartTime;
                     currentAnimDuration = animTypeDuration;
-                    type0.CachedActualDuration = animTypeDuration;
+                    animation.CachedActualDuration = animTypeDuration;
                 }
             }
 
             //Calculate scaled duration
-            bool hasTimeScale = false;
-            float scaledDuration = currentStartTime + currentAnimDuration;
-
-            foreach (IBacType type in BacEntry.IBacTypes)
+            if (calculateScaledDuration)
             {
-                if (type is BAC_Type0 type0)
-                {
-                    //Dont count this if its not a full body animation
-                    if (type0.EanType != BAC_Type0.EanTypeEnum.Character && type0.EanType != BAC_Type0.EanTypeEnum.Skill && type0.EanType != BAC_Type0.EanTypeEnum.Common && type0.EanType != BAC_Type0.EanTypeEnum.MCM_DBA)
-                        continue;
+                hasTimeScale = false;
+                scaledDuration = currentStartTime + currentAnimDuration;
 
-                    if (type0.TimeScale != 1f)
+                foreach (IBacType type in bacEntry.IBacTypes)
+                {
+                    if (type is BAC_Type0 type0)
                     {
-                        scaledDuration -= type0.CachedActualDuration;
-                        scaledDuration += type0.CachedActualDuration / type0.TimeScale;
+                        //Dont count this if its not a full body animation
+                        if (!BAC_Type0.IsFullBodyAnimation(type0.EanType))
+                            continue;
+
+                        if (type0.TimeScale != 1f)
+                        {
+                            scaledDuration -= type0.CachedActualDuration;
+                            scaledDuration += type0.CachedActualDuration / type0.TimeScale;
+                            hasTimeScale = true;
+                        }
+                    }
+
+                    if (type is BAC_Type4 timeScale)
+                    {
+                        scaledDuration -= timeScale.Duration;
+                        scaledDuration += timeScale.Duration / timeScale.TimeScale;
                         hasTimeScale = true;
                     }
                 }
 
-                if (type is BAC_Type4 timeScale)
+            }
+
+            duration = currentStartTime + currentAnimDuration;
+        }
+
+        public static int CalculateAnimationDuration(Move files, Actor user, BAC_Type0 animationBacType)
+        {
+            int animTypeDuration = 0;
+
+            //Check for hard coded duration set in bac type (endFrame - startFrame).
+            //If endFrame is 0xffff, then get duration from the ean
+            if (animationBacType.EndFrame != ushort.MaxValue)
+            {
+                //animTypeDuration = (type0.EndFrame - type0.StartFrame) + ((type.StartTime == 0) ? type0.StartFrame : (ushort)type.StartTime);
+                animTypeDuration = animationBacType.StartTime == 0 ? animationBacType.EndFrame : animationBacType.EndFrame - animationBacType.StartFrame;
+            }
+            else
+            {
+                EAN_File eanFile = Files.Instance.GetEanFile(animationBacType.EanType, files, user, true, true);
+
+                if (eanFile != null)
                 {
-                    scaledDuration -= timeScale.Duration;
-                    scaledDuration += timeScale.Duration / timeScale.TimeScale;
-                    hasTimeScale = true;
+                    EAN_Animation anim = eanFile.GetAnimation(animationBacType.EanIndex, true);
+
+                    if (anim != null && BAC_Type0.IsFullBodyAnimation(animationBacType.EanType))
+                    {
+                        animTypeDuration = anim.FrameCount;
+                    }
                 }
             }
 
-            Duration = currentStartTime + currentAnimDuration;
-            ScaledDuration = scaledDuration;
-            HasTimeScale = hasTimeScale;
+            return animTypeDuration;
         }
+        #endregion
 
         public void Update()
         {
@@ -194,7 +221,7 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             //If TimeScale skips a frame then still play any bac types that were missed.
             if (PreviousFrame < startFrame && CurrentFrame > startFrame && duration > 0) return true;
-            return ((startFrame <= PreviousFrame && startFrame >= CurrentFrame) || startFrame <= CurrentFrame) && startFrame + duration >= CurrentFrame;
+            return ((startFrame <= PreviousFrame && startFrame >= CurrentFrame) || startFrame <= CurrentFrame) && startFrame + duration > CurrentFrame;
         }
 
         public void RefreshDetails()

@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight;
+using System;
 using XenoKit.Engine;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.Resource.UndoRedo;
@@ -6,7 +7,7 @@ using static Xv2CoreLib.BAC.BAC_Type1;
 
 namespace XenoKit.ViewModel.BAC
 {
-    public class BACType1ViewModel : ObservableObject
+    public class BACType1ViewModel : ObservableObject, IDisposable
     {
         private BAC_Type1 bacType;
 
@@ -398,6 +399,12 @@ namespace XenoKit.ViewModel.BAC
 
             if (UndoManager.Instance != null)
                 UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
+        }
+
+        public void Dispose()
+        {
+            UndoManager.Instance.UndoOrRedoCalled -= Instance_UndoOrRedoCalled;
+            bacType.PropertyChanged -= BacType_PropertyChanged;
         }
 
         private void Instance_UndoOrRedoCalled(object sender, System.EventArgs e)
