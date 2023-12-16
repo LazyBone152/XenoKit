@@ -54,7 +54,7 @@ namespace XenoKit.Engine.Scripting.BAC
             {
                 if (BacPlayer.CurrentDuration <= BacPlayer.CurrentFrame && GameBase.IsPlaying)
                 {
-                    if (BacPlayer.BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
+                    if (BacPlayer.BacEntryInstance.IsFinished)
                     {
                         if (SceneManager.Loop)
                         {
@@ -76,6 +76,17 @@ namespace XenoKit.Engine.Scripting.BAC
             if (SimulationType == SimulationType.ActionPreview && BacPlayer.HasBacEntry)
             {
                 BacPlayer.DelayedUpdate();
+            }
+        }
+
+        public override void Draw()
+        {
+            if(BacPlayer.BacEntryInstance != null)
+            {
+                foreach(var visualCue in BacPlayer.BacEntryInstance.VisualSimulationCues)
+                {
+                    visualCue.Draw();
+                }
             }
         }
 

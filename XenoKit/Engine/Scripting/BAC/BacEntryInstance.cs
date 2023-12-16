@@ -1,7 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BAC.Simulation;
@@ -12,8 +10,6 @@ namespace XenoKit.Engine.Scripting.BAC
 {
     public class BacEntryInstance : ScriptEntity
     {
-        public event ActionStoppedEventHandler ActionStoppedEvent;
-
         //Files:
         /// <summary>
         /// The user of this BAC entry. Required for retrieving the Character EAN/CAM/BDM/ACBs. (The character the BAC entry is playing on may differ from the User, such as in Throw moves)
@@ -35,7 +31,7 @@ namespace XenoKit.Engine.Scripting.BAC
         public int Duration { get; private set; }
         public float ScaledDuration { get; private set; }
         public bool HasTimeScale { get; private set; }
-        public ActionSimulationState SimulationState { get; private set; } = ActionSimulationState.SimulationActive;
+        public bool IsFinished { get; private set; }
 
         //Position:
         /// <summary>
@@ -47,8 +43,9 @@ namespace XenoKit.Engine.Scripting.BAC
         /// </summary>
         public Matrix OriginalMatrix;
 
-        //Simulation Objects:
-        public List<BacSimulationObject> SimulationEntities = new List<BacSimulationObject>(64);
+        //Visual objects that render on screen as the entry plays. Currently only covers hitbox previews.
+        //These have no actual logic and dont interact with anything. They are purely visual helpers.
+        public List<BacVisualCueObject> VisualSimulationCues = new List<BacVisualCueObject>(16);
 
         /// <summary>
         /// The currently active eye movement entry. Only one of these can be active at any given time.
@@ -197,7 +194,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 CurrentFrame += User.GameBase.ActiveTimeScale;
             }
 
-            DetermineActionState();
+            IsFinished = CurrentFrame >= Duration;
         }
 
         public void Simulate(bool advance = true)
@@ -211,7 +208,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 CurrentFrame = (int)CurrentFrame + 1;
             }
 
-            DetermineActionState();
+            IsFinished = CurrentFrame >= Duration;
         }
 
         /// <summary>
@@ -229,37 +226,11 @@ namespace XenoKit.Engine.Scripting.BAC
             CalculateEntryDuration();
         }
 
-        private void DetermineActionState()
-        {
-            if (CurrentFrame >= 0 && CurrentFrame < Duration)
-            {
-                SetActionState(ActionSimulationState.SimulationActive);
-            }
-            else if (CurrentFrame >= Duration && SimulationEntities.Count == 0)
-            {
-                SetActionState(ActionSimulationState.SimulationEnded);
-            }
-            else if (CurrentFrame >= Duration)
-            {
-                SetActionState(ActionSimulationState.DurationElapsed);
-            }
-        }
-
-        private void SetActionState(ActionSimulationState state)
-        {
-            SimulationState = state;
-
-            if (state == ActionSimulationState.DurationElapsed || state == ActionSimulationState.SimulationEnded)
-            {
-                ActionStoppedEvent?.Invoke(this, new ActionStoppedEventArgs(state));
-            }
-        }
-
         public void ResetState()
         {
-            ActionStoppedEvent?.Invoke(this, new ActionStoppedEventArgs(ActionSimulationState.SimulationEnded));
+            ClearSimulationObjects();
 
-            SimulationState = ActionSimulationState.SimulationActive;
+            IsFinished = false;
             ActiveEyeMovement = null;
             MainFaceAnimationEndTime = -1;
             CurrentFrame = 0;
@@ -273,35 +244,17 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public void Dispose()
         {
-            ActionStoppedEvent?.Invoke(this, new ActionStoppedEventArgs(ActionSimulationState.SimulationEnded));
+            ClearSimulationObjects();
         }
-    }
 
-    public enum ActionSimulationState
-    {
-        /// <summary>
-        /// The main simulation is active.
-        /// </summary>
-        SimulationActive,
-        /// <summary>
-        /// The duration has elapsed, but there are still simulation objects running (e.g projectiles).
-        /// </summary>
-        DurationElapsed,
-        /// <summary>
-        /// The simulation has entirely ended, either by running its duration or forcefully.
-        /// </summary>
-        SimulationEnded
-    }
-
-    public delegate void ActionStoppedEventHandler(object source, ActionStoppedEventArgs e);
-
-    public class ActionStoppedEventArgs : EventArgs
-    {
-        public ActionSimulationState State { get; private set; }
-
-        public ActionStoppedEventArgs(ActionSimulationState state)
+        private void ClearSimulationObjects()
         {
-            State = state;
+            foreach(BacVisualCueObject simObject in VisualSimulationCues)
+            {
+                simObject.Dispose();
+            }
+
+            VisualSimulationCues.Clear();
         }
     }
 

@@ -23,6 +23,7 @@ namespace XenoKit.Engine.Scripting.BAC
         public BacEntryInstance BacEntryInstance { get; private set; }
         public bool HasBacEntry => BacEntryInstance != null;
         public bool DelayedResimulate { get; set; }
+        private bool PreviewMode { get; set; }
 
         //Frame and Duration:
         public int CurrentFrame
@@ -77,7 +78,7 @@ namespace XenoKit.Engine.Scripting.BAC
             }
         }
 
-        public void PlayBacEntryPreview(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move = null, bool revertPosition = true)
+        public void PlayBacEntry(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move)
         {
             if (bacEntry == null)
             {
@@ -85,6 +86,20 @@ namespace XenoKit.Engine.Scripting.BAC
                 return;
             }
 
+            PreviewMode = false;
+            Xv2CoreLib.Random.GenerateNewSeed();
+            BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, false, character.BaseTransform);
+        }
+
+        public void PlayBacEntryPreview(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move = null, bool revertPosition = true)
+        {
+            if (bacEntry == null)
+            {
+                Log.Add("BacPlayer.PlayBacEntryPreview: bacEntry was null.");
+                return;
+            }
+
+            PreviewMode = true;
             Xv2CoreLib.Random.GenerateNewSeed();
             ClearBacEntry();
             BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, revertPosition, character.BaseTransform);
@@ -94,7 +109,7 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             if (clearing || BacEntryInstance == null) return;
 
-            if (BacEntryInstance.SimulationState != ActionSimulationState.DurationElapsed)
+            if (!BacEntryInstance.IsFinished)
                 UpdateBac(true, ref BacEntryInstance.CurrentFrame);
 
             BacEntryInstance.Update();
@@ -186,7 +201,6 @@ namespace XenoKit.Engine.Scripting.BAC
                     if (ProcessedBacTypes.Contains(type)) continue;
 
                     HitboxPreview hitboxSimulation = new HitboxPreview(hitbox, BacEntryInstance, GameBase);
-                    GameBase.AddEntity(hitboxSimulation);
 
                     ProcessedBacTypes.Add(hitbox);
                 }

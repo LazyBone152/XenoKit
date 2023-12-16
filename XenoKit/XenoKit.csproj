@@ -570,7 +570,7 @@
     <Compile Include="Engine\Rendering\PostFilter.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\EyeMovementPositions.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\HitboxPreview.cs" />
-    <Compile Include="Engine\Scripting\BAC\Simulation\BacSimulationObject.cs" />
+    <Compile Include="Engine\Scripting\BAC\Simulation\BacVisualCueObject.cs" />
     <Compile Include="Engine\Shader\PostShaderEffect.cs" />
     <Compile Include="Engine\Shapes\GizmoGeometry.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\AnimationTransformOperation.cs" />

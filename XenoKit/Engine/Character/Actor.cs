@@ -232,6 +232,7 @@ namespace XenoKit.Engine
             DrawThisFrame = false;
             if (!GameBase.RenderCharacters || !SceneManager.ShowActorsInCurrentScene || !IsVisible) return;
 
+            ActionControl.Draw();
             PartSet.Draw();
 
             if (AnimationPlayer != null && SceneManager.ShowDebugBones)

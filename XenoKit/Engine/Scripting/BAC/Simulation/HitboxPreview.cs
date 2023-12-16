@@ -5,7 +5,7 @@ using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Scripting.BAC.Simulation
 {
-    public class HitboxPreview : BacSimulationObject
+    public class HitboxPreview : BacVisualCueObject
     {
         protected Matrix WorldMatrix
         {
@@ -35,7 +35,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
         private bool isBaseBone = false;
         private bool RefreshHitbox = false;
 
-        public HitboxPreview(BAC_Type1 hitbox, BacEntryInstance bacEntryInstance, GameBase gameBase) : base(hitbox, bacEntryInstance, false, gameBase)
+        public HitboxPreview(BAC_Type1 hitbox, BacEntryInstance bacEntryInstance, GameBase gameBase) : base(hitbox, bacEntryInstance, gameBase)
         {
             Hitbox = hitbox;
             BoundingBox = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Blue, true, gameBase);
@@ -103,12 +103,5 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
             return (GameBase.IsPlaying || type != 1) && IsValidForCurrentFrame() && SettingsManager.Instance.Settings.XenoKit_HitboxSimulation;
         }
 
-        protected override void ActionStoppedEvent(ActionSimulationState state)
-        {
-            if(state == ActionSimulationState.DurationElapsed || state == ActionSimulationState.SimulationEnded)
-            {
-                Destroy();
-            }
-        }
     }
 }
