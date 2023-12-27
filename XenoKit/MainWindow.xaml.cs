@@ -29,16 +29,11 @@ namespace XenoKit
     /// </summary>
     public partial class MainWindow : MetroWindow, INotifyPropertyChanged
     {
-        public static System.Windows.Threading.Dispatcher dispatcher = null;
-
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void NotifyPropertyChanged(String propertyName = "")
+        private void NotifyPropertyChanged(string propertyName = "")
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
 
@@ -80,7 +75,6 @@ namespace XenoKit
 
             DataContext = this;
             InitializeComponent();
-            dispatcher = Dispatcher;
 
             //Init settings
             SettingsManager.Instance.CurrentApp = Xv2CoreLib.Resource.App.Application.XenoKit;
@@ -97,6 +91,9 @@ namespace XenoKit
 
             if (SettingsManager.Instance.Settings.XenoKit_WindowSizeY > MinHeight && SystemParameters.FullPrimaryScreenHeight >= SettingsManager.Instance.Settings.XenoKit_WindowSizeY)
                 Height = SettingsManager.Instance.Settings.XenoKit_WindowSizeY;
+
+            if (SettingsManager.Instance.Settings.XenoKit_WindowMaximized)
+                WindowState = WindowState.Maximized;
 
             //Main Tab visibility. It should be invisible when nothing in the outliner is selected.
             mainTabControl.Visibility = Visibility.Hidden;
@@ -148,7 +145,7 @@ namespace XenoKit
 
         private void DetectInvalidTab()
         {
-            if(mainTabControl.SelectedIndex != -1)
+            if (mainTabControl.SelectedIndex != -1)
             {
                 if(mainTabControl.Items[mainTabControl.SelectedIndex] is TabItem tabItem)
                 {
@@ -256,6 +253,13 @@ namespace XenoKit
             }
         }
 
+        private void LogMessage_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            sceneTab.SelectedIndex = 0;
+            logView.SelectedEntry = Log.Entries.Count > 0 ? Log.Entries[0] : null;
+            logView.dataGrid.ScrollIntoView(logView.SelectedEntry);
+        }
+
         #endregion
 
         #region LoadCommands
@@ -319,7 +323,7 @@ namespace XenoKit
                     items.Add(new Xv2Item(i, savFile.Characters[i].Name));
             }
 
-            EntitySelector itemSelector = new EntitySelector(items, "CaC", this);
+            EntitySelector itemSelector = new EntitySelector(items, "CaC");
             itemSelector.ShowDialog();
 
             if(itemSelector.SelectedItem != null)
@@ -549,6 +553,12 @@ namespace XenoKit
         {
             SettingsManager.Instance.Settings.XenoKit_WindowSizeX = (int)e.NewSize.Width;
             SettingsManager.Instance.Settings.XenoKit_WindowSizeY = (int)e.NewSize.Height;
+            SettingsManager.Instance.Settings.XenoKit_WindowMaximized = WindowState == WindowState.Maximized;
+        }
+
+        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        {
+            SettingsManager.Instance.Settings.XenoKit_WindowMaximized = WindowState == WindowState.Maximized;
         }
 
         private void MetroWindow_Drop(object sender, DragEventArgs e)

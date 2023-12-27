@@ -66,7 +66,7 @@
 
                         </StackPanel>
                         <StackPanel Margin="20, 5" Width="200">
-                            <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}" />
+                            <CheckBox Content="Loop With Action" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}" ToolTip="When enabled, this Post Effect will loop any loops currently active."/>
                             <CheckBox Content="Unk5" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType16View}}, Path=BacViewModel.Flag_Unk5, UpdateSourceTrigger=Default}"/>
                         </StackPanel>
                     </StackPanel>

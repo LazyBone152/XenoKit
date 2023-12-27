@@ -203,14 +203,16 @@ namespace XenoKit.Engine.Animation
 
         private void AdvanceFrame(bool useTimeScale = true)
         {
+            if (Character.Controller.FreezeActionFrames > 0) return;
+
             if (PrimaryAnimation != null)
             {
-                PrimaryAnimation.AdvanceFrame(useTimeScale, GameBase.ActiveTimeScale);
+                PrimaryAnimation.AdvanceFrame(useTimeScale, Character.ActiveTimeScale);
             }
 
             for (int i = 0; i < SecondaryAnimations.Count; i++)
             {
-                SecondaryAnimations[i].AdvanceFrame(useTimeScale, GameBase.ActiveTimeScale);
+                SecondaryAnimations[i].AdvanceFrame(useTimeScale, Character.ActiveTimeScale);
             }
         }
 
@@ -363,6 +365,17 @@ namespace XenoKit.Engine.Animation
             SecondaryAnimations.Add(new AnimationInstance(_eanFile, eanIndex, startFrame, endFrame, blendWeight, blendWeightIncrease, prevMatrices, 0, true, timeScale, autoTerminate));
         }
 
+        public void GoToFrame(int frame, bool mergeTransforms)
+        {
+            if (PrimaryAnimation == null) return;
+
+            if (mergeTransforms)
+            {
+                Character.MergeTransforms();
+            }
+
+            PrimaryAnimation.CurrentFrame = frame;
+        }
         #endregion
 
         #region BoneUpdating

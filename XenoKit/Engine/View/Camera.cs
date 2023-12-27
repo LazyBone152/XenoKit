@@ -205,8 +205,13 @@ namespace XenoKit.Engine.View
 
         private void AdvanceFrame()
         {
-            if (cameraInstance != null)
-                cameraInstance.CurrentFrame += GameBase.ActiveTimeScale;
+            if (cameraInstance != null && cameraInstance.Actor != null)
+            {
+                if (cameraInstance.Actor?.Controller?.FreezeActionFrames > 0) return;
+
+                cameraInstance.CurrentFrame += cameraInstance.Actor.ActiveTimeScale;
+
+            }
         }
 
         public void RestoreCameraState(bool removeBackup = true)
@@ -224,14 +229,14 @@ namespace XenoKit.Engine.View
 
 
         #region PlaybackControl
-        public void PlayCameraAnimation(EAN_File eanFile, EAN_Animation camAnim, BAC_Type10 bacCamEntry, int targetCharaIndex, bool autoTerminate, bool alwaysShowFirstFrame = true)
+        public void PlayCameraAnimation(EAN_File eanFile, EAN_Animation camAnim, BAC_Type10 bacCamEntry, Actor actor, int targetCharaIndex, bool autoTerminate, bool alwaysShowFirstFrame = true)
         {
             if (camAnim == null) return;
 
             if (SettingsManager.Instance.Settings.XenoKit_PreserveCameraState && BackupCameraState == null)
                 BackupCameraState = CameraState.Copy();
 
-            cameraInstance = new CameraAnimInstance(eanFile, camAnim, bacCamEntry, autoTerminate, targetCharaIndex);
+            cameraInstance = new CameraAnimInstance(eanFile, camAnim, bacCamEntry, autoTerminate, targetCharaIndex, actor);
 
             //Render first frame if not auto playing
             if (!GameBase.IsPlaying && alwaysShowFirstFrame)

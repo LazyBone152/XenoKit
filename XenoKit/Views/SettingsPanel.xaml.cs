@@ -21,41 +21,10 @@ namespace XenoKit.Views
             }
         }
 
-
-        public bool HideEmptryBacEntries
-        {
-            get
-            {
-                return SettingsManager.settings.XenoKit_HideEmptyBacEntries;
-            }
-            set
-            {
-                if (SettingsManager.settings.XenoKit_HideEmptyBacEntries != value)
-                {
-                    SettingsManager.settings.XenoKit_HideEmptyBacEntries = value;
-                    SettingsManager.Instance.SaveSettings();
-                }
-            }
-        }
         public bool RetainActionPosition
         {
             get => SceneManager.RetainActionMovement;
             set => SceneManager.RetainActionMovement = value;
-        }
-        public BacTypeSortMode BacTypeSortMode
-        {
-            get
-            {
-                return SettingsManager.settings.XenoKit_BacTypeSortModeEnum;
-            }
-            set
-            {
-                if (SettingsManager.settings.XenoKit_BacTypeSortModeEnum != value)
-                {
-                    SettingsManager.settings.XenoKit_BacTypeSortModeEnum = value;
-                    SettingsManager.Instance.SaveSettings();
-                }
-            }
         }
         public bool RenderBoneNames
         {
@@ -138,8 +107,6 @@ namespace XenoKit.Views
 
         private void SettingsManager_SettingsReloaded(object sender, EventArgs e)
         {
-            NotifyPropertyChanged(nameof(HideEmptryBacEntries));
-            NotifyPropertyChanged(nameof(BacTypeSortMode));
             NotifyPropertyChanged(nameof(RenderBoneNames));
             NotifyPropertyChanged(nameof(RenderBoneNamesMouseOver));
             NotifyPropertyChanged(nameof(AutoResolvePasteReferences));

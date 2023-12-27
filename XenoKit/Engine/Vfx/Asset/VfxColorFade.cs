@@ -114,7 +114,7 @@ namespace XenoKit.Engine.Vfx.Asset
                 }
                 else if (GameBase.IsPlaying)
                 {
-                    Values[i].Time += EffectPart.UseTimeScale ? GameBase.ActiveTimeScale : 1f;
+                    Values[i].Time += EffectPart.UseTimeScale ? Actor.ActiveTimeScale : 1f;
                 }
             }
 

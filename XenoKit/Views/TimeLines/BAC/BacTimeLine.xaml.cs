@@ -1030,7 +1030,7 @@ namespace XenoKit.Views.TimeLines
 
             if(_selectedLayer != null)
             {
-                ContextMenuLayerToolTip = !BacEntry.DoesLayerExist(_selectedLayer.Layer, _selectedLayer.LayerGroup) ? 
+                ContextMenuLayerToolTip = BacEntry.DoesLayerExist(_selectedLayer.Layer, _selectedLayer.LayerGroup) ? 
                     $"{GetLayerName(_selectedLayer.LayerGroup)}: Layer {_selectedLayer.Layer}, Frame: {_contextMenuFrame}"
                     : $"{GetLayerName(_selectedLayer.LayerGroup)}: Layer {_selectedLayer.Layer}, Frame: {_contextMenuFrame} (LAYER EMPTY)";
             }

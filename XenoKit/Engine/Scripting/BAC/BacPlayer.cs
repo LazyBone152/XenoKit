@@ -16,14 +16,14 @@ namespace XenoKit.Engine.Scripting.BAC
 {
     public class BacPlayer : Entity
     {
-        //Parent character that this BacPlayer is for.
-        private Actor character;
+        //Parent character that this BacPlayer is for
+        private readonly Actor character;
 
         //Bac Entry:
         public BacEntryInstance BacEntryInstance { get; private set; }
         public bool HasBacEntry => BacEntryInstance != null;
+        public bool IsPreview => BacEntryInstance?.IsPreview == true;
         public bool DelayedResimulate { get; set; }
-        private bool PreviewMode { get; set; }
 
         //Frame and Duration:
         public int CurrentFrame
@@ -55,9 +55,6 @@ namespace XenoKit.Engine.Scripting.BAC
             get => BacEntryInstance != null ? BacEntryInstance.HasTimeScale : false;
         }
 
-        //Keeps track of all bac entries processed in the current playing. 
-        private List<IBacType> ProcessedBacTypes = new List<IBacType>();
-
         //Threading:
         /// <summary>
         /// For thread-safety. Updating wont happen when this is set, which prevents a BAC entry that has just been removed from being accessed.
@@ -86,12 +83,11 @@ namespace XenoKit.Engine.Scripting.BAC
                 return;
             }
 
-            PreviewMode = false;
-            Xv2CoreLib.Random.GenerateNewSeed();
-            BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, false, character.BaseTransform);
+            ClearBacEntry();
+            BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, character, false);
         }
 
-        public void PlayBacEntryPreview(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move = null, bool revertPosition = true)
+        public void PlayBacEntryPreview(BAC_File bacFile, BAC_Entry bacEntry, Actor user, Move move = null)
         {
             if (bacEntry == null)
             {
@@ -99,10 +95,9 @@ namespace XenoKit.Engine.Scripting.BAC
                 return;
             }
 
-            PreviewMode = true;
-            Xv2CoreLib.Random.GenerateNewSeed();
+            ResetBacPreviewState();
             ClearBacEntry();
-            BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, revertPosition, character.BaseTransform);
+            BacEntryInstance = new BacEntryInstance(bacFile, bacEntry, move, user, character, true);
         }
 
         public override void Update()
@@ -117,7 +112,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public override void DelayedUpdate()
         {
-            if (DelayedResimulate)
+            if (DelayedResimulate && IsPreview)
             {
                 DelayedResimulate = false;
                 ResimulateCurrentEntry();
@@ -128,12 +123,12 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             float frame = _refFrame;
             bool timeSkip = false;
-            GameBase.SetBacTimeScale(1f, true);
+            character.SetBacTimeScale(1f, true);
             ushort typeFlag = (ushort)(character.CharacterData.IsCaC ? 1 : 2);
 
             if (clearing) return;
             IOrderedEnumerable<IBacType> validEntries = BacEntryInstance.BacEntry.IBacTypes.Where
-                (b => BacEntryInstance.IsValidTime(b.StartTime, b.Duration, b.TypeID) && (b.Flags == typeFlag || b.Flags == 0))
+                (b => BacEntryInstance.IsValidTime(b.StartTime, b.Duration) && (b.Flags == typeFlag || b.Flags == 0))
                 .OrderBy(x => x.GetType() == typeof(BAC_Type4)); //TimeScale must be resolved before animation/camera
 
             //Read bac types
@@ -142,7 +137,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 //Animation
                 if (type is BAC_Type0 animation)
                 {
-                    if (ProcessedBacTypes.Contains(type)) continue;
+                    if (!ActivationCheck(type)) continue;
 
                     EAN_File eanFile;
 
@@ -166,7 +161,8 @@ namespace XenoKit.Engine.Scripting.BAC
                             case BAC_Type0.EanTypeEnum.MCM_DBA:
                             case BAC_Type0.EanTypeEnum.Skill:
                                 character.AnimationPlayer.PlayPrimaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.AnimFlags, true, animation.TimeScale, false, true);
-                                GameBase.AnimationTimeScale = animation.TimeScale;
+                                character.AnimationTimeScale = animation.TimeScale;
+                                SetLoop(animation.LoopStartFrame, character.AnimationPlayer.PrimaryAnimation.EndFrame, true);
 
                                 if (animation.StartFrame != 0 && _refFrame == 0f) //On first frame, skipping to startFrame on animations is allowed
                                 {
@@ -198,23 +194,47 @@ namespace XenoKit.Engine.Scripting.BAC
                 //Hitbox
                 if (type is BAC_Type1 hitbox)
                 {
-                    if (ProcessedBacTypes.Contains(type)) continue;
+                    var impactType = hitbox.GetImpactType();
+                    var spawnSource = hitbox.GetSpawnSource();
+                    //var damageType = hitbox.GetDamageType();
 
-                    HitboxPreview hitboxSimulation = new HitboxPreview(hitbox, BacEntryInstance, GameBase);
+                    //Only allow hitbox looping when impact type is set to continuous
+                    if (!ActivationCheck(type) && impactType != BAC_Type1.HitboxFlagsEnum.ImpactType_Continuous) continue;
 
-                    ProcessedBacTypes.Add(hitbox);
+                    //Determine the actor the hitbox should spawn on from the flags
+                    Actor spawnActor = null;
+
+                    switch (spawnSource)
+                    {
+                        case BAC_Type1.HitboxFlagsEnum.SpawnSource_User:
+                            spawnActor = BacEntryInstance.User;
+                            break;
+                        case BAC_Type1.HitboxFlagsEnum.SpawnSource_Target:
+                            spawnActor = SceneManager.Actors[1];
+                            break;
+                        default:
+                            continue;
+                    }
+
+                    BacEntryInstance.AddVisualObject(hitbox, GameBase);
+                    
+                    if(GameBase.Simulation.ActiveHitboxes.FirstOrDefault(x => x.Hitbox == hitbox && x.BacEntry == BacEntryInstance) == null)
+                    {
+                        GameBase.Simulation.ActiveHitboxes.Add(new Collision.BacHitbox(BacEntryInstance, hitbox, spawnActor, BacEntryInstance.User.Team));
+                    }
                 }
 
                 //TimeScale
                 if (type is BAC_Type4 timeScale)
                 {
-                    GameBase.SetBacTimeScale(timeScale.TimeScale, false);
+                    character.SetBacTimeScale(timeScale.TimeScale, false);
                 }
 
                 //Effect
                 if (type is BAC_Type8 effect)
                 {
-                    if (ProcessedBacTypes.Contains(type) || !SettingsManager.Instance.Settings.XenoKit_VfxSimulation) continue;
+                    if (!effect.EffectFlags.HasFlag(BAC_Type8.EffectFlagsEnum.Loop) && type.TimesActivated > 0) continue;
+                    if (!ActivationCheck(type) || !SettingsManager.Instance.Settings.XenoKit_VfxSimulation) continue;
 
                     if (effect.EffectFlags.HasFlag(BAC_Type8.EffectFlagsEnum.Off))
                     {
@@ -229,7 +249,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 //Camera
                 if (type is BAC_Type10 camera)
                 {
-                    if (ProcessedBacTypes.Contains(type)) continue;
+                    if (!ActivationCheck(type) || character.ActorSlot != 0) continue;
 
                     EAN_File ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, true);
 
@@ -238,16 +258,22 @@ namespace XenoKit.Engine.Scripting.BAC
                         EAN_Animation cam = ean.GetAnimation(camera.EanIndex, true);
 
                         if (cam != null)
-                            SceneManager.PlayCameraAnimation(ean, cam, camera, SceneManager.IndexOfCharacter(character, false), true);
+                        {
+                            int actorFocusIdx = camera.FocusOnTarget ? 1 : character.ActorSlot;
+
+                            SceneManager.PlayCameraAnimation(ean, cam, camera, character, actorFocusIdx, true);
+                        }
                         else
+                        {
                             Log.Add(string.Format("BacPlayer: Could not find the camera animation with the ID {0} in the {1} cam.ean.", camera.EanIndex, camera.EanType), LogType.Error);
+                        }
                     }
                 }
 
                 //Sound
                 if (type is BAC_Type11 sound)
                 {
-                    if (ProcessedBacTypes.Contains(type)) continue;
+                    if (!ActivationCheck(type)) continue;
 
                     Xv2CoreLib.ACB.ACB_Wrapper acb = Files.Instance.GetAcbFile(sound.AcbType, BacEntryInstance.SkillMove, character, true);
 
@@ -263,8 +289,14 @@ namespace XenoKit.Engine.Scripting.BAC
                 {
                     switch (function.FunctionType)
                     {
+                        case 0x0: //BAC Loop. When conditions are no longer true, the loop will stop when the current loop cycle ends.
+                        case 0x22: //BAC Loop, but ends instantly when conditions are no longer true
+                            if (!ActivationCheck(type) || BacEntryInstance.CurrentLoop > 0) continue;
+                            SetLoop(type.StartTime, type.StartTime + type.Duration, function.FunctionType == 0x22);
+                            break;
                         case 0x13: //Sets BCS PartSet (temp).
                         case 0x14: //Sets BCS PartSet (permanent).
+                            if (!ActivationCheck(type)) continue;
                             character.PartSet.ApplyBacPartSetSwap((int)function.Param1, function.FunctionType == 0x14);
                             break;
                         case 0x6: //Invisibility
@@ -276,13 +308,10 @@ namespace XenoKit.Engine.Scripting.BAC
                 //Eye Movement
                 if (type is BAC_Type21 eyeMovement)
                 {
-                    if (ProcessedBacTypes.Contains(type)) continue;
+                    if (!ActivationCheck(type)) continue;
+
                     BacEntryInstance.ActiveEyeMovement = eyeMovement;
                 }
-
-
-                //Add type to processed list
-                ProcessedBacTypes.Add(type);
             }
 
             //Update Eye Movements
@@ -328,6 +357,19 @@ namespace XenoKit.Engine.Scripting.BAC
             {
                 UpdateBac(false, ref _refFrame);
             }
+
+            //Handle Loop
+            if(BacEntryInstance.LoopEnabled && BacEntryInstance.CurrentFrame >= BacEntryInstance.LoopEndFrame && (!IsPreview || SceneManager.AllowBacLoop))
+            {
+                BacEntryInstance.CurrentFrame = BacEntryInstance.LoopStartFrame;
+                BacEntryInstance.CurrentLoop++;
+
+                //Both the current animation the camera get restored back to the frame they were at when the loop was first started.
+                //If the camera changes, then the wrong camera frame will be used. This is how it works in game too.
+                //However, it is impossible for the animation to change within a loop, as each new primary animation will also start a new loop, effectively overwriting any Function Loops
+                character.AnimationPlayer.GoToFrame(BacEntryInstance.LoopAnimationStartFrame, false);
+                SceneManager.MainCamera.SkipToFrame(BacEntryInstance.LoopCameraStartFrame);
+            }
         }
 
         /// <summary>
@@ -344,6 +386,7 @@ namespace XenoKit.Engine.Scripting.BAC
             int numBlendingFrames = BAC_Type0.CalculateNumOfBlendingFrames(BacEntryInstance.BacEntry.IBacTypes, frame);
 
             //Clean up
+            SceneManager.Actors[1]?.ResetState(false);
             RevertCharacterPosition(true);
 
             if (clearAnimations)
@@ -353,8 +396,8 @@ namespace XenoKit.Engine.Scripting.BAC
             VfxManager.StopEffects();
             VfxManager.ForceEffectUpdate = false;
             SceneManager.MainCamera.ClearCameraAnimation();
-            GameBase.AnimationTimeScale = 1f;
-            ProcessedBacTypes.Clear();
+            character.AnimationTimeScale = 1f;
+            BacEntryInstance.BacEntry.ResetTimesActivated();
             BacEntryInstance.ResetState();
 
             for (int i = 0; i <= frame; i++)
@@ -374,7 +417,9 @@ namespace XenoKit.Engine.Scripting.BAC
                 if (BacEntryInstance.CurrentFrame > frame) //Frameskip shot us past the specified frame. End seek here.
                 {
                     character.Simulate(true, true);
+                    SceneManager.Actors[1]?.Simulate(true, true);
                     SceneManager.MainGameInstance.camera.Simulate(true, true);
+                    GameBase.Simulation.Simulate();
 
                     VfxManager.ForceEffectUpdate = true;
                     VfxManager.Simulate();
@@ -382,19 +427,22 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
                 else
                 {
-                    character.Simulate(frame - i < numBlendingFrames, true); //Fully update anim positions for as long as required for accurate blending
-                    SceneManager.MainGameInstance.camera.Simulate(frame - i <= 1, true); //Only fully update camera on last frame
+                    do
+                    {
+                        character.Simulate(frame - i < numBlendingFrames, true); //Fully update anim positions for as long as required for accurate blending
+                        SceneManager.Actors[1]?.Simulate(frame - i < 10, true);
+                        SceneManager.MainGameInstance.camera.Simulate(frame - i <= 1, true); //Only fully update camera on last frame
+                        GameBase.Simulation.Simulate();
 
-                    //If this is the last seek frame, then set this to true so that effects fully update
-                    if (i == frame)
-                        VfxManager.ForceEffectUpdate = true;
+                        //If this is the last seek frame, then set this to true so that effects fully update
+                        if (i == frame && character.Controller.FreezeActionFrames == 0)
+                            VfxManager.ForceEffectUpdate = true;
 
-                    VfxManager.Simulate();
+                        VfxManager.Simulate();
+                    }
+                    while (character.Controller.FreezeActionFrames > 0);
                 }
             }
-
-            //Remove all Type11 (Sound) bac types from the processed list, as they are not actually processed while paused
-            ProcessedBacTypes.RemoveAll(x => x.GetType() == typeof(BAC_Type11));
 
             //Reset camera state if no cam anim is active. This allows the bac entry to be paused, then the camera moved, and the scene to resume without the camera resetting to the last simulated camera
             if (SceneManager.MainGameInstance.camera.cameraInstance == null && SceneManager.UseCameras)
@@ -404,18 +452,55 @@ namespace XenoKit.Engine.Scripting.BAC
             }
         }
 
+        private void SetLoop(int startFrame, int endFrame, bool allowIncompleteLoop)
+        {
+            if (endFrame <= startFrame) return;
+
+            if(BacEntryInstance.CurrentLoop == 0)
+            {
+                BacEntryInstance.LoopEnabled = true;
+                BacEntryInstance.LoopStartFrame = startFrame;
+                BacEntryInstance.LoopEndFrame = endFrame;
+                BacEntryInstance.LoopAnimationStartFrame = (int)character.AnimationPlayer.PrimaryCurrentFrame;
+                BacEntryInstance.LoopCameraStartFrame = (int)SceneManager.MainCamera.CurrentFrame;
+                BacEntryInstance.LoopAllowIncomplete = allowIncompleteLoop;
+            }
+        }
+
+        /// <summary>
+        /// Checks if a BAC Type can be activated on the current loop, and increments the activation count if it can.
+        /// </summary>
+        private bool ActivationCheck(IBacType type)
+        {
+            if (type.TimesActivated > BacEntryInstance.CurrentLoop) return false;
+                type.TimesActivated++;
+
+            return true;
+        }
+        
         #region Helpers
         private void RevertCharacterPosition(bool alwaysRevert)
         {
             if (BacEntryInstance == null) return;
-            character.BaseTransform = (BacEntryInstance.RevertPosition || alwaysRevert) ? BacEntryInstance.OriginalMatrix : character.Transform;
-            character.ActionMovementTransform = Matrix.Identity;
 
-            if(character.AnimationPlayer.PrimaryAnimation != null)
-                character.AnimationPlayer.PrimaryAnimation.hasMoved = false;
+            //IMPORTANT: When adding SEEK for future actors (1 and 2), the PRIMARY animation on them must be removed BEFORE their original matrices are restored here
+            for(int i = 0; i < 3; i++)
+            {
+                if(SceneManager.Actors[i] != null)
+                {
+                    if (BacEntryInstance.IsPreview || alwaysRevert)
+                    {
+                        SceneManager.Actors[i].BaseTransform = BacEntryInstance.OriginalMatrix[i];
+                        SceneManager.Actors[i].ActionMovementTransform = Matrix.Identity;
+
+                        if (SceneManager.Actors[i].AnimationPlayer.PrimaryAnimation != null)
+                            SceneManager.Actors[i].AnimationPlayer.PrimaryAnimation.hasMoved = false;
+                    }
+                }
+            }
         }
 
-        public void ResetBacState()
+        public void ResetBacPreviewState()
         {
             if (!SceneManager.RetainActionMovement)
             {
@@ -423,23 +508,34 @@ namespace XenoKit.Engine.Scripting.BAC
                 character.PartSet.ResetBacPartSetSwap(false);
             }
 
-            Xv2CoreLib.Random.ResetWithCurrentSeed();
-            CurrentFrame = 0;
-            ProcessedBacTypes.Clear();
+            character.Controller.ResetState(SceneManager.RetainActionMovement);
+            SceneManager.Actors[1]?.ResetState(SceneManager.RetainActionMovement);
+
+            //Xv2CoreLib.Random.ResetWithCurrentSeed();
+            Xv2CoreLib.Random.GenerateNewSeed();
             VfxManager.StopEffects();
 
-            BacEntryInstance?.ResetState();
+            if(BacEntryInstance != null)
+            {
+                CurrentFrame = 0;
+                BacEntryInstance.BacEntry.ResetTimesActivated();
+                BacEntryInstance.ResetState();
+            }
         }
 
         public void ClearBacEntry()
         {
             clearing = true;
+
+            if (IsPreview)
+            {
+                SceneManager.MainGameInstance.camera.ClearCameraAnimation();
+            }
+
+            character.AnimationPlayer.SecondaryAnimations.Clear();
+            BacEntryInstance?.BacEntry.ResetTimesActivated();
             BacEntryInstance?.Dispose();
             BacEntryInstance = null;
-            ProcessedBacTypes.Clear();
-
-            //Clean up used resources
-            SceneManager.MainGameInstance.camera.ClearCameraAnimation();
 
             clearing = false;
         }
@@ -467,10 +563,10 @@ namespace XenoKit.Engine.Scripting.BAC
         #region PlaybackControl
         public void Resume()
         {
-            if (BacEntryInstance == null) return;
+            if (BacEntryInstance == null || SceneManager.CurrentSceneState != EditorTabs.Action) return;
 
             if (BacEntryInstance.CurrentFrame >= CurrentDuration)
-                ResetBacState();
+                ResetBacPreviewState();
 
             //If anything was edited, it will be re-simulated
             Seek((int)BacEntryInstance.CurrentFrame, true);
@@ -478,21 +574,22 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public void Stop()
         {
-            if (BacEntryInstance == null) return;
+            if (BacEntryInstance == null || SceneManager.CurrentSceneState != EditorTabs.Action) return;
 
             character.AnimationPlayer.ClearCurrentAnimation(true);
             BacEntryInstance.ResetState();
-            ProcessedBacTypes.Clear();
+            BacEntryInstance?.BacEntry.ResetTimesActivated();
             character.ResetPosition();
             character.PartSet.ResetBacPartSetSwap(false);
-            BacEntryInstance.OriginalMatrix = character.Transform;
-            GameBase.AnimationTimeScale = 1f;
+            SceneManager.Actors[1]?.ResetState();
+            BacEntryInstance.CreateMatrixRestorePoint();
+            character.AnimationTimeScale = 1f;
             GameBase.IsPlaying = false;
         }
 
         public void SeekPrevFrame()
         {
-            if (BacEntryInstance == null) return;
+            if (BacEntryInstance == null || SceneManager.CurrentSceneState != EditorTabs.Action) return;
 
             if (CurrentFrame != 0)
             {
@@ -506,7 +603,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public void SeekNextFrame()
         {
-            if (BacEntryInstance == null) return;
+            if (BacEntryInstance == null || SceneManager.CurrentSceneState != EditorTabs.Action) return;
 
             if (CurrentFrame < CurrentDuration)
                 Seek(CurrentFrame + 1, true);

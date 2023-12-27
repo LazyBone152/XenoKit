@@ -101,7 +101,7 @@ namespace XenoKit.Engine.Vfx.Particle
             PreviousFrame = CurrentFrame;
 
             if (GameBase.IsPlaying)
-                CurrentFrame += EffectPart.UseTimeScale ? GameBase.ActiveTimeScale : 1f;
+                CurrentFrame += EffectPart.UseTimeScale ? Actor.ActiveTimeScale : 1f;
         }
 
         public override void Simulate()

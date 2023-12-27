@@ -10,9 +10,10 @@
         xmlns:undoRedo="clr-namespace:Xv2CoreLib.Resource.UndoRedo;assembly=Xv2CoreLib"
         xmlns:editor="clr-namespace:XenoKit.Editor"
         xmlns:bacView="clr-namespace:XenoKit.Views.BAC"
+        xmlns:simulationParams="clr-namespace:XenoKit.Views.SimulationParameters"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        Title="XenoKit" TitleCharacterCasing="Normal" MinHeight="720" MinWidth="1280" Height="720" Width="1550" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Closing="MetroWindow_Closing" SizeChanged="WindowResized" ResizeMode="CanResizeWithGrip" Drop="MetroWindow_Drop" AllowDrop="True">
+        Title="XenoKit" TitleCharacterCasing="Normal" MinHeight="720" MinWidth="1280" Height="720" Width="1550" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Closing="MetroWindow_Closing" StateChanged="MetroWindow_StateChanged" SizeChanged="WindowResized" ResizeMode="CanResizeWithGrip" Drop="MetroWindow_Drop" AllowDrop="True">
     <Window.InputBindings>
         <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
         <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
@@ -34,6 +35,47 @@
             <RowDefinition Height="2*" MinHeight="136"/>
         </Grid.RowDefinitions>
 
+        <Grid Background="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}" HorizontalAlignment="Stretch" Grid.Row="0" Grid.ColumnSpan="5" VerticalAlignment="Top" Height="30" Margin="0, 2">
+            <Menu Height="29">
+                <MenuItem Header="File" HorizontalAlignment="Left">
+                    <MenuItem Header="Load (from game)">
+                        <MenuItem Header="Character" Command="{Binding LoadCharacterCommand}"/>
+                        <MenuItem Header="Super Skill" Command="{Binding LoadSuperSkillCommand}"/>
+                        <MenuItem Header="Ultimate Skill" Command="{Binding LoadUltimateSkillCommand}"/>
+                        <MenuItem Header="Evasive Skill" Command="{Binding LoadEvasiveSkillCommand}"/>
+                        <MenuItem Header="Blast Skill" Command="{Binding LoadBlastSkillCommand}"/>
+                        <MenuItem Header="Awoken Skill" Command="{Binding LoadAwokenSkillCommand}"/>
+                    </MenuItem>
+                    <MenuItem Header="Load CaC" Command="{Binding LoadCacCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextMenuString}" Command="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextFileCommand}"/>
+                    <MenuItem Header="{Binding Source={x:Static editor:Files.Instance}, Path=SaveCurrentMenuString}" Command="{Binding SaveCurrentCommand}"/>
+                    <MenuItem Header="Save (All)" Command="{Binding SaveAllCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Settings" Command="{Binding SettingsCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Edit">
+                    <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
+                    <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Find/Replace" Command="{Binding FindReplaceCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Help">
+                    <MenuItem Header="GitHub" Command="{Binding GitHubCommand}"/>
+                    <MenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Debug" Visibility="{Binding DebugMenuVisible}">
+                    <MenuItem Header="Reload Shaders" Click="DebugMenu_ReloadShaders_Click"/>
+                    <MenuItem Header="Reload System" Click="MenuItem_ReloadSystem_Click"/>
+                    <MenuItem Header="Force GC" Click="DebugMenu_ForceGC"/>
+                    <MenuItem Header="Dump Render Targets" Click="DebugMenu_DumpRenderTargets_Click"/>
+                </MenuItem>
+            </Menu>
+
+        </Grid>
+
         <GridSplitter Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Margin="0.145,0,0.091,0.327"/>
         <GridSplitter Grid.Column="3" Grid.Row="2" ResizeDirection="Rows" Height="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
         <GridSplitter Grid.Column="3" Grid.Row="1" Grid.RowSpan="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -41,7 +83,7 @@
 
         <_controls:GameView x:Name="monoGameView" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="2"/>
 
-        <TabControl x:Name="mainTabControl" Grid.Column="0" Grid.Row="1" SelectionChanged="MainTabControl_SelectionChanged" HorizontalAlignment="Stretch" Margin="10,5.2,9.855,28.327" VerticalAlignment="Stretch" Grid.RowSpan="3">
+        <TabControl BorderBrush="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}" BorderThickness="1" x:Name="mainTabControl" Grid.Column="0" Grid.Row="1" SelectionChanged="MainTabControl_SelectionChanged" HorizontalAlignment="Stretch" Margin="10,5.2,9.855,28.327" VerticalAlignment="Stretch" Grid.RowSpan="3">
             <Controls:MetroTabItem Header="BCS" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.BcsVisibility}" >
                 <TabControl x:Name="bcsTabControl" Controls:TabControlHelper.Underlined="TabItems" SelectionChanged="MainTabControl_SelectionChanged">
                     <Controls:MetroTabItem Header="Part Sets" Controls:HeaderedControlHelper.HeaderFontSize="14">
@@ -136,58 +178,26 @@
             </Controls:MetroTabItem>
         </TabControl>
 
-        <TabControl x:Name="scenLogTab" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.ColumnSpan="2" Margin="5.145,0.182,15.545,28.327">
-            
+        <Controls:MetroTabControl x:Name="sceneTab" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.ColumnSpan="2" Margin="5.145,0, 0, 10" BorderBrush="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}" BorderThickness="1">
+
             <Controls:MetroTabItem Header="Log" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <_controls:LogView x:Name="logView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </Controls:MetroTabItem>
-        </TabControl>
+            <Controls:MetroTabItem x:Name="victimParamTab" Header="Victim" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <simulationParams:VictimParameters x:Name="victimParams" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem x:Name="inputParamTab" Header="Input" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <simulationParams:InputParameters x:Name="inputParams" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Controls:MetroTabItem>
+        </Controls:MetroTabControl>
 
-
-        <Menu HorizontalAlignment="Left" Height="29" VerticalAlignment="Top" Margin="0, 2" Grid.Row="0" Grid.ColumnSpan="4">
-            <MenuItem Header="File">
-                <MenuItem Header="Load (from game)">
-                    <MenuItem Header="Character" Command="{Binding LoadCharacterCommand}"/>
-                    <MenuItem Header="Super Skill" Command="{Binding LoadSuperSkillCommand}"/>
-                    <MenuItem Header="Ultimate Skill" Command="{Binding LoadUltimateSkillCommand}"/>
-                    <MenuItem Header="Evasive Skill" Command="{Binding LoadEvasiveSkillCommand}"/>
-                    <MenuItem Header="Blast Skill" Command="{Binding LoadBlastSkillCommand}"/>
-                    <MenuItem Header="Awoken Skill" Command="{Binding LoadAwokenSkillCommand}"/>
-                </MenuItem>
-                <MenuItem Header="Load CaC" Command="{Binding LoadCacCommand}"/>
-                <Separator/>
-                <MenuItem Header="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextMenuString}" Command="{Binding Source={x:Static editor:Files.Instance}, Path=SaveContextFileCommand}"/>
-                <MenuItem Header="{Binding Source={x:Static editor:Files.Instance}, Path=SaveCurrentMenuString}" Command="{Binding SaveCurrentCommand}"/>
-                <MenuItem Header="Save (All)" Command="{Binding SaveAllCommand}"/>
-                <Separator/>
-                <MenuItem Header="Settings" Command="{Binding SettingsCommand}"/>
-                <Separator/>
-                <MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
-            </MenuItem>
-            <MenuItem Header="Edit">
-                <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
-                <MenuItem Header="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoDescription}" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
-                <Separator/>
-                <MenuItem Header="Find/Replace" Command="{Binding FindReplaceCommand}"/>
-            </MenuItem>
-            <MenuItem Header="Help">
-                <MenuItem Header="GitHub" Command="{Binding GitHubCommand}"/>
-                <MenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}"/>
-            </MenuItem>
-            <MenuItem Header="Debug" Visibility="{Binding DebugMenuVisible}">
-                <MenuItem Header="Reload Shaders" Click="DebugMenu_ReloadShaders_Click"/>
-                <MenuItem Header="Reload System" Click="MenuItem_ReloadSystem_Click"/>
-                <MenuItem Header="Force GC" Click="DebugMenu_ForceGC"/>
-                <MenuItem Header="Dump Render Targets" Click="DebugMenu_DumpRenderTargets_Click"/>
-            </MenuItem>
-        </Menu>
         <Grid Grid.ColumnSpan="5" Margin="0,0,-0.455,-3.673" Grid.Row="3" Background="{DynamicResource MahApps.Brushes.Accent2}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{Binding CurrentLogMessage}"/>
+            <TextBlock Grid.Column="0" Text="{Binding CurrentLogMessage}" MouseLeftButtonDown="LogMessage_MouseLeftButtonDown"/>
         </Grid>
 
         <!-- Far right. Outliner + SettingsPanel -->

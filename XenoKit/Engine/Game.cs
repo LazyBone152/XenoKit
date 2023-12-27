@@ -1,11 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Framework.WpfInterop;
-using MonoGame.Framework.WpfInterop.Input;
-using SpriteFontPlus;
 using XenoKit.Engine.View;
 using XenoKit.Engine.Objects;
 using XenoKit.Engine.Gizmo;
@@ -15,12 +10,9 @@ using XenoKit.Engine.Vfx;
 using XenoKit.Engine.Text;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
-using XenoKit.Engine.Vfx.Particle;
 using XenoKit.Engine.Rendering;
 using XenoKit.Inspector;
 using XenoKit.Windows;
-using MahApps.Metro.Actions;
-using System.Configuration;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine
@@ -126,11 +118,16 @@ namespace XenoKit.Engine
                 //Actors
                 for (int i = 0; i < SceneManager.Actors.Length; i++)
                 {
+                    //Skip updating the victim actor if it is disabled. This will also cause it to not be rendered as well.
+                    if (i == 1 && !SceneManager.VictimEnabled) continue;
+
                     if (SceneManager.ActorsEnable[i] && SceneManager.Actors[i] != null)
                     {
                         SceneManager.Actors[i].Update();
                     }
                 }
+
+                Simulation.Update();
             }
 
             RenderSystem.Update();
@@ -212,8 +209,6 @@ namespace XenoKit.Engine
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)
         {
-            BacTimeScale = 1f;
-
             if (resetAnims)
                 camera.ClearCameraAnimation();
             

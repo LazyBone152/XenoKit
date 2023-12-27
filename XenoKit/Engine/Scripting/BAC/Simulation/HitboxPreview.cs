@@ -14,9 +14,9 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
                 if (Hitbox == null) return Matrix.Identity;
                 Matrix world = Matrix.Identity;
 
-                if (boneIdx != -1 && SceneManager.Actors[0] != null)
+                if (boneIdx != -1 && actor != null)
                 {
-                    world = SceneManager.Actors[0].GetAbsoluteBoneMatrix(boneIdx);
+                    world = actor.GetAbsoluteBoneMatrix(boneIdx);
 
                     //Hitbox doesn't rotate with b_C_Base, so the rotation needs to be removed
                     if (isBaseBone)
@@ -31,6 +31,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
 
         private readonly BAC_Type1 Hitbox;
         private readonly Cube BoundingBox;
+        private Actor actor;
         private int boneIdx = -1;
         private bool isBaseBone = false;
         private bool RefreshHitbox = false;
@@ -46,12 +47,6 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
 
         public override void Update()
         {
-            if (!IsValidForCurrentFrame())
-            {
-                Destroy();
-                return;
-            }
-
             if (RefreshHitbox && IsContextValid())
             {
                 UpdateHitbox();
@@ -61,7 +56,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
 
         public override void Draw()
         {
-            if (IsContextValid())
+            if (IsContextValid() && actor != null)
             {
                 BoundingBox.Draw(WorldMatrix);
             }
@@ -72,13 +67,30 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
             if (Hitbox != null && SceneManager.Actors[0] != null)
             {
                 string boneName = Hitbox.BoneLink.ToString();
+                var spawnSource = Hitbox.GetSpawnSource();
 
-                isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
-                boneIdx = SceneManager.Actors[0].Skeleton.GetBoneIndex(boneName);
+                switch (spawnSource)
+                {
+                    case BAC_Type1.HitboxFlagsEnum.SpawnSource_User:
+                        actor = SceneManager.Actors[0];
+                        break;
+                    case BAC_Type1.HitboxFlagsEnum.SpawnSource_Target:
+                        actor = SceneManager.Actors[1];
+                        break;
+                    default:
+                        actor = null;
+                        break;
+                }
 
-                //BAC Hitbox bounds are defined in half-metres (1.0 is actually 0.5)
-                BoundingBox.SetBounds(new Vector3(Hitbox.MinX, Hitbox.MinY, Hitbox.MinZ) / 2, new Vector3(Hitbox.MaxX, Hitbox.MaxY, Hitbox.MaxZ) / 2, Hitbox.Size / 2, Hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform);
-                BoundingBox.SetPosition(new Vector3(Hitbox.PositionX, Hitbox.PositionY, Hitbox.PositionZ));
+                if(actor != null)
+                {
+                    isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
+                    boneIdx = SceneManager.Actors[0].Skeleton.GetBoneIndex(boneName);
+
+                    //BAC Hitbox bounds are defined in half-metres (1.0 is actually 0.5)
+                    BoundingBox.SetBounds(new Vector3(Hitbox.MinX, Hitbox.MinY, Hitbox.MinZ) / 2, new Vector3(Hitbox.MaxX, Hitbox.MaxY, Hitbox.MaxZ) / 2, Hitbox.Size / 2, Hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform);
+                    BoundingBox.SetPosition(new Vector3(Hitbox.PositionX, Hitbox.PositionY, Hitbox.PositionZ));
+                }
             }
         }
 

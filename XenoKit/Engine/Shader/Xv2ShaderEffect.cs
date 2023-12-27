@@ -61,6 +61,7 @@ namespace XenoKit.Engine.Shader
         public bool IsSubtractiveBlending { get; protected set; }
 
         private bool SkinningEnabled { get; set; }
+        public int ActorSlot { get; set; }
 
         private ShaderParameter[] SdsParameters;
 
@@ -702,10 +703,10 @@ namespace XenoKit.Engine.Shader
                     break;
 
                 case ShaderParameter.LightVec0_VS:
-                    g_vLightVec0_VS.SetValue(GameBase.LightSource.Direction);
+                    g_vLightVec0_VS.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
                     break;
                 case ShaderParameter.LightVec0_PS:
-                    g_vLightVec0_PS.SetValue(GameBase.LightSource.Direction);
+                    g_vLightVec0_PS.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
                     break;
                 case ShaderParameter.UserFlag0_VS:
                     g_vUserFlag0_VS.SetValue(GameBase.LightSource.Position);

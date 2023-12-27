@@ -11,8 +11,8 @@ namespace XenoKit.Engine.Animation
     public interface ISkinned
     {
         AnimationTabView AnimationViewInstance { get; }
-        Xv2Skeleton Skeleton { get; set; }
-        AnimationPlayer AnimationPlayer { get; set; }
+        Xv2Skeleton Skeleton { get; }
+        AnimationPlayer AnimationPlayer { get; }
 
         Matrix GetAbsoluteBoneMatrix(int boneIdx);
     }

@@ -44,7 +44,7 @@ namespace XenoKit.Controls
                 if(_selectedEntry != value)
                 {
                     _selectedEntry = value;
-                    NotifyPropertyChanged("SelectedEntry");
+                    NotifyPropertyChanged(nameof(SelectedEntry));
                 }
             }
         }

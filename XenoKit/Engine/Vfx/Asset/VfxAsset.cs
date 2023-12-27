@@ -126,7 +126,7 @@ namespace XenoKit.Engine.Vfx.Asset
                 }
                 else
                 {
-                    CurrentFrame += EffectPart.UseTimeScale ? GameBase.ActiveTimeScale : 1f;
+                    CurrentFrame += EffectPart.UseTimeScale ? Actor.ActiveTimeScale : 1f;
                     DrawThisFrame = false;
                     return;
                 }

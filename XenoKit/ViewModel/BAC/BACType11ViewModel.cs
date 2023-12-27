@@ -218,7 +218,7 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                SetSoundFlags(SoundFlags.Unk16, value);
+                SetSoundFlags(SoundFlags.Unk15, value);
                 RaisePropertyChanged(() => Flag_Unk15);
             }
         }

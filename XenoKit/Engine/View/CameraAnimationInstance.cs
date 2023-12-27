@@ -18,6 +18,8 @@ namespace XenoKit.Engine.View
         public readonly CameraTarget cameraTarget;
         public readonly BacCameraSettings bacCameraSettings;
 
+        public Actor Actor;
+
         public float CurrentFrame
         {
             get
@@ -40,7 +42,7 @@ namespace XenoKit.Engine.View
             }
         }
 
-        public CameraAnimInstance(EAN_File eanFile, EAN_Animation anim, BAC_Type10 bacCamEntry, bool autoTerminate, int targetCharacterIndex)
+        public CameraAnimInstance(EAN_File eanFile, EAN_Animation anim, BAC_Type10 bacCamEntry, bool autoTerminate, int targetCharacterIndex, Actor actor)
         {
             EanFile = eanFile;
             AutoTerminate = autoTerminate;
@@ -49,6 +51,7 @@ namespace XenoKit.Engine.View
             EndFrame = (bacCamEntry != null) ? bacCamEntry.StartFrame + bacCamEntry.Duration - 1 : anim.FrameCount - 1;
             _currentFrame = StartFrame;
             hasBacData = bacCamEntry != null;
+            Actor = actor;
 
             if (bacCamEntry != null)
             {

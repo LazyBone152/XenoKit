@@ -323,12 +323,12 @@ namespace XenoKit.Editor
         public async void AsyncLoadSkill(CUS_File.SkillType skillType)
         {
             List<Xv2Item> skills = xv2.Instance.GetSkillList(skillType);
-            EntitySelector selector = new EntitySelector(skills, skillType.ToString(), Application.Current.MainWindow);
-            selector.EnableLoadFromCpk();
+            EntitySelector selector = new EntitySelector(skills, skillType.ToString());
+            selector.SetBooleanParameter("Only Load From CPK", "Ignore loose files and load directly from CPK.");
             selector.ShowDialog();
 
             if (selector.SelectedItem != null)
-                await AsyncLoadSkill(selector.SelectedItem.ID, skillType, selector.OnlyLoadFromCPK);
+                await AsyncLoadSkill(selector.SelectedItem.ID, skillType, selector.BooleanParameter);
         }
 
         public async Task AsyncLoadSkill(int id1, CUS_File.SkillType skillType, bool onlyCpk, int replaceItemIndex = -1)
@@ -378,7 +378,7 @@ namespace XenoKit.Editor
         public async void AsyncLoadCharacter()
         {
             var characters = xv2.Instance.GetCharacterList();
-            EntitySelector charaSel = new EntitySelector(characters, "Character", Application.Current.MainWindow);
+            EntitySelector charaSel = new EntitySelector(characters, "Character");
             charaSel.ShowDialog();
 
             if (charaSel.SelectedItem != null)
@@ -450,7 +450,7 @@ namespace XenoKit.Editor
         public void LoadMoveset()
         {
             var movesets = xv2.Instance.GetCharacterList();
-            EntitySelector selector = new EntitySelector(movesets, "Moveset", Application.Current.MainWindow);
+            EntitySelector selector = new EntitySelector(movesets, "Moveset");
             selector.ShowDialog();
 
             if (selector.SelectedItem != null)

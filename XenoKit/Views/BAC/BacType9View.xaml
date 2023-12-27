@@ -63,7 +63,7 @@
                                         <CheckBox Content="BCM Condition (Active Projectile)" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType9View}}, Path=BacViewModel.Flag_BcmCondition, UpdateSourceTrigger=Default}"/>
                                     </StackPanel>
                                     <StackPanel Margin="20, 5" Width="200">
-                                        <CheckBox Content="Loop" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType9View}}, Path=BacViewModel.Flag_Loop, UpdateSourceTrigger=Default}"/>
+                                        <CheckBox Content="Loop With Action" ToolTip="When enabled, this projectile will loop with any loop currently active." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType9View}}, Path=BacViewModel.Flag_Loop, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Mark Random ID" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType9View}}, Path=BacViewModel.Flag_MarkRandomID, UpdateSourceTrigger=Default}"/>
                                         <CheckBox Content="Mark Unique ID" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType9View}}, Path=BacViewModel.Flag_MarkUniqueID, UpdateSourceTrigger=Default}" ToolTip="For use with CaCs, also enable Mark Random ID."/>
                                     </StackPanel>

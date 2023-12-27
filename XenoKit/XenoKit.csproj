@@ -530,8 +530,11 @@
     <Compile Include="DialogSettings.cs" />
     <Compile Include="Editor\Data\CustomAvatar.cs" />
     <Compile Include="Engine\Animation\ISkinned.cs" />
+    <Compile Include="Engine\Character\ActorController.cs" />
+    <Compile Include="Engine\Collision\BacHitbox.cs" />
     <Compile Include="Engine\Gizmo\EntityTransformGizmo.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
+    <Compile Include="Engine\Scripting\Simulation.cs" />
     <Compile Include="Inspector\InspectorEntity\EanInspectorEntity.cs" />
     <Compile Include="Inspector\InspectorEntity\InspectorEntity.cs" />
     <Compile Include="Inspector\InspectorEntity\MaterialInspectorEntity.cs" />
@@ -829,6 +832,12 @@
     <Compile Include="Views\SettingsPanel.xaml.cs">
       <DependentUpon>SettingsPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\SimulationParameters\InputParameters.xaml.cs">
+      <DependentUpon>InputParameters.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SimulationParameters\VictimParameters.xaml.cs">
+      <DependentUpon>VictimParameters.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\TimeLines\BAC\BacTimeLine.xaml.cs">
       <DependentUpon>BacTimeLine.xaml</DependentUpon>
     </Compile>
@@ -858,7 +867,7 @@
     <Compile Include="Windows\PartSetSelector.xaml.cs">
       <DependentUpon>PartSetSelector.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\EntitySelector.xaml.cs">
+    <Compile Include="Windows\Reusable\EntitySelector.xaml.cs">
       <DependentUpon>EntitySelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\PasteCopyItem.xaml.cs">
@@ -869,6 +878,9 @@
     <Compile Include="Editor\Data\Move.cs" />
     <Compile Include="Windows\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Reusable\ValueSelector.xaml.cs">
+      <DependentUpon>ValueSelector.xaml</DependentUpon>
     </Compile>
     <Page Include="..\..\XV2 Tools\AudioCueEditor\View\AddCueForm.xaml">
       <Link>Views\ACE\View\AddCueForm.xaml</Link>
@@ -1299,6 +1311,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\SimulationParameters\InputParameters.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SimulationParameters\VictimParameters.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\TimeLines\BAC\BacTimeLine.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -1335,7 +1355,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Windows\EntitySelector.xaml">
+    <Page Include="Windows\Reusable\EntitySelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1344,6 +1364,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\Settings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Reusable\ValueSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -611,6 +611,8 @@ namespace XenoKit.Engine.Model
 
         private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton)
         {
+            material.ActorSlot = actor;
+
             if (EnableSkinning && skeleton != null)
             {
                 CreateSkinningMatrices(skeleton);

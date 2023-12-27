@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Input;
 using Xv2CoreLib;
 
 namespace XenoKit.Windows
@@ -29,24 +29,38 @@ namespace XenoKit.Windows
         #endregion
         
         public ObservableCollection<Xv2Item> Items { get; set; }
+        private bool _isMultiSelect = false;
 
         public Xv2Item SelectedItem { get; set; }
-        public bool OnlyLoadFromCPK { get; set; }
+        public List<Xv2Item> SelectedItems { get; set; }
 
+        public string BooleanParameterName { get; set; }
+        public string BooleanParameterToolTip { get; set; }
+        public bool BooleanParameter { get; set; }
 
-        public EntitySelector(IEnumerable<Xv2Item> items, string itemName, Window parent)
+        public EntitySelector(IEnumerable<Xv2Item> items, string itemName, bool multiSelect = false)
         {
+            _isMultiSelect = multiSelect;
             Items = new ObservableCollection<Xv2Item>(items);
             InitializeComponent();
             DataContext = this;
-            Owner = parent;
+            Owner = Application.Current.MainWindow;
             Title = string.Format("Select {0}", itemName);
+            listBox.SelectionMode = _isMultiSelect ? System.Windows.Controls.DataGridSelectionMode.Extended : System.Windows.Controls.DataGridSelectionMode.Single;
         }
 
         public RelayCommand SelectItemCommand => new RelayCommand(SelectItem, () => listBox.SelectedItem != null);
         private void SelectItem()
         {
-            SelectedItem = listBox.SelectedItem as Xv2Item;
+            if (_isMultiSelect)
+            {
+                SelectedItems = listBox.SelectedItems.Cast<Xv2Item>().ToList();
+                SelectedItem = SelectedItems[0];
+            }
+            else
+            {
+                SelectedItem = listBox.SelectedItem as Xv2Item;
+            }
             Close();
         }
 
@@ -125,9 +139,13 @@ namespace XenoKit.Windows
         }
         #endregion
 
-        public void EnableLoadFromCpk()
+        public void SetBooleanParameter(string name, string tooltip)
         {
-            fromCpkCheckBox.Visibility = Visibility.Visible;
+            BooleanParameterName = name;
+            BooleanParameterToolTip = tooltip;
+            NotifyPropertyChanged(nameof(BooleanParameterName));
+            NotifyPropertyChanged(nameof(BooleanParameterToolTip));
+            checkbox.Visibility = Visibility.Visible;
         }
     }
 }

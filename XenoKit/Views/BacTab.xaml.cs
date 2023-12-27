@@ -16,6 +16,8 @@ using Xv2CoreLib.Resource.App;
 using MahApps.Metro.Controls.Dialogs;
 using Xv2CoreLib.Resource;
 using XenoKit.Windows.EAN;
+using Xv2CoreLib;
+using Xv2CoreLib.BEV;
 
 namespace XenoKit.Controls
 {
@@ -27,12 +29,9 @@ namespace XenoKit.Controls
         #region NotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void NotifyPropertyChanged(String propertyName = "")
+        private void NotifyPropertyChanged(string propertyName = "")
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
 
@@ -168,6 +167,22 @@ namespace XenoKit.Controls
             }
         }
 
+        public bool HideEmptryBacEntries
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_HideEmptyBacEntries;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_HideEmptyBacEntries != value)
+                {
+                    SettingsManager.settings.XenoKit_HideEmptyBacEntries = value;
+                    SettingsManager.Instance.SaveSettings();
+                    ReapplyBacFilter();
+                }
+            }
+        }
 
         private void CreateFilteredList()
         {
@@ -191,6 +206,7 @@ namespace XenoKit.Controls
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    ViewBacTypes.SortDescriptions.Add(new SortDescription(nameof(BAC_Entry.SortID), ListSortDirection.Ascending));
                     ViewBacTypes.Filter = new Predicate<object>(BacFilterCheck);
                     NotifyPropertyChanged(nameof(ViewBacTypes));
 
@@ -204,7 +220,7 @@ namespace XenoKit.Controls
         {
             if (bacEntry is BAC_Entry entry)
             {
-                return SettingsManager.settings.XenoKit_HideEmptyBacEntries ? !entry.IsIBacEntryEmpty() : true;
+                return SettingsManager.settings.XenoKit_HideEmptyBacEntries ? !entry.IsIBacEntryEmpty() || entry.NewEntry : true;
             }
             else
             {
@@ -214,6 +230,8 @@ namespace XenoKit.Controls
 
         //Visibilities
         public Visibility BacTypeListVisbility => (bacEntryDataGrid.SelectedItem is BAC_Entry) ? Visibility.Visible : Visibility.Hidden;
+        public bool IsMovesetBac { get; set; }
+        public bool IsMovesetOrCMNBac { get; set; }
 
         //BAC Type View
         private BacViewMode _viewMode = BacViewMode.TimeLine;
@@ -298,7 +316,7 @@ namespace XenoKit.Controls
                 if (Files.Instance.SelectedMove != null)
                 {
                     if (Files.Instance.SelectedMove.MoveType == Move.Type.Skill) return BAC_Entry.MAX_ENTRIES_SKILL - 1;
-                    if (Files.Instance.SelectedMove.MoveType == Move.Type.Moveset) return BAC_Entry.MAX_ENTRIES_CHARACTER - 1;
+                    if (Files.Instance.SelectedMove.MoveType == Move.Type.Moveset || Files.Instance.SelectedMove.MoveType == Move.Type.CMN) return BAC_Entry.MAX_ENTRIES_CHARACTER - 1;
                 }
 
                 return 10000;
@@ -311,11 +329,9 @@ namespace XenoKit.Controls
         {
             InitializeComponent();
             DataContext = this;
-            NotifyPropertyChanged("files");
+            NotifyPropertyChanged(nameof(files));
             Files.SelectedItemChanged += Files_SelectedMoveChanged;
             UndoManager.Instance.UndoOrRedoCalled += UndoManager_UndoOrRedoCalled;
-            SettingsManager.SettingsReloaded += SettingsManager_SettingsLoadOrSave;
-            SettingsManager.SettingsSaved += SettingsManager_SettingsLoadOrSave;
             Engine.Animation.VisualSkeleton.SelectedBoneChanged += VisualSkeleton_SelectedBoneChanged;
         }
 
@@ -328,21 +344,94 @@ namespace XenoKit.Controls
             {
                 SceneManager.PlayBacEntry(files.SelectedItem.SelectedBacFile.File, SelectedBacEntry, files.SelectedMove, 0, true);
             }
-
-            //Default sorting:
-            bacTypeDataGrid.Items.SortDescriptions.Clear();
-            if (SettingsManager.Instance.Settings.XenoKit_BacTypeSortModeEnum == BacTypeSortMode.StartTime)
-            {
-                bacTypeDataGrid.Items.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Ascending));
-            }
         }
 
         public RelayCommand AddBacEntryCommand => new RelayCommand(AddBacEntry, IsBacFileLoaded);
         private void AddBacEntry()
         {
-            var newBacEntry = Files.Instance.SelectedItem.SelectedBacFile.File.AddNewEntry();
-            SelectBacEntry(newBacEntry);
+            BAC_Entry newBacEntry = Files.Instance.SelectedItem.SelectedBacFile.File.AddNewEntry();
+            newBacEntry.NewEntry = true;
             UndoManager.Instance.AddUndo(new UndoableListAdd<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, newBacEntry, "Bac Entry Add"));
+
+            ReapplyBacFilter();
+            SelectBacEntry(newBacEntry);
+        }
+
+        public RelayCommand AddBacEntryAtSpecificIDCommand => new RelayCommand(AddBacEntryAtSpecificID, IsBacFileLoaded);
+        private void AddBacEntryAtSpecificID()
+        {
+            ValueSelector valueSel = new ValueSelector("Add Entry...", "ID", null, files.SelectedItem.SelectedBacFile.File.GetFreeId(), 0, MaximumBacID);
+            valueSel.ShowDialog();
+
+            if (valueSel.IsFinished)
+            {
+                BAC_Entry entry = files.SelectedItem.SelectedBacFile.File.GetEntry(valueSel.Parameter);
+
+                if(entry != null)
+                {
+                    if (!entry.NewEntry && entry.IsIBacEntryEmpty())
+                    {
+                        //If entry is empty, then force it to always appear regardless of Hide Empty setting
+                        entry.NewEntry = true;
+                        ReapplyBacFilter();
+                    }
+
+                    Log.Add($"Action Entry at ID {valueSel.Parameter} already exists!");
+                }
+                else
+                {
+                    entry = new BAC_Entry();
+                    entry.NewEntry = true;
+                    Files.Instance.SelectedItem.SelectedBacFile.File.AddEntry(entry, valueSel.Parameter);
+
+                    UndoManager.Instance.AddUndo(new UndoableListAdd<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, entry, "Bac Entry Add"));
+                    ReapplyBacFilter();
+                }
+
+                SelectBacEntry(entry);
+            }
+        }
+
+        public RelayCommand OverrideCMNCommand => new RelayCommand(OverrideCMNBacEntry, IsBacFileLoaded);
+        private void OverrideCMNBacEntry()
+        {
+            List<Xv2Item> ids = new List<Xv2Item>();
+
+            foreach(BAC_Entry bacEntry in files.GetCmnMove().Files.BacFile.File.BacEntries)
+            {
+                if(files.SelectedMove.Files.BacFile.File.GetEntry(bacEntry.SortID) == null)
+                {
+                    ids.Add(new Xv2Item(bacEntry.SortID, bacEntry.MovesetBacEntryName));
+                }
+            }
+
+            EntitySelector selector = new EntitySelector(ids, "CMN Actions", true);
+            selector.SetBooleanParameter("Copy Entry", "Copy the original CMN entry to use as a base.");
+            selector.ShowDialog();
+
+            if(selector.SelectedItem != null)
+            {
+                List<IUndoRedo> undos = new List<IUndoRedo>();
+                BAC_Entry bacEntryToFocus = null;
+
+                foreach(Xv2Item selectedItem in selector.SelectedItems)
+                {
+                    BAC_Entry cmnEntry = files.GetCmnMove().Files.BacFile.File.GetEntry(selectedItem.ID);
+                    BAC_Entry bacEntry = selector.BooleanParameter ? cmnEntry.Copy() : new BAC_Entry();
+                    bacEntry.NewEntry = true;
+
+                    Files.Instance.SelectedItem.SelectedBacFile.File.AddEntry(bacEntry, selectedItem.ID);
+                    undos.Add(new UndoableListAdd<BAC_Entry>(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, bacEntry));
+
+                    if (bacEntryToFocus == null)
+                        bacEntryToFocus = bacEntry;
+                }
+
+                UndoManager.Instance.AddCompositeUndo(undos, "Override CMN Action");
+
+                ReapplyBacFilter();
+                SelectBacEntry(bacEntryToFocus);
+            }
         }
 
         public RelayCommand RemoveBacEntryCommand => new RelayCommand(RemoveBacEntry, IsBacEntrySelected);
@@ -598,11 +687,6 @@ namespace XenoKit.Controls
             }
         }
 
-        private void SettingsManager_SettingsLoadOrSave(object sender, EventArgs e)
-        {
-            ReapplyBacFilter();
-        }
-
         private void Files_SelectedMoveChanged(object sender, EventArgs e)
         {
             UpdateSelectedBacFile();
@@ -646,16 +730,13 @@ namespace XenoKit.Controls
 
             if(files.SelectedItem != null)
             {
-                if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || 
-                    files.SelectedItem.SelectedBacFile?.FileType == Xv2CoreLib.Xenoverse2.MoveFileTypes.AFTER_BAC || 
-                    (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN && bacFileComboBox.SelectedIndex == 0))
-                {
-                    nameColumn.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    nameColumn.Visibility = Visibility.Collapsed;
-                }
+                IsMovesetOrCMNBac = (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.SelectedBacFile?.FileType == Xenoverse2.MoveFileTypes.AFTER_BAC || (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN && bacFileComboBox.SelectedIndex == 0));
+                IsMovesetBac = (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.SelectedBacFile?.FileType == Xenoverse2.MoveFileTypes.AFTER_BAC);
+                NotifyPropertyChanged(nameof(IsMovesetOrCMNBac));
+                NotifyPropertyChanged(nameof(IsMovesetBac));
+
+                nameHeader.Visibility = IsMovesetOrCMNBac ? Visibility .Visible : Visibility.Collapsed;
+                cmnOverrideMenu.Visibility = IsMovesetBac ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 

@@ -8,6 +8,8 @@ using XenoKit.Engine.Scripting.BAC;
 using Microsoft.Xna.Framework.Graphics;
 using Xv2CoreLib.EAN;
 using XenoKit.Controls;
+using XenoKit.Engine.Character;
+using XenoKit.Engine.Collision;
 
 namespace XenoKit.Engine
 {
@@ -17,14 +19,30 @@ namespace XenoKit.Engine
         public override Matrix AbsoluteTransform => Transform;
         public override EntityType EntityType => EntityType.Actor;
 
-        public int ActorSlot { get; set; }
+        public int Team => ActorSlot == 1 ? 1 : 0;
+        public int ActorSlot = 0;
         public CharaPartSet PartSet;
         public int ForceDytOverride = -1;
         public bool IsVisible = true;
 
-        //Animation:
-        public AnimationTabView AnimationViewInstance => AnimationTabView.Instance;
+        //TimeScale:
+        public int BdmTimeScaleDuration = 0;
+        public float BdmTimeScale = 1f;
+        public float BacTimeScale = 1f;
+        public float AnimationTimeScale = 1f;
+        public float ActiveTimeScale
+        {
+            get
+            {
+                return (SceneManager.CurrentSceneState == EditorTabs.Action) ? BacTimeScale * AnimationTimeScale * BdmTimeScale : 1f;
+            }
+        }
+
+        //Components:
+        private DebugSkeleton _debugSkeleton;
+        public VisualSkeleton _visualSkeleton;
         private Xv2Skeleton _skeleton = null;
+
         public Xv2Skeleton Skeleton
         {
             get
@@ -40,7 +58,18 @@ namespace XenoKit.Engine
                 }
             }
         }
-        public AnimationPlayer AnimationPlayer { get; set; }
+        public AnimationPlayer AnimationPlayer { get; private set; }
+        public ActionControl ActionControl { get; private set; }
+        public ActorController Controller { get; private set; }
+
+        //Hitbox:
+        public BoundingBox Hitbox { get; set; }
+        public float[] AABB { get; private set; }
+        public bool HitboxEnabled = true;
+
+        //Character Source Files:
+        public Xv2Character CharacterData { get; private set; }
+        public Move Moveset { get; private set; }
         public EAN_File FceEanFile
         {
             get
@@ -66,44 +95,16 @@ namespace XenoKit.Engine
             }
         }
 
-        //Visual Skeletons:
-        private DebugSkeleton debugSkeleton;
-        public VisualSkeleton visualSkeleton;
-
-        //Action:
-        public ActionControl ActionControl { get; set; }
-
-        //Character Source Files:
-        public Xv2Character CharacterData { get; set; }
-        public Move Moveset { get; set; }
-
         //Voice:
-        /// <summary>
-        /// What costumes voice to use.
-        /// </summary>
         public int Voice { get; set; }
         /// <summary>
         /// A character code alias to use for skill voice lines.
         /// </summary>
         public string SkillVoiceAlias { get; set; }
 
-        //Misc Settings:
-        private Vector3 DefaultPosition
-        {
-            get
-            {
-                switch (ActorSlot)
-                {
-                    case 0:
-                        return new Vector3();
-                    case 1:
-                        return new Vector3(0, 0, -5);
-                    default:
-                        return new Vector3();
-                }
-            }
-        }
+        //Misc
         public string ShortName => CharacterData?.CmsEntry?.ShortName;
+        public AnimationTabView AnimationViewInstance => AnimationTabView.Instance; //Required for the ISkinned interface. Associates a GUI view with the underlying skinned object.
 
         //Eye UV Scroll. (These are sized 4 arrays because thats what the shaders expect, though we only need the first 2 values)
         public float[] EyeIrisLeft_UV { get; set; } = new float[4];
@@ -113,16 +114,17 @@ namespace XenoKit.Engine
         public Actor(GameBase gameBase, Xv2Character character, int initialPartSet = 0) : base(gameBase)
         {
             GameBase = gameBase;
-            //Skeleton = new Xv2Skeleton(character.EskFile.File);
             Skeleton = CompiledObjectManager.GetCompiledObject<Xv2Skeleton>(character.EskFile.File, GameBase);
             Name = character.Name[0];
-            BaseTransform = Matrix.CreateWorld(DefaultPosition, Vector3.Forward, Vector3.Up);
+            ResetPosition();
             ActionControl = new ActionControl(this, gameBase);
+            Controller = new ActorController(this);
             Moveset = new Move(character);
             CharacterData = character;
+            AABB = new float[6];
 
-            debugSkeleton = new DebugSkeleton(gameBase);
-            visualSkeleton = new VisualSkeleton(this, gameBase);
+            _debugSkeleton = new DebugSkeleton(gameBase);
+            _visualSkeleton = new VisualSkeleton(this, gameBase);
 
             //Create animation player
             AnimationPlayer = new AnimationPlayer(Skeleton, this);
@@ -131,7 +133,7 @@ namespace XenoKit.Engine
             PartSet = new CharaPartSet(gameBase, this, initialPartSet);
         }
 
-        #region State
+        #region Transform
         public override Matrix Transform => RootMotionTransform * ActionMovementTransform * BaseTransform;
 
         public Matrix RootMotionTransform = Matrix.Identity;
@@ -143,39 +145,50 @@ namespace XenoKit.Engine
         /// </summary>
         public void MergeTransforms()
         {
-            BaseTransform *= ActionMovementTransform;
+            BaseTransform = ActionMovementTransform * BaseTransform;
             ActionMovementTransform = Matrix.Identity;
             RootMotionTransform = Matrix.Identity;
         }
 
         public void ResetPosition()
         {
-            BaseTransform = Matrix.Identity * Matrix.CreateTranslation(DefaultPosition);
+            Vector3 pos;
+            Matrix rotation;
+
+            switch (ActorSlot)
+            {
+                case 1:
+                    pos = new Vector3(0, 0, -SceneManager.VictimDistance);
+                    rotation = SceneManager.VictimIsFacingPrimary ? Matrix.CreateRotationY(MathHelper.Pi) : Matrix.Identity;
+                    break;
+                default:
+                    pos = Vector3.Zero;
+                    rotation = Matrix.Identity;
+                    break;
+            }
+
+            BaseTransform = Matrix.Identity * rotation * Matrix.CreateTranslation(pos);
             ActionMovementTransform = Matrix.Identity;
             RootMotionTransform = Matrix.Identity;
         }
 
-        public void ResetState(bool resetAnimations = true)
+        public void ResetState(bool keepAnimation = false)
         {
+            BdmTimeScaleDuration = 0;
+            BdmTimeScale = 1f;
+            BacTimeScale = 1f;
+            Controller.ResetState(keepAnimation);
+
             bool retainActionPosition = SceneManager.RetainActionMovement && SceneManager.IsOnTab(EditorTabs.Action);
 
             //In some cases we might not want to reset animations, such as Animation > Camera (and vice versa) tab changes.
-            if (resetAnimations)
+            //TODO: Check for a better place to put this. Dont want UI related stuff mixed in here
+            if (!keepAnimation)
             {
                 AnimationPlayer.ClearCurrentAnimation(true, !retainActionPosition);
-
-                if (retainActionPosition)
-                {
-                    MergeTransforms();
-                }
-                else
-                {
-                    ActionMovementTransform = Matrix.Identity;
-                    RootMotionTransform = Matrix.Identity;
-                }
             }
 
-            if(!retainActionPosition)
+            if (!retainActionPosition)
                 ResetPosition();
         }
 
@@ -186,19 +199,41 @@ namespace XenoKit.Engine
         {
             DrawThisFrame = true;
             IsVisible = true;
+            HitboxEnabled = true;
 
             //Reset Eye positions to their defaults
             EyeIrisLeft_UV[0] = EyeIrisLeft_UV[1] = EyeIrisRight_UV[0] = EyeIrisRight_UV[1] = 0;
             BacEyeMovementUsed = false;
 
+            //Disable the ActorController for the main actor, and enable it for the victim
+            //Will need to adjust this when adding BDM preview support
+            if(ActorSlot == 0 && Controller.State != ActorState.Null)
+            {
+                Controller.State = ActorState.Null;
+            }
+            else if(ActorSlot == 1 && Controller.State == ActorState.Null)
+            {
+                Controller.State = ActorState.Idle;
+            }
+
+            if (GameBase.IsPlaying)
+                UpdateBdmTimeScale();
+
+            Controller.Update();
             ActionControl.Update();
 
             if (AnimationPlayer != null && Skeleton != null)
                 AnimationPlayer.Update(Matrix.Identity);
 
-            visualSkeleton.Update(Skeleton.Bones);
+            _visualSkeleton.Update(Skeleton.Bones);
 
             PartSet.Update();
+
+            //Update hitbox
+            if (SceneManager.IsOnTab(EditorTabs.Action))
+            {
+                Hitbox = new BoundingBox(new Vector3(AABB[0], AABB[1], AABB[2]) + Transform.Translation, new Vector3(AABB[3], AABB[4], AABB[5]) + Transform.Translation);
+            }
         }
 
         public override void DelayedUpdate()
@@ -220,33 +255,90 @@ namespace XenoKit.Engine
                 return;
             }
 #endif
+            HitboxEnabled = true;
+
+            UpdateBdmTimeScale();
+
+            if(ActorSlot != 0)
+            {
+                Controller.Update();
+                ActionControl.Update();
+            }
 
             if (AnimationPlayer != null && Skeleton != null)
             {
                 AnimationPlayer.Simulate(fullAnimUpdate, advance);
+            }
+
+            //Update hitbox
+            if (SceneManager.IsOnTab(EditorTabs.Action))
+            {
+                Hitbox = new BoundingBox(new Vector3(AABB[0], AABB[1], AABB[2]) + Transform.Translation, new Vector3(AABB[3], AABB[4], AABB[5]) + Transform.Translation);
             }
         }
 
         public override void Draw()
         {
             DrawThisFrame = false;
-            if (!GameBase.RenderCharacters || !SceneManager.ShowActorsInCurrentScene || !IsVisible) return;
+            if (!GameBase.RenderCharacters || !IsVisible) return;
 
             ActionControl.Draw();
             PartSet.Draw();
 
             if (AnimationPlayer != null && SceneManager.ShowDebugBones)
-                debugSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
+                _debugSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
 
             if (AnimationPlayer != null)
-                visualSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
+                _visualSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
         }
 
         public override void DrawPass(bool normalPass)
         {
+            if (!GameBase.RenderCharacters || !IsVisible) return;
             PartSet.DrawSimple(normalPass);
         }
+
         #endregion
+
+        #region TimeScale
+        private void UpdateBdmTimeScale()
+        {
+            if(BdmTimeScaleDuration > 0)
+            {
+                BdmTimeScaleDuration--;
+            }
+            else if(BdmTimeScaleDuration == 0)
+            {
+                BdmTimeScale = 1f;
+            }
+        }
+
+        public void SetBacTimeScale(float timeScale, bool reset)
+        {
+            if (reset) BacTimeScale = 1f;
+            BacTimeScale *= timeScale;
+        }
+
+        #endregion
+
+        public bool HitTest(BacHitbox hitbox)
+        {
+            if (!HitboxEnabled) return false;
+
+            if (Hitbox.Intersects(hitbox.BoundingBox))
+            {
+                Xv2CoreLib.BDM.BDM_File bdm = Files.Instance.GetBdmFile(hitbox.Hitbox.bdmFile, hitbox.BacEntry.SkillMove, hitbox.BacEntry.User, false);
+
+                if(bdm != null)
+                {
+                    Controller.ApplyDamageState(bdm.GetEntry(hitbox.Hitbox.BdmEntryID), hitbox.GetRelativeDirection(Transform));
+                }
+
+                return true;
+            }
+
+            return false;
+        }
 
         public Matrix GetAbsoluteBoneMatrix(int index)
         {

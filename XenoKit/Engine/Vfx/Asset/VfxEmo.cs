@@ -325,7 +325,7 @@ namespace XenoKit.Engine.Vfx.Asset
             }
             else if (GameBase.IsPlaying)
             {
-                Time += EffectPart.UseTimeScale ? GameBase.AnimationTimeScale * GameBase.BacTimeScale : 1f;
+                Time += EffectPart.UseTimeScale ? Actor.ActiveTimeScale : 1f;
             }
 
             AnimationPlayer?.SetFrame(Time);

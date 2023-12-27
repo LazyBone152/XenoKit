@@ -92,8 +92,6 @@ namespace XenoKit.Engine
         /// Read-only. Exposed from GameBase.IsPlaying.
         /// </summary>
         public static bool IsPlaying => MainGameBase?.IsPlaying == true;
-        public static float ActiveTimeScale => MainGameBase != null ? MainGameBase.ActiveTimeScale : 1f;
-
 
         //Matrix
         public static Matrix ViewMatrix { get { return MainGameInstance.camera.ViewMatrix; } }
@@ -132,19 +130,24 @@ namespace XenoKit.Engine
 
             IsOnEffectTab = false;
             IsOnInspectorTab = false;
-            ShowActorsInCurrentScene = true;
+
+            //Set default actor values
+            ActorsEnable[0] = true;
+            ActorsEnable[1] = false;
+            ActorsEnable[2] = false;
 
             switch (mainTab)
             {
                 case MainEditorTabs.Action:
                     CurrentSceneState = EditorTabs.Action;
+                    ActorsEnable[1] = true;
                     break;
                 case MainEditorTabs.Animation:
                     CurrentSceneState = EditorTabs.Animation;
                     break;
                 case MainEditorTabs.Audio:
                     CurrentSceneState = audioTabIdx > 0 ? EditorTabs.Audio_VOX : EditorTabs.Audio_SE;
-                    ShowActorsInCurrentScene = false;
+                    ActorsEnable[0] = false;
                     break;
                 case MainEditorTabs.BCS:
                     switch (bcsTab)
@@ -185,18 +188,18 @@ namespace XenoKit.Engine
                             break;
                         case 1:
                             CurrentSceneState = EditorTabs.Effect_PBIND;
-                            ShowActorsInCurrentScene = false;
+                            ActorsEnable[0] = false;
                             break;
                         case 2:
                             CurrentSceneState = EditorTabs.Effect_TBIND;
-                            ShowActorsInCurrentScene = false;
+                            ActorsEnable[0] = false;
                             break;
                         case 3:
                             CurrentSceneState = EditorTabs.Effect_CBIND;
                             break;
                         case 4:
                             CurrentSceneState = EditorTabs.Effect_EMO;
-                            ShowActorsInCurrentScene = false;
+                            ActorsEnable[0] = false;
                             break;
                         case 5:
                             CurrentSceneState = EditorTabs.Effect_LIGHT;
@@ -290,7 +293,6 @@ namespace XenoKit.Engine
         /// Movement that occurs in a BAC entry is reverted by default when the entry ends. With this setting, that is disabled.
         /// </summary>
         public static bool RetainActionMovement = false;
-        public static bool ShowActorsInCurrentScene = true;
 
         public static bool Loop => SettingsManager.settings.XenoKit_Loop;
         public static bool AutoPlay => SettingsManager.settings.XenoKit_AutoPlay;
@@ -299,18 +301,48 @@ namespace XenoKit.Engine
         public static float BattleDamageScratches = 0f;
         public static float BattleDamageBlood = 0f;
 
-        //public static float BacTimeScale = 1f; //TimeScale specified by a TimeScale bacType
-        //public static float MainAnimTimeScale = 1f;
+        //Simulation Parameters
+        private static bool _victimIsFacingPrimary = true;
+        private static float _victimDistance = 2f;
+        public static bool VictimEnabled { get; set; } = false;
+        public static float VictimDistance
+        {
+            get => _victimDistance;
+            set
+            {
+                if (_victimDistance != value)
+                {
+                    _victimDistance = MathHelper.Clamp(value, -15f, 15f);
+                    Actors[1]?.ResetPosition();
+                }
+            }
+        }
+        public static bool VictimIsFacingPrimary
+        {
+            get => _victimIsFacingPrimary;
+            set
+            {
+                if (_victimIsFacingPrimary != value)
+                {
+                    _victimIsFacingPrimary = value;
+                    Actors[1]?.ResetPosition();
+                }
+            }
+        }
+        public static bool VictimIsGuarding { get; set; }
+
+        public static bool AllowBacLoop { get; set; }
+
         #endregion
 
         #region Actors
         public const int NumActors = 3;
         /// <summary>
-        /// All characters active in the current scene. (0 = Primary, 1 = Target, 2 = Partner)
+        /// All characters active in the current scene. (0 = Primary, 1 = Victim, 2 = Partner)
         /// </summary>
-        public static Actor[] Actors = new Actor[NumActors];
+        public readonly static Actor[] Actors = new Actor[NumActors];
 
-        public static bool[] ActorsEnable = new bool[3] { true, false, false };
+        public readonly static bool[] ActorsEnable = new bool[3] { true, true, false };
 
 
         /// <summary>
@@ -340,7 +372,7 @@ namespace XenoKit.Engine
 
                     switch (actorSlot)
                     {
-                        case 1: //Target
+                        case 1: //Victim
                             charId = 16;
                             break;
                     }
@@ -387,7 +419,15 @@ namespace XenoKit.Engine
             for (int i = 0; i < Actors.Length; i++)
             {
                 if (Actors[i] == character)
+                {
+                    if(i == 0 && CurrentSceneState == EditorTabs.Action)
+                    {
+                        Log.Add("Cannot change this actor while on the Action tab.", LogType.Error);
+                        return;
+                    }
+
                     Actors[i] = null;
+                }
             }
 
             //Remove previous actor from RenderDepthSystem
@@ -403,6 +443,11 @@ namespace XenoKit.Engine
             Stop();
 
             Log.Add($"{character.Name} set as the {GetActorName(actorSlot)} actor.");
+
+            if (actorSlot == 1)
+            {
+                VictimEnabled = true;
+            }
 
             ActorChanged?.Invoke(character, new ActorChangedEventArgs(character, actorSlot));
         }
@@ -420,6 +465,11 @@ namespace XenoKit.Engine
                 MainGameBase.RenderSystem.RemoveRenderEntity(actor);
 
                 Log.Add($"{actor.Name} removed as the {GetActorName(actorSlot)} actor.");
+
+                if(actorSlot == 1)
+                {
+                    VictimEnabled = false;
+                }
 
                 ActorChanged?.Invoke(null, new ActorChangedEventArgs(null, actorSlot));
             }
@@ -440,7 +490,7 @@ namespace XenoKit.Engine
                 case 0:
                     return "Primary";
                 case 1:
-                    return "Target";
+                    return "Victim";
                 default:
                     return charaIdx.ToString();
             }
@@ -549,10 +599,9 @@ namespace XenoKit.Engine
             if (CurrentSceneState == EditorTabs.Action)
             {
                 //Resimulate bac entry (if loaded)
-                for (int i = 0; i < Actors.Length; i++)
+                if (Actors[0] != null)
                 {
-                    if (Actors[i] != null)
-                        Actors[i].ActionControl.Resume();
+                    Actors[0].ActionControl.Resume();
                 }
             }
             else if (CurrentSceneState == EditorTabs.Animation)
@@ -601,14 +650,15 @@ namespace XenoKit.Engine
 
             }
 
-            //Goto first frame of animation
-            for (int i = 0; i < Actors.Length; i++)
+            if (Actors[0] != null)
             {
-                if (Actors[i] != null)
-                {
-                    Actors[i].AnimationPlayer.FirstFrame();
-                    Actors[i].ActionControl.Stop();
-                }
+                Actors[0].AnimationPlayer.FirstFrame();
+                Actors[0].ActionControl.Stop();
+            }
+
+            if (Actors[1] != null)
+            {
+                Actors[1].ResetState();
             }
 
             Inspector.InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.FirstFrame();
@@ -647,9 +697,9 @@ namespace XenoKit.Engine
             MainGameBase.IsPlaying = AutoPlay;
         }
 
-        public static void PlayCameraAnimation(EAN_File eanFile, EAN_Animation animation, BAC_Type10 bacCamEntry, int targetCharaIndex, bool autoTerminate = true)
+        public static void PlayCameraAnimation(EAN_File eanFile, EAN_Animation animation, BAC_Type10 bacCamEntry, Actor actor, int targetCharaIndex, bool autoTerminate = true)
         {
-            MainGameInstance.camera.PlayCameraAnimation(eanFile, animation, bacCamEntry, targetCharaIndex, autoTerminate);
+            MainGameInstance.camera.PlayCameraAnimation(eanFile, animation, bacCamEntry, actor, targetCharaIndex, autoTerminate);
         }
 
         /// <summary>
@@ -660,7 +710,7 @@ namespace XenoKit.Engine
         {
             ResetSceneCheck();
             EnsureActorIsSet(0);
-            MainGameInstance.camera.PlayCameraAnimation(eanFile, camera, null, 0, false, false);
+            MainGameInstance.camera.PlayCameraAnimation(eanFile, camera, null, Actors[0], 0, false, false);
 
             if (AutoPlay)
                 MainGameBase.IsPlaying = true;
@@ -683,7 +733,7 @@ namespace XenoKit.Engine
         public static void CameraSelectionChanged(EAN_File eanFile, EAN_Animation camera)
         {
             if (AutoPlay)
-                MainGameInstance.camera.PlayCameraAnimation(eanFile, camera, null, 0, false);
+                MainGameInstance.camera.PlayCameraAnimation(eanFile, camera, null, Actors[0], 0, false);
         }
 
         public static void CameraChangeCurrentFrame(int frame)

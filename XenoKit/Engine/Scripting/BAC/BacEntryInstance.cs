@@ -16,6 +16,10 @@ namespace XenoKit.Engine.Scripting.BAC
         /// </summary>
         public Actor User;
         /// <summary>
+        /// The actor this BAC entry is playing on.
+        /// </summary>
+        public Actor Actor;
+        /// <summary>
         /// The Move that this BAC entry belongs to. Required for retrieving skill EAN/CAM/BDM/BSA/ACBs. (Not required for Character/CMN)
         /// </summary>
         public Move SkillMove;
@@ -31,21 +35,26 @@ namespace XenoKit.Engine.Scripting.BAC
         public int Duration { get; private set; }
         public float ScaledDuration { get; private set; }
         public bool HasTimeScale { get; private set; }
-        public bool IsFinished { get; private set; }
+        public bool IsPreview { get; private set; }
+
+        //Loop:
+        public int CurrentLoop { get; set; } //0 = Initial, 1+ loops
+        public bool LoopEnabled = false;
+        public int LoopStartFrame = 0;
+        public int LoopEndFrame = 0;
+        public int LoopAnimationStartFrame = 0;
+        public int LoopCameraStartFrame = 0;
+        public bool LoopAllowIncomplete = true;
 
         //Position:
         /// <summary>
-        /// When the BAC entry ends playback, should the character position be reset?
-        /// </summary>
-        public bool RevertPosition;
-        /// <summary>
         /// The character position matrix when the BAC entry started.
         /// </summary>
-        public Matrix OriginalMatrix;
+        public Matrix[] OriginalMatrix;
 
         //Visual objects that render on screen as the entry plays. Currently only covers hitbox previews.
         //These have no actual logic and dont interact with anything. They are purely visual helpers.
-        public List<BacVisualCueObject> VisualSimulationCues = new List<BacVisualCueObject>(16);
+        public List<BacVisualCueObject> VisualSimulationCues;
 
         /// <summary>
         /// The currently active eye movement entry. Only one of these can be active at any given time.
@@ -56,18 +65,39 @@ namespace XenoKit.Engine.Scripting.BAC
         /// </summary>
         public int MainFaceAnimationEndTime = -1;
 
-        public BacEntryInstance(BAC_File bacFile, BAC_Entry bacEntry, Move currentMove, Actor user, bool revertPosition, Matrix originalMatrix)
+        public BacEntryInstance(BAC_File bacFile, BAC_Entry bacEntry, Move currentMove, Actor user, Actor actor, bool isPreview)
         {
             BacFile = bacFile;
             BacEntry = bacEntry;
             SkillMove = currentMove;
-            RevertPosition = revertPosition;
-            OriginalMatrix = originalMatrix;
             User = user;
+            Actor = actor;
             CalculateEntryDuration();
+
+            IsPreview = isPreview;
+
+            if (IsPreview)
+            {
+                VisualSimulationCues = new List<BacVisualCueObject>(16);
+                OriginalMatrix = new Matrix[3];
+                CreateMatrixRestorePoint();
+            }
+            else
+            {
+                VisualSimulationCues = null;
+                OriginalMatrix = null;
+            }
 
             if (BacEntry == null)
                 Log.Add($"Bac Entry {bacEntry} not found!", LogType.Error);
+        }
+
+        public void CreateMatrixRestorePoint()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                OriginalMatrix[i] = SceneManager.Actors[i] != null ? SceneManager.Actors[i].ActionMovementTransform * SceneManager.Actors[i].BaseTransform : Matrix.Identity;
+            }
         }
 
         #region AnimationLengthCalculation
@@ -187,11 +217,13 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             InScope = CurrentFrame < Duration;
 
+            UpdateVisualObjects();
+
             //Advance current frame
             if (User.GameBase.IsPlaying)
             {
                 PreviousFrame = CurrentFrame;
-                CurrentFrame += User.GameBase.ActiveTimeScale;
+                CurrentFrame += Actor.ActiveTimeScale;
             }
 
             IsFinished = CurrentFrame >= Duration;
@@ -214,7 +246,7 @@ namespace XenoKit.Engine.Scripting.BAC
         /// <summary>
         /// Checks if a StartTime is valid within the current context. 
         /// </summary>
-        public bool IsValidTime(ushort startFrame, ushort duration, int bacType)
+        public bool IsValidTime(ushort startFrame, ushort duration)
         {
             //If TimeScale skips a frame then still play any bac types that were missed.
             if (PreviousFrame < startFrame && CurrentFrame > startFrame && duration > 0) return true;
@@ -228,30 +260,67 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public void ResetState()
         {
-            ClearSimulationObjects();
+            ClearVisualObjects();
 
             IsFinished = false;
             ActiveEyeMovement = null;
             MainFaceAnimationEndTime = -1;
             CurrentFrame = 0;
             PreviousFrame = 0;
+            CurrentLoop = 0;
+            LoopEnabled = false;
+            LoopStartFrame = 0;
+            LoopEndFrame = 0;
 
-            if (SceneManager.RetainActionMovement)
+            if (SceneManager.RetainActionMovement && IsPreview)
             {
-                OriginalMatrix = User.Transform * Matrix.Invert(User.RootMotionTransform);
+                SceneManager.Actors[1]?.Controller.ResetState(false);
+                CreateMatrixRestorePoint();
             }
         }
 
         public void Dispose()
         {
-            ClearSimulationObjects();
+            InScope = false;
+            ClearVisualObjects();
         }
 
-        private void ClearSimulationObjects()
+        public void AddVisualObject(BAC_Type1 hitbox, GameBase game)
         {
-            foreach(BacVisualCueObject simObject in VisualSimulationCues)
+            if (IsPreview)
             {
-                simObject.Dispose();
+                if(VisualSimulationCues.FirstOrDefault(x => x.BacType == hitbox) == null)
+                {
+                    VisualSimulationCues.Add(new HitboxPreview(hitbox, this, game));
+                }
+            }
+        }
+
+        private void UpdateVisualObjects()
+        {
+            if (!IsPreview) return;
+
+            for (int i = VisualSimulationCues.Count - 1; i >= 0; i--)
+            {
+                if (VisualSimulationCues[i].IsValidForCurrentFrame())
+                {
+                    VisualSimulationCues[i].Update();
+                }
+                else
+                {
+                    VisualSimulationCues[i].Dispose();
+                    VisualSimulationCues.RemoveAt(i);
+                }
+            }
+        }
+
+        private void ClearVisualObjects()
+        {
+            if (!IsPreview) return;
+
+            foreach(BacVisualCueObject visualCue in VisualSimulationCues)
+            {
+                visualCue.Dispose();
             }
 
             VisualSimulationCues.Clear();

@@ -60,13 +60,16 @@
                         </DataGridTemplateColumn.CellEditingTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Flag" Width="*" Binding="{Binding FlagStr}" IsReadOnly="True" Visibility="Collapsed"/> <!-- Unsure if should keep at this level? -->
-                    <DataGridTextColumn x:Name="nameColumn" Header="Name" Width="2.5*" Binding="{Binding MovesetBacEntryName}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Name" Width="2.5*" Binding="{Binding MovesetBacEntryName}" IsReadOnly="True" x:Name="nameHeader"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
-                        <MenuItem Header="Play" Command="{Binding PlayBacEntryCommand}"/>
+                        <MenuItem Header="Hide Empty" IsCheckable="True" IsChecked="{Binding HideEmptryBacEntries}"/>
                         <Separator/>
                         <MenuItem Header="Add" Command="{Binding AddBacEntryCommand}"/>
+                        <MenuItem Header="Add At Specific ID" Command="{Binding AddBacEntryAtSpecificIDCommand}"/>
+                        <MenuItem Header="Override CMN Moveset Function" Command="{Binding OverrideCMNCommand}" x:Name="cmnOverrideMenu"/>
+                        <Separator/>
                         <MenuItem Header="Copy" Command="{Binding CopyBacEntryCommand}"/>
                         <MenuItem Header="Paste (New)" Command="{Binding PasteBacEntryCommand}"/>
                         <MenuItem Header="Paste (Replace)" Command="{Binding PasteReplaceBacEntryCommand}"/>
@@ -80,7 +83,7 @@
             <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0" VerticalAlignment="Top">
                 <StackPanel.Resources>
                     <Style TargetType="{x:Type StackPanel}">
-                        <Setter Property="Margin" Value="10,0,0,0"/>
+                        <Setter Property="Margin" Value="7,0,0,0"/>
                     </Style>
                     <Style TargetType="{x:Type Grid}">
                         <Setter Property="Margin" Value="5,0,0,0"/>
@@ -92,9 +95,21 @@
                     <Button Command="{Binding AddBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Plus"/>
                     </Button>
-                    <TextBlock Text="New" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="8"/>
                 </StackPanel>
-
+                <StackPanel ToolTip="Add a new action entry at a specific ID" VerticalAlignment="Center">
+                    <Button Command="{Binding AddBacEntryAtSpecificIDCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                        <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                    </Button>
+                    <TextBlock Text="Add..." HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+                <StackPanel ToolTip="Override a common moveset action (CMN.bac)." VerticalAlignment="Center" Visibility="{Binding ElementName=UserControl, Path=IsMovesetBac, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Button Command="{Binding OverrideCMNCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                        <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                    </Button>
+                    <TextBlock Text="CMN..." HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+                
                 <StackPanel VerticalAlignment="Center">
                     <Button Command="{Binding RemoveBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Delete"/>

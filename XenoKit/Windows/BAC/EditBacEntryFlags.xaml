@@ -19,7 +19,6 @@
                 <CheckBox Content="Unk2" IsChecked="{Binding Flag_Unk2}" />
                 <CheckBox Content="Unk3" IsChecked="{Binding Flag_Unk3}" />
                 <CheckBox Content="Unk7" IsChecked="{Binding Flag_Unk7}"/>
-                <CheckBox Content="Empty" IsChecked="{Binding Flag_Unk32}"/>
             </StackPanel>
         </StackPanel>
     </Grid>

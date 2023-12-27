@@ -29,7 +29,7 @@
                         <CheckBox Content="Disable Effect" ToolTip="Disable the aura (if active)." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_DisableAura, UpdateSourceTrigger=Default}"/>
                         <CheckBox Content="Unk2" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk2, UpdateSourceTrigger=Default}"/>
                         <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
-                        <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}"/>
+                        <CheckBox Content="Loop With Action" ToolTip="When enabled, this Effect will loop with any loop currently active." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType19View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}"/>
 
                     </StackPanel>
                 </StackPanel>

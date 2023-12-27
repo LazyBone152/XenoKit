@@ -20,6 +20,7 @@ using XenoKit.Engine.Pool;
 using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Shader;
 using Xv2CoreLib.Resource.App;
+using XenoKit.Engine.Scripting;
 
 namespace XenoKit.Engine
 {
@@ -41,25 +42,13 @@ namespace XenoKit.Engine
         public RenderSystem RenderSystem { get; protected set; }
         public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
         public ObjectPoolManager ObjectPoolManager { get; private set; }
+        public Simulation Simulation { get; private set; }
 
         //Engine Values:
         public virtual bool IsMainInstance => false;
         public bool IsPlaying = false;
         public bool RenderCharacters = true;
         public bool WireframeMode = false;
-        public float BacTimeScale = 1f;
-        public float AnimationTimeScale = 1f;
-        public float ActiveTimeScale
-        {
-            get
-            {
-                if (IsMainInstance)
-                {
-                    return (SceneManager.CurrentSceneState == EditorTabs.Action) ? BacTimeScale * AnimationTimeScale : 1f;
-                }
-                return 1f; //No instance other than the main uses a time scale currently
-            }
-        }
 
         //Entity
         protected List<Entity> Entities = new List<Entity>(1000);
@@ -92,6 +81,7 @@ namespace XenoKit.Engine
             LightSource = new DirLight(this);
             ObjectPoolManager = new ObjectPoolManager(this);
             ShaderManager = new ShaderManager(this);
+            Simulation = new Simulation(this);
         }
 
         private void DelayedTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -187,12 +177,6 @@ namespace XenoKit.Engine
 
         #endregion
 
-        public void SetBacTimeScale(float timeScale, bool reset)
-        {
-            if (reset) BacTimeScale = 1f;
-            BacTimeScale *= timeScale;
-        }
-    
         protected virtual void CheckHotkeys()
         {
             if(HotkeyCooldown == 0)

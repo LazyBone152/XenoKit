@@ -65,11 +65,11 @@ namespace XenoKit.Controls
                     case EditorTabs.Action:
                         if (SceneManager.Actors[0].ActionControl.BacPlayer.IsScaled)
                         {
-                            return $"(TimeScale: {SceneManager.ActiveTimeScale.ToString("0.00####")} -> {SceneManager.Actors[0].ActionControl.BacPlayer.ScaledDuration})";
+                            return $"(TimeScale: {SceneManager.Actors[0].ActiveTimeScale.ToString("0.00####")} -> {SceneManager.Actors[0].ActionControl.BacPlayer.ScaledDuration})";
                         }
                         else
                         {
-                            return $"(TimeScale: {SceneManager.ActiveTimeScale.ToString("0.00####")})";
+                            return $"(TimeScale: {SceneManager.Actors[0].ActiveTimeScale.ToString("0.00####")})";
                         }
                 }
                 return "";
@@ -208,6 +208,17 @@ namespace XenoKit.Controls
                     SettingsManager.settings.XenoKit_Loop = value;
                     SettingsManager.Instance.SaveSettings();
                 }
+            }
+        }
+        public bool BacLoop
+        {
+            get
+            {
+                return SceneManager.AllowBacLoop;
+            }
+            set
+            {
+                SceneManager.AllowBacLoop = value;
             }
         }
         public bool AutoPlay
@@ -382,6 +393,7 @@ namespace XenoKit.Controls
 
         private void UpdateOptions()
         {
+            bacLoopCheckBox.Visibility = Visibility.Collapsed;
             cameraCheckBox.Visibility = Visibility.Collapsed;
             audioCheckBox.Visibility = Visibility.Collapsed;
             bonesCheckBox.Visibility = Visibility.Collapsed;
@@ -400,6 +412,7 @@ namespace XenoKit.Controls
 
             if (SceneManager.IsOnTab(EditorTabs.Action))
             {
+                bacLoopCheckBox.Visibility = Visibility.Visible;
                 audioCheckBox.Visibility = Visibility.Visible;
                 hitboxCheckBox.Visibility = Visibility.Visible;
             }

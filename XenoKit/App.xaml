@@ -55,7 +55,7 @@
                         <Setter Property="FontSize" Value="11"/>
                     </Style>
                 </ResourceDictionary>
-        </ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>
 </Application>

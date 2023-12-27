@@ -4,37 +4,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XenoKit.Editor;
+using XenoKit.Engine.Scripting.BAC.Simulation;
 using Xv2CoreLib.BAC;
 
 namespace XenoKit.Engine.Scripting.BAC
 {
     public enum SimulationType
     {
-        ActionPreview, //Action Tab: previewing BAC entries
-        StatePreview, //State Tab: previewing BCM entry execution and input (not implemented)
+        ActionDirect, //Playing a BAC entry directly (used for previewing and by ActorController)
+        BCM, //Full simulation of a BCM chain (currently not implemented)
         None,
     }
 
     public class ActionControl : Entity
     {
-        public SimulationType SimulationType
-        {
-            get
-            {
-                switch (SceneManager.CurrentSceneState)
-                {
-                    case EditorTabs.Action:
-                        return SimulationType.ActionPreview;
-                    case EditorTabs.State:
-                        return SimulationType.StatePreview;
-                    default:
-                        return SimulationType.None;
-                }
-            }
-        }
+        public SimulationType SimulationType { get; private set; }
+        public ActionPreviewState PreviewState { get; private set; }
 
         public Actor Character;
         public BacPlayer BacPlayer;
+
+        public event ActionFinishedEventHandler ActionFinished;
 
         public ActionControl(Actor parent, GameBase gameBase) : base(gameBase)
         {
@@ -45,24 +35,39 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public override void Update()
         {
-            if (SimulationType == SimulationType.None && BacPlayer.HasBacEntry && GameBase.IsPlaying)
+            //Check Preview Scope
+            if (GameBase.IsPlaying && BacPlayer.IsPreview && SceneManager.CurrentSceneState != EditorTabs.Action)
             {
                 BacPlayer.ClearBacEntry();
+                SimulationType = SimulationType.None;
             }
 
-            if (SimulationType == SimulationType.ActionPreview && BacPlayer.HasBacEntry)
+
+            if (SimulationType == SimulationType.ActionDirect && BacPlayer.HasBacEntry)
             {
-                if (BacPlayer.CurrentDuration <= BacPlayer.CurrentFrame && GameBase.IsPlaying)
+                if (BacPlayer.CurrentDuration <= BacPlayer.CurrentFrame && (GameBase.IsPlaying || Character.ActorSlot != 0))
                 {
-                    if (BacPlayer.BacEntryInstance.IsFinished)
+                    PreviewState = BacPlayer.IsPreview ? DeterminePreviewState() : ActionPreviewState.Finished;
+
+                    if (BacPlayer.BacEntryInstance.IsFinished && PreviewState == ActionPreviewState.Finished)
                     {
-                        if (SceneManager.Loop)
+                        if (BacPlayer.IsPreview)
                         {
-                            BacPlayer.ResetBacState();
+                            if (SceneManager.Loop)
+                            {
+                                BacPlayer.ResetBacPreviewState();
+                            }
+                            else
+                            {
+                                GameBase.IsPlaying = false;
+                            }
                         }
                         else
                         {
-                            GameBase.IsPlaying = false;
+                            BAC_Entry entry = BacPlayer.BacEntryInstance.BacEntry;
+                            SimulationType = SimulationType.None;
+                            BacPlayer.ClearBacEntry();
+                            ActionFinished?.Invoke(this, new ActionFinishedEventArgs(entry));
                         }
                     }
                 }
@@ -73,7 +78,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public override void DelayedUpdate()
         {
-            if (SimulationType == SimulationType.ActionPreview && BacPlayer.HasBacEntry)
+            if (SimulationType == SimulationType.ActionDirect && BacPlayer.HasBacEntry)
             {
                 BacPlayer.DelayedUpdate();
             }
@@ -81,19 +86,26 @@ namespace XenoKit.Engine.Scripting.BAC
 
         public override void Draw()
         {
-            if(BacPlayer.BacEntryInstance != null)
+            if(BacPlayer.BacEntryInstance?.IsPreview == true)
             {
-                foreach(var visualCue in BacPlayer.BacEntryInstance.VisualSimulationCues)
+                foreach(BacVisualCueObject visualCue in BacPlayer.BacEntryInstance.VisualSimulationCues)
                 {
                     visualCue.Draw();
                 }
             }
         }
 
+        public void PlayBacEntry(BAC_File bacFile, BAC_Entry bacEntry, Move move = null, Actor user = null)
+        {
+            BacPlayer.PlayBacEntry(bacFile, bacEntry, (user != null) ? user : Character, move);
+            SimulationType = SimulationType.ActionDirect;
+        }
+
         public void PreviewBacEntry(BAC_File bacFile, BAC_Entry bacEntry, Move move = null, Actor user = null)
         {
             if (!BacPlayer.HasBacEntry) Character.ResetPosition();
             BacPlayer.PlayBacEntryPreview(bacFile, bacEntry, (user != null) ? user : Character, move);
+            SimulationType = SimulationType.ActionDirect;
         }
 
         public bool IsBacEntryActive(BAC_Entry bacEntry)
@@ -101,9 +113,23 @@ namespace XenoKit.Engine.Scripting.BAC
             return BacPlayer.BacEntryInstance?.BacEntry == bacEntry;
         }
 
+        private ActionPreviewState DeterminePreviewState()
+        {
+            if(BacPlayer.BacEntryInstance == null) return ActionPreviewState.Finished;
+            if (BacPlayer.CurrentDuration > BacPlayer.CurrentFrame) return ActionPreviewState.Running;
+
+            if (SceneManager.Actors[1] != null)
+            {
+                if (SceneManager.Actors[1].Controller.State != Engine.Character.ActorState.Idle) 
+                    return ActionPreviewState.WaitingVictim;
+            }
+
+            return ActionPreviewState.Finished;
+        }
+
         private void SceneManager_BacValuesChanged(object sender, EventArgs e)
         {
-            if (SimulationType == SimulationType.ActionPreview)
+            if (SimulationType == SimulationType.ActionDirect && Character.ActorSlot == 0)
                 BacPlayer.DelayedResimulate = true;
         }
 
@@ -115,5 +141,25 @@ namespace XenoKit.Engine.Scripting.BAC
         public void ClearBacPlayer() { BacPlayer.ClearBacEntry(); }
 
         #endregion
+    }
+
+    public delegate void ActionFinishedEventHandler(object source, ActionFinishedEventArgs e);
+
+    public class ActionFinishedEventArgs : EventArgs
+    {
+        public BAC_Entry BacEntry { get; private set; }
+
+        public ActionFinishedEventArgs(BAC_Entry bacEntry)
+        {
+            BacEntry = bacEntry;
+        }
+    }
+
+    public enum ActionPreviewState
+    {
+        Running,
+        Finished,
+        WaitingProjectiles,
+        WaitingVictim
     }
 }

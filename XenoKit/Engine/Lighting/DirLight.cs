@@ -25,6 +25,7 @@ namespace XenoKit.Engine.Lighting
 
             if (SettingsManager.settings.XenoKit_EnableDynamicLighting)
             {
+                //Direction = Vector4.Transform(new Vector4(-0.415f, 0.1f, -0.5f, 0), GameBase.ActiveCameraBase.TestViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
                 Direction = Vector4.Transform(new Vector4(-0.415f, 0.1f, -0.5f, 0), GameBase.ActiveCameraBase.TestViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
                 Direction = new Vector4(MathHelper.Clamp(Direction.X * 0.6f, -0.05f, 2f), 0.0f, MathHelper.Clamp(Direction.Z, -1f, 1f), 0f);
 
@@ -39,24 +40,13 @@ namespace XenoKit.Engine.Lighting
             Position *= 2f;
         }
 
-        public void SetDirection(Vector3 direction)
+        public Vector4 GetLightDirection(int actorSlot)
         {
-            Direction = new Vector4(direction.X, direction.Y, direction.Z, 0f);
-        }
+            //Temp hacky way to handle dynamic lighting. Apply Dynamic lighting to Actor 0 only, as it is broken on all other actors... i think because of their positioning. Need to look into this later.
+            if (actorSlot == 0)
+                return Direction;
 
-        public void SetDirection(Vector4 direction)
-        {
-            Direction = direction;
-        }
-
-        public void SetPosition(Vector3 position)
-        {
-            Position = new Vector4(position.X, position.Y, position.Z, 0f);
-        }
-
-        public void SetPosition(Vector4 position)
-        {
-            Position = position;
+            return DefaultLightDirection;
         }
 
         public Vector3 GetLightPosition()
@@ -67,14 +57,6 @@ namespace XenoKit.Engine.Lighting
         public Vector3 GetLightDirection()
         {
             return new Vector3(Direction.X, Direction.Y, Direction.Z);
-        }
-
-        public Vector4 GetLightDirection(Vector3 position)
-        {
-            //Vector4 vector = Position - new Vector4(position.X, position.Y, position.Z, 0);
-            Vector4 vector = Position;
-            vector.Normalize();
-            return vector;
         }
 
     }

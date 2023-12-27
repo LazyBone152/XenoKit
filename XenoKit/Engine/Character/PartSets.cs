@@ -85,6 +85,10 @@ namespace XenoKit.Engine
 
             //Load fce.ean
             GetFceEan();
+
+            //Create hitbox for character
+            GetAABB();
+            
         }
 
         public void LoadPart(int index, bool fetchPartSet = true, bool loadFlags = true)
@@ -527,6 +531,38 @@ namespace XenoKit.Engine
             return eye != null ? eye.part.F_40 : 1f;
         }
 
+        public void GetAABB()
+        {
+            for(int i = 0; i < Parts.Length; i++)
+            {
+                if (Parts[i]?.EmdFile != null)
+                {
+                    foreach(EMD_Model model in Parts[i].EmdFile.Models)
+                    {
+                        foreach(EMD_Mesh mesh in model.Meshes)
+                        {
+                            if(mesh.AABB.MinX < chara.AABB[0])
+                                chara.AABB[0] = mesh.AABB.MinX;
+
+                            if (mesh.AABB.MinY < chara.AABB[1])
+                                chara.AABB[1] = mesh.AABB.MinY;
+
+                            if (mesh.AABB.MinZ < chara.AABB[2])
+                                chara.AABB[2] = mesh.AABB.MinZ;
+
+                            if (mesh.AABB.MaxX > chara.AABB[3])
+                                chara.AABB[3] = mesh.AABB.MaxX;
+
+                            if (mesh.AABB.MaxY > chara.AABB[4])
+                                chara.AABB[4] = mesh.AABB.MaxY;
+
+                            if (mesh.AABB.MaxZ > chara.AABB[5])
+                                chara.AABB[5] = mesh.AABB.MaxZ;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public class CharaPart : Entity
@@ -553,7 +589,7 @@ namespace XenoKit.Engine
 
         //Source Files:
         private bool nullPartSet = false;
-        private EMD_File EmdFile = null;
+        public EMD_File EmdFile { get; private set; }
         private EMM_File EmmFile = null;
         private EMB_File EmbFile = null;
         private EMB_File DytFile = null;
@@ -1242,7 +1278,7 @@ namespace XenoKit.Engine
 
             if (Model != null)
             {
-                Model.Draw(chara.Transform, 0, Materials, Textures, Dyts, texIdx, Skeleton);
+                Model.Draw(chara.Transform, chara.ActorSlot, Materials, Textures, Dyts, texIdx, Skeleton);
             }
         }
 
@@ -1374,6 +1410,7 @@ namespace XenoKit.Engine
 
             return 0;
         }
+    
     }
 
     public class CustomColorGroup

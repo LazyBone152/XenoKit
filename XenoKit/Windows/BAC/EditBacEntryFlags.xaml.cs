@@ -75,18 +75,7 @@ namespace XenoKit.Windows.BAC
                 NotifyPropertyChanged(nameof(Flag_Unk7));
             }
         }
-        public bool Flag_Unk32
-        {
-            get
-            {
-                return bacEntry.Flag.HasFlag(BAC_Entry.Flags.Empty);
-            }
-            set
-            {
-                SetBacFlags(BAC_Entry.Flags.Empty, value);
-                NotifyPropertyChanged(nameof(Flag_Unk7));
-            }
-        }
+
 
 
         public EditBacEntryFlags(BAC_Entry bac, Window parent)
@@ -110,7 +99,6 @@ namespace XenoKit.Windows.BAC
             NotifyPropertyChanged(nameof(Flag_Unk2));
             NotifyPropertyChanged(nameof(Flag_Unk3));
             NotifyPropertyChanged(nameof(Flag_Unk7));
-            NotifyPropertyChanged(nameof(Flag_Unk32));
         }
 
         private void SetBacFlags(BAC_Entry.Flags flag, bool state)
