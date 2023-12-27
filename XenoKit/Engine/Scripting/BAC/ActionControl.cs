@@ -42,13 +42,12 @@ namespace XenoKit.Engine.Scripting.BAC
                 SimulationType = SimulationType.None;
             }
 
+            PreviewState = BacPlayer.IsPreview ? DeterminePreviewState() : ActionPreviewState.Finished;
 
             if (SimulationType == SimulationType.ActionDirect && BacPlayer.HasBacEntry)
             {
                 if (BacPlayer.CurrentDuration <= BacPlayer.CurrentFrame && (GameBase.IsPlaying || Character.ActorSlot != 0))
                 {
-                    PreviewState = BacPlayer.IsPreview ? DeterminePreviewState() : ActionPreviewState.Finished;
-
                     if (BacPlayer.BacEntryInstance.IsFinished && PreviewState == ActionPreviewState.Finished)
                     {
                         if (BacPlayer.IsPreview)

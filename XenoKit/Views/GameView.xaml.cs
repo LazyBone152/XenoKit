@@ -75,6 +75,29 @@ namespace XenoKit.Controls
                 return "";
             }
         }
+        public string StateExtraInfo
+        {
+            get
+            {
+                switch (SceneManager.CurrentSceneState)
+                {
+                    case EditorTabs.Action:
+                        {
+                            switch (SceneManager.Actors[0].ActionControl.PreviewState)
+                            {
+                                case Engine.Scripting.BAC.ActionPreviewState.WaitingVictim:
+                                    return "Waiting on victim...";
+                                case Engine.Scripting.BAC.ActionPreviewState.WaitingProjectiles:
+                                    return "Waiting on projectiles...";
+                                default:
+                                    return null;
+                            }
+                        }
+                    default:
+                        return null;
+                }
+            }
+        }
         public int MaxFrameValue
         {
             get
@@ -383,6 +406,7 @@ namespace XenoKit.Controls
         {
             NotifyPropertyChanged(nameof(CurrentFramePreview));
             NotifyPropertyChanged(nameof(TimeScale));
+            NotifyPropertyChanged(nameof(StateExtraInfo));
             NotifyPropertyChanged(nameof(StandardOverlay));
             NotifyPropertyChanged(nameof(VfxOverlay));
             NotifyPropertyChanged(nameof(DebugOverlay));

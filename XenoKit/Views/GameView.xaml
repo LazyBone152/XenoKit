@@ -19,7 +19,7 @@
 
         <!-- TODO sometime: FIX this all to use RowDefs -->
 
-        <StackPanel Grid.Row="1" Margin="175,0,-57,53" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="382">
+        <StackPanel Grid.Row="1" Margin="175,0,-57,53" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="452">
 
             <StackPanel Orientation="Horizontal">
                 <Button Click="Play_Click"  Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
@@ -37,6 +37,7 @@
             </StackPanel>
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                 <Label VerticalContentAlignment="Center" Content="{Binding ElementName=UserControl, Path=TimeScale}" FontSize="12"/>
+                <Label VerticalContentAlignment="Center" Content="{Binding ElementName=UserControl, Path=StateExtraInfo}" FontSize="12" Margin="10, 0,0,0" FontStyle="Normal"/>
             </StackPanel>
         </StackPanel>
 
