@@ -830,6 +830,13 @@ namespace XenoKit.Controls
             bacEntryDataGrid.ScrollIntoView(entry);
         }
 
+        public void SetSelectedBacType(IBacType bacType)
+        {
+            timeline.SetSelectedItem(bacType, false);
+            bacTypeDataGrid.SelectedItem = bacType;
+            bacTypeDataGrid.ScrollIntoView(bacType);
+        }
+
         public void AutoPlayBacEntry()
         {
             //Auto plays selected bac entry IF its not already active. Used for swapping tabs.

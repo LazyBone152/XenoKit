@@ -91,7 +91,7 @@
                 </StackPanel.Resources>
 
 
-                <StackPanel VerticalAlignment="Center">
+                <StackPanel VerticalAlignment="Center" ToolTip="Add Entry">
                     <Button Command="{Binding AddBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Plus"/>
                     </Button>
@@ -110,7 +110,7 @@
                     <TextBlock Text="CMN..." HorizontalAlignment="Center" FontSize="8"/>
                 </StackPanel>
                 
-                <StackPanel VerticalAlignment="Center">
+                <StackPanel VerticalAlignment="Center" ToolTip="Remove Entry">
                     <Button Command="{Binding RemoveBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Delete"/>
                     </Button>

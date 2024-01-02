@@ -12,6 +12,8 @@ using Xv2CoreLib;
 using Xv2CoreLib.Resource;
 using System.IO;
 using Xv2CoreLib.Resource.UndoRedo;
+using Xv2CoreLib.BAC;
+using MahApps.Metro.Controls;
 
 //Originally based on the code from this article: https://www.codeproject.com/articles/240411/wpf-timeline-control-part-i
 //Extensively modified to better suit the needs of a frame based timeline, with some new features added and several unnecessary features removed
@@ -154,7 +156,7 @@ namespace XenoKit.Views.TimeLines
 
         private static bool IsTimingCollision(ITimeLineItem item, IList<ITimeLineItem> items)
         {
-            foreach(ITimeLineItem current in items.Where(x => x.Layer == item.Layer && x.LayerGroup == item.LayerGroup))
+            foreach (ITimeLineItem current in items.Where(x => x.Layer == item.Layer && x.LayerGroup == item.LayerGroup && x != item))
             {
                 int currentEndTime = current.TimeLine_StartTime + current.TimeLine_Duration;
                 int endTime = item.TimeLine_StartTime + item.TimeLine_Duration;
@@ -164,7 +166,7 @@ namespace XenoKit.Views.TimeLines
                     return true;
 
                 //StartTime is before another entry, but it ends within another
-                if (item.TimeLine_StartTime < current.TimeLine_StartTime && endTime >= current.TimeLine_StartTime)
+                if (item.TimeLine_StartTime < current.TimeLine_StartTime && endTime > current.TimeLine_StartTime)
                     return true;
             }
 
@@ -258,6 +260,7 @@ namespace XenoKit.Views.TimeLines
             endBinding.Mode = BindingMode.OneWay;
 
             TimeLineItemControl adder = new TimeLineItemControl(ParentTimeLine, data.LayerGroup == 0);
+            adder.Opacity = ParentTimeLine.GetTimeLineItemOpacity(data);
             adder.DataContext = data;
             adder.Content = data;
 
@@ -438,72 +441,71 @@ namespace XenoKit.Views.TimeLines
             switch (e.Action)
             {
                 case TimeLineAction.Move:
-                    double chainGap = double.MaxValue;
                     if (direction > 0)
                     {
-                        //find chain connecteds that are after this one
-                        //delta each one in that chain that we are pushing
-                        List<TimeLineItemControl> afterChain = GetTimeLineForwardChain(ctrl, afterIndex, ref chainGap);
-                        List<ITimeLineItem> items = GetTimeLineItemChain(afterChain);
+                        List<ITimeLineItem> items = new List<ITimeLineItem>();
 
-                        if (chainGap < useDeltaX)
-                            useDeltaX = chainGap;
+                        List<TimeLineItemControl> afterChain = GetAfterChain(ctrl, out int stopFrame);
+                        afterChain.Add(ctrl);
 
-                        //Set chain to use the same floating start and duration, normalizing the movement of all items.
-                        if(afterChain.Count > 1)
+                        float floatingStartTime = 0;
+                        float floatingDuration = 0;
+                        bool setFloatValues = false;
+
+                        foreach (TimeLineItemControl item in afterChain.OrderByDescending(x => x.StartTime))
                         {
-                            for(int i = 1; i < afterChain.Count; i++)
+                            if (!setFloatValues)
                             {
-                                afterChain[i].SetFloatingStartAndDuration(afterChain[0].StartTimeFloat, afterChain[0].DurationFloat);
+                                floatingStartTime = item.StartTimeFloat;
+                                floatingDuration = item.DurationFloat;
+                                setFloatValues = true;
                             }
+
+                            items.Add(item.DataContext as ITimeLineItem);
+                            item.SetFloatingStartAndDuration(floatingStartTime, floatingDuration);
+                            item.MoveMe(useDeltaX, undos, -1, stopFrame);
+
+                            stopFrame = item.StartTime;
                         }
 
-                        foreach (TimeLineItemControl ti in afterChain)
-                        {
-                            ti.MoveMe(useDeltaX, undos);
-                        }
-
-                        if(undos.Count > 0)
+                        if (undos.Count > 0)
                         {
                             UndoManager.Instance.AddCompositeUndo(undos, "Move", ParentTimeLine.UndoGroup, "Move", items);
-
-                            //For some reason the view model wont react to the StartTime being changed in the underlying BAC Type when Move is used... the PropertyChanged event just never fires. So to work around this, an undo event is forced here, which the view model can respond too
-                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "ViewModelUpdate", ctrl.DataContext);
+                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", items);
                         }
-
-
                     }
-                    if (direction < 0)
+                    else if (direction < 0)
                     {
-                        bool previousBackToStart = false;
-                        List<TimeLineItemControl> previousChain = GetTimeLineBackwardsChain(ctrl, previousIndex, ref previousBackToStart, ref chainGap);
-                        List<ITimeLineItem> items = GetTimeLineItemChain(previousChain);
+                        List<ITimeLineItem> items = new List<ITimeLineItem>();
 
-                        //Set chain to use the same floating start and duration, normalizing the movement of all items.
-                        if (previousChain.Count > 1)
+                        List<TimeLineItemControl> beforeChain = GetBeforeChain(ctrl, out int stopFrame);
+                        beforeChain.Add(ctrl);
+
+                        float floatingStartTime = 0;
+                        float floatingDuration = 0;
+                        bool setFloatValues = false;
+
+                        foreach (TimeLineItemControl item in beforeChain.OrderBy(x => x.StartTime))
                         {
-                            for (int i = 1; i < previousChain.Count; i++)
+                            if (item.StartTime == 0) break;
+                            if (!setFloatValues)
                             {
-                                previousChain[i].SetFloatingStartAndDuration(previousChain[0].StartTimeFloat, previousChain[0].DurationFloat);
+                                floatingStartTime = item.StartTimeFloat;
+                                floatingDuration = item.DurationFloat;
+                                setFloatValues = true;
                             }
+
+                            items.Add(item.DataContext as ITimeLineItem);
+                            item.SetFloatingStartAndDuration(floatingStartTime, floatingDuration);
+                            item.MoveMe(useDeltaX, undos, stopFrame);
+
+                            stopFrame = item.StartTime + item.Duration;
                         }
 
-                        if (-chainGap > useDeltaX)
-                        {
-                            useDeltaX = chainGap;
-                        }
-                        if (!previousBackToStart)
-                        {
-                            foreach (TimeLineItemControl ti in previousChain)
-                            {
-                                ti.MoveMe(useDeltaX, undos);
-                            }
-                        }
-
-                        if(undos.Count > 0)
+                        if (undos.Count > 0)
                         {
                             UndoManager.Instance.AddCompositeUndo(undos, "Move", ParentTimeLine.UndoGroup, "Move", items);
-                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "ViewModelUpdate", ctrl.DataContext);
+                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", items);
                         }
                     }
                     break;
@@ -539,6 +541,7 @@ namespace XenoKit.Views.TimeLines
                             }
 
                             UndoManager.Instance.AddCompositeUndo(undos, "Stretch Start Time", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
+                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
 
                             break;
                         case TimeLineManipulationMode.Free:
@@ -576,6 +579,7 @@ namespace XenoKit.Views.TimeLines
                                 ctrl.MoveStartTime(useDeltaX, undos);
 
                                 UndoManager.Instance.AddCompositeUndo(undos, "Stretch Start Time", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
+                                UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
                             }
                             break;
                         default:
@@ -614,6 +618,7 @@ namespace XenoKit.Views.TimeLines
                             }
 
                             UndoManager.Instance.AddCompositeUndo(undos, "Stretch Duration", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
+                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
                             break;
                         case TimeLineManipulationMode.Free:
                             double nextGap = double.MaxValue;
@@ -638,6 +643,7 @@ namespace XenoKit.Views.TimeLines
                                 ctrl.MoveEndTime(useDeltaX, undos);
 
                                 UndoManager.Instance.AddCompositeUndo(undos, "Stretch Duration", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
+                                UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
                             }
 
                             break;
@@ -859,6 +865,93 @@ namespace XenoKit.Views.TimeLines
             return Children[i] as TimeLineItemControl;
         }
 
+        private List<TimeLineItemControl> GetAllControlsBefore(TimeLineItemControl mainCtrl)
+        {
+            List<TimeLineItemControl> ctrls = new List<TimeLineItemControl>();
+            int beforeFrame = mainCtrl.StartTime;
+
+            foreach (var ctrl in Children)
+            {
+                if (ctrl is TimeLineItemControl timelineItem)
+                {
+                    if (timelineItem.StartTime < beforeFrame)
+                    {
+                        ctrls.Add(timelineItem);
+                    }
+                }
+            }
+
+            return ctrls;
+        }
+
+        private List<TimeLineItemControl> GetAllControlsAfter(TimeLineItemControl mainCtrl)
+        {
+            List<TimeLineItemControl> ctrls = new List<TimeLineItemControl>();
+            int afterFrame = mainCtrl.StartTime;
+
+            foreach (var ctrl in Children)
+            {
+                if (ctrl is TimeLineItemControl timelineItem)
+                {
+                    if (timelineItem.StartTime > afterFrame)
+                    {
+                        ctrls.Add(timelineItem);
+                    }
+                }
+            }
+
+            return ctrls;
+        }
+
+        private List<TimeLineItemControl> GetBeforeChain(TimeLineItemControl mainCtrl, out int prevEntryFrame)
+        {
+            List<TimeLineItemControl> ctrls = new List<TimeLineItemControl>();
+
+            if (mainCtrl.StartTime != 0)
+            {
+                int frameToCheck = mainCtrl.StartTime;
+
+                foreach (TimeLineItemControl ctrl in GetAllControlsBefore(mainCtrl).OrderByDescending(x => x.StartTime))
+                {
+                    if (ctrl.StartTime + ctrl.Duration >= frameToCheck)
+                    {
+                        ctrls.Add(ctrl);
+                        frameToCheck = ctrl.StartTime;
+                    }
+                    else
+                    {
+                        prevEntryFrame = ctrl.StartTime + ctrl.Duration;
+                        return ctrls;
+                    }
+                }
+            }
+
+            prevEntryFrame = -1;
+            return ctrls;
+        }
+
+        private List<TimeLineItemControl> GetAfterChain(TimeLineItemControl mainCtrl, out int nextEntryFrame)
+        {
+            List<TimeLineItemControl> ctrls = new List<TimeLineItemControl>();
+            int frameToCheck = mainCtrl.StartTime + mainCtrl.Duration;
+
+            foreach (TimeLineItemControl ctrl in GetAllControlsAfter(mainCtrl).OrderBy(x => x.StartTime))
+            {
+                if (ctrl.StartTime <= frameToCheck)
+                {
+                    ctrls.Add(ctrl);
+                    frameToCheck = ctrl.StartTime + ctrl.Duration;
+                }
+                else
+                {
+                    nextEntryFrame = ctrl.StartTime;
+                    return ctrls;
+                }
+            }
+
+            nextEntryFrame = int.MaxValue;
+            return ctrls;
+        }
         #endregion
     }
 
@@ -962,6 +1055,8 @@ namespace XenoKit.Views.TimeLines
         string GetLayerName(int layerGroup);
 
         void TryGetFocus();
+
+        float GetTimeLineItemOpacity(ITimeLineItem timelineItem); 
 
     }
 }

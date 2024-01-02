@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BAC.Simulation;
 using Xv2CoreLib.BAC;
@@ -40,6 +41,7 @@ namespace XenoKit.Engine.Scripting.BAC
         //Loop:
         public int CurrentLoop { get; set; } //0 = Initial, 1+ loops
         public bool LoopEnabled = false;
+        public bool LoopIsDirty = false;
         public int LoopStartFrame = 0;
         public int LoopEndFrame = 0;
         public int LoopAnimationStartFrame = 0;
@@ -211,6 +213,42 @@ namespace XenoKit.Engine.Scripting.BAC
 
             return animTypeDuration;
         }
+        
+        public static void CalculateLoop(BAC_Entry bacEntry, Move files, Actor user, out int loopStart, out int loopEnd)
+        {
+            foreach(IBacType type in bacEntry.IBacTypes.Where(x => x.TypeID == 0 || x.TypeID == 15).OrderBy(x => x.StartTime))
+            {
+                if(type is BAC_Type0 anim)
+                {
+                    if(anim.LoopStartFrame != ushort.MaxValue && BAC_Type0.IsFullBodyAnimation(anim.EanType))
+                    {
+                        if(anim.StartTime == 0)
+                        {
+                            loopStart = anim.StartFrame + anim.LoopStartFrame;
+                            loopEnd = anim.StartFrame + CalculateAnimationDuration(files, user, anim);
+                        }
+                        else
+                        {
+                            loopStart = anim.StartTime + anim.LoopStartFrame;
+                            loopEnd = anim.StartTime + CalculateAnimationDuration(files, user, anim);
+                        }
+                        return;
+                    }
+                }
+                else if(type is BAC_Type15 func)
+                {
+                    if(func.FunctionType == 0 || func.FunctionType == 0x22)
+                    {
+                        loopStart = type.StartTime;
+                        loopEnd = type.StartTime + type.Duration;
+                        return;
+                    }
+                }
+            }
+
+            loopStart = -1;
+            loopEnd = -1;
+        }
         #endregion
 
         public void Update()
@@ -271,6 +309,7 @@ namespace XenoKit.Engine.Scripting.BAC
             LoopEnabled = false;
             LoopStartFrame = 0;
             LoopEndFrame = 0;
+            LoopIsDirty = false;
 
             if (SceneManager.RetainActionMovement && IsPreview)
             {

@@ -10,7 +10,7 @@ namespace XenoKit.ViewModel.BAC
     public class BACType15ViewModel : ObservableObject, IDisposable
     {
 
-        private BAC_Type15 bacType;
+        private readonly BAC_Type15 bacType;
 
         public int FunctionType
         {
@@ -20,11 +20,12 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type15>(nameof(bacType.FunctionType), bacType, bacType.FunctionType, value, "FunctionType"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type15>(nameof(bacType.FunctionType), bacType, bacType.FunctionType, value, "FunctionType"), UndoGroup.Action, "Function", bacType);
                 bacType.FunctionType = value;
                 RaisePropertyChanged(() => FunctionType);
                 bacType.RefreshType();
                 RefreshUI();
+                UndoManager.Instance.ForceEventCall(UndoGroup.Action, "Function", bacType);
             }
         }
         public float Param1
@@ -110,7 +111,6 @@ namespace XenoKit.ViewModel.BAC
         //Visibility
         public Visibility Params2Visibility => (FunctionType == 0x25 || FunctionType == 0x26 || FunctionType == 0x4E) ? Visibility.Collapsed : Visibility.Visible;
         public Visibility Params2SkillIdVisibility => (FunctionType == 0x25 || FunctionType == 0x26 || FunctionType == 0x4E) ? Visibility.Visible : Visibility.Collapsed;
-
 
         public BACType15ViewModel(BAC_Type15 _bacType)
         {

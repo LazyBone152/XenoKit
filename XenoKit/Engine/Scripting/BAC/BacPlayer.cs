@@ -104,6 +104,8 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             if (clearing || BacEntryInstance == null) return;
 
+            UpdateBacLoop();
+
             if (!BacEntryInstance.IsFinished)
                 UpdateBac(true, ref BacEntryInstance.CurrentFrame);
 
@@ -162,19 +164,23 @@ namespace XenoKit.Engine.Scripting.BAC
                             case BAC_Type0.EanTypeEnum.Skill:
                                 character.AnimationPlayer.PlayPrimaryAnimation(eanFile, animation.EanIndex, animation.StartFrame, animation.EndFrame, animation.BlendWeight, animation.BlendWeightFrameStep, animation.AnimFlags, true, animation.TimeScale, false, true);
                                 character.AnimationTimeScale = animation.TimeScale;
-                                SetLoop(animation.LoopStartFrame, character.AnimationPlayer.PrimaryAnimation.EndFrame, true);
 
                                 if (animation.StartFrame != 0 && _refFrame == 0f) //On first frame, skipping to startFrame on animations is allowed
                                 {
+                                    SetLoop(animation.LoopStartFrame, character.AnimationPlayer.PrimaryAnimation.EndFrame, animation.StartFrame, true);
                                     _refFrame = animation.StartFrame;
                                     timeSkip = true;
+                                }
+                                else
+                                {
+                                    SetLoop(animation.LoopStartFrame, character.AnimationPlayer.PrimaryAnimation.EndFrame, animation.StartTime, true);
                                 }
                                 break;
                             case BAC_Type0.EanTypeEnum.FaceBase:
                             case BAC_Type0.EanTypeEnum.FaceForehead:
                                 //I_14 tells the game to use the main animations face bones. In this case everything else on the entry is ignored.
 
-                                if(animation.I_14 == 1)
+                                if (animation.I_14 == 1)
                                 {
                                     BacEntryInstance.MainFaceAnimationEndTime = animation.StartTime + animation.Duration;
                                 }
@@ -217,8 +223,8 @@ namespace XenoKit.Engine.Scripting.BAC
                     }
 
                     BacEntryInstance.AddVisualObject(hitbox, GameBase);
-                    
-                    if(GameBase.Simulation.ActiveHitboxes.FirstOrDefault(x => x.Hitbox == hitbox && x.BacEntry == BacEntryInstance) == null)
+
+                    if (GameBase.Simulation.ActiveHitboxes.FirstOrDefault(x => x.Hitbox == hitbox && x.BacEntry == BacEntryInstance) == null)
                     {
                         GameBase.Simulation.ActiveHitboxes.Add(new Collision.BacHitbox(BacEntryInstance, hitbox, spawnActor, BacEntryInstance.User.Team));
                     }
@@ -285,14 +291,14 @@ namespace XenoKit.Engine.Scripting.BAC
                 }
 
                 //Functions
-                if(type is BAC_Type15 function)
+                if (type is BAC_Type15 function)
                 {
                     switch (function.FunctionType)
                     {
                         case 0x0: //BAC Loop. When conditions are no longer true, the loop will stop when the current loop cycle ends.
                         case 0x22: //BAC Loop, but ends instantly when conditions are no longer true
                             if (!ActivationCheck(type) || BacEntryInstance.CurrentLoop > 0) continue;
-                            SetLoop(type.StartTime, type.StartTime + type.Duration, function.FunctionType == 0x22);
+                            SetLoop(type.StartTime, type.StartTime + type.Duration, 0, function.FunctionType == 0x22);
                             break;
                         case 0x13: //Sets BCS PartSet (temp).
                         case 0x14: //Sets BCS PartSet (permanent).
@@ -328,14 +334,14 @@ namespace XenoKit.Engine.Scripting.BAC
                     CustomVector4 prevEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionPrev];
                     CustomVector4 nextEyePosition = EyeMovementPositions.EyePositions[(int)eyeMovement.EyeDirectionNext];
 
-                    CustomVector4 leftEyePosition = nextEyePosition * eyeMovement.LeftEyeRotationPercent; 
+                    CustomVector4 leftEyePosition = nextEyePosition * eyeMovement.LeftEyeRotationPercent;
                     CustomVector4 rightEyePosition = nextEyePosition * eyeMovement.RightEyeRotationPercent;
 
 
                     if (eyeMovement.StartTime + eyeMovement.EyeRotationFrames >= CurrentFrame)
                     {
                         float factor = 1f / eyeMovement.EyeRotationFrames * (CurrentFrame - eyeMovement.StartTime);
-                        leftEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition,factor) * eyeMovement.LeftEyeRotationPercent;
+                        leftEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition, factor) * eyeMovement.LeftEyeRotationPercent;
                         rightEyePosition = CustomVector4.Lerp(prevEyePosition, nextEyePosition, factor) * eyeMovement.RightEyeRotationPercent;
                     }
 
@@ -349,7 +355,7 @@ namespace XenoKit.Engine.Scripting.BAC
             }
 
             //Update face animation
-            if(character.AnimationPlayer.PrimaryAnimation != null)
+            if (character.AnimationPlayer.PrimaryAnimation != null)
                 character.AnimationPlayer.PrimaryAnimation.EnableFaceBones = BacEntryInstance.MainFaceAnimationEndTime > CurrentFrame;
 
             //If the frame was skipped to a latter frame by an animation, then process this later frame as well.
@@ -357,9 +363,19 @@ namespace XenoKit.Engine.Scripting.BAC
             {
                 UpdateBac(false, ref _refFrame);
             }
+        }
 
-            //Handle Loop
-            if(BacEntryInstance.LoopEnabled && BacEntryInstance.CurrentFrame >= BacEntryInstance.LoopEndFrame && (!IsPreview || SceneManager.AllowBacLoop))
+        private void UpdateBacLoop()
+        {
+            if (BacEntryInstance.LoopIsDirty)
+            {
+                bool wasPlaying = GameBase.IsPlaying;
+                GameBase.IsPlaying = false;
+                BacEntryInstance.LoopIsDirty = false;
+                Seek((int)BacEntryInstance.CurrentFrame);
+                GameBase.IsPlaying = wasPlaying;
+            }
+            else if (BacEntryInstance.LoopEnabled && BacEntryInstance.CurrentFrame >= BacEntryInstance.LoopEndFrame && (!IsPreview || SceneManager.AllowBacLoop))
             {
                 BacEntryInstance.CurrentFrame = BacEntryInstance.LoopStartFrame;
                 BacEntryInstance.CurrentLoop++;
@@ -452,15 +468,18 @@ namespace XenoKit.Engine.Scripting.BAC
             }
         }
 
-        private void SetLoop(int startFrame, int endFrame, bool allowIncompleteLoop)
+        private void SetLoop(int startFrame, int endFrame, int relativeTo, bool allowIncompleteLoop)
         {
             if (endFrame <= startFrame) return;
+
+            int newStart = startFrame + relativeTo;
+            int newEnd = endFrame + relativeTo;
 
             if(BacEntryInstance.CurrentLoop == 0)
             {
                 BacEntryInstance.LoopEnabled = true;
-                BacEntryInstance.LoopStartFrame = startFrame;
-                BacEntryInstance.LoopEndFrame = endFrame;
+                BacEntryInstance.LoopStartFrame = newStart;
+                BacEntryInstance.LoopEndFrame = newEnd;
                 BacEntryInstance.LoopAnimationStartFrame = (int)character.AnimationPlayer.PrimaryCurrentFrame;
                 BacEntryInstance.LoopCameraStartFrame = (int)SceneManager.MainCamera.CurrentFrame;
                 BacEntryInstance.LoopAllowIncomplete = allowIncompleteLoop;

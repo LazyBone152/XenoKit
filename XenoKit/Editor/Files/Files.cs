@@ -921,12 +921,12 @@ namespace XenoKit.Editor
         {
             switch (eepkType)
             {
+                case BAC_Type8.EepkTypeEnum.AwokenSkill: //AnySkill
                 case BAC_Type8.EepkTypeEnum.SuperSkill:
                 case BAC_Type8.EepkTypeEnum.UltimateSkill:
                 case BAC_Type8.EepkTypeEnum.EvasiveSkill:
                 case BAC_Type8.EepkTypeEnum.KiBlastSkill:
-                case BAC_Type8.EepkTypeEnum.AwokenSkill:
-                    //Dont care about checking the type against skill type on the Move, as theses IDs are a bit weird in the game and dont always match up (such as KMH being declared as 3, which is for Awoken skills)
+                case BAC_Type8.EepkTypeEnum.NEW_AwokenSkill: //The real awoken skill type
                     return (skillId == move.SkillID && move.MoveType == Move.Type.Skill) ? move.Files.EepkFile.File : null;
                 case BAC_Type8.EepkTypeEnum.Character:
                     if (move.MoveType == Move.Type.Moveset) return move.Files.EepkFile.File;

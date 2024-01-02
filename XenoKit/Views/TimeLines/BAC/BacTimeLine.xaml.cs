@@ -76,7 +76,7 @@ namespace XenoKit.Views.TimeLines
         public UndoGroup UndoGroup => UndoGroup.Action;
 
         private readonly Line currentFrameLine;
-        private double _unitSize = 50;
+        private double _unitSize = 10;
         private bool isFullyZoomedOut = false;
         private int _seekFrame = -1;
 
@@ -107,6 +107,9 @@ namespace XenoKit.Views.TimeLines
         public double CurrentWidth { get; private set; } = 100;
         public double CurrentHeight => Layers.Count * 40;
 
+        private int LoopStart = -1;
+        private int LoopEnd = -1;
+
         public Brush SelectedBrush => Brushes.White;
         public Brush SelectedTextBrush => Brushes.Black;
 
@@ -131,6 +134,13 @@ namespace XenoKit.Views.TimeLines
             currentFrameLine.Y2 = 20;
 
             DrawFrameMarkings();
+
+            BacTypeFilters = new List<SelectorItem>();
+
+            for(int i = 0; i < BAC_File.BAC_TYPE_COUNT; i++)
+            {
+                BacTypeFilters.Add(new SelectorItem(i, BAC_File.GetBacTypeNameWithTypeID(i)));
+            }
         }
 
         private void HandleBacEvent(BAC_Entry oldEntry, BAC_Entry newEntry)
@@ -189,6 +199,16 @@ namespace XenoKit.Views.TimeLines
         {
             if (BacEntry == null) return null;
 
+            //Re-enable type if it is currently filtered
+            var filteredType = BacTypeFilters.FirstOrDefault(x => x.ID == layerGroup && x.IsSelected == false);
+
+            if (filteredType != null)
+            {
+                filteredType.IsSelected = true;
+                InitControl();
+                return null;
+            }
+
             int layer = 0;
 
             while (BacEntry.DoesLayerExist(layer, layerGroup))
@@ -201,6 +221,8 @@ namespace XenoKit.Views.TimeLines
 
         private TimeLineLayer<IBacType> AddLayer(int layer, int layerGroup)
         {
+            if (BacTypeFilters.FirstOrDefault(x => x.ID == layerGroup && x.IsSelected == false) != null) return null;
+
             TimeLineLayer<IBacType> timeLineLayer = Layers.FirstOrDefault(x => x.Layer == layer && x.LayerGroup == layerGroup);
 
             if (timeLineLayer != null)
@@ -255,6 +277,8 @@ namespace XenoKit.Views.TimeLines
             if (layer == null)
             {
                 layer = AddLayer(item.Layer, item.LayerGroup);
+
+                if (layer == null) return false;
                 layersChanged = true;
             }
 
@@ -441,7 +465,6 @@ namespace XenoKit.Views.TimeLines
         private void InitControl()
         {
             Layers.Clear();
-            AddLayer(0, 0); //Mandatory animation layer
 
             foreach (IBacType bacType in BacEntry.IBacTypes)
             {
@@ -556,7 +579,8 @@ namespace XenoKit.Views.TimeLines
             }
 
             DrawFrameLines(canvasForFrameLines, 1, UnitSize, 1, UnitSize, Brushes.Gray, 1);
-            DrawFrameLines(canvasForSecondLines, 60, UnitSize * 60, 60, UnitSize * 60, Brushes.LightGray, 2);  
+            DrawFrameLines(canvasForSecondLines, 60, UnitSize * 60, 60, UnitSize * 60, Brushes.LightGray, 2);
+            DrawLoopLines();
         }
 
         private void DrawFrameLines(Canvas canvas, int firstLineTime, double firstLineDistance, int timeStep, double unitSize, Brush brush, int lineThickness)
@@ -582,7 +606,6 @@ namespace XenoKit.Views.TimeLines
                 l.X1 = 0;
                 l.X2 = 0;
                 l.Y1 = 0;
-                //l.Y2 = Math.Max(DesiredSize.Height, canvas.Height);
                 l.Y2 = canvas.Height;
                 canvas.Children.Add(l);
                 Canvas.SetLeft(l, curX);
@@ -652,6 +675,48 @@ namespace XenoKit.Views.TimeLines
             UpdateCurrentFrame();
         }
         
+        private void DrawLoopLines(bool onlyDrawIfChanged = false)
+        {
+            if(BacEntry != null)
+            {
+                BacEntryInstance.CalculateLoop(BacEntry, Files.Instance.SelectedMove, SceneManager.Actors[0], out int loopStart, out int loopEnd);
+
+                if(loopStart >= 0)
+                {
+                    if (onlyDrawIfChanged && loopStart == LoopStart && loopEnd == LoopEnd) return;
+
+                    canvasForLoopLines.Children.Clear();
+
+                    Line startLine = new Line();
+                    startLine.StrokeThickness = 1;
+                    startLine.Stroke = Brushes.Yellow;
+                    startLine.X1 = 0;
+                    startLine.X2 = 0;
+                    startLine.Y1 = 0;
+                    startLine.Y2 = canvasForLoopLines.Height;
+                    canvasForLoopLines.Children.Add(startLine);
+                    Canvas.SetLeft(startLine, loopStart * UnitSize);
+
+                    Line endLine = new Line();
+                    endLine.StrokeThickness = 1;
+                    endLine.Stroke = Brushes.Yellow;
+                    endLine.X1 = 0;
+                    endLine.X2 = 0;
+                    endLine.Y1 = 0;
+                    endLine.Y2 = canvasForLoopLines.Height;
+                    canvasForLoopLines.Children.Add(endLine);
+                    Canvas.SetLeft(endLine, loopEnd * UnitSize);
+
+                    LoopStart = loopStart;
+                    LoopEnd = loopEnd;
+                }
+                else
+                {
+                    canvasForLoopLines.Children.Clear();
+                }
+            }
+        }
+
         private void UpdateCurrentFrame()
         {
             Canvas.SetLeft(currentFrameLine, SelectedFrame * UnitSize);
@@ -756,6 +821,11 @@ namespace XenoKit.Views.TimeLines
                             UpdateItemsPlacement(itm);
                         }
                     }
+
+                    if(e.UndoContext is BAC_Type15 || e.UndoContext is BAC_Type0)
+                    {
+                        DrawLoopLines();
+                    }
                 }
 
                 //Update StartTime when an item was moved in the timeline
@@ -764,9 +834,17 @@ namespace XenoKit.Views.TimeLines
                     UpdateLength();
 
                     //Update placement and sizing in grid
+                    bool loopSet = false;
+
                     foreach(var item in items)
                     {
                         UpdateItemsPlacement(item);
+
+                        if ((item is BAC_Type0 || item is BAC_Type15) && !loopSet)
+                        {
+                            LoopHasChanged();
+                            loopSet = true;
+                        }
                     }
                 }
             
@@ -774,6 +852,34 @@ namespace XenoKit.Views.TimeLines
                 if(e.UndoArg == "Animation" && e.UndoContext is BAC_Type0 anim)
                 {
                     UpdateItemsPlacement(anim);
+                    LoopHasChanged();
+                }
+
+                //Function has changed, so loop lines may need to be redrawn
+                if(e.UndoArg == "Function" && e.UndoContext is BAC_Type15)
+                {
+                    LoopHasChanged();
+                }
+
+                //React to changes in the timeline, but without needing to move the items (already done). This is called immediately after a change in the timeline, not a real undo/redo...
+                if(e.UndoArg == "MoveReact" && e.UndoContext is List<ITimeLineItem> timelineItems)
+                {
+                    foreach(var _itm in timelineItems)
+                    {
+                        //In this case, the loop needs to be updated because an animation or function item was moved
+                        if(_itm is BAC_Type0 || _itm is BAC_Type15)
+                        {
+                            LoopHasChanged();
+                            break;
+                        }
+                    }
+                }
+                else if(e.UndoArg == "MoveReact" && e.UndoContext is IBacType)
+                {
+                    if (e.UndoContext is BAC_Type0 || e.UndoContext is BAC_Type15)
+                    {
+                        LoopHasChanged();
+                    }
                 }
 
                 //Generic data changed undo event. In this case we will just reset most of the controls state, but preserve currently selected items
@@ -818,6 +924,16 @@ namespace XenoKit.Views.TimeLines
             if (layersChanged)
             {
                 RefreshControl();
+            }
+        }
+        
+        private void LoopHasChanged()
+        {
+            DrawLoopLines(true);
+
+            if (SceneManager.Actors[0]?.ActionControl.BacPlayer.BacEntryInstance != null)
+            {
+                SceneManager.Actors[0].ActionControl.BacPlayer.BacEntryInstance.LoopIsDirty = true;
             }
         }
         #endregion
@@ -1311,5 +1427,53 @@ namespace XenoKit.Views.TimeLines
         }
         #endregion
 
+        #region Filters
+        private readonly List<SelectorItem> FlagFilters = new List<SelectorItem>()
+        {
+            new SelectorItem(0, "Both"), new SelectorItem(1, "CaC"), new SelectorItem(2, "Roster"), new SelectorItem(5, "Unknown (5)", false)
+        };
+        private readonly List<SelectorItem> BacTypeFilters;
+
+        private void FlagsFilter_Click(object sender, RoutedEventArgs e)
+        {
+            DiscreteSelector selector = new DiscreteSelector(FlagFilters, this, 180, "Character Types");
+            selector.SelectionFinishedCallback += SelectorCallback;
+            selector.Show();
+        }
+
+        private void BacTypeFilter_Click(object sender, RoutedEventArgs e)
+        {
+            DiscreteSelector selector = new DiscreteSelector(BacTypeFilters, this, 400, "BAC Types");
+            selector.SelectionFinishedCallback += SelectorCallback;
+            selector.Show();
+        }
+
+        private void SelectorCallback(object source, DiscreteSelectorCallbackEventArgs e)
+        {
+            if (e.Items == FlagFilters)
+            {
+                InitControl();
+            }
+            else if (e.Items == BacTypeFilters)
+            {
+                InitControl();
+            }
+        }
+
+        public float GetTimeLineItemOpacity(ITimeLineItem timelineItem)
+        {
+            if(timelineItem is IBacType bacType)
+            {
+                int idx = bacType.Flags <= 2 ? bacType.Flags : 3;
+
+                if ((bacType.Flags >= 0 && bacType.Flags <= 2) || bacType.Flags == 5)
+                {
+                    return (FlagFilters[idx].IsSelected) ? 1f : 0.3f;
+                }
+            }
+
+            return 1f;
+        }
+        #endregion
     }
 }

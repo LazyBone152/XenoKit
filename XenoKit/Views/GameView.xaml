@@ -70,7 +70,7 @@
         <StackPanel Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,0.073" Orientation="Horizontal" Height="24" Width="Auto">
             <CheckBox IsChecked="{Binding ElementName=UserControl, Path=RenderCharacters}" Content="Characters" Height="20" Margin="3, 0" ToolTip="Toggle the visibility of characters."/>
             <CheckBox IsChecked="{Binding ElementName=UserControl, Path=Loop}" Content="Loop" Height="20" Margin="3, 0"/>
-            <CheckBox x:Name="bacLoopCheckBox" IsChecked="{Binding ElementName=UserControl, Path=BacLoop}" Content="BAC Loop" Height="20" Margin="3, 0" ToolTip="Toggle loops within Actions (BAC)."/>
+            <CheckBox x:Name="bacLoopCheckBox" IsChecked="{Binding ElementName=UserControl, Path=BacLoop}" Content="BAC Loop" Height="20" Margin="3, 0" ToolTip="Toggle loops within Actions (BAC).&#x0a;&#x0a;These are the loops defined in a primary animation or function (0x0 / 0x22) entry."/>
             <CheckBox IsChecked="{Binding ElementName=UserControl, Path=AutoPlay}" Content="Auto Play"  Height="20" ToolTip="Toggle autoplay. If enabled, then items will be auto-played when selected." Margin="3, 0"/>
             <CheckBox x:Name="cameraCheckBox" IsChecked="{Binding ElementName=UserControl, Path=UseCameras}" Content="Cameras"  Height="20" ToolTip="Toggle camera animations." Margin="3, 0" Visibility="Collapsed"/>
             <CheckBox x:Name="bonesCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ShowVisualSkeleton}" Content="Bones" Height="20" ToolTip="Toggle the visual skeleton in the relevant tabs." Margin="3, 0" Visibility="Collapsed"/>

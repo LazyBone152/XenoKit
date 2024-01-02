@@ -849,6 +849,9 @@
     <Compile Include="Windows\PartSetSelector.xaml.cs">
       <DependentUpon>PartSetSelector.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\Reusable\DiscreteSelector.xaml.cs">
+      <DependentUpon>DiscreteSelector.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\Reusable\EntitySelector.xaml.cs">
       <DependentUpon>EntitySelector.xaml</DependentUpon>
     </Compile>
@@ -1336,6 +1339,10 @@
     <Page Include="Windows\PartSetSelector.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Reusable\DiscreteSelector.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\Reusable\EntitySelector.xaml">
       <SubType>Designer</SubType>

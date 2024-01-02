@@ -95,10 +95,11 @@ namespace XenoKit.ViewModel.BAC
             {
                 if (bacType.LoopStartFrame != value)
                 {
-                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.LoopStartFrame), bacType, bacType.LoopStartFrame, value, "Animation Loop Start Frame"));
+                    UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type0>(nameof(bacType.LoopStartFrame), bacType, bacType.LoopStartFrame, value, "Animation Loop Start Frame"), UndoGroup.Action, "Animation", bacType);
                     bacType.LoopStartFrame = value;
                     RaisePropertyChanged(() => LoopStartFrame);
                     UpdateBacPlayer();
+                    UndoManager.Instance.ForceEventCall(UndoGroup.Action, "Animation", bacType);
                 }
             }
         }

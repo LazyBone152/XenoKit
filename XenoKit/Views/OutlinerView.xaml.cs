@@ -5,8 +5,6 @@ using XenoKit.Windows;
 using GalaSoft.MvvmLight.CommandWpf;
 using GongSolutions.Wpf.DragDrop;
 using System.Windows;
-using Xceed.Wpf.Toolkit.Primitives;
-using Xv2CoreLib.EffectContainer;
 using System.Linq;
 
 namespace XenoKit.Controls

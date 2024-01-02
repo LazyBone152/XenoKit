@@ -43,30 +43,30 @@ namespace XenoKit.Windows
             { typeof(BAC_Type1) , "Hitbox" },
             { typeof(BAC_Type2) , "Movement" },
             { typeof(BAC_Type3) , "Invulnerability" },
-            { typeof(BAC_Type4) , "TimeScale" },
+            { typeof(BAC_Type4) , "Time Scale" },
             { typeof(BAC_Type5) , "Tracking" },
-            { typeof(BAC_Type6) , "ChargeControl" },
-            { typeof(BAC_Type7) , "BcmCallback" },
+            { typeof(BAC_Type6) , "Charge Control" },
+            { typeof(BAC_Type7) , "BCM Callback" },
             { typeof(BAC_Type8) , "Effect" },
             { typeof(BAC_Type9) , "Projectile" },
             { typeof(BAC_Type10) , "Camera" },
             { typeof(BAC_Type11) , "Sound" },
-            { typeof(BAC_Type12) , "TargetingAssistance" },
-            { typeof(BAC_Type13) , "BcsPartSetInvisibility" },
-            { typeof(BAC_Type14) , "BoneModification" },
+            { typeof(BAC_Type12) , "Targeting Assistance" },
+            { typeof(BAC_Type13) , "BCS Part Visibility" },
+            { typeof(BAC_Type14) , "Bone Modification" },
             { typeof(BAC_Type15) , "Functions" },
-            { typeof(BAC_Type16) , "ScreenEffect" },
-            { typeof(BAC_Type17) , "ThrowHandler" },
-            { typeof(BAC_Type18) , "PhysicsObject" },
+            { typeof(BAC_Type16) , "Post Effect" },
+            { typeof(BAC_Type17) , "Throw Handler" },
+            { typeof(BAC_Type18) , "Physics Object" },
             { typeof(BAC_Type19) , "Aura" },
-            { typeof(BAC_Type20) , "HomingMovement" },
-            { typeof(BAC_Type21) , "EyeMovement" },
+            { typeof(BAC_Type20) , "Homing Movement" },
+            { typeof(BAC_Type21) , "Eye Movement" },
             { typeof(BAC_Type22) , "BAC_Type22" },
-            { typeof(BAC_Type23) , "TransparencyEffect" },
-            { typeof(BAC_Type24) , "DualSkillHandler" },
-            { typeof(BAC_Type25) , "ExtendedChainAttack" },
-            { typeof(BAC_Type26) , "ExtendedCameraControl" },
-            { typeof(BAC_Type27) , "EffectPropertyControl" },
+            { typeof(BAC_Type23) , "Transparency Effect" },
+            { typeof(BAC_Type24) , "Dual Skill Handler" },
+            { typeof(BAC_Type25) , "Extended Chain Attack" },
+            { typeof(BAC_Type26) , "Extended Camera Control" },
+            { typeof(BAC_Type27) , "Effect Property Control" },
             { typeof(BAC_Type28) , "BAC_Type28" },
             { typeof(BAC_Type29) , "BAC_Type29" },
             { typeof(BAC_Type30) , "BAC_Type30" },
@@ -243,16 +243,15 @@ namespace XenoKit.Windows
 
                     ConvertToType(ValueToFind, SelectedValue.valueType, ref valueToFind);
 
-                    Find.FindBacValue(Files.Instance.SelectedMove.Files.BacFile.File.BacEntries, SelectedBacType, SelectedValue.valueName, valueToFind, prevFoundItem, NotMode, out bacEntry, out bacType);
+                    Find.FindBacValue(Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries, SelectedBacType, SelectedValue.valueName, valueToFind, prevFoundItem, NotMode, out bacEntry, out bacType);
 
                     prevFoundItem = bacType;
 
                     if (bacEntry != null && bacType != null)
                     {
                         mainWindow.bacControlView.bacEntryDataGrid.SelectedItem = bacEntry;
-                        mainWindow.bacControlView.bacTypeDataGrid.SelectedItem = bacType;
                         mainWindow.bacControlView.bacEntryDataGrid.ScrollIntoView(bacEntry);
-                        mainWindow.bacControlView.bacTypeDataGrid.ScrollIntoView(bacType);
+                        mainWindow.bacControlView.SetSelectedBacType(bacType as IBacType);
 
                         LogLocalMessage("Found a matching value.");
                     }

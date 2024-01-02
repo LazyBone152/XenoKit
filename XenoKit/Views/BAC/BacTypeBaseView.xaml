@@ -10,7 +10,7 @@
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
         <StackPanel>
-            <Expander x:Name="expander" Margin="0, 2, 0, 0" Header="Base" IsExpanded="True">
+            <Expander x:Name="expander" Margin="0, 2, 0, 0" Header="Activation" IsExpanded="True">
                 <StackPanel Margin="0, 5">
                     <WrapPanel>
                         <Grid Margin="3,3,0,0" Width="250">

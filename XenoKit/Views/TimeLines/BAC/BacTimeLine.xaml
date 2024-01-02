@@ -46,7 +46,7 @@
         <DataTemplate DataType="{x:Type bac:BAC_TypeBase}" x:Key="UsedTemplateProperty">
             <Grid>
                 <!-- IF CHANGING THE HEIGHT: Adjust the height in MainGrid_ContextMenuOpening to match! (Height + Margins). Used for calculating the correct layer the mouse is over. -->
-                <Border BorderThickness="1" BorderBrush="{Binding TimeLineBorderBrush}" CornerRadius="3" Margin="0,10,0,10" Height="20">
+                <Border BorderThickness="2" BorderBrush="{Binding TimeLineBorderBrush}" CornerRadius="5" Margin="0,10,0,10" Height="20">
                     <StackPanel Orientation="Horizontal">
                         <Grid x:Name="MainGrid" Background="{Binding TimeLineMainBrush}" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Button}}, Path=MainWidth}"/>
                         <Grid x:Name="TrailGrid" Background="{Binding TimeLineMainBrush}" Opacity="0.2" Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Button}}, Path=TrailWidth}"/>
@@ -88,7 +88,7 @@
                     <Setter Property="Margin" Value="5,0,0,0"/>
                 </Style>
             </StackPanel.Resources>
-            <StackPanel VerticalAlignment="Center">
+            <StackPanel VerticalAlignment="Center" ToolTip="Add Layer">
                 <Button lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                     <iconPacks:PackIconMaterialLight Kind="Plus"/>
                     <Button.ContextMenu>
@@ -129,7 +129,18 @@
                 </Button>
                 <TextBlock Text="Add Layer" HorizontalAlignment="Center" FontSize="8"/>
             </StackPanel>
-
+            <StackPanel VerticalAlignment="Center" ToolTip="Character Type Filter">
+                <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="FlagsFilter_Click">
+                    <iconPacks:PackIconMaterialLight Kind="FormatListChecks"/>
+                </Button>
+                <TextBlock Text="Chara Filter" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" ToolTip="BAC Type Filter">
+                <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="BacTypeFilter_Click">
+                    <iconPacks:PackIconMaterialLight Kind="FormatListChecks"/>
+                </Button>
+                <TextBlock Text="BAC Filter" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" x:Name="timeScroll" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Stretch">
@@ -194,6 +205,7 @@
                         
                         <Canvas x:Name="canvasForFrameLines" VerticalAlignment="Top" HorizontalAlignment="Left" Width="{Binding ElementName=UserControl, Path=CurrentWidth}" Height="{Binding ElementName=UserControl, Path=CurrentHeight}"/>
                         <Canvas x:Name="canvasForSecondLines" VerticalAlignment="Top" HorizontalAlignment="Left" Width="{Binding ElementName=UserControl, Path=CurrentWidth}" Height="{Binding ElementName=UserControl, Path=CurrentHeight}"/>
+                        <Canvas x:Name="canvasForLoopLines" VerticalAlignment="Top" HorizontalAlignment="Left" Width="{Binding ElementName=UserControl, Path=CurrentWidth}" Height="{Binding ElementName=UserControl, Path=CurrentHeight}"/>
                         <ItemsControl x:Name="itemsControl" ItemsSource="{Binding ElementName=UserControl, Path=Layers}" VerticalAlignment="Top" HorizontalAlignment="Left"
                                       dd:DragDrop.IsDropTarget="True" dd:DragDrop.UseDefaultDragAdorner="False" dd:DragDrop.DropHandler="{Binding}" AllowDrop="True" dd:DragDrop.CanDragWithMouseRightButton="True"/>
                         <Canvas Width="{Binding ElementName=UserControl, Path=CurrentWidth}" Height="{Binding ElementName=UserControl, Path=CurrentHeight}">

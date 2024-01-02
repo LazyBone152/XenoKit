@@ -123,6 +123,8 @@ namespace XenoKit.Engine.Scripting.BAC
                     return ActionPreviewState.WaitingVictim;
             }
 
+            if (BacPlayer.BacEntryInstance.LoopEnabled && SceneManager.AllowBacLoop) return ActionPreviewState.Looping;
+
             return ActionPreviewState.Finished;
         }
 
@@ -157,6 +159,7 @@ namespace XenoKit.Engine.Scripting.BAC
     public enum ActionPreviewState
     {
         Running,
+        Looping,
         Finished,
         WaitingProjectiles,
         WaitingVictim

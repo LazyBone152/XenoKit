@@ -1,0 +1,36 @@
+﻿<Controls:MetroWindow x:Class="XenoKit.Windows.DiscreteSelector"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        mc:Ignorable="d"
+        Title="DiscreteSelector" Height="300" Width="250" WindowStartupLocation="Manual" WindowStyle="None" ShowTitleBar="False" ShowCloseButton="False" BorderBrush="{DynamicResource MahApps.Brushes.ContextMenu.Border}" BorderThickness="1" ShowInTaskbar="False" ResizeMode="NoResize" Name="Window" Loaded="MetroWindow_Loaded">
+    <Grid>
+        <StackPanel>
+            <TextBlock x:Name="titleText" Height="20" Text="you cant see me" Margin="18, 2" Visibility="Collapsed"/>
+            <DataGrid x:Name="dataGrid" AutoGenerateColumns="False" HeadersVisibility="None" ItemsSource="{Binding ElementName=Window, Path=Items}" BorderBrush="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}" BorderThickness="1">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="S" Command="{Binding ElementName=Window, Path=SelectItemCommand}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="60">
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    
+                    <DataGridTextColumn Width="*" Binding="{Binding Name}" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <Button Margin="10" Height="20" Width="75" Content="Confirm" Click="Button_Click"/>
+        </StackPanel>
+    </Grid>
+</Controls:MetroWindow>

@@ -7,6 +7,8 @@ using Xv2CoreLib.Resource.UndoRedo;
 using System.ComponentModel;
 using System;
 using Xv2CoreLib.BAC;
+using Microsoft.Xna.Framework;
+using System.Diagnostics;
 
 namespace XenoKit.Views.TimeLines
 {
@@ -296,9 +298,16 @@ namespace XenoKit.Views.TimeLines
             }
         }
 
-        internal void MoveMe(double deltaX, List<IUndoRedo> undos = null)
+        internal void MoveMe(double deltaX, List<IUndoRedo> undos = null, int minFrame = -1, int maxFrame = int.MaxValue)
         {
-            double left = Canvas.GetLeft(this) + ConvertTimeToDistance(StartTimeFloat) + deltaX;
+            //double left = Xv2CoreLib.Resource.MathHelpers.Clamp(ConvertTimeToDistance(minFrame), ConvertTimeToDistance(maxFrame), Canvas.GetLeft(this) + ConvertTimeToDistance(StartTimeFloat) + deltaX);
+            double newLeft = Canvas.GetLeft(this) + ConvertTimeToDistance(StartTimeFloat) + deltaX;
+            double newStartTime = ConvertDistanceToTime(newLeft);
+            double cappedEndFrame = Xv2CoreLib.Resource.MathHelpers.Clamp(minFrame + 1, maxFrame, newStartTime + Duration);
+            double cappedStartFrame = cappedEndFrame - Duration;
+            //double cappedStartFrame = newStartTime + Duration - cappedEndFrame;
+
+            double left = ConvertTimeToDistance((float)cappedStartFrame);
 
             if (left < 0)
                 left = 0;
