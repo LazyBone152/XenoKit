@@ -20,8 +20,8 @@ using MahApps.Metro.Controls;
 
 namespace XenoKit.Views.TimeLines
 {
-    public enum TimeLineManipulationMode { Linked, Free }
-    internal enum TimeLineAction { Move, StretchStart, StretchEnd }
+    public enum TimeLineManipulationMode { Free, Shift }
+    public enum TimeLineAction { Move, StretchStart, StretchEnd }
 
     public class TimeLineLayer<T> : Canvas where T : ITimeLineItem
     {
@@ -251,13 +251,13 @@ namespace XenoKit.Views.TimeLines
         private TimeLineItemControl CreateTimeLineItemControl(ITimeLineItem data)
         {
             Binding startBinding = new Binding(nameof(ITimeLineItem.TimeLine_StartTime));
-            startBinding.Mode = BindingMode.TwoWay;
+            startBinding.Mode = BindingMode.OneWay;
             startBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             Binding endBinding = new Binding(nameof(ITimeLineItem.TimeLine_Duration));
-            endBinding.Mode = BindingMode.TwoWay;
+            endBinding.Mode = BindingMode.OneWay;
             endBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
             Binding tooltipBinding = new Binding(nameof(ITimeLineItem.DisplayName));
-            endBinding.Mode = BindingMode.OneWay;
+            tooltipBinding.Mode = BindingMode.OneWay;
 
             TimeLineItemControl adder = new TimeLineItemControl(ParentTimeLine, data.LayerGroup == 0);
             adder.Opacity = ParentTimeLine.GetTimeLineItemOpacity(data);
@@ -330,54 +330,34 @@ namespace XenoKit.Views.TimeLines
         
         private void Item_PreviewDragButtonDown(object sender, MouseButtonEventArgs e)
         {
-            _isRightMouseButtonDown = true;
+            if (sender is TimeLineItemControl ctrl)
+            {
+                ParentTimeLine.SetSelectedItem(ctrl.DataContext as ITimeLineItem, false, true);
+            }
         }
 
         private void Item_PreviewDragButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (sender is TimeLineItemControl ctrl)
-            {
-                if (_isRightMouseButtonDown)
-                {
-                    ParentTimeLine.SetSelectedItem(ctrl.DataContext as ITimeLineItem, false, true);
-                }
-            }
         }
         #endregion
 
         #region Edit Events
         private double _curX = 0;
         private TimeLineAction _action;
-        private double _totalDeltaThisAction = 0;
-        private DateTime _manipulationEventTime = DateTime.MinValue;
-        private bool _isLeftMouseButtonDown = false;
-        private bool _isRightMouseButtonDown = false;
-        private bool _leftCtrlDown = false;
+        private bool _selectionSet = false; 
+        private static float floatingStartTime = 0;
+        private static float floatingDuration = 0;
 
         private void Item_PreviewEditButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (sender is TimeLineItemControl ctrl)
             {
+                if (!_selectionSet)
+                {
+                    ParentTimeLine.SetSelectedItem(ctrl.DataContext as ITimeLineItem, Keyboard.IsKeyDown(Key.LeftCtrl));
+                }
+
                 ctrl.ReleaseMouseCapture();
-                //Keyboard.Focus(this);
-
-                if ((_totalDeltaThisAction < -0.01) || (_totalDeltaThisAction > 0.01))
-                {
-                    //To avoid accidental clicks when using the manipulation tools, clicks will only be registered a certain period after a significant manipulation event occured.
-                    _manipulationEventTime = DateTime.Now;
-                }
-                else
-                {
-                    //Detect mouse click events.
-                    if (DateTime.Now - new TimeSpan(0, 0, 0, 0, 500) > _manipulationEventTime)
-                    {
-                        if(_isLeftMouseButtonDown)
-                        {
-                            ParentTimeLine.SetSelectedItem(ctrl.DataContext as ITimeLineItem, Keyboard.IsKeyDown(Key.LeftCtrl));
-                        }
-                    }
-                }
-
             }
         }
 
@@ -385,283 +365,12 @@ namespace XenoKit.Views.TimeLines
         {
             if(sender is TimeLineItemControl ctrl)
             {
-                _totalDeltaThisAction = 0;
+                _selectionSet = false;
                 _action = ctrl.GetClickAction();
                 ctrl.CaptureMouse();
-                _isLeftMouseButtonDown = true;
                 ParentTimeLine.TryGetFocus();
             }
         }
-
-        protected void OnKeyDown(object sender, KeyEventArgs e)
-        {
-            base.OnKeyDown(e);
-            if (e.Key == Key.LeftCtrl)
-            {
-                _leftCtrlDown = e.Key == Key.LeftCtrl;
-                ManipulationMode = TimeLineManipulationMode.Linked;
-            }
-        }
-        
-        protected void OnKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.LeftCtrl)
-                _leftCtrlDown = false;
-            if (!_leftCtrlDown)
-                ManipulationMode = TimeLineManipulationMode.Linked;
-        }
-
-        internal void HandleItemManipulation(TimeLineItemControl ctrl, TimeLineItemChangedEventArgs e)
-        {
-            double deltaT = e.DeltaTime;
-            int direction = deltaT.CompareTo(default);
-            if (direction == 0)
-                return;
-
-            bool doStretch;
-            TimeLineItemControl previous;
-            TimeLineItemControl after;
-            int afterIndex = -1;
-            int previousIndex = -1;
-            after = GetTimeLineItemControlStartingAfter(ctrl.StartTime, ref afterIndex);
-            previous = GetTimeLineItemControlStartingBefore(ctrl.StartTime, ref previousIndex);
-            if (after != null)
-                after.ReadyToDraw = false;
-            if (ctrl != null)
-                ctrl.ReadyToDraw = false;
-            double useDeltaX = e.DeltaX;
-            double cLeft = 0;
-            double cWidth = 0;
-            double cEnd = 0;
-            ctrl.GetPlacementInfo(ref cLeft, ref cWidth, ref cEnd);
-
-            _totalDeltaThisAction += e.DeltaX;
-            List<IUndoRedo> undos = new List<IUndoRedo>();
-
-            switch (e.Action)
-            {
-                case TimeLineAction.Move:
-                    if (direction > 0)
-                    {
-                        List<ITimeLineItem> items = new List<ITimeLineItem>();
-
-                        List<TimeLineItemControl> afterChain = GetAfterChain(ctrl, out int stopFrame);
-                        afterChain.Add(ctrl);
-
-                        float floatingStartTime = 0;
-                        float floatingDuration = 0;
-                        bool setFloatValues = false;
-
-                        foreach (TimeLineItemControl item in afterChain.OrderByDescending(x => x.StartTime))
-                        {
-                            if (!setFloatValues)
-                            {
-                                floatingStartTime = item.StartTimeFloat;
-                                floatingDuration = item.DurationFloat;
-                                setFloatValues = true;
-                            }
-
-                            items.Add(item.DataContext as ITimeLineItem);
-                            item.SetFloatingStartAndDuration(floatingStartTime, floatingDuration);
-                            item.MoveMe(useDeltaX, undos, -1, stopFrame);
-
-                            stopFrame = item.StartTime;
-                        }
-
-                        if (undos.Count > 0)
-                        {
-                            UndoManager.Instance.AddCompositeUndo(undos, "Move", ParentTimeLine.UndoGroup, "Move", items);
-                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", items);
-                        }
-                    }
-                    else if (direction < 0)
-                    {
-                        List<ITimeLineItem> items = new List<ITimeLineItem>();
-
-                        List<TimeLineItemControl> beforeChain = GetBeforeChain(ctrl, out int stopFrame);
-                        beforeChain.Add(ctrl);
-
-                        float floatingStartTime = 0;
-                        float floatingDuration = 0;
-                        bool setFloatValues = false;
-
-                        foreach (TimeLineItemControl item in beforeChain.OrderBy(x => x.StartTime))
-                        {
-                            if (item.StartTime == 0) break;
-                            if (!setFloatValues)
-                            {
-                                floatingStartTime = item.StartTimeFloat;
-                                floatingDuration = item.DurationFloat;
-                                setFloatValues = true;
-                            }
-
-                            items.Add(item.DataContext as ITimeLineItem);
-                            item.SetFloatingStartAndDuration(floatingStartTime, floatingDuration);
-                            item.MoveMe(useDeltaX, undos, stopFrame);
-
-                            stopFrame = item.StartTime + item.Duration;
-                        }
-
-                        if (undos.Count > 0)
-                        {
-                            UndoManager.Instance.AddCompositeUndo(undos, "Move", ParentTimeLine.UndoGroup, "Move", items);
-                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", items);
-                        }
-                    }
-                    break;
-                case TimeLineAction.StretchStart:
-                    switch (e.Mode)
-                    {
-                        case TimeLineManipulationMode.Linked:
-                            double gap = double.MaxValue;
-                            if (previous != null)
-                            {
-                                double pLeft = 0;
-                                double pWidth = 0;
-                                double pEnd = 0;
-                                previous.GetPlacementInfo(ref pLeft, ref pWidth, ref pEnd);
-                                gap = cLeft - pEnd;
-                            }
-                            if (direction < 0 && Math.Abs(gap) < Math.Abs(useDeltaX) && Math.Abs(gap) > _bumpThreshold)//if we are negative and not linked, but about to bump
-                                useDeltaX = -gap;
-
-                            if (Math.Abs(gap) < _bumpThreshold)
-                            {
-                                //we are linked
-                                if (ctrl.CanDelta(0, useDeltaX) && previous.CanDelta(1, useDeltaX))
-                                {
-                                    //ctrl.SetFloatingStartAndDuration(previous.StartTimeFloat, previous.DurationFloat);
-                                    int _delta = ctrl.MoveStartTime(useDeltaX, undos);
-                                    previous.ChangeDuration(previous.Duration - _delta, undos);
-                                }
-                            }
-                            else if (ctrl.CanDelta(0, useDeltaX))
-                            {
-                                ctrl.MoveStartTime(useDeltaX, undos);
-                            }
-
-                            UndoManager.Instance.AddCompositeUndo(undos, "Stretch Start Time", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
-                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
-
-                            break;
-                        case TimeLineManipulationMode.Free:
-                            gap = double.MaxValue;
-                            doStretch = direction > 0;
-                            if (direction < 0)
-                            {
-                                //disallow us from free stretching into another item
-
-                                if (previous != null)
-                                {
-                                    double pLeft = 0;
-                                    double pWidth = 0;
-                                    double pEnd = 0;
-                                    previous.GetPlacementInfo(ref pLeft, ref pWidth, ref pEnd);
-                                    gap = cLeft - pEnd;
-                                }
-                                else
-                                {
-                                    //don't allow us to stretch further than the gap between current and start time
-                                    gap = cLeft;
-                                }
-
-                                doStretch = gap > _bumpThreshold;
-                                if (gap < useDeltaX)
-                                {
-                                    useDeltaX = gap;
-                                }
-                            }
-
-                            doStretch &= ctrl.CanDelta(0, useDeltaX);
-
-                            if (doStretch)
-                            {
-                                ctrl.MoveStartTime(useDeltaX, undos);
-
-                                UndoManager.Instance.AddCompositeUndo(undos, "Stretch Start Time", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
-                                UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case TimeLineAction.StretchEnd:
-                    switch (e.Mode)
-                    {
-                        case TimeLineManipulationMode.Linked:
-                            double gap = double.MaxValue;
-                            if (after != null)
-                            {
-                                double aLeft = 0;
-                                double aWidth = 0;
-                                double aEnd = 0;
-                                after.GetPlacementInfo(ref aLeft, ref aWidth, ref aEnd);
-                                gap = aLeft - cEnd;
-                            }
-
-                            if (direction > 0 && gap > _bumpThreshold && gap < useDeltaX)//if we are positive, not linked but about to bump
-                                useDeltaX = -gap;
-                            if (gap < _bumpThreshold)
-                            {
-                                //we are linked
-                                if (ctrl.CanDelta(1, useDeltaX) && after.CanDelta(0, useDeltaX))
-                                {
-                                    //ctrl.SetFloatingStartAndDuration(after.StartTimeFloat, after.DurationFloat);
-                                    int delta = ctrl.MoveEndTime(useDeltaX, undos);
-                                    after.ChangeStartTime(after.StartTime - delta, undos);
-                                }
-                            }
-                            else if (ctrl.CanDelta(0, useDeltaX))
-                            {
-                                ctrl.MoveEndTime(useDeltaX, undos);
-                            }
-
-                            UndoManager.Instance.AddCompositeUndo(undos, "Stretch Duration", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
-                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
-                            break;
-                        case TimeLineManipulationMode.Free:
-                            double nextGap = double.MaxValue;
-                            doStretch = true;
-                            if (direction > 0 && after != null)
-                            {
-                                //disallow us from free stretching into another item
-                                double nLeft = 0;
-                                double nWidth = 0;
-                                double nEnd = 0;
-                                after.GetPlacementInfo(ref nLeft, ref nWidth, ref nEnd);
-                                nextGap = nLeft - cEnd;
-                                doStretch = nextGap > _bumpThreshold;
-                                if (nextGap < useDeltaX)
-                                    useDeltaX = nextGap;
-                            }
-
-
-                            doStretch &= ctrl.CanDelta(1, useDeltaX);
-                            if (doStretch)
-                            {
-                                ctrl.MoveEndTime(useDeltaX, undos);
-
-                                UndoManager.Instance.AddCompositeUndo(undos, "Stretch Duration", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
-                                UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
-                            }
-
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
-            }
-        
-            if(!MathHelpers.FloatEquals(e.DeltaX, 0))
-            {
-                ParentTimeLine.OnItemManipulation();
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// Mouse move is important for both edit and drag behaviors
@@ -695,139 +404,257 @@ namespace XenoKit.Views.TimeLines
                 double deltaT = ctrl.GetDeltaTime(deltaX);
 
                 TimeLineManipulationMode curMode = (TimeLineManipulationMode)GetValue(ManipulationModeProperty);
-                HandleItemManipulation(ctrl, new TimeLineItemChangedEventArgs()
+                var args = new TimeLineItemChangedEventArgs()
                 {
                     Action = _action,
                     DeltaTime = deltaT,
                     DeltaX = deltaX,
-                    Mode = curMode
-                });
+                    Mode = curMode,
+                    Layer = Layer,
+                    LayerGroup = LayerGroup
+                };
+
+                HandleItemManipulation(ctrl, args);
+                ParentTimeLine.ItemManipulationStarted(args);
 
                 _curX = mouseX;
 
-                //When we pressed, this lost focus and we therefore didn't capture any changes to the key status
-                //so we check it again after our manipulation finishes.  That way we can be linked and go out of or back into it while dragging
-                ManipulationMode = TimeLineManipulationMode.Free;
-                _leftCtrlDown = Keyboard.IsKeyDown(Key.LeftCtrl);
-
-                //Linked mode is currently broken. Disabled for now
-                //if (_leftCtrlDown)
-                //{
-                //    ManipulationMode = TimeLineManipulationMode.Linked;
-                //}
+                ManipulationMode = Keyboard.IsKeyDown(Key.LeftShift) ? TimeLineManipulationMode.Shift : TimeLineManipulationMode.Free;
             }
         }
+
+        protected void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+        }
+        
+        protected void OnKeyUp(object sender, KeyEventArgs e)
+        {
+        }
+
+        internal void HandleItemManipulation(TimeLineItemControl ctrl, TimeLineItemChangedEventArgs e)
+        {
+            if (ctrl == null & e.Action != TimeLineAction.Move) return;
+
+            double deltaT = e.DeltaTime;
+            int direction = deltaT.CompareTo(default);
+            if (direction == 0)
+                return;
+
+            bool doStretch;
+            int afterIndex = -1;
+            int previousIndex = -1;
+            TimeLineItemControl after = null;
+            TimeLineItemControl previous = null;
+            double useDeltaX = e.DeltaX;
+            double cLeft = 0;
+            double cWidth = 0;
+            double cEnd = 0;
+
+            if(ctrl != null)
+            {
+                after = GetTimeLineItemControlStartingAfter(ctrl.StartTime, ref afterIndex);
+                previous = GetTimeLineItemControlStartingBefore(ctrl.StartTime, ref previousIndex);
+
+                if (after != null)
+                    after.ReadyToDraw = false;
+                if (ctrl != null)
+                    ctrl.ReadyToDraw = false;
+
+                ctrl.GetPlacementInfo(ref cLeft, ref cWidth, ref cEnd);
+            }
+
+            if(!MathHelpers.FloatEquals(useDeltaX, 0.0) && !_selectionSet && ctrl != null)
+            {
+                ParentTimeLine.SetSelectedItem(ctrl.DataContext as ITimeLineItem, Keyboard.IsKeyDown(Key.LeftCtrl), false, true);
+                _selectionSet = true;
+            }
+
+            List<IUndoRedo> undos = new List<IUndoRedo>();
+
+            switch (e.Action)
+            {
+                case TimeLineAction.Move:
+                    bool setFloatValues = false;
+
+                    if (direction > 0)
+                    {
+                        List<ITimeLineItem> items = new List<ITimeLineItem>();
+                        int stopFrame;
+
+                        foreach (ITimeLineItem selectedItem in ParentTimeLine.SelectedItems.Where(x => x.Layer == Layer && x.LayerGroup == LayerGroup).OrderByDescending(x => x.TimeLine_StartTime))
+                        {
+                            TimeLineItemControl _ctrl = GetTimeLineItemControl(selectedItem);
+
+                            List<TimeLineItemControl> afterChain;
+
+                            if(e.Mode == TimeLineManipulationMode.Shift)
+                            {
+                                afterChain = GetAllControlsAfter(_ctrl);
+                                stopFrame = int.MaxValue;
+                            }
+                            else
+                            {
+                                afterChain = GetAfterChain(_ctrl, out stopFrame);
+                            }
+
+                            afterChain.Add(_ctrl);
+
+                            foreach (TimeLineItemControl item in afterChain.OrderByDescending(x => x.StartTime))
+                            {
+                                if (!setFloatValues && ctrl != null)
+                                {
+                                    floatingStartTime = item.StartTimeFloat;
+                                    floatingDuration = item.DurationFloat;
+                                    setFloatValues = true;
+                                }
+
+                                if (!items.Contains(item.DataContext))
+                                {
+                                    items.Add(item.DataContext as ITimeLineItem);
+                                    item.SetFloatingStartAndDuration(floatingStartTime, floatingDuration);
+                                    item.MoveMe(useDeltaX, undos, -1, stopFrame);
+                                }
+
+                                stopFrame = item.StartTime;
+                            }
+                        }
+
+                        if (undos.Count > 0)
+                        {
+                            UndoManager.Instance.AddCompositeUndo(undos, "Move", ParentTimeLine.UndoGroup, "Move", items);
+                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", items);
+                        }
+                    }
+                    else if (direction < 0)
+                    {
+                        List<ITimeLineItem> items = new List<ITimeLineItem>();
+                        bool reachedStart = false;
+                        int stopFrame;
+
+                        foreach (ITimeLineItem selectedItem in ParentTimeLine.SelectedItems.Where(x => x.Layer == Layer && x.LayerGroup == LayerGroup).OrderBy(x => x.TimeLine_StartTime))
+                        {
+                            if (reachedStart) break;
+                            TimeLineItemControl _ctrl = GetTimeLineItemControl(selectedItem);
+
+                            List<TimeLineItemControl> beforeChain = GetBeforeChain(_ctrl, out stopFrame);
+                            beforeChain.Add(_ctrl);
+
+                            if(e.Mode == TimeLineManipulationMode.Shift)
+                            {
+                                beforeChain.AddRange(GetAllControlsAfter(_ctrl));
+                            }
+
+                            foreach (TimeLineItemControl item in beforeChain.OrderBy(x => x.StartTime))
+                            {
+                                if (item.StartTime == 0)
+                                {
+                                    reachedStart = true;
+                                    break;
+                                }
+                                if (!setFloatValues && ctrl != null)
+                                {
+                                    floatingStartTime = item.StartTimeFloat;
+                                    floatingDuration = item.DurationFloat;
+                                    setFloatValues = true;
+                                }
+
+                                if (!items.Contains(item.DataContext))
+                                {
+                                    items.Add(item.DataContext as ITimeLineItem);
+                                    item.SetFloatingStartAndDuration(floatingStartTime, floatingDuration);
+                                    item.MoveMe(useDeltaX, undos, stopFrame);
+                                }
+
+                                stopFrame = item.StartTime + item.Duration;
+                            }
+                        }
+
+                        if (undos.Count > 0)
+                        {
+                            UndoManager.Instance.AddCompositeUndo(undos, "Move", ParentTimeLine.UndoGroup, "Move", items);
+                            UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", items);
+                        }
+                    }
+                    break;
+                case TimeLineAction.StretchStart:
+                    double gap = double.MaxValue;
+                    doStretch = direction > 0;
+                    if (direction < 0)
+                    {
+                        //disallow us from free stretching into another item
+
+                        if (previous != null)
+                        {
+                            double pLeft = 0;
+                            double pWidth = 0;
+                            double pEnd = 0;
+                            previous.GetPlacementInfo(ref pLeft, ref pWidth, ref pEnd);
+                            gap = cLeft - pEnd;
+                        }
+                        else
+                        {
+                            //don't allow us to stretch further than the gap between current and start time
+                            gap = cLeft;
+                        }
+
+                        doStretch = gap > _bumpThreshold;
+                        if (gap < useDeltaX)
+                        {
+                            useDeltaX = gap;
+                        }
+                    }
+
+                    doStretch &= ctrl.CanDelta(0, useDeltaX);
+
+                    if (doStretch)
+                    {
+                        ctrl.MoveStartTime(useDeltaX, undos);
+
+                        UndoManager.Instance.AddCompositeUndo(undos, "Stretch Start Time", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
+                        UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
+                    }
+                    break;
+                case TimeLineAction.StretchEnd:
+                    double nextGap = double.MaxValue;
+                    doStretch = true;
+                    if (direction > 0 && after != null)
+                    {
+                        //disallow us from free stretching into another item
+                        double nLeft = 0;
+                        double nWidth = 0;
+                        double nEnd = 0;
+                        after.GetPlacementInfo(ref nLeft, ref nWidth, ref nEnd);
+                        nextGap = nLeft - cEnd;
+                        doStretch = nextGap > _bumpThreshold;
+                        if (nextGap < useDeltaX)
+                            useDeltaX = nextGap;
+                    }
+
+
+                    doStretch &= ctrl.CanDelta(1, useDeltaX);
+                    if (doStretch)
+                    {
+                        ctrl.MoveEndTime(useDeltaX, undos);
+
+                        UndoManager.Instance.AddCompositeUndo(undos, "Stretch Duration", ParentTimeLine.UndoGroup, "Stretch", ctrl.DataContext);
+                        UndoManager.Instance.ForceEventCall(ParentTimeLine.UndoGroup, "MoveReact", ctrl.DataContext);
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+        
+            if(!MathHelpers.FloatEquals(e.DeltaX, 0))
+            {
+                ParentTimeLine.OnItemManipulation();
+            }
+        }
+
+        #endregion
 
         #region Get Children Methods
-
-        /// <summary>
-        /// Returns a list of all timeline controls starting with the current one and moving forward
-        /// so long as they are contiguous.
-        /// </summary>
-        /// <param name="current"></param>
-        /// <returns></returns>
-        private List<TimeLineItemControl> GetTimeLineForwardChain(TimeLineItemControl current, int afterIndex, ref double chainGap)
-        {
-            List<TimeLineItemControl> returner = new List<TimeLineItemControl>() { current };
-            double left = 0, width = 0, end = 0;
-            current.GetPlacementInfo(ref left, ref width, ref end);
-            if (afterIndex < 0)
-            {
-                //we are on the end of the list so there is no limit.
-                chainGap = double.MaxValue;
-                return returner;
-            }
-            double bumpThreshold = _bumpThreshold;
-            double lastAddedEnd = end;
-            while (afterIndex < Items.Count)
-            {
-                left = width = end = 0;
-                TimeLineItemControl checker = GetTimeLineItemControlAt(afterIndex++);
-                if (checker != null)
-                {
-                    checker.GetPlacementInfo(ref left, ref width, ref end);
-                    double gap = left - lastAddedEnd;
-                    if (gap > bumpThreshold)
-                    {
-                        chainGap = gap;
-                        return returner;
-                    }
-                    returner.Add(checker);
-                    lastAddedEnd = end;
-                }
-
-            }
-            //we have chained off to the end and thus have no need to worry about our gap
-            chainGap = double.MaxValue;
-            return returner;
-        }
-
-        /// <summary>
-        /// Returns a list of all timeline controls starting with the current one and moving backwoards
-        /// so long as they are contiguous.  If the chain reaches back to the start time of the timeline then the
-        /// ChainsBackToStart boolean is modified to reflect that.
-        /// </summary>
-        /// <param name="current"></param>
-        /// <returns></returns>
-        private List<TimeLineItemControl> GetTimeLineBackwardsChain(TimeLineItemControl current, int prevIndex, ref bool ChainsBackToStart, ref double chainGap)
-        {
-
-            List<TimeLineItemControl> returner = new List<TimeLineItemControl>() { current };
-            double left = 0, width = 0, end = 0;
-            current.GetPlacementInfo(ref left, ref width, ref end);
-            if (prevIndex < 0)
-            {
-                chainGap = double.MaxValue;
-                ChainsBackToStart = left == 0;
-                return returner;
-            }
-
-            double lastAddedLeft = left;
-            while (prevIndex >= 0)
-            {
-                left = width = end = 0;
-
-                TimeLineItemControl checker = GetTimeLineItemControlAt(prevIndex--);
-                if (checker != null)
-                {
-                    checker.GetPlacementInfo(ref left, ref width, ref end);
-                    if (lastAddedLeft - end > _bumpThreshold)
-                    {
-                        //our chain just broke;
-                        chainGap = lastAddedLeft - end;
-                        ChainsBackToStart = lastAddedLeft == 0;
-                        return returner;
-                    }
-                    returner.Add(checker);
-                    lastAddedLeft = left;
-                }
-
-            }
-            ChainsBackToStart = lastAddedLeft == 0;
-            chainGap = lastAddedLeft;//gap between us and zero;
-            return returner;
-
-        }
-
-        private List<ITimeLineItem> GetTimeLineItemChain(List<TimeLineItemControl> controls)
-        {
-            List<ITimeLineItem> items = new List<ITimeLineItem>();
-
-            foreach(var ctrl in controls)
-            {
-                if (ctrl.DataContext is ITimeLineItem item)
-                {
-                    items.Add(item);
-                }
-                else
-                {
-                    throw new InvalidDataException("Invalid TimeLineItem DataContext!");
-                }
-            }
-
-            return items;
-        }
-
         private TimeLineItemControl GetTimeLineItemControlStartingBefore(float dateTime, ref int index)
         {
             index = -1;
@@ -955,13 +782,15 @@ namespace XenoKit.Views.TimeLines
         #endregion
     }
 
-    internal class TimeLineItemChangedEventArgs : EventArgs
+    public class TimeLineItemChangedEventArgs : EventArgs
     {
         public TimeLineManipulationMode Mode { get; set; }
         public TimeLineAction Action { get; set; }
         public double DeltaTime { get; set; }
         public double DeltaX { get; set; }
 
+        public int Layer { get; set; }
+        public int LayerGroup { get; set; }
     }
 
     internal class TimeLineDragAdorner : Adorner
@@ -1039,6 +868,8 @@ namespace XenoKit.Views.TimeLines
 
     public interface ITimeLineParent
     {
+        List<ITimeLineItem> SelectedItems { get; }
+
         UndoGroup UndoGroup { get; }
         double UnitSize { get; }
         int CurrentLength { get; }
@@ -1046,7 +877,7 @@ namespace XenoKit.Views.TimeLines
 
         void UpdateLength();
 
-        void SetSelectedItem(ITimeLineItem item, bool append, bool rightClickSelection = false);
+        void SetSelectedItem(ITimeLineItem item, bool append, bool rightClickSelection = false, bool dontUnselect = false);
 
         int GetGhostDuration(ITimeLineItem timelineItem);
 
@@ -1056,7 +887,8 @@ namespace XenoKit.Views.TimeLines
 
         void TryGetFocus();
 
-        float GetTimeLineItemOpacity(ITimeLineItem timelineItem); 
+        float GetTimeLineItemOpacity(ITimeLineItem timelineItem);
 
+        void ItemManipulationStarted(TimeLineItemChangedEventArgs args);
     }
 }

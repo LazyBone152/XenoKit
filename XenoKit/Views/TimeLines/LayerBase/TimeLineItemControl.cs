@@ -9,6 +9,7 @@ using System;
 using Xv2CoreLib.BAC;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
+using Xv2CoreLib.Resource;
 
 namespace XenoKit.Views.TimeLines
 {

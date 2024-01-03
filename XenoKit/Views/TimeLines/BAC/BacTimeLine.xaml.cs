@@ -450,6 +450,17 @@ namespace XenoKit.Views.TimeLines
             UpdateLength();
         }
 
+        public void ItemManipulationStarted(TimeLineItemChangedEventArgs args)
+        {
+            foreach(TimeLineLayer<IBacType> layer in Layers)
+            {
+                if((layer.LayerGroup != args.LayerGroup || layer.Layer != args.Layer) && SelectedItems.Any(x => x.Layer == layer.Layer && x.LayerGroup == layer.LayerGroup))
+                {
+                    layer.HandleItemManipulation(null, args);
+                }
+            }
+        }
+
         private bool IsMaxLayer(int layer, int layerGroup)
         {
             foreach(var _layer in Layers.Where(x => x.LayerGroup == layerGroup))
@@ -1040,7 +1051,7 @@ namespace XenoKit.Views.TimeLines
         #endregion
 
         #region Selection
-        public void SetSelectedItem(ITimeLineItem item, bool append, bool rightClickSelection = false)
+        public void SetSelectedItem(ITimeLineItem item, bool append, bool rightClickSelection = false, bool dontUnselect = false)
         {
             if (rightClickSelection)
             {
@@ -1061,8 +1072,11 @@ namespace XenoKit.Views.TimeLines
             {
                 if (SelectedItems.Contains(item))
                 {
-                    SelectedItems.Remove(item);
-                    SelectedItem = SelectedItems.Count > 0 ? SelectedItems[0] : null;
+                    if (!dontUnselect)
+                    {
+                        SelectedItems.Remove(item);
+                        SelectedItem = SelectedItems.Count > 0 ? SelectedItems[0] : null;
+                    }
                 }
                 else
                 {

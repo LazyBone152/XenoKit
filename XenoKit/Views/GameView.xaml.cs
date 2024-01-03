@@ -2,7 +2,6 @@
 using MahApps.Metro.IconPacks;
 using System;
 using System.ComponentModel;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.Engine;
@@ -18,12 +17,9 @@ namespace XenoKit.Controls
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public void NotifyPropertyChanged(String propertyName = "")
+        public void NotifyPropertyChanged(string propertyName = "")
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public Game MonoGame;
@@ -63,6 +59,7 @@ namespace XenoKit.Controls
                 switch (SceneManager.CurrentSceneState)
                 {
                     case EditorTabs.Action:
+                        if (SceneManager.Actors[0] == null) return "";
                         if (SceneManager.Actors[0].ActionControl.BacPlayer.IsScaled)
                         {
                             return $"(TimeScale: {SceneManager.Actors[0].ActiveTimeScale.ToString("0.00####")} -> {SceneManager.Actors[0].ActionControl.BacPlayer.ScaledDuration})";
@@ -83,6 +80,7 @@ namespace XenoKit.Controls
                 {
                     case EditorTabs.Action:
                         {
+                            if (SceneManager.Actors[0] == null) return "";
                             switch (SceneManager.Actors[0].ActionControl.PreviewState)
                             {
                                 case Engine.Scripting.BAC.ActionPreviewState.WaitingVictim:
