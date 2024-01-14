@@ -156,6 +156,10 @@ namespace XenoKit.Engine.Vfx.Asset
                     Transform = Matrix.CreateTranslation(new Vector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ)) * InitialPosition * InitialRotation;
                 }
             }
+            else if(EffectPart.AttachementType == EffectPart.Attachment.External)
+            {
+                Transform = BacSpawnSource;
+            }
 
             //Near and Far fade distance
             if (MathHelpers.FloatEquals(EffectPart.FarFadeDistance, 0))

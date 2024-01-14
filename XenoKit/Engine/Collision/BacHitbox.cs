@@ -7,7 +7,7 @@ namespace XenoKit.Engine.Collision
 {
     public class BacHitbox
     {
-        protected Matrix WorldMatrix
+        public Matrix WorldMatrix
         {
             get
             {
@@ -33,6 +33,7 @@ namespace XenoKit.Engine.Collision
         public int Team;
 
         public readonly BacEntryInstance BacEntry;
+        public readonly Actor OwnerActor;
         public readonly Actor SpawnActor;
         public readonly BAC_Type1 Hitbox;
         public BoundingBox BoundingBox;
@@ -41,13 +42,14 @@ namespace XenoKit.Engine.Collision
 
         private Vector3 HitboxPosition;
 
-        public BacHitbox(BacEntryInstance bacEntry, BAC_Type1 bacHitbox, Actor spawnOnActor, int team)
+        public BacHitbox(BacEntryInstance bacEntry, BAC_Type1 bacHitbox, Actor spawnOnActor, Actor owner, int team)
         {
             Team = team;
             BacEntry = bacEntry;
             Hitbox = bacHitbox;
             BoundingBox = new BoundingBox();
             SpawnActor = spawnOnActor;
+            OwnerActor = owner;
 
             string boneName = Hitbox.BoneLink.ToString();
             isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
@@ -85,6 +87,11 @@ namespace XenoKit.Engine.Collision
             Vector3 relativeDir = (Matrix.Invert(matrix) * WorldMatrix).Translation;
             relativeDir.Normalize();
             return relativeDir;
+        }
+    
+        public Matrix GetAbsoluteHitboxMatrix()
+        {
+            return WorldMatrix * Matrix.CreateTranslation(HitboxPosition);
         }
     }
 }

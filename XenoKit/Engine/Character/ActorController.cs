@@ -5,16 +5,21 @@ using System.Linq;
 using System.Text;
 using XenoKit.Editor;
 using XenoKit.Engine;
+using XenoKit.Engine.Collision;
 using XenoKit.Engine.Scripting.BAC;
+using XenoKit.Engine.Scripting.BDM;
+using XenoKit.Engine.Vfx;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.BDM;
+using Xv2CoreLib.DEM;
+using Xv2CoreLib.Resource;
 
 namespace XenoKit.Engine.Character
 {
     public class ActorController
     {
         private readonly Move CMN;
-        private readonly Actor Actor;
+        public readonly Actor Actor;
 
         private ActorState _state = ActorState.Null;
         public ActorState State
@@ -22,29 +27,29 @@ namespace XenoKit.Engine.Character
             get => _state;
             set
             {
-                if(value != _state)
-                {
-                    _state = value;
-                    ActiveBacEntry = null;
-                    BacEntriesPlayed = 0;
-                }
+                _state = value;
+                SetStateBacEntries(value);
             }
         }
 
-
-        private BAC_Entry ActiveBacEntry = null;
-        private int BacEntriesPlayed = 0;
-        private int BacEntriesToPlay = 1;
-
         //General state:
-        private bool IsInAir = false;
+        public bool IsInAir = false;
         public int InvulnerabilityFrames = 0;
         public int FreezeActionFrames = 0;
 
+        //BAC Entry
+        private BAC_Entry ActiveBacEntry = null;
+        public readonly int[] BacEntries = new int[4];
+        public int BacEntryCount = 0;
+        public int CurrentBacEntry = 0;
+        public bool EndCurrentBacEntry = false;
+        public bool LoopBacEntries = false;
 
+        private readonly BdmEntryInstance BdmEntry;
         public ActorController(Actor actor)
         {
             Actor = actor;
+            BdmEntry = new BdmEntryInstance(this);
             CMN = Files.Instance.GetCmnMove();
             Actor.ActionControl.ActionFinished += ActionControl_ActionFinished;
         }
@@ -53,38 +58,116 @@ namespace XenoKit.Engine.Character
         {
             if (!keepAnimation)
             {
-                _state = Actor.ActorSlot == 0 ? ActorState.Null : ActorState.Idle;
-                ActiveBacEntry = null;
-                BacEntriesPlayed = 0;
+                ClearBacEntries();
+                State = Actor.ActorSlot == 0 ? ActorState.Null : ActorState.Idle;
             }
 
             InvulnerabilityFrames = 0;
             FreezeActionFrames = 0;
         }
 
+        public void SetBacEntries(params int[] bacEntries)
+        {
+#if DEBUG
+            if (bacEntries.Length > BacEntries.Length) throw new ArgumentOutOfRangeException("SetBacEntries: BacEntries array is not large enough!");
+#endif
+
+            for (int i = 0; i < BacEntries.Length; i++)
+            {
+                if (i < bacEntries.Length)
+                {
+                    BacEntries[i] = bacEntries[i];
+                }
+                else
+                {
+                    BacEntries[i] = -1;
+                }
+            }
+
+            BacEntryCount = bacEntries.Length;
+        }
+
+        public void ClearBacEntries()
+        {
+            CurrentBacEntry = 0;
+            BacEntryCount = 0;
+            ActiveBacEntry = null;
+            EndCurrentBacEntry = false;
+            LoopBacEntries = false;
+
+            for (int i = 0; i < BacEntries.Length; i++)
+                BacEntries[i] = -1;
+        }
+
+        private void SetStateBacEntries(ActorState state)
+        {
+            ActiveBacEntry = null;
+
+            if(state == ActorState.Null)
+            {
+                ClearBacEntries();
+            }
+            else if(state == ActorState.Idle)
+            {
+                SetBacEntries(BAC_IDLE_STANCE);
+                LoopBacEntries = true;
+            }
+        }
+
         #region Update
         public void Update()
         {
-            if (State == ActorState.Null) return;
             UpdateIFrames();
             UpdateFreezeActionFrames();
 
-            if (State == ActorState.Idle)
+            if (State == ActorState.DamageManager)
             {
-                PlayCharacterBacEntry(BAC_IDLE_STANCE);
+                UpdateDamageState(false);
             }
-            else if (State == ActorState.DamageManager)
+            
+            if (State != ActorState.Null)
             {
-                UpdateDamageState();
+                UpdateBacEntry();
+            }
+        }
+
+        private void UpdateBacEntry()
+        {
+            if (ActiveBacEntry == null && CurrentBacEntry == BacEntryCount)
+            {
+                if (LoopBacEntries)
+                {
+                    CurrentBacEntry = 0;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            
+            if(ActiveBacEntry == null || EndCurrentBacEntry)
+            {
+                PlayCharacterBacEntry(BacEntries[CurrentBacEntry], EndCurrentBacEntry);
+
+                CurrentBacEntry++;
+                EndCurrentBacEntry = false;
             }
         }
 
         public void Simulate()
         {
-            if (State == ActorState.Null) return;
             UpdateIFrames();
             UpdateFreezeActionFrames();
 
+            if (State == ActorState.DamageManager)
+            {
+                UpdateDamageState(true);
+            }
+
+            if (State != ActorState.Null)
+            {
+                UpdateBacEntry();
+            }
         }
 
         private void UpdateIFrames()
@@ -150,194 +233,92 @@ namespace XenoKit.Engine.Character
         }
 
         #region Damage
-        //BDM:
-        private BDM_Entry BdmEntry = null;
-        private Type0SubEntry BdmSubEntry = null;
-        private float BdmFrame = 0f;
 
-        //Damage:
-        private int HitDirection = 0; //0 = Front, 1 = Back, 2 = Left, 3 = Right
-        private Vector3 HitVector;
-
-        //Pushback
-        private bool UsePushback = false;
-
-        public void ApplyDamageState(BDM_Entry bdmEntry, Vector3 damageDriection)
+        public void ApplyDamageState(BDM_Entry bdmEntry, Vector3 damageDir, BacHitbox hitbox)
         {
             if (bdmEntry != null)
             {
-                ResetDamageState();
-                SetDamageDirection(damageDriection);
-                BdmEntry = bdmEntry;
-                BdmSubEntry = bdmEntry.Type0Entries[0];
-                ActiveBacEntry = null;
-                BacEntriesPlayed = 0;
+                ClearBacEntries();
+                BdmEntry.InitBdmEntry(bdmEntry, damageDir, hitbox.OwnerActor, hitbox.BacEntry.SkillMove, hitbox.GetAbsoluteHitboxMatrix());
                 State = ActorState.DamageManager;
+
+                if(BdmEntry.BdmSubEntry.DamageType == DamageType.Grab)
+                {
+                    Log.Add("Grab moves are not implemented yet.", LogType.Warning);
+                    BdmEntry.ResetBdmEntry();
+                    State = ActorState.Idle;
+                }
             }
         }
 
-        private void SetDamageDirection(Vector3 directionVector)
+        private void UpdateDamageState(bool simulate)
         {
-            HitVector = directionVector;
-            float xAbs = Math.Abs(directionVector.X);
-            float zAbs = Math.Abs(directionVector.Z);
-
-            if (directionVector.Z < 0 && zAbs > xAbs)
-            {
-                HitDirection = 0; //Front
-            }
-            else if (directionVector.Z > 0 && zAbs > xAbs)
-            {
-                HitDirection = 1; //Back
-            }
-            else if (directionVector.X < 0 && xAbs > zAbs)
-            {
-                HitDirection = 2; //Left
-            }
-            else if (directionVector.X > 0 && xAbs > zAbs)
-            {
-                HitDirection = 3; //Right
-            }
-        }
-
-        private void UpdateDamageState()
-        {
-            if (ActiveBacEntry == null)
+            if (BdmEntry.HasEntry)
             {
                 //Return to idle state when damage animations have finished 
-                if (BacEntriesPlayed >= BacEntriesToPlay)
+                if (CurrentBacEntry >= BacEntryCount && ActiveBacEntry == null)
                 {
+                    BdmEntry.ResetBdmEntry();
                     State = ActorState.Idle;
                     return;
                 }
 
-                UsePushback = false;
-
-                switch (BdmSubEntry.DamageType)
+                //On the first frame, activate the effects and sounds declared on the BDM entry and initialize any other settings
+                //The current animation will be frozen for 1 frame while this happens
+                if (BdmEntry.CurrentFrame == 0 && (Actor.GameBase.IsPlaying || simulate))
                 {
-                    case DamageType.Standard:
-                        {
-                            BacEntriesToPlay = 1;
-                            UsePushback = true;
-                            int entryId = IsInAir ? (HitDirection * 2) + 1 : HitDirection * 2;
-                            PlayCharacterBacEntry(GetStumbleEntry(BdmSubEntry.StumbleType) + entryId);
-                            break;
-                        }
-                    case DamageType.Heavy:
-                        {
-                            BacEntriesToPlay = 1;
-                            int stumbleId = GetHeavyStumbleEntry(BdmSubEntry.StumbleType);
-                            int entryId = IsInAir ? (HitDirection * 2) + 1 : HitDirection * 2;
+                    FreezeActionFrames = BdmEntry.BdmSubEntry.VictimStun + 1;
+                    BdmEntry.Attacker.Controller.FreezeActionFrames = BdmEntry.BdmSubEntry.UserStun + 1;
 
-                            //Heavy stumble 3 only has frontal and back hit animations
-                            if (stumbleId == BAC_HEAVY_STUMBLE_3 && entryId > 3)
-                                entryId = 0;
+                    InvulnerabilityFrames = BdmEntry.BdmSubEntry.VictimInvincibilityTime + FreezeActionFrames;
+                    BdmEntry.Attacker.Controller.InvulnerabilityFrames = BdmEntry.Attacker.Controller.FreezeActionFrames;
 
-                            PlayCharacterBacEntry(stumbleId + entryId);
-                            break;
+                    Actor.BdmTimeScale = BdmEntry.BdmSubEntry.VictimAnimationSpeed;
+                    Actor.BdmTimeScaleDuration = BdmEntry.BdmSubEntry.VictimAnimationTime;
+
+                    BdmEntry.Attacker.BdmTimeScale = BdmEntry.BdmSubEntry.UserAnimationSpeed;
+                    BdmEntry.Attacker.BdmTimeScaleDuration = BdmEntry.BdmSubEntry.UserAnimationTIme;
+
+                    Actor.VfxManager.PlayEffect(BdmEntry);
+
+                    BdmEntry.PushbackStrength = BdmEntry.BdmSubEntry.PushbackStrength;
+
+                    if (!simulate)
+                    {
+                        Xv2CoreLib.ACB.ACB_Wrapper acb = Files.Instance.GetAcbFile((Xv2CoreLib.BAC.AcbType)BdmEntry.BdmSubEntry.AcbType, BdmEntry.Move, Actor, true);
+
+                        if (acb != null && BdmEntry.BdmSubEntry.CueId != -1 && Actor.GameBase.IsPlaying && Actor.AnimationPlayer.PrimaryAnimation != null)
+                        {
+                            SceneManager.AudioEngine.PlayCue(BdmEntry.BdmSubEntry.CueId, acb, Actor);
                         }
+                    }
                 }
 
-                BacEntriesPlayed++;
+                if (FreezeActionFrames == 0)
+                {
+                    //Pushback
+                    if (!MathHelpers.FloatEquals(BdmEntry.PushbackStrength, 0f) && BdmEntry.UsePushback)
+                    {
+                        Vector3 pushbackVector = BdmEntry.Victim.Transform.Translation - BdmEntry.Attacker.Transform.Translation;
+                        pushbackVector.Normalize();
+                        Actor.ApplyTranslation(pushbackVector * BdmEntry.PushbackStrength);
+
+                        //PushbackStrength may need to be clamped with high accerlerations
+                        BdmEntry.PushbackStrength *= BdmEntry.BdmSubEntry.PushbackAcceleration;
+                    }
+                }
+
+                //Advance bdm frame if playing, or simulating a frame. This does not need to be time scaled
+                if (Actor.GameBase.IsPlaying || simulate)
+                    BdmEntry.CurrentFrame++;
             }
         }
         
-        private void ResetDamageState()
-        {
-            UsePushback = false;
-            BdmFrame = 0f;
-        }
         #endregion
 
         #region BAC IDs
         private const int BAC_IDLE_STANCE = 0;
         private const int BAC_IDLE_STANCE_AIR = 1;
-
-        private const int BAC_STUMBLE_1 = 93;
-        private const int BAC_STUMBLE_2 = 101;
-        private const int BAC_STUMBLE_3 = 109;
-        private const int BAC_STUMBLE_4 = 117;
-        private const int BAC_STUMBLE_5 = 125;
-        private const int BAC_STUMBLE_6 = 133;
-        private const int BAC_STUMBLE_7 = 226;
-        private const int BAC_STUMBLE_8 = 234;
-        private const int BAC_STUMBLE_9 = 242;
-        private const int BAC_HEAVY_STUMBLE_1 = 141;
-        private const int BAC_HEAVY_STUMBLE_2 = 149;
-        private const int BAC_HEAVY_STUMBLE_3 = 157;
-
-        private readonly int[] STUMBLE_SET_1 = new int[] { 109, 117, 226 };
-        private readonly int[] STUMBLE_SET_2 = new int[] { 93, 101, 226 };
-        private readonly int[] STUMBLE_SET_3 = new int[] { 125, 133, 242 };
-        private readonly int[] STUMBLE_SET_4 = new int[] { 93, 109, 125 };
-        private readonly int[] STUMBLE_SET_5 = new int[] { 101, 117, 133 };
-        private readonly int[] STUMBLE_SET_6 = new int[] { 226, 234, 242 };
-        private readonly int[] STUMBLE_SET_ALL = new int[] { 93, 101, 109, 117, 125, 133, 226, 234, 242 };
-        private readonly int[] HEAVY_STUMBLE_SET_ALL = new int[] { 141, 149, 157 };
-
-        private int GetStumbleEntry(Stumble stumbleFlags)
-        {
-            int rnd = Xv2CoreLib.Random.Range(0, 2);
-            int result = -1;
-
-            //TODO: Flags can be mixed together
-            if (stumbleFlags.HasFlag(Stumble.StumbleSet1))
-            {
-                result = STUMBLE_SET_1[rnd];
-            }
-            else if (stumbleFlags.HasFlag(Stumble.StumbleSet2))
-            {
-                result = STUMBLE_SET_2[rnd];
-            }
-            else if (stumbleFlags.HasFlag(Stumble.StumbleSet3))
-            {
-                result = STUMBLE_SET_3[rnd];
-            }
-            else if (stumbleFlags.HasFlag(Stumble.StumbleSet4))
-            {
-                result = STUMBLE_SET_4[rnd];
-            }
-            else if (stumbleFlags.HasFlag(Stumble.StumbleSet5))
-            {
-                result = STUMBLE_SET_5[rnd];
-            }
-            else if (stumbleFlags.HasFlag(Stumble.StumbleSet6))
-            {
-                result = STUMBLE_SET_6[rnd];
-            }
-
-            if (stumbleFlags.HasFlag(Stumble.AllStumbleSets) || result == -1)
-            {
-                result = STUMBLE_SET_ALL[Xv2CoreLib.Random.Range(0, STUMBLE_SET_ALL.Length)];
-            }
-
-            return result;
-        }
-
-        private int GetHeavyStumbleEntry(Stumble stumbleFlags)
-        {
-            int result;
-
-            //TODO: Flags can be mixed together
-            if (stumbleFlags.HasFlag(Stumble.StumbleSet1))
-            {
-                result = BAC_HEAVY_STUMBLE_2;
-            }
-            else if (stumbleFlags.HasFlag(Stumble.StumbleSet2))
-            {
-                result = BAC_HEAVY_STUMBLE_1;
-            }
-            else if (stumbleFlags.HasFlag(Stumble.StumbleSet3))
-            {
-                result = BAC_HEAVY_STUMBLE_3;
-            }
-            else
-            {
-                result = HEAVY_STUMBLE_SET_ALL[Xv2CoreLib.Random.Range(0, 2)];
-            }
-
-            return result;
-        }
 
         #endregion
     }

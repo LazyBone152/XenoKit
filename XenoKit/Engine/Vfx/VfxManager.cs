@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BAC;
+using XenoKit.Engine.Scripting.BDM;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EEPK;
@@ -75,6 +76,40 @@ namespace XenoKit.Engine.Vfx
                 else
                 {
                     Log.Add($"No effect at ID {bacEffect.EffectID} could be found in EEPK {bacEffect.EepkType}.");
+                }
+            }
+        }
+
+        public void PlayEffect(BdmEntryInstance bdmInstance)
+        {
+            PlayEffect((BAC_Type8.EepkTypeEnum)bdmInstance.BdmSubEntry.Effect1_EepkType, bdmInstance.BdmSubEntry.Effect1_SkillID, bdmInstance.BdmSubEntry.Effect1_ID, bdmInstance);
+            PlayEffect((BAC_Type8.EepkTypeEnum)bdmInstance.BdmSubEntry.Effect2_EepkType, bdmInstance.BdmSubEntry.Effect2_SkillID, bdmInstance.BdmSubEntry.Effect2_ID, bdmInstance);
+            PlayEffect((BAC_Type8.EepkTypeEnum)bdmInstance.BdmSubEntry.Effect3_EepkType, bdmInstance.BdmSubEntry.Effect3_SkillID, bdmInstance.BdmSubEntry.Effect3_ID, bdmInstance);
+        }
+
+        private async void PlayEffect(BAC_Type8.EepkTypeEnum eepkType, ushort skillId, short effectId, BdmEntryInstance bdmInstance)
+        {
+            if (Effects.Count >= MAX_EFFECTS)
+            {
+                Log.Add("Maximum amount of effects that can be active at the same time reached. Cannot start new ones.", LogType.Warning);
+                return;
+            }
+
+            if (effectId == -1) return;
+
+            EffectContainerFile eepk = Files.Instance.GetEepkFile(eepkType, skillId, bdmInstance.Move, bdmInstance.Victim, true);
+
+            if (eepk != null)
+            {
+                Effect eepkEffect = eepk.GetEffect(effectId);
+
+                if (eepkEffect != null)
+                {
+                    await Task.Run(() => AddEffect(bdmInstance.Victim, eepkEffect, bdmInstance.HitPosition, GameBase));
+                }
+                else
+                {
+                    Log.Add($"No effect at ID {effectId} could be found in EEPK {eepkType}.");
                 }
             }
         }

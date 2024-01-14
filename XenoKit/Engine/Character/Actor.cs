@@ -150,6 +150,11 @@ namespace XenoKit.Engine
             RootMotionTransform = Matrix.Identity;
         }
 
+        public void ApplyTranslation(Vector3 translation)
+        {
+            BaseTransform *= Matrix.CreateTranslation(translation);
+        }
+
         public void ResetPosition()
         {
             Vector3 pos;
@@ -258,10 +263,10 @@ namespace XenoKit.Engine
             HitboxEnabled = true;
 
             UpdateBdmTimeScale();
+            Controller.Simulate();
 
-            if(ActorSlot != 0)
+            if (ActorSlot != 0)
             {
-                Controller.Update();
                 ActionControl.Update();
             }
 
@@ -323,7 +328,7 @@ namespace XenoKit.Engine
 
         public bool HitTest(BacHitbox hitbox)
         {
-            if (!HitboxEnabled) return false;
+            if (!HitboxEnabled || Controller.InvulnerabilityFrames > 0 || Controller.FreezeActionFrames > 0) return false;
 
             if (Hitbox.Intersects(hitbox.BoundingBox))
             {
@@ -331,7 +336,7 @@ namespace XenoKit.Engine
 
                 if(bdm != null)
                 {
-                    Controller.ApplyDamageState(bdm.GetEntry(hitbox.Hitbox.BdmEntryID), hitbox.GetRelativeDirection(Transform));
+                    Controller.ApplyDamageState(bdm.GetEntry(hitbox.Hitbox.BdmEntryID), hitbox.GetRelativeDirection(Transform), hitbox);
                 }
 
                 return true;

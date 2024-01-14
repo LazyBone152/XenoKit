@@ -516,6 +516,7 @@
     <Compile Include="Engine\Collision\BacHitbox.cs" />
     <Compile Include="Engine\Gizmo\EntityTransformGizmo.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
+    <Compile Include="Engine\Scripting\BDM\BdmEntryInstance.cs" />
     <Compile Include="Engine\Scripting\Simulation.cs" />
     <Compile Include="Inspector\InspectorEntity\EanInspectorEntity.cs" />
     <Compile Include="Inspector\InspectorEntity\InspectorEntity.cs" />

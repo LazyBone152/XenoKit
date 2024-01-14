@@ -672,8 +672,6 @@ namespace XenoKit.Engine.Animation
                         rootMotion *= Matrix.CreateTranslation(new Vector3(0, 0, -firstPosZ) * firstPosW);
                     }
                 }
-
-
             }
 
             if(Character != null)

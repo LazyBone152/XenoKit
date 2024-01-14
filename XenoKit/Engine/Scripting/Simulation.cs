@@ -37,6 +37,9 @@ namespace XenoKit.Engine.Scripting
                     continue;
                 }
 
+                if (ActiveHitboxes[i].OwnerActor.Controller.FreezeActionFrames > 0)
+                    continue;
+
                 ActiveHitboxes[i].UpdateHitbox();
 
                 //Check for collision
