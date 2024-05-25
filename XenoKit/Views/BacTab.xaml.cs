@@ -273,6 +273,13 @@ namespace XenoKit.Controls
                 return (bacTypeDataGrid.SelectedItem is BAC_Type30) ? new BACType30ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type30) : null;
             }
         }
+        public BACType31ViewModel BacType31ViewModel
+        {
+            get
+            {
+                return (bacTypeDataGrid.SelectedItem is BAC_Type31) ? new BACType31ViewModel(bacTypeDataGrid.SelectedItem as BAC_Type31) : null;
+            }
+        }
 
 
         //List Filter
@@ -784,6 +791,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(BacType28ViewModel));
             NotifyPropertyChanged(nameof(BacType29ViewModel));
             NotifyPropertyChanged(nameof(BacType30ViewModel));
+            NotifyPropertyChanged(nameof(BacType31ViewModel));
             NotifyPropertyChanged(nameof(BacTypeBaseViewModel));
         }
 

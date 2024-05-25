@@ -42,6 +42,7 @@ namespace XenoKit.Views
             get => SceneManager.RetainActionMovement;
             set => SceneManager.RetainActionMovement = value;
         }
+
         public BacTypeSortMode BacTypeSortMode
         {
             get
