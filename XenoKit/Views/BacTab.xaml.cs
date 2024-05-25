@@ -424,7 +424,7 @@ namespace XenoKit.Controls
 
             //Default sorting:
             bacTypeDataGrid.Items.SortDescriptions.Clear();
-            if (SettingsManager.Instance.Settings.XenoKit_BacTypeSortModeEnum == BacTypeSortMode.StartTime)
+            if (SettingsManager.Instance.Settings.XenoKit_BacTypeSortModeEnum == (int)BacTypeSortMode.StartTime)
             {
                 bacTypeDataGrid.Items.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Ascending));
             }

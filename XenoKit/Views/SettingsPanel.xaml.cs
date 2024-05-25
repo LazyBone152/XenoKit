@@ -47,13 +47,13 @@ namespace XenoKit.Views
         {
             get
             {
-                return SettingsManager.settings.XenoKit_BacTypeSortModeEnum;
+                return (BacTypeSortMode)SettingsManager.settings.XenoKit_BacTypeSortModeEnum;
             }
             set
             {
-                if (SettingsManager.settings.XenoKit_BacTypeSortModeEnum != value)
+                if (SettingsManager.settings.XenoKit_BacTypeSortModeEnum != (int)value)
                 {
-                    SettingsManager.settings.XenoKit_BacTypeSortModeEnum = value;
+                    SettingsManager.settings.XenoKit_BacTypeSortModeEnum = (int)value;
                     SettingsManager.Instance.SaveSettings();
                 }
             }
