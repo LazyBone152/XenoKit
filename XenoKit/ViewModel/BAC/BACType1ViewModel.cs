@@ -43,14 +43,14 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (ushort)(bacType.HitboxFlags & 0xF000);
+                return (ushort)((int)bacType.HitboxFlags & 0xF000);
             }
             set
             {
-                ushort newFlags = (ushort)((bacType.HitboxFlags & 0x0FFF) | value);
+                ushort newFlags = (ushort)(((int)bacType.HitboxFlags & 0x0FFF) | value);
 
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox ImpactType"));
-                bacType.HitboxFlags = newFlags;
+                bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
                 RaisePropertyChanged(() => ImpactType);
                 RaisePropertyChanged(() => DamageType);
                 RaisePropertyChanged(() => HitboxSpawnSource);
@@ -60,14 +60,14 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (ushort)(bacType.HitboxFlags & 0x0F00);
+                return (ushort)((int)bacType.HitboxFlags & 0x0F00);
             }
             set
             {
-                ushort newFlags = (ushort)((bacType.HitboxFlags & 0xF0FF) | value);
+                ushort newFlags = (ushort)(((int)bacType.HitboxFlags & 0xF0FF) | value);
 
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox DamageType"));
-                bacType.HitboxFlags = newFlags;
+                bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
                 RaisePropertyChanged(() => ImpactType);
                 RaisePropertyChanged(() => DamageType);
                 RaisePropertyChanged(() => HitboxSpawnSource);
@@ -77,14 +77,14 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (ushort)(bacType.HitboxFlags & 0x00F0);
+                return (ushort)((int)bacType.HitboxFlags & 0x00F0);
             }
             set
             {
-                ushort newFlags = (ushort)((bacType.HitboxFlags & 0xFF0F) | value);
+                ushort newFlags = (ushort)(((int)bacType.HitboxFlags & 0xFF0F) | value);
 
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox SpawnSource"));
-                bacType.HitboxFlags = newFlags;
+                bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
                 RaisePropertyChanged(() => ImpactType);
                 RaisePropertyChanged(() => DamageType);
                 RaisePropertyChanged(() => HitboxSpawnSource);
@@ -97,15 +97,15 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (bacType.HitboxFlags & 0x0001) != 0;
+                return ((int)bacType.HitboxFlags & 0x0001) != 0;
             }
             set
             {
                 ushort result = (ushort)((value) ? 0x0001 : 0x0000);
-                ushort newFlags = (ushort)((bacType.HitboxFlags & 0xFFFE) | result);
+                ushort newFlags = (ushort)(((int)bacType.HitboxFlags & 0xFFFE) | result);
 
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox FlagsUnk1"));
-                bacType.HitboxFlags = newFlags;
+                bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
                 RaisePropertyChanged(() => HitboxFlagA_Unk1);
                 RaisePropertyChanged(() => ImpactType);
                 RaisePropertyChanged(() => DamageType);
@@ -116,15 +116,15 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (bacType.HitboxFlags & 0x0002) != 0;
+                return ((int)bacType.HitboxFlags & 0x0002) != 0;
             }
             set
             {
                 ushort result = (ushort)((value) ? 0x0002 : 0x0000);
-                ushort newFlags = (ushort)((bacType.HitboxFlags & 0xFFFD) | result);
+                ushort newFlags = (ushort)(((int)bacType.HitboxFlags & 0xFFFD) | result);
 
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox FlagsUnk2"));
-                bacType.HitboxFlags = newFlags;
+                bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
                 RaisePropertyChanged(() => HitboxFlagA_Unk2);
                 RaisePropertyChanged(() => ImpactType);
                 RaisePropertyChanged(() => DamageType);
@@ -135,15 +135,15 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (bacType.HitboxFlags & 0x0004) != 0;
+                return ((int)bacType.HitboxFlags & 0x0004) != 0;
             }
             set
             {
                 ushort result = (ushort)((value) ? 0x0004 : 0x0000);
-                ushort newFlags = (ushort)((bacType.HitboxFlags & 0xFFFB) | result);
+                ushort newFlags = (ushort)(((int)bacType.HitboxFlags & 0xFFFB) | result);
 
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox FlagsUnk3"));
-                bacType.HitboxFlags = newFlags;
+                bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
                 RaisePropertyChanged(() => HitboxFlagA_Unk3);
                 RaisePropertyChanged(() => ImpactType);
                 RaisePropertyChanged(() => DamageType);
@@ -154,15 +154,15 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return (bacType.HitboxFlags & 0x0008) != 0;
+                return ((int)bacType.HitboxFlags & 0x0008) != 0;
             }
             set
             {
                 ushort result = (ushort)((value) ? 0x0008 : 0x0000);
-                ushort newFlags = (ushort)((bacType.HitboxFlags & 0xFFF7) | result);
+                ushort newFlags = (ushort)(((int)bacType.HitboxFlags & 0xFFF7) | result);
 
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox FlagsUnk4"));
-                bacType.HitboxFlags = newFlags;
+                bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
                 RaisePropertyChanged(() => HitboxFlagA_Unk4);
                 RaisePropertyChanged(() => ImpactType);
                 RaisePropertyChanged(() => DamageType);
@@ -450,7 +450,7 @@ namespace XenoKit.ViewModel.BAC
         //Flags
         private bool GetHitboxFlags(ushort mask)
         {
-            return (bacType.HitboxFlags & mask) != 0;
+            return ((int)bacType.HitboxFlags & mask) != 0;
         }
 
 
@@ -460,7 +460,7 @@ namespace XenoKit.ViewModel.BAC
             ushort newFlags = (ushort)((bacType.I_18_b & (0xFFFF - mask)) | result);
 
             UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type1>(nameof(bacType.HitboxFlags), bacType, bacType.HitboxFlags, newFlags, "Hitbox HitboxFlags"));
-            bacType.HitboxFlags = newFlags;
+            bacType.HitboxFlags = (HitboxFlagsEnum)newFlags;
         }
    
         public bool GetHitboxProperties1(ushort mask)
