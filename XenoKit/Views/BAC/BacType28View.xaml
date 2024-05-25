@@ -35,7 +35,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Label Content="I__12"/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType28View}}, Path=BacViewModel.I_12, UpdateSourceTrigger=Default}"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType28View}}, Path=BacViewModel.F_12, UpdateSourceTrigger=Default}" StringFormat="0.0######"/>
                     </Grid>
                 </WrapPanel>
                 <WrapPanel>
