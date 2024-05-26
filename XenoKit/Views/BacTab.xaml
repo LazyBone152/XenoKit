@@ -172,6 +172,7 @@
                                 <MenuItem Header="[28] BAC_Type28" Command="{Binding AddBacTypeCommand}" CommandParameter="28"/>
                                 <MenuItem Header="[29] BAC_Type29" Command="{Binding AddBacTypeCommand}" CommandParameter="29"/>
                                 <MenuItem Header="[30] BAC_Type30" Command="{Binding AddBacTypeCommand}" CommandParameter="30"/>
+                                <MenuItem Header="[31] BAC_Type31" Command="{Binding AddBacTypeCommand}" CommandParameter="31"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
@@ -234,6 +235,7 @@
                             <MenuItem Header="[28] BAC_Type28" Command="{Binding AddBacTypeCommand}" CommandParameter="28"/>
                             <MenuItem Header="[29] BAC_Type29" Command="{Binding AddBacTypeCommand}" CommandParameter="29"/>
                             <MenuItem Header="[30] BAC_Type30" Command="{Binding AddBacTypeCommand}" CommandParameter="30"/>
+                            <MenuItem Header="[31] BAC_Type31" Command="{Binding AddBacTypeCommand}" CommandParameter="31"/>
                         </MenuItem>
                         <Separator/>
                         <MenuItem Header="Copy" Command="{Binding CopyBacTypeCommand}"/>

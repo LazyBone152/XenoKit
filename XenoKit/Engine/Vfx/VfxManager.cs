@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BAC;
-using XenoKit.Engine.Scripting.BDM;
+using XenoKit.Engine.Character;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EEPK;
@@ -80,14 +80,14 @@ namespace XenoKit.Engine.Vfx
             }
         }
 
-        public void PlayEffect(BdmEntryInstance bdmInstance)
+        public void PlayEffect(DamageManager bdmInstance)
         {
             PlayEffect((BAC_Type8.EepkTypeEnum)bdmInstance.BdmSubEntry.Effect1_EepkType, bdmInstance.BdmSubEntry.Effect1_SkillID, bdmInstance.BdmSubEntry.Effect1_ID, bdmInstance);
             PlayEffect((BAC_Type8.EepkTypeEnum)bdmInstance.BdmSubEntry.Effect2_EepkType, bdmInstance.BdmSubEntry.Effect2_SkillID, bdmInstance.BdmSubEntry.Effect2_ID, bdmInstance);
             PlayEffect((BAC_Type8.EepkTypeEnum)bdmInstance.BdmSubEntry.Effect3_EepkType, bdmInstance.BdmSubEntry.Effect3_SkillID, bdmInstance.BdmSubEntry.Effect3_ID, bdmInstance);
         }
 
-        private async void PlayEffect(BAC_Type8.EepkTypeEnum eepkType, ushort skillId, short effectId, BdmEntryInstance bdmInstance)
+        private async void PlayEffect(BAC_Type8.EepkTypeEnum eepkType, ushort skillId, short effectId, DamageManager bdmInstance)
         {
             if (Effects.Count >= MAX_EFFECTS)
             {

@@ -1,15 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Linq;
 using XenoKit.Editor;
-using XenoKit.Engine.Character;
-using XenoKit.Engine.Collision;
 using Xv2CoreLib.BDM;
-using Xv2CoreLib.BEV;
 
-namespace XenoKit.Engine.Scripting.BDM
+namespace XenoKit.Engine.Character
 {
-    public class BdmEntryInstance
+    public class DamageManager
     {
         private ActorController controller;
         public bool HasEntry => BdmEntry != null;
@@ -23,14 +19,27 @@ namespace XenoKit.Engine.Scripting.BDM
         public float CurrentFrame = 0f;
 
         //Damage:
-        public int HitDirection = 0; //0 = Front, 1 = Back, 2 = Left, 3 = Right
+        public int HitDirectionAll = 0; //0 = Front, 1 = Back, 2 = Left, 3 = Right
+        public int HitDirectionFrontBack = 0; //0 = Front, 1 = Back
         public Vector3 HitVector;
 
         //Pushback
         public bool UsePushback = false;
         public float PushbackStrength = 0f;
 
-        public BdmEntryInstance(ActorController actorController)
+        //BAC
+        private int SingleAnimation;
+        private int KnockbackAnimation;
+        private int FallAnimation;
+        private int ImpactAnimation;
+        private int RecoveryFromImpactAnimation;
+        private int RecoveryBeforeImpactAnimation;
+
+        //ActorState
+        private ActorState[] ActorStates = new ActorState[4];
+        private int ActorStateIdx = 0;
+
+        public DamageManager(ActorController actorController)
         {
             controller = actorController;
         }
@@ -44,108 +53,112 @@ namespace XenoKit.Engine.Scripting.BDM
             HitPosition = hitPosition;
             SetDamageDirection(damageDirection);
 
-            bool isBackHit = HitDirection == 2 || HitDirection == 3;
+            bool isBackHit = HitDirectionFrontBack == 1;
 
             switch (BdmSubEntry.DamageType)
             {
                 case DamageType.Block:
                     {
                         UsePushback = true;
-                        int entryId = controller.IsInAir ? BLOCK_AIR_SET[HitDirection] : BLOCK_SET[HitDirection];
-                        controller.SetBacEntries(entryId);
+                        SingleAnimation = controller.IsInAir ? BLOCK_AIR_SET[HitDirectionAll] : BLOCK_SET[HitDirectionAll];
+                        SetActorStates(ActorState.SingleAnimation);
                         break;
                     }
                 case DamageType.GuardBreak:
                     {
-                        controller.SetBacEntries(controller.IsInAir ? BAC_STAMINA_BREAK_AIR : BAC_STAMINA_BREAK_AIR);
+                        SingleAnimation = controller.IsInAir ? BAC_STAMINA_BREAK_AIR : BAC_STAMINA_BREAK_AIR;
+                        SetActorStates(ActorState.SingleAnimation);
                         break;
                     }
                 case DamageType.Standard:
                     {
                         UsePushback = true;
-                        int entryId = controller.IsInAir ? (HitDirection * 2) + 1 : HitDirection * 2;
-                        controller.SetBacEntries(GetStumbleEntry(BdmSubEntry.StumbleType) + entryId);
+                        int entryId = controller.IsInAir ? (HitDirectionAll * 2) + 1 : HitDirectionAll * 2;
+                        SingleAnimation = GetStumbleEntry(BdmSubEntry.StumbleType) + entryId;
+                        SetActorStates(ActorState.SingleAnimation);
                         break;
                     }
                 case DamageType.Heavy:
                     {
                         int stumbleId = GetHeavyStumbleEntry(BdmSubEntry.StumbleType);
-                        int entryId = controller.IsInAir ? (HitDirection * 2) + 1 : HitDirection * 2;
+                        int entryId = controller.IsInAir ? (HitDirectionAll * 2) + 1 : HitDirectionAll * 2;
 
                         //Heavy stumble 3 only has frontal and back hit animations
                         if (stumbleId == BAC_HEAVY_STUMBLE_3 && entryId > 3)
                             entryId = 0;
 
-                        controller.SetBacEntries(stumbleId + entryId);
+                        SingleAnimation = stumbleId + entryId;
+                        SetActorStates(ActorState.SingleAnimation);
                         break;
                     }
                 case DamageType.HoldStomach:
                     {
-                        controller.SetBacEntries(175);
+                        SingleAnimation = 175;
+                        SetActorStates(ActorState.SingleAnimation);
                         break;
                     }
                 case DamageType.HoldEyes:
                     {
-                        controller.SetBacEntries(controller.IsInAir ? 177 : 176);
+                        SingleAnimation = controller.IsInAir ? 177 : 176;
+                        SetActorStates(ActorState.SingleAnimation);
                         break;
                     }
                 case DamageType.Dazed:
                     {
-                        controller.SetBacEntries(183); //Where is 184 used?
+                        SingleAnimation = 183; //Where is 184 used?
+                        SetActorStates(ActorState.SingleAnimation);
                         break;
                     }
                 case DamageType.Knockback:
                     {
-                        int knockback = !isBackHit ? 265 : 267;
-                        int gravity = !isBackHit ? 266 : 268;
-                        controller.SetBacEntries(knockback, gravity, 74);
+                        KnockbackAnimation = !isBackHit ? 265 : 267;
+                        FallAnimation = !isBackHit ? 266 : 268;
+                        ImpactAnimation = 74;
+                        SetActorStates(ActorState.Knockback, ActorState.Falling, ActorState.GroundImpact);
                         break;
                     }
                 case DamageType.Knockback1:
                     {
                         //Knockback, then recover with a stumble animation. No gravity phase
-                        int knockback = !isBackHit ? 265 : 267;
-                        int stumbleEntry = !isBackHit ? 270 : 272;
-                        controller.SetBacEntries(knockback, stumbleEntry);
+                        KnockbackAnimation = !isBackHit ? 265 : 267;
+                        SingleAnimation = !isBackHit ? 270 : 272;
                         break;
                     }
                 case DamageType.Knockback2:
                     {
                         //Knockback using stamina break knockback animation. 
-                        int knockback = !isBackHit ? 168 : 169;
-                        int recovery = !isBackHit ? 91 : 92;
-                        controller.SetBacEntries(knockback, knockback, recovery);
+                        KnockbackAnimation = !isBackHit ? 168 : 169;
+                        FallAnimation = KnockbackAnimation;
+                        RecoveryFromImpactAnimation = !isBackHit ? 91 : 92;
                         break;
                     }
                 case DamageType.Knockback3:
                     {
-                        int knockback = !isBackHit ? 273 : 275;
-                        int gravity = !isBackHit ? 274 : 276;
-                        int groundImpact = !isBackHit ? 75 : 76;
-                        controller.SetBacEntries(knockback, gravity, groundImpact);
+                        KnockbackAnimation = !isBackHit ? 273 : 275;
+                        FallAnimation = !isBackHit ? 274 : 276;
+                        ImpactAnimation = !isBackHit ? 75 : 76;
                         break;
                     }
                 case DamageType.Knockback4:
                     {
-                        int knockback = 170;
-                        int gravity = 266;
-                        int groundImpact = 80;
-                        controller.SetBacEntries(knockback, gravity, groundImpact);
+                        KnockbackAnimation= 170;
+                        FallAnimation = 266;
+                        ImpactAnimation = 80;
                         break;
                     }
             }
-
         }
 
         public void ResetBdmEntry()
         {
+            if (HasEntry && BdmSubEntry.DamageType != DamageType.Grab)
+                controller.ClearBacEntries();
+
             BdmEntry = null;
             CurrentFrame = 0f;
-            HitDirection = 0;
+            HitDirectionAll = 0;
+            HitDirectionFrontBack = 0;
             UsePushback = false;
-
-            if(controller.State == ActorState.DamageManager)
-                controller.ClearBacEntries();
         }
 
         private void SetDamageDirection(Vector3 directionVector)
@@ -156,20 +169,58 @@ namespace XenoKit.Engine.Scripting.BDM
 
             if (directionVector.Z < 0 && zAbs > xAbs)
             {
-                HitDirection = 0; //Front
+                HitDirectionAll = 0; //Front
+                HitDirectionFrontBack = 0;
             }
             else if (directionVector.Z > 0 && zAbs > xAbs)
             {
-                HitDirection = 1; //Back
+                HitDirectionAll = 1; //Back
+                HitDirectionFrontBack = 1;
             }
             else if (directionVector.X < 0 && xAbs > zAbs)
             {
-                HitDirection = 2; //Left
+                HitDirectionAll = 2; //Left
             }
             else if (directionVector.X > 0 && xAbs > zAbs)
             {
-                HitDirection = 3; //Right
+                HitDirectionAll = 3; //Right
             }
+
+            //If direction was left or right, then set the front and back direction to the next closest
+            if(HitDirectionAll > 1 && directionVector.Z < 0)
+            {
+                HitDirectionFrontBack = 0;
+            }
+            else if (HitDirectionAll > 1 && directionVector.Z > 0)
+            {
+                HitDirectionFrontBack = 1;
+            }
+        }
+
+        public void SetActorStates(params ActorState[] states)
+        {
+            for (int i = 0; i < ActorStates.Length; i++)
+            {
+                if (i < states.Length)
+                {
+                    ActorStates[i] = states[i];
+                }
+                else
+                {
+                    ActorStates[i] = ActorState.Null;
+                }
+            }
+        }
+
+        public ActorState GetInitialActorState()
+        {
+            return ActorStates[0];
+        }
+
+        public ActorState GetNextActorState()
+        {
+            ActorStateIdx++;
+            return ActorStateIdx >= ActorStates.Length ? ActorState.Null : ActorStates[ActorStateIdx];
         }
 
         #region BAC IDs
@@ -271,6 +322,28 @@ namespace XenoKit.Engine.Scripting.BDM
             }
 
             return result;
+        }
+
+        public int GetBacEntryForActorState(ActorState state)
+        {
+            switch(state)
+            {
+                case ActorState.SingleAnimation:
+                    return SingleAnimation;
+                case ActorState.Knockback:
+                    return KnockbackAnimation;
+                case ActorState.Falling:
+                    return FallAnimation;
+                case ActorState.GroundImpact:
+                    return ImpactAnimation;
+                case ActorState.RecoveryFromGround:
+                    return RecoveryFromImpactAnimation;
+                case ActorState.RecoveryFromFalling:
+                    return RecoveryBeforeImpactAnimation;
+                default:
+                    Log.Add($"ActorState {state} is not a valid damage state.", LogType.Error);
+                    return -1;
+            }
         }
 
         #endregion

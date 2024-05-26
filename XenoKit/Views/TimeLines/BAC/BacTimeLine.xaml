@@ -124,6 +124,7 @@
                             <MenuItem Header="[28] BAC_Type28" Command="{Binding AddTimelineLayerCommand}" CommandParameter="28" FontSize="10"/>
                             <MenuItem Header="[29] BAC_Type29" Command="{Binding AddTimelineLayerCommand}" CommandParameter="29" FontSize="10"/>
                             <MenuItem Header="[30] BAC_Type30" Command="{Binding AddTimelineLayerCommand}" CommandParameter="30" FontSize="10"/>
+                            <MenuItem Header="[31] BAC_Type31" Command="{Binding AddTimelineLayerCommand}" CommandParameter="31" FontSize="10"/>
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
