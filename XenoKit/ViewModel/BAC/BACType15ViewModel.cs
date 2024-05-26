@@ -110,7 +110,8 @@ namespace XenoKit.ViewModel.BAC
 
         //Visibility
         public Visibility Params2Visibility => (FunctionType == 0x25 || FunctionType == 0x26 || FunctionType == 0x4E) ? Visibility.Collapsed : Visibility.Visible;
-        public Visibility Params2SkillIdVisibility => (FunctionType == 0x25 || FunctionType == 0x26 || FunctionType == 0x4E) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility Params2SkillIdVisibility => (FunctionType == 0x25 || FunctionType == 0x26) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility Params2SkillUpgradeSkillIdVisibility => (FunctionType == 0x4E) ? Visibility.Visible : Visibility.Collapsed;
 
         public BACType15ViewModel(BAC_Type15 _bacType)
         {
@@ -222,6 +223,7 @@ namespace XenoKit.ViewModel.BAC
             RaisePropertyChanged(() => Param2ToolTip);
             RaisePropertyChanged(() => Params2Visibility);
             RaisePropertyChanged(() => Params2SkillIdVisibility);
+            RaisePropertyChanged(() => Params2SkillUpgradeSkillIdVisibility);
         }
     }
 }
