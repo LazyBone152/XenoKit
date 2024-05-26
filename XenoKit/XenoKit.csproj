@@ -632,6 +632,7 @@
     <Compile Include="ViewModel\BAC\BACType28ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType29ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType2ViewModel.cs" />
+    <Compile Include="ViewModel\BAC\BACType31ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType30ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType3ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType4ViewModel.cs" />
@@ -723,6 +724,9 @@
     </Compile>
     <Compile Include="Views\BAC\BacType2View.xaml.cs">
       <DependentUpon>BacType2View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BAC\BacType31View.xaml.cs">
+      <DependentUpon>BacType31View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BAC\BacType30View.xaml.cs">
       <DependentUpon>BacType30View.xaml</DependentUpon>
@@ -1187,6 +1191,10 @@
     <Page Include="Views\BAC\BacType2View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BAC\BacType31View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\BAC\BacType30View.xaml">
       <SubType>Designer</SubType>

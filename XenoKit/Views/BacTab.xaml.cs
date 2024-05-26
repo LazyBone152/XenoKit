@@ -146,6 +146,7 @@ namespace XenoKit.Controls
         public BACType28ViewModel BacType28ViewModel => (BACType28ViewModel)SetViewModel((SelectedBacType is BAC_Type28) ? new BACType28ViewModel(SelectedBacType as BAC_Type28) : null);
         public BACType29ViewModel BacType29ViewModel => (BACType29ViewModel)SetViewModel((SelectedBacType is BAC_Type29) ? new BACType29ViewModel(SelectedBacType as BAC_Type29) : null);
         public BACType30ViewModel BacType30ViewModel => (BACType30ViewModel)SetViewModel((SelectedBacType is BAC_Type30) ? new BACType30ViewModel(SelectedBacType as BAC_Type30) : null);
+        public BACType31ViewModel BacType31ViewModel => (BACType31ViewModel)SetViewModel((SelectedBacType is BAC_Type31) ? new BACType31ViewModel(SelectedBacType as BAC_Type31) : null);
 
         #endregion
 
@@ -773,6 +774,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(BacType28ViewModel));
             NotifyPropertyChanged(nameof(BacType29ViewModel));
             NotifyPropertyChanged(nameof(BacType30ViewModel));
+            NotifyPropertyChanged(nameof(BacType31ViewModel));
             NotifyPropertyChanged(nameof(BacTypeBaseViewModel));
         }
 

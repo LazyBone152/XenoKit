@@ -291,6 +291,7 @@
                 <bacView:BacType28View BacViewModel="{Binding BacType28ViewModel}"/>
                 <bacView:BacType29View BacViewModel="{Binding BacType29ViewModel}"/>
                 <bacView:BacType30View BacViewModel="{Binding BacType30ViewModel}"/>
+                <bacView:BacType31View BacViewModel="{Binding BacType31ViewModel}"/>
             </StackPanel>
         </ScrollViewer>
         </Grid>
