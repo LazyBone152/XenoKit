@@ -130,16 +130,16 @@ namespace XenoKit.ViewModel.BAC
         }
 
         //Flags
-        public bool Flag_Left
+        public bool Flag_EnableAutoTracking
         {
             get
             {
-                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.Left);
+                return bacType.HomingFlags.HasFlag(HomingFlagsEnum.EnableAutoTracking);
             }
             set
             {
-                SetHomingFlags(HomingFlagsEnum.Left, value);
-                RaisePropertyChanged(() => Flag_Left);
+                SetHomingFlags(HomingFlagsEnum.EnableAutoTracking, value);
+                RaisePropertyChanged(() => Flag_EnableAutoTracking);
             }
         }
         public bool Flag_Float
@@ -152,6 +152,7 @@ namespace XenoKit.ViewModel.BAC
             {
                 SetHomingFlags(HomingFlagsEnum.UseFloatSpeedModifier, value);
                 RaisePropertyChanged(() => Flag_Float);
+                RefreshUI();
             }
         }
         public bool Flag_Unk3
@@ -203,6 +204,7 @@ namespace XenoKit.ViewModel.BAC
             }
         }
 
+        public string SpeedModifierLabel => Flag_Float ? "Speed Modifier" : "Frame Duration";
 
         public BACType20ViewModel(BAC_Type20 _bacType)
         {
@@ -242,12 +244,13 @@ namespace XenoKit.ViewModel.BAC
             RaisePropertyChanged(() => UserBone);
             RaisePropertyChanged(() => TargetBone);
 
-            RaisePropertyChanged(() => Flag_Left);
+            RaisePropertyChanged(() => Flag_EnableAutoTracking);
             RaisePropertyChanged(() => Flag_Float);
             RaisePropertyChanged(() => Flag_Unk3);
             RaisePropertyChanged(() => Flag_UseBones);
             RaisePropertyChanged(() => Flag_Unk5);
             RaisePropertyChanged(() => Flag_Unk6);
+            RefreshUI();
         }
 
         private void SetHomingFlags(HomingFlagsEnum flag, bool state)
@@ -261,5 +264,9 @@ namespace XenoKit.ViewModel.BAC
             }
         }
 
+        private void RefreshUI()
+        {
+            RaisePropertyChanged(() => SpeedModifierLabel);
+        }
     }
 }

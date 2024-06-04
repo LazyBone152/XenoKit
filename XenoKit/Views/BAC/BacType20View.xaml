@@ -32,8 +32,8 @@
 
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <StackPanel Margin="0, 5" Width="115">
-                                <CheckBox Content="Left"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Left, UpdateSourceTrigger=Default}"/>
+                            <StackPanel Margin="0, 5" Width="134">
+                                <CheckBox Content="Enable Auto Tracking"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.EnableAutoTracking, UpdateSourceTrigger=Default}" Checked="CheckBox_Checked"/>
                                 <CheckBox Content="Float Speed" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Float, UpdateSourceTrigger=Default}"/>
                                 <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
                             </StackPanel>
@@ -52,7 +52,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Speed Modifier" ToolTip="This determines the homing speed. Its usage depends on the Float Speed flag:&#x0a;&#x0a;When enabled:&#x0a;Higher values result in a faster speed. Decimals are allowed.&#x0a;&#x0a;When disabled:&#x0a;Lower values rersult in a faster speed. Decimals are not allowed."/>
+                        <Label Content="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.SpeedModifierLabel, UpdateSourceTrigger=Default}" ToolTip="This determines the homing speed. Its usage depends on the Float Speed flag:&#x0a;&#x0a;When enabled:&#x0a;Higher values result in a faster speed. Decimals are allowed.&#x0a;&#x0a;When disabled:&#x0a;Lower values result in a faster speed. Decimals are not allowed."/>
                         <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.SpeedModifier, UpdateSourceTrigger=Default}"/>
                     </Grid>
                     <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
@@ -68,15 +68,15 @@
 
                 <Grid Margin="3,5,0,0" Width="503" HorizontalAlignment="Left">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="105"/>
+                        <ColumnDefinition Width="106"/>
                         <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="111.6*"/>
+                        <ColumnDefinition Width="112*"/>
                         <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="111.6*"/>
+                        <ColumnDefinition Width="113*"/>
                         <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="111.6*"/>
+                        <ColumnDefinition Width="112*"/>
                     </Grid.ColumnDefinitions>
-                    <Label Content="Displacement" ToolTip="The displaced target for the homing movement. Use this if you want to home towards some place offset from the target character. &#x0a;&#x0a;X: Negative shifts to the left, positive to the right.&#x0a;Y: Positive shifts upwards, negative downwards&#x0a;Z: Does not appear to actually be that useful."/>
+                    <Label Content="Direction Modifier" ToolTip="The displaced target for the homing movement. Use this if you want to home towards some place offset from the target character. &#x0a;&#x0a;X: Negative shifts to the left, positive to the right.&#x0a;Y: Positive shifts upwards, negative downwards&#x0a;Z: Negative shifts in-front of the opponent, positive behind the opponent."/>
                     <Label Grid.Column="1" Content="X"/>
                     <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.DisplacementX, UpdateSourceTrigger=Default}"/>
 
@@ -95,7 +95,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Label Content="User Bone"/>
-                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.UserBone}" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_UseBones, UpdateSourceTrigger=Default}"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.UserBone}"/>
                     </Grid>
                     <Grid Margin="3,5,0,0" Width="250">
                         <Grid.ColumnDefinitions>
@@ -103,7 +103,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Label Content="Target Bone"/>
-                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.TargetBone}" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_UseBones, UpdateSourceTrigger=Default}"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.BoneNames}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.TargetBone}"/>
                     </Grid>
                 </WrapPanel>
             </StackPanel>
