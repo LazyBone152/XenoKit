@@ -33,7 +33,7 @@
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <StackPanel Margin="0, 5" Width="134">
-                                <CheckBox Content="Enable Auto Tracking"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.EnableAutoTracking, UpdateSourceTrigger=Default}" Checked="CheckBox_Checked"/>
+                                <CheckBox Content="Enable Auto Tracking"  IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_EnableAutoTracking, UpdateSourceTrigger=Default}"/>
                                 <CheckBox Content="Float Speed" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Float, UpdateSourceTrigger=Default}"/>
                                 <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType20View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
                             </StackPanel>
