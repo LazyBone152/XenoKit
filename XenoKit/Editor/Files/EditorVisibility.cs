@@ -111,6 +111,12 @@ namespace XenoKit.Editor
                 CameraVisibility = Visibility.Visible;
             }
 
+
+            //Set all unimplemented tabs to be collapsed.
+            StateVisibility = Visibility.Collapsed;
+            HitboxVisibility = Visibility.Collapsed;
+            ProjectileVisibility = Visibility.Collapsed;
+            SystemVisibility = Visibility.Collapsed;
         }
 
     }

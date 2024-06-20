@@ -186,7 +186,7 @@
             <Controls:MetroTabItem x:Name="victimParamTab" Header="Victim" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <simulationParams:VictimParameters x:Name="victimParams" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem x:Name="inputParamTab" Header="Input" Controls:HeaderedControlHelper.HeaderFontSize="14">
+            <Controls:MetroTabItem x:Name="inputParamTab" Header="Input" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="Collapsed">
                 <simulationParams:InputParameters x:Name="inputParams" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </Controls:MetroTabItem>
         </Controls:MetroTabControl>
