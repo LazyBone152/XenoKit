@@ -156,7 +156,7 @@
                                 <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddBacTypeCommand}" CommandParameter="12"/>
                                 <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddBacTypeCommand}" CommandParameter="13"/>
                                 <MenuItem Header="[14] Bone Modification" Command="{Binding AddBacTypeCommand}" CommandParameter="14"/>
-                                <MenuItem Header="[15] Functions" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
+                                <MenuItem Header="[15] Function" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
                                 <MenuItem Header="[16] Post Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="16"/>
                                 <MenuItem Header="[17] ThrowHandler" Command="{Binding AddBacTypeCommand}" CommandParameter="17"/>
                                 <MenuItem Header="[18] Physics Object" Command="{Binding AddBacTypeCommand}" CommandParameter="18"/>
@@ -219,7 +219,7 @@
                             <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddBacTypeCommand}" CommandParameter="12"/>
                             <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddBacTypeCommand}" CommandParameter="13"/>
                             <MenuItem Header="[14] Bone Modification" Command="{Binding AddBacTypeCommand}" CommandParameter="14"/>
-                            <MenuItem Header="[15] Functions" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
+                            <MenuItem Header="[15] Function" Command="{Binding AddBacTypeCommand}" CommandParameter="15"/>
                             <MenuItem Header="[16] Post Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="16"/>
                             <MenuItem Header="[17] ThrowHandler" Command="{Binding AddBacTypeCommand}" CommandParameter="17"/>
                             <MenuItem Header="[18] Physics Object" Command="{Binding AddBacTypeCommand}" CommandParameter="18"/>

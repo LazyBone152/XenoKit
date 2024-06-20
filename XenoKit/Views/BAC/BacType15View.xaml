@@ -9,7 +9,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
-        <Expander Header="Functions" IsExpanded="True">
+        <Expander Header="Function" IsExpanded="True">
             <StackPanel HorizontalAlignment="Left">
                 <WrapPanel>
                     <Grid Margin="3,5,0,0" Width="513">

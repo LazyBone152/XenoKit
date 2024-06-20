@@ -108,7 +108,7 @@
                             <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddTimelineLayerCommand}" CommandParameter="12" FontSize="10"/>
                             <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddTimelineLayerCommand}" CommandParameter="13" FontSize="10"/>
                             <MenuItem Header="[14] Bone Modification" Command="{Binding AddTimelineLayerCommand}" CommandParameter="14" FontSize="10"/>
-                            <MenuItem Header="[15] Functions" Command="{Binding AddTimelineLayerCommand}" CommandParameter="15" FontSize="10"/>
+                            <MenuItem Header="[15] Function" Command="{Binding AddTimelineLayerCommand}" CommandParameter="15" FontSize="10"/>
                             <MenuItem Header="[16] Post Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="16" FontSize="10"/>
                             <MenuItem Header="[17] ThrowHandler" Command="{Binding AddTimelineLayerCommand}" CommandParameter="17" FontSize="10"/>
                             <MenuItem Header="[18] Physics Object" Command="{Binding AddTimelineLayerCommand}" CommandParameter="18" FontSize="10"/>
@@ -175,7 +175,7 @@
                                     <MenuItem Header="[12] Targeting Assistance" Command="{Binding AddTimelineLayerCommand}" CommandParameter="12" FontSize="10"/>
                                     <MenuItem Header="[13] BCS PartSet Invisibility" Command="{Binding AddTimelineLayerCommand}" CommandParameter="13" FontSize="10"/>
                                     <MenuItem Header="[14] Bone Modification" Command="{Binding AddTimelineLayerCommand}" CommandParameter="14" FontSize="10"/>
-                                    <MenuItem Header="[15] Functions" Command="{Binding AddTimelineLayerCommand}" CommandParameter="15" FontSize="10"/>
+                                    <MenuItem Header="[15] Function" Command="{Binding AddTimelineLayerCommand}" CommandParameter="15" FontSize="10"/>
                                     <MenuItem Header="[16] Post Effect" Command="{Binding AddTimelineLayerCommand}" CommandParameter="16" FontSize="10"/>
                                     <MenuItem Header="[17] ThrowHandler" Command="{Binding AddTimelineLayerCommand}" CommandParameter="17" FontSize="10"/>
                                     <MenuItem Header="[18] Physics Object" Command="{Binding AddTimelineLayerCommand}" CommandParameter="18" FontSize="10"/>
