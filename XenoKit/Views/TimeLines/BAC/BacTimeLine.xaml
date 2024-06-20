@@ -15,6 +15,7 @@
         <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding ElementName=UserControl, Path=PasteBacTypeCommand}"/>
         <KeyBinding Modifiers="Ctrl" Key="D" Command="{Binding ElementName=UserControl, Path=DuplicateBacTypeCommand}"/>
         <KeyBinding Key="Delete" Command="{Binding ElementName=UserControl, Path=RemoveBacTypeCommand}"/>
+        <KeyBinding Key="F" Command="{Binding ElementName=UserControl, Path=FocusBacTypeCommand}"/>
         <KeyBinding Modifiers="Ctrl" Key="N" Command="{Binding ElementName=UserControl, Path=MoveToNewLayerCommand}"/>
     </UserControl.InputBindings>
     <UserControl.Resources>
@@ -142,6 +143,29 @@
                 </Button>
                 <TextBlock Text="BAC Filter" HorizontalAlignment="Center" FontSize="8"/>
             </StackPanel>
+            <Separator Width="20" RenderTransformOrigin="0.5,0.5" Margin="10,0,0,0">
+                <Separator.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="90"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Separator.RenderTransform>
+            </Separator>
+            <StackPanel VerticalAlignment="Center" ToolTip="Zoom Out">
+                <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="Button_ZoomOut_Click">
+                    <iconPacks:PackIconMaterialDesign Kind="ZoomOut"/>
+                </Button>
+                <TextBlock Text="Zoom Out" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" ToolTip="Zoom In">
+                <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="Button_ZoomIn_Click">
+                    <iconPacks:PackIconMaterialDesign Kind="ZoomIn"/>
+                </Button>
+                <TextBlock Text="Zoom In" HorizontalAlignment="Center" FontSize="8"/>
+            </StackPanel>
+            <Slider VerticalAlignment="Center" Width="150" Margin="10,-7.5,0,0" Minimum="1" Maximum="100" Value="{Binding ElementName=UserControl, Path=UnitSize}"/>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" x:Name="timeScroll" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Stretch">
@@ -159,6 +183,15 @@
                         <Grid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="{Binding ContextMenuLayerToolTip}" IsEnabled="False"/>
+                                <Separator/>
+                                <MenuItem Header="Add Here" Command="{Binding AddItemToLayerCommand}"/>
+                                <MenuItem Header="Paste Here" Command="{Binding PasteHereLayerCommand}"/>
+                                <MenuItem Header="Paste" Command="{Binding PasteBacTypeCommand}" InputGestureText="Ctrl + V"/>
+                                <Separator/>
+                                <MenuItem Header="Move Layer Up" Command="{Binding MoveLayerUpCommand}"/>
+                                <MenuItem Header="Move Layer Down" Command="{Binding MoveLayerDownCommand}"/>
+                                <MenuItem Header="Delete Layer" Command="{Binding DeleteLayerCommand}"/>
+                                <Separator/>
                                 <MenuItem Header="Add Layer...">
                                     <MenuItem Header="[0] Animation" Command="{Binding AddTimelineLayerCommand}" CommandParameter="0" FontSize="10"/>
                                     <MenuItem Header="[1] Hitbox" Command="{Binding AddTimelineLayerCommand}" CommandParameter="1" FontSize="10"/>
@@ -193,14 +226,6 @@
                                     <MenuItem Header="[30] BAC_Type30" Command="{Binding AddTimelineLayerCommand}" CommandParameter="30" FontSize="10"/>
                                 </MenuItem>
                                 <MenuItem Header="{Binding ContextMenuNewLayerName}" Command="{Binding NewCurrentLayerCommand}"/>
-                                <Separator/>
-                                <MenuItem Header="Add Here" Command="{Binding AddItemToLayerCommand}"/>
-                                <MenuItem Header="Paste Here" Command="{Binding PasteHereLayerCommand}"/>
-                                <MenuItem Header="Paste" Command="{Binding PasteBacTypeCommand}" InputGestureText="Ctrl + V"/>
-                                <Separator/>
-                                <MenuItem Header="Move Layer Up" Command="{Binding MoveLayerUpCommand}"/>
-                                <MenuItem Header="Move Layer Down" Command="{Binding MoveLayerDownCommand}"/>
-                                <MenuItem Header="Delete Layer" Command="{Binding DeleteLayerCommand}"/>
                             </ContextMenu>
                         </Grid.ContextMenu>
                         

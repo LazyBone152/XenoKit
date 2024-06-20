@@ -259,7 +259,10 @@ namespace XenoKit.Views.TimeLines
             timeLinelayer.ItemTemplate = Resources["UsedTemplateProperty"] as DataTemplate;
             timeLinelayer.Background = Brushes.Transparent;
             timeLinelayer.SetLayerContext(layer, layerGroup, BacEntry?.IBacTypes);
-            timeLinelayer.ToolTip = $"Layer: {layer}, LayerGroup: {layerGroup}";
+            //timeLinelayer.ToolTip = $"Layer: {layer}, LayerGroup: {layerGroup}";
+
+            BAC_File.BacTypeNames.TryGetValue(layerGroup, out string bacTypeName);
+            timeLinelayer.ToolTip = $"{GetLayerName(layerGroup)}: Layer {layer}";
 
             return timeLinelayer;
         }
@@ -1247,7 +1250,8 @@ namespace XenoKit.Views.TimeLines
         private bool CanDeleteLayer()
         {
             if (_selectedLayer == null) return false;
-            return _selectedLayer.Layer != 0 && _selectedLayer.LayerGroup != 0;
+            if (_selectedLayer.LayerGroup == 0 && _selectedLayer.Layer == 0) return false;
+            return true;
         }
 
         private bool CanAddAtThisLayerAndFrame()
@@ -1282,6 +1286,12 @@ namespace XenoKit.Views.TimeLines
         #endregion
 
         #region BacTypeContextMenu
+        public RelayCommand FocusBacTypeCommand => new RelayCommand(FocusBacType, CanFocus);
+        private void FocusBacType()
+        {
+            SceneManager.Actors[0].ActionControl.BacPlayer.Seek(SelectedItem.TimeLine_StartTime);
+        }
+
         public RelayCommand RemoveBacTypeCommand => new RelayCommand(RemoveBacType, IsBacTypeSelected);
         private void RemoveBacType()
         {
@@ -1354,6 +1364,11 @@ namespace XenoKit.Views.TimeLines
         private bool CanPasteBacTypes()
         {
             return Clipboard.ContainsData(ClipboardConstants.BacType_CopyItem) && BacEntry != null;
+        }
+
+        private bool CanFocus()
+        {
+            return SelectedItem != null && SceneManager.Actors[0] != null && !SceneManager.MainGameBase.IsPlaying;
         }
         #endregion
 
@@ -1489,5 +1504,15 @@ namespace XenoKit.Views.TimeLines
             return 1f;
         }
         #endregion
+
+        private void Button_ZoomOut_Click(object sender, RoutedEventArgs e)
+        {
+            UnitSize -= 5;
+        }
+
+        private void Button_ZoomIn_Click(object sender, RoutedEventArgs e)
+        {
+            UnitSize += 5;
+        }
     }
 }

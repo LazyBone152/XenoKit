@@ -537,7 +537,7 @@ namespace XenoKit.Controls
 
         private bool CanFocus()
         {
-            return SelectedBacType != null && SceneManager.Actors[0] != null;
+            return SelectedBacType != null && SceneManager.Actors[0] != null && !SceneManager.MainGameBase.IsPlaying;
         }
 
         private bool CanPasteBacEntries()
