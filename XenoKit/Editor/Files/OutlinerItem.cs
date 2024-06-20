@@ -129,8 +129,16 @@ namespace XenoKit.Editor
         {
             get
             {
-                if (Type == OutlinerItemType.CMN) return _selectedEepk;
-                return ManualFiles != null ? ManualFiles.Move.Files?.EepkFile : move?.Files?.EepkFile;
+                switch (Type)
+                {
+                    case OutlinerItemType.CMN:
+                        return _selectedEepk;
+                    case OutlinerItemType.Character:
+                        return character.Moveset?.Files?.EepkFile;
+                    default:
+                        return ManualFiles != null ? ManualFiles.Move.Files?.EepkFile : move?.Files?.EepkFile;
+
+                }
             }
             set
             {
