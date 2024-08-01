@@ -29,14 +29,14 @@ namespace XenoKit.ViewModel.BAC
                 RaisePropertyChanged(() => I_10);
             }
         }
-        public float F_12
+        public int I_12
         {
-            get => bacType.F_12;
+            get => bacType.I_12;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type28>(nameof(bacType.F_12), bacType, bacType.F_12, value, "F_12"));
-                bacType.F_12 = value;
-                RaisePropertyChanged(() => F_12);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type28>(nameof(bacType.I_12), bacType, bacType.I_12, value, "I_12"));
+                bacType.I_12 = value;
+                RaisePropertyChanged(() => I_12);
             }
         }
         public float F_16
@@ -120,7 +120,7 @@ namespace XenoKit.ViewModel.BAC
             //Needed for updating properties when undo/redo is called
             RaisePropertyChanged(() => I_08);
             RaisePropertyChanged(() => I_10);
-            RaisePropertyChanged(() => F_12);
+            RaisePropertyChanged(() => I_12);
             RaisePropertyChanged(() => F_16);
             RaisePropertyChanged(() => F_20);
             RaisePropertyChanged(() => I_24);
