@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using XenoKit.Editor;
 using XenoKit.Engine.Scripting;
 using XenoKit.Engine.Scripting.BAC;
 using Xv2CoreLib.BAC;
@@ -53,7 +54,15 @@ namespace XenoKit.Engine.Collision
 
             string boneName = Hitbox.BoneLink.ToString();
             isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
-            boneIdx = SpawnActor.Skeleton.GetBoneIndex(boneName);
+
+            if (SpawnActor != null)
+            {
+                boneIdx = SpawnActor.Skeleton.GetBoneIndex(boneName);
+            }
+            else
+            {
+                Log.Add($"Hitbox tried spawning on actor, but no actor was found in the scene!", LogType.Warning);
+            }
 
             HitboxPosition = new Vector3(Hitbox.PositionX, Hitbox.PositionY, Hitbox.PositionZ);
         }
