@@ -29,7 +29,7 @@ namespace XenoKit.ViewModel.BAC
                 RaisePropertyChanged(() => I_10);
             }
         }
-        public int I_12
+        public ushort I_12
         {
             get => bacType.I_12;
             set
@@ -37,6 +37,16 @@ namespace XenoKit.ViewModel.BAC
                 UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type28>(nameof(bacType.I_12), bacType, bacType.I_12, value, "I_12"));
                 bacType.I_12 = value;
                 RaisePropertyChanged(() => I_12);
+            }
+        }
+        public ushort I_14
+        {
+            get => bacType.I_14;
+            set
+            {
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type28>(nameof(bacType.I_14), bacType, bacType.I_14, value, "I_14"));
+                bacType.I_14 = value;
+                RaisePropertyChanged(() => I_14);
             }
         }
         public float F_16
@@ -121,6 +131,7 @@ namespace XenoKit.ViewModel.BAC
             RaisePropertyChanged(() => I_08);
             RaisePropertyChanged(() => I_10);
             RaisePropertyChanged(() => I_12);
+            RaisePropertyChanged(() => I_14);
             RaisePropertyChanged(() => F_16);
             RaisePropertyChanged(() => F_20);
             RaisePropertyChanged(() => I_24);
