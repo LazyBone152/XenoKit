@@ -203,16 +203,19 @@ namespace XenoKit.Engine.Animation
 
         private void AdvanceFrame(bool useTimeScale = true)
         {
-            if (Character.Controller.FreezeActionFrames > 0) return;
+            if (Character?.Controller?.FreezeActionFrames > 0) return;
+
+            //Viewer Mode doesn't have a Character reference
+            float timeScale = Character != null ? Character.ActiveTimeScale : 1f;
 
             if (PrimaryAnimation != null)
             {
-                PrimaryAnimation.AdvanceFrame(useTimeScale, Character.ActiveTimeScale);
+                PrimaryAnimation.AdvanceFrame(useTimeScale, timeScale);
             }
 
             for (int i = 0; i < SecondaryAnimations.Count; i++)
             {
-                SecondaryAnimations[i].AdvanceFrame(useTimeScale, Character.ActiveTimeScale);
+                SecondaryAnimations[i].AdvanceFrame(useTimeScale, timeScale);
             }
         }
 
