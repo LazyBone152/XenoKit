@@ -195,16 +195,15 @@ namespace XenoKit.Engine
             GraphicsDevice.Clear(BackgroundColor);
             GraphicsDevice.SetDepthBuffer(RenderSystem.DepthBuffer.RenderTarget);
 
+            //Merge RTs
+            RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget(), true);
+            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget, true);
+
             //Draw last and over everything else
             TextRenderer.Draw();
             CurrentGizmo.Draw();
             BacHitboxGizmo.Draw();
             EntityTransformGizmo.Draw();
-
-            //Merge RTs
-            RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget(), true);
-            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget, true);
-
         }
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)
