@@ -1198,12 +1198,14 @@ namespace XenoKit.Engine.Shader
         {
             if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
             {
-                g_TexScroll0_PS.SetVector4(uvScroll);
+                TexScrl0 = uvScroll;
+                //g_TexScroll0_PS.SetVector4(uvScroll);
             }
 
             if (shaderProgram.UseVertexShaderBuffer[VS_COMMON_MATERIAL_CB])
             {
-                g_TexScroll0_VS.SetVector4(uvScroll);
+                TexScrl0 = uvScroll;
+                //g_TexScroll0_VS.SetVector4(uvScroll);
             }
         }
     
