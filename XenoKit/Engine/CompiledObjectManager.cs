@@ -13,6 +13,7 @@ using Xv2CoreLib.EMM;
 using Xv2CoreLib.EMO;
 using Xv2CoreLib.EMP_NEW;
 using Xv2CoreLib.ESK;
+using Xv2CoreLib.ETR;
 
 namespace XenoKit.Engine
 {
@@ -94,6 +95,10 @@ namespace XenoKit.Engine
                     else if (typeof(T) == typeof(Vfx.Particle.ParticleEmissionData) && key is ParticleNode particleNode)
                     {
                         result = new Vfx.Particle.ParticleEmissionData(particleNode, gameInstance);
+                    }
+                    else if (typeof(T) == typeof(Vfx.Trace.TraceEmissionData) && key is ETR_Node etrNode)
+                    {
+                        result = new Vfx.Trace.TraceEmissionData(etrNode, gameInstance);
                     }
                     else
                     {

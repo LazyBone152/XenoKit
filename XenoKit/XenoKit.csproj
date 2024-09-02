@@ -518,6 +518,8 @@
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
     <Compile Include="Engine\Character\DamageManager.cs" />
     <Compile Include="Engine\Scripting\Simulation.cs" />
+    <Compile Include="Engine\Vfx\EmissionDataBase.cs" />
+    <Compile Include="Engine\Vfx\Trace\TraceEmissionData.cs" />
     <Compile Include="Inspector\InspectorEntity\EanInspectorEntity.cs" />
     <Compile Include="Inspector\InspectorEntity\InspectorEntity.cs" />
     <Compile Include="Inspector\InspectorEntity\MaterialInspectorEntity.cs" />
