@@ -208,7 +208,7 @@ namespace XenoKit.Engine.Vfx.Particle
                         CurrentFrame = 0f;
                         NullEmitter();
 
-                        //NOTE: Removed this code for now as this needs more research. Some EMPs seem to note follow how I had this documented, and caused a bug where particles were spawned endlessly
+                        //NOTE: Removed this code for now as this needs more research. Some EMPs seem to not follow how I had this documented, and caused a bug where particles were spawned endlessly
                         //The nodes created on a previous loop don't count as active children of the node (as above, not always true?)
                         //PreviousNodes.AddRange(Nodes);
                         //Nodes.Clear();

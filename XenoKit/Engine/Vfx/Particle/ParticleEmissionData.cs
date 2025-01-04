@@ -28,7 +28,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public ParticleEmissionData(ParticleNode node, GameBase gameBase) : base(gameBase)
         {
-            gameBase = gameBase;
+            GameBase = gameBase;
             ParticleNode = node;
 
             SetSamplers();

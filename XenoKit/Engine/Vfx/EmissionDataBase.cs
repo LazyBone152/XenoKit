@@ -29,6 +29,7 @@ namespace XenoKit.Engine.Vfx
 
         public EmissionDataBase(GameBase gameBase) : base(gameBase)
         {
+
         }
 
         public override void Dispose()

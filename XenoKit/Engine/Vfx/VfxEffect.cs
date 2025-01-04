@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using XenoKit.Engine.Vfx.Asset;
 using XenoKit.Engine.Vfx.Particle;
+using XenoKit.Engine.Vfx.Trace;
 using Xv2CoreLib.EEPK;
 
 namespace XenoKit.Engine.Vfx
@@ -111,6 +112,11 @@ namespace XenoKit.Engine.Vfx
                 {
                     if (effectPart.AssetRef.Files[0].EmpFile == null) continue;
                     Assets.Add(new ParticleSystem(SpawnTransform, Actor, effectPart, effectPart.AssetRef.Files[0].EmpFile, this, GameBase));
+                }
+                else if (effectPart.AssetType == AssetType.TBIND)
+                {
+                    if (effectPart.AssetRef.Files[0].EtrFile == null) continue;
+                    Assets.Add(new VfxTrace(SpawnTransform, Actor, effectPart, effectPart.AssetRef.Files[0].EtrFile, GameBase));
                 }
             }
         }

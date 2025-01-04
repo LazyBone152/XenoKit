@@ -13,8 +13,8 @@ namespace XenoKit.Engine.Vfx.Asset
         public bool HasStarted { get; protected set; }
         public bool IsFinished { get; protected set; }
         public bool IsTerminating { get; protected set; }
-        protected readonly EffectPart EffectPart;
-        protected readonly Actor Actor;
+        public readonly EffectPart EffectPart;
+        public readonly Actor Actor;
 
         protected virtual bool FinishAnimationBeforeTerminating => false;
         private int BoneIdx = -1;
