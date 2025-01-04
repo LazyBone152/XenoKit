@@ -144,6 +144,7 @@ namespace XenoKit.Engine
         protected override void DelayedUpdate()
         {
             base.DelayedUpdate();
+            ShaderManager.DelayedUpdate();
             RenderSystem.DelayedUpdate();
             CurrentGizmo.DelayedUpdate();
             BacHitboxGizmo.DelayedUpdate();

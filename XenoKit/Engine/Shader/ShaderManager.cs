@@ -43,6 +43,10 @@ namespace XenoKit.Engine.Shader
 
         private Texture2D NoRimLightTexture;
 
+        //File watch
+        private FileSystemWatcher adamShaderWatcher;
+        private bool defaultVsEmbDirty, defaultPsEmbDirty, ageVsEmbDirty, agePsEmbDirty;
+
         public ShaderManager(GameBase game)
         {
             this.game = game;
@@ -55,7 +59,136 @@ namespace XenoKit.Engine.Shader
 
             NoRimLightTexture = new Texture2D(game.GraphicsDevice, 128, 8);
 
-            //DebugParseAllShaders();
+            InitAdamShaderWatcher();
+        }
+
+        private void InitAdamShaderWatcher()
+        {
+            string path = FileManager.Instance.GetAbsolutePath("adam_shader");
+            Directory.CreateDirectory(path);
+
+            adamShaderWatcher = new FileSystemWatcher();
+            adamShaderWatcher.Path = path;
+            adamShaderWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size;
+            adamShaderWatcher.Filter = "*.emz";
+
+            // Handle events
+            adamShaderWatcher.Changed += (sender, e) => OnShaderFilesChanged(e);
+
+            // Start watching
+            adamShaderWatcher.EnableRaisingEvents = true;
+        }
+
+        private void OnShaderFilesChanged(FileSystemEventArgs e)
+        {
+            switch (e.Name)
+            {
+                case "shader_default_ps.emz":
+                    defaultPsEmbDirty = true;
+                    break;
+                case "shader_default_vs.emz":
+                    defaultVsEmbDirty = true;
+                    break;
+                case "shader_age_ps.emz":
+                    agePsEmbDirty = true;
+                    break;
+                case "shader_age_vs.emz":
+                    ageVsEmbDirty = true;
+                    break;
+            }
+        }
+
+        private void HandleShaderReloading()
+        {
+            if (!SettingsManager.settings.XenoKit_AutoReloadShaders) return;
+
+            List<string> vertexShadersModified = new List<string>();
+            List<string> pixelShadersModified = new List<string>();
+
+            if (defaultPsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_ps.emz", false, true, true);
+                UpdateShaderEmb(emb, DefaultEmb_PS, pixelShadersModified);
+                defaultPsEmbDirty = false;
+            }
+
+            if (defaultVsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_vs.emz", false, true, true);
+                UpdateShaderEmb(emb, DefaultEmb_VS, vertexShadersModified);
+                defaultVsEmbDirty = false;
+            }
+
+            if (agePsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_ps.emz", false, true, true);
+                UpdateShaderEmb(emb, AgeEmb_PS, pixelShadersModified);
+                agePsEmbDirty = false;
+            }
+
+            if (ageVsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_vs.emz", false, true, true);
+                UpdateShaderEmb(emb, AgeEmb_VS, vertexShadersModified);
+                ageVsEmbDirty = false;
+            }
+
+            if(vertexShadersModified.Count > 0 || pixelShadersModified.Count > 0)
+            {
+                List<ShaderProgram> modifiedShaderPrograms = new List<ShaderProgram>();
+
+                lock (ShaderPrograms)
+                {
+                    for (int i = ShaderPrograms.Count - 1; i >= 0; i--)
+                    {
+                        ShaderProgram shader = ShaderPrograms[i];
+
+                        if (pixelShadersModified.Contains(shader.SdsEntry.PixelShader) || vertexShadersModified.Contains(shader.SdsEntry.VertexShader))
+                        {
+                            //Remove it and reload, now with new vert/pixel shaders
+                            ShaderPrograms.RemoveAt(i);
+                            var newShader = GetShaderProgram(shader.Name);
+
+                            if (shader == null)
+                            {
+                                Log.Add("Shader reload failed? shader was null!", LogType.Error);
+                                ShaderPrograms.Remove(newShader);
+                                ShaderPrograms.Add(shader);
+                            }
+                            else
+                            {
+                                modifiedShaderPrograms.Add(newShader);
+                            }
+
+                        }
+
+                    }
+                }
+
+                game.CompiledObjectManager.ForceShaderUpdate(modifiedShaderPrograms);
+
+                Log.Add("Shaders hot reloaded!");
+            }
+        }
+
+        private static void UpdateShaderEmb(EMB_File newEmb, EMB_File embFile, List<string> modifiedShaders)
+        {
+            foreach (var entry in embFile.Entry)
+            {
+                var newEntry = newEmb.GetEntry(entry.Name);
+
+                if(newEntry.Name == "ParticleGlare_T1_PS.xpu" && entry.Name == "ParticleGlare_T1_PS.xpu")
+                {
+                    File.WriteAllBytes("test/original.xpu", entry.Data);
+                    File.WriteAllBytes("test/modified.xpu", newEntry.Data);
+                }
+
+                if (!entry.Compare(newEntry))
+                {
+                    entry.Data = newEntry.Data;
+                    modifiedShaders.Add(Path.GetFileNameWithoutExtension(entry.Name));
+                }
+            }
         }
 
         public ShaderProgram GetShaderProgram(string shaderProgramName)
@@ -66,15 +199,17 @@ namespace XenoKit.Engine.Shader
 
                 if (shaderProgram == null)
                 {
-                    //First we look in the default SDS
-                    SDSShaderProgram sdsEntry = DefaultSdsFile.ShaderPrograms.FirstOrDefault(x => x.Name == shaderProgramName);
-                    bool isDefaultSds = true;
+                    //Correct priority is AGE -> DEFAULT
 
-                    //If the ShaderProgram isn't found there, then check the age SDS
+                    //First we look in the age SDS
+                    SDSShaderProgram sdsEntry = AgeSdsFile.ShaderPrograms.FirstOrDefault(x => x.Name == shaderProgramName);
+                    bool isDefaultSds = false;
+
+                    //If the ShaderProgram isn't found there, then check the default SDS
                     if (sdsEntry == null)
                     {
-                        sdsEntry = AgeSdsFile.ShaderPrograms.FirstOrDefault(x => x.Name == shaderProgramName);
-                        isDefaultSds = false;
+                        sdsEntry = DefaultSdsFile.ShaderPrograms.FirstOrDefault(x => x.Name == shaderProgramName);
+                        isDefaultSds = true;
                     }
 
                     if (sdsEntry != null)
@@ -99,6 +234,11 @@ namespace XenoKit.Engine.Shader
         public void Update()
         {
             //Set global sampler textures from RenderTargets here
+        }
+
+        public void DelayedUpdate()
+        {
+            HandleShaderReloading();
         }
 
         #region GlobalSamplers

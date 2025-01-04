@@ -79,6 +79,28 @@ namespace XenoKit.Windows
                 }
             }
         }
+        public bool NGGShaders
+        {
+            get => SettingsManager.settings.XenoKit_NextGenShaders;
+            set
+            {
+                if (SettingsManager.settings.XenoKit_NextGenShaders != value)
+                {
+                    SettingsManager.settings.XenoKit_NextGenShaders = value;
+                }
+            }
+        }
+        public bool ShaderAutoReload
+        {
+            get => SettingsManager.settings.XenoKit_AutoReloadShaders;
+            set
+            {
+                if (SettingsManager.settings.XenoKit_AutoReloadShaders != value)
+                {
+                    SettingsManager.settings.XenoKit_AutoReloadShaders = value;
+                }
+            }
+        }
 
         public int ShadowMapRes
         {

@@ -55,7 +55,7 @@ namespace XenoKit.Engine.Shader
         public Matrix PrevWVP = Matrix.Identity;
 
         //Settings
-        protected ShaderProgram shaderProgram = null;
+        public ShaderProgram shaderProgram { get; protected set; }
         public EmmMaterial Material { get; protected set; }
         public DecompiledMaterial MatParam => Material?.DecompiledParameters;
         public bool IsSubtractiveBlending { get; protected set; }
@@ -638,10 +638,10 @@ namespace XenoKit.Engine.Shader
             switch (parameter)
             {
                 case ShaderParameter.W:
-                    g_mW_VS.SetValue(World);
+                    g_mW_VS?.SetValue(World);
                     break;
                 case ShaderParameter.WV:
-                    g_mWV_VS.SetValue(World * GameBase.ActiveCameraBase.ViewMatrix);
+                    g_mWV_VS?.SetValue(World * GameBase.ActiveCameraBase.ViewMatrix);
                     break;
                 case ShaderParameter.WVP:
                     WVP = World * GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix;
@@ -661,70 +661,70 @@ namespace XenoKit.Engine.Shader
                 case ShaderParameter.WIT:
                     break;
                 case ShaderParameter.WVP_Prev:
-                    g_mWVP_Prev_VS.SetValue(PrevWVP);
+                    g_mWVP_Prev_VS?.SetValue(PrevWVP);
                     break;
 
                 case ShaderParameter.MatCol0_PS:
-                    g_MaterialCol0_PS.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
+                    g_MaterialCol0_PS?.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
                     break;
                 case ShaderParameter.MatCol1_PS:
-                    g_MaterialCol1_PS.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
+                    g_MaterialCol1_PS?.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
                     break;
                 case ShaderParameter.MatCol2_PS:
-                    g_MaterialCol2_PS.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
+                    g_MaterialCol2_PS?.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
                     break;
                 case ShaderParameter.MatCol3_PS:
-                    g_MaterialCol3_PS.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
+                    g_MaterialCol3_PS?.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
                     break;
                 case ShaderParameter.MatCol0_VS:
-                    g_MaterialCol0_VS.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
+                    g_MaterialCol0_VS?.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
                     break;
                 case ShaderParameter.MatCol1_VS:
-                    g_MaterialCol1_VS.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
+                    g_MaterialCol1_VS?.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
                     break;
                 case ShaderParameter.MatCol2_VS:
-                    g_MaterialCol2_VS.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
+                    g_MaterialCol2_VS?.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
                     break;
                 case ShaderParameter.MatCol3_VS:
-                    g_MaterialCol3_VS.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
+                    g_MaterialCol3_VS?.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
                     break;
 
                 case ShaderParameter.TexScrl0_VS:
-                    g_TexScroll0_VS.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
+                    g_TexScroll0_VS?.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
                     break;
                 case ShaderParameter.TexScrl1_VS:
-                    g_TexScroll1_VS.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
+                    g_TexScroll1_VS?.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
                     break;
                 case ShaderParameter.TexScrl0_PS:
-                    g_TexScroll0_PS.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
+                    g_TexScroll0_PS?.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
                     break;
                 case ShaderParameter.TexScrl1_PS:
-                    g_TexScroll1_PS.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
+                    g_TexScroll1_PS?.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
                     break;
 
                 case ShaderParameter.LightVec0_VS:
-                    g_vLightVec0_VS.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
+                    g_vLightVec0_VS?.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
                     break;
                 case ShaderParameter.LightVec0_PS:
-                    g_vLightVec0_PS.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
+                    g_vLightVec0_PS?.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
                     break;
                 case ShaderParameter.UserFlag0_VS:
-                    g_vUserFlag0_VS.SetValue(GameBase.LightSource.Position);
+                    g_vUserFlag0_VS?.SetValue(GameBase.LightSource.Position);
                     break;
 
                 case ShaderParameter.FadeColor:
                     if (ECF_Multi != null)
                     {
-                        g_vFadeMulti_PS.SetVector4(ECF_Multi);
-                        g_vFadeRim_PS.SetVector4(ECF_Rim);
-                        g_vFadeAdd_PS.SetVector4(ECF_Add);
+                        g_vFadeMulti_PS?.SetVector4(ECF_Multi);
+                        g_vFadeRim_PS?.SetVector4(ECF_Rim);
+                        g_vFadeAdd_PS?.SetVector4(ECF_Add);
                     }
                     else
                     {
                         //Set default values
-                        g_vFadeMulti_PS.SetValue(Vector4.One);
-                        g_vFadeRim_PS.SetValue(Vector4.Zero);
-                        g_vFadeAdd_PS.SetValue(Vector4.Zero);
+                        g_vFadeMulti_PS?.SetValue(Vector4.One);
+                        g_vFadeRim_PS?.SetValue(Vector4.Zero);
+                        g_vFadeAdd_PS?.SetValue(Vector4.Zero);
                     }
                     break;
 
@@ -1109,6 +1109,12 @@ namespace XenoKit.Engine.Shader
             {
                 IsShaderProgramDirty = true;
             }
+        }
+
+        public void SetShaderProgram(ShaderProgram shader)
+        {
+            shaderProgram = shader;
+            IsShaderProgramDirty = true;
         }
 
         public void Release()

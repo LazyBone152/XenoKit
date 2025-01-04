@@ -84,11 +84,6 @@ namespace XenoKit.Engine
             Simulation = new Simulation(this);
         }
 
-        private void DelayedTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            DelayedUpdate();
-        }
-
         protected override void LoadContent()
         {
             base.LoadContent();
