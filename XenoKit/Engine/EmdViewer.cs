@@ -55,6 +55,7 @@ namespace XenoKit.Engine
 
             //Now initialize objects
             camera = new SimpleCamera(this);
+            RenderSystem = new Rendering.RenderSystem(this);
             //ModelGizmo = new ModelGizmo(this);
 
             DytSampler = new SamplerInfo()

@@ -645,10 +645,10 @@ namespace XenoKit.Engine.Shader
                     break;
                 case ShaderParameter.WVP:
                     WVP = World * GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix;
-                    g_mWVP_VS.SetValue(WVP);
+                    g_mWVP_VS?.SetValue(WVP);
                     break;
                 case ShaderParameter.VP:
-                    g_mVP_VS.SetValue(GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
+                    g_mVP_VS?.SetValue(GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
                     break;
                 case ShaderParameter.WLPB_SM:
                     break;
@@ -759,22 +759,22 @@ namespace XenoKit.Engine.Shader
             {
                 if (LIGHT_RGBA != null)
                 {
-                    g_vColor0_PS.SetVector4(LIGHT_RGBA);
-                    g_vParam3_PS.SetVector4(LIGHT_Strength);
-                    g_vParam4_PS.SetVector4(LIGHT_Radius);
-                    g_vParam5_PS.SetVector4(LIGHT_SourcePosition);
+                    g_vColor0_PS?.SetVector4(LIGHT_RGBA);
+                    g_vParam3_PS?.SetVector4(LIGHT_Strength);
+                    g_vParam4_PS?.SetVector4(LIGHT_Radius);
+                    g_vParam5_PS?.SetVector4(LIGHT_SourcePosition);
                 }
                 else
                 {
-                    g_vColor0_PS.SetValue(Vector4.Zero);
-                    g_vParam3_PS.SetValue(Vector4.One);
-                    g_vParam4_PS.SetValue(Vector4.Zero);
-                    g_vParam5_PS.SetValue(Vector4.Zero);
+                    g_vColor0_PS?.SetValue(Vector4.Zero);
+                    g_vParam3_PS?.SetValue(Vector4.One);
+                    g_vParam4_PS?.SetValue(Vector4.Zero);
+                    g_vParam5_PS?.SetValue(Vector4.Zero);
                 }
 
                 if (shaderProgram.UsePixelShaderBuffer[PS_COMMON_CB])
                 {
-                    g_MaterialCol3_PS.SetValue(new Vector4(SceneManager.BattleDamageScratches, SceneManager.BattleDamageBlood, Material.DecompiledParameters.MatCol3.B, Material.DecompiledParameters.MatCol3.A));
+                    g_MaterialCol3_PS?.SetValue(new Vector4(SceneManager.BattleDamageScratches, SceneManager.BattleDamageBlood, Material.DecompiledParameters.MatCol3.B, Material.DecompiledParameters.MatCol3.A));
                 }
             }
 
@@ -786,9 +786,9 @@ namespace XenoKit.Engine.Shader
                 //g_vParam3_PS.SetValue(new Vector4(10f, 1000f, 0.0f, 0.0f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
 
                 //Testing:
-                g_vParam1_PS.SetValue(new Vector4(0f, 1, 1.0f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
-                g_vParam2_PS.SetValue(new Vector4(0f, 0.00f, 1.0f, 0.0f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
-                g_vParam3_PS.SetValue(new Vector4(0.001f, 10000.00f, 0.40f, 0.00f)); //Z = BPE Outline strength
+                g_vParam1_PS?.SetValue(new Vector4(0f, 1, 1.0f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
+                g_vParam2_PS?.SetValue(new Vector4(0f, 0.00f, 1.0f, 0.0f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
+                g_vParam3_PS?.SetValue(new Vector4(0.001f, 10000.00f, 0.40f, 0.00f)); //Z = BPE Outline strength
                 return;
             }
 
@@ -797,16 +797,16 @@ namespace XenoKit.Engine.Shader
             {
                 if (shaderProgram.UsePixelShaderBuffer[CB_PS_BOOL])
                 {
-                    Parameters["g_bFog_PS"].SetValue(true);
-                    Parameters["g_bDepthTex_PS"].SetValue(true);
+                    Parameters["g_bFog_PS"]?.SetValue(true);
+                    Parameters["g_bDepthTex_PS"]?.SetValue(true);
                 }
             }
             
             //Update global parameters
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
-                g_vScreen_VS.SetVector4(GameBase.RenderSystem.RenderResolution);
-                g_SystemTime_VS.SetValue(SceneManager.SystemTime);
+                g_vScreen_VS?.SetVector4(GameBase.RenderSystem.RenderResolution);
+                g_SystemTime_VS?.SetValue(SceneManager.SystemTime);
             }
 
             //Remove references to animated parameters from this pass
@@ -1219,8 +1219,8 @@ namespace XenoKit.Engine.Shader
         {
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
-                g_vTexTile01_VS.SetVector4(texTile01);
-                g_vTexTile23_VS.SetVector4(texTile23);
+                g_vTexTile01_VS?.SetVector4(texTile01);
+                g_vTexTile23_VS?.SetVector4(texTile23);
             }
         }
     }
