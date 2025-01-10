@@ -116,6 +116,7 @@ namespace XenoKit.Engine
         public static Vector4 SystemTime; //Seconds elsapsed while "IsPlaying". For use in DBXV2 Shaders.
         public static Vector4 ScreenSize;
 
+        public static Color ViewportBackgroundColor = new Color(20, 20, 20, 255);
 
         /// <summary>
         /// 

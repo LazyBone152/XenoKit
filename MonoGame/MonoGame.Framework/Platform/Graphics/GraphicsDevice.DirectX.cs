@@ -1203,15 +1203,22 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         public void SetDepthBuffer(RenderTarget2D renderTarget)
         {
-            IRenderTarget _renderTarget = (IRenderTarget)renderTarget;
-            DepthStencilView depthView = _renderTarget.GetDepthStencilView();
-
-            if(depthView == null)
+            if(renderTarget == null)
             {
-                throw new Exception("SetDepthBuffer: This render target does not include a depth buffer!");
+                _currentDepthStencilView = null;
             }
-            //return;
-            _currentDepthStencilView = depthView;
+            else
+            {
+                IRenderTarget _renderTarget = (IRenderTarget)renderTarget;
+                DepthStencilView depthView = _renderTarget.GetDepthStencilView();
+
+                if (depthView == null)
+                {
+                    throw new Exception("SetDepthBuffer: This render target does not include a depth buffer!");
+                }
+                //return;
+                _currentDepthStencilView = depthView;
+            }
 
             // Set the targets.
             lock (_d3dContext)

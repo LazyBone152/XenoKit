@@ -18,13 +18,13 @@ namespace Microsoft.Xna.Framework.Graphics
                 string name = _parameters[i].Name;
                 if(!string.IsNullOrWhiteSpace(name))
                 {
-                    /*
+                    
                     int val;
                     if(_indexLookup.TryGetValue(name, out val))
                     {
                         throw new System.Exception(string.Format("Key: {0} exists with value: {1}, at index: {2}", name, val, i));
                     }
-                    */
+                    
                     _indexLookup.Add(name, i);
                 }
             }

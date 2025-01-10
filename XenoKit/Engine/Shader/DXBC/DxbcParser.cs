@@ -1,6 +1,7 @@
 ﻿using LB_Common.Utils;
 using System;
 using System.Linq;
+using XenoKit.Editor;
 using Xv2CoreLib;
 using YAXLib;
 
@@ -18,8 +19,107 @@ namespace XenoKit.Engine.Shader.DXBC
         public DxbcConstantBuffer[] CBuffers { get; set; }
         public DxbcResourceBinding[] ResourceBindings { get; set; }
 
+
         public DxbcParser(byte[] bytecode)
         {
+            byte shaderModel = 5;
+
+            //Resources:
+            int resourceIdx = ArraySearch.IndexOf(bytecode, RESOURCE_CHUNK);
+
+            if (resourceIdx != -1)
+            {
+                shaderModel = bytecode[resourceIdx + 25];
+
+                if (shaderModel != 4 && shaderModel != 5)
+                {
+                    Log.Add("Unsupported shader model: " + shaderModel, LogType.Warning);
+                }
+
+                //Constant Bindings:
+                int count = BitConverter.ToInt32(bytecode, resourceIdx + 8);
+                int chunkOffset = resourceIdx + 8;
+                int cbOffset = BitConverter.ToInt32(bytecode, resourceIdx + 12) + chunkOffset;
+
+                CBuffers = new DxbcConstantBuffer[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    int numVariables = BitConverter.ToInt32(bytecode, cbOffset + 4);
+                    int variablesOffset = BitConverter.ToInt32(bytecode, cbOffset + 8) + chunkOffset;
+
+                    CBuffers[i] = new DxbcConstantBuffer()
+                    {
+                        SizeInBytes = BitConverter.ToInt32(bytecode, cbOffset + 12),
+                        Name = StringEx.GetString(bytecode, BitConverter.ToInt32(bytecode, cbOffset + 0) + chunkOffset, false, StringEx.EncodingType.ASCII),
+                        NumVariables = numVariables,
+                        Type = BitConverter.ToInt32(bytecode, cbOffset + 20),
+                        Flags = BitConverter.ToInt32(bytecode, cbOffset + 16),
+                        Variables = new DxbcConstantBufferVariable[numVariables]
+                    };
+
+                    for (int a = 0; a < numVariables; a++)
+                    {
+                        string variableName = StringEx.GetString(bytecode, BitConverter.ToInt32(bytecode, variablesOffset + 0) + chunkOffset, false, StringEx.EncodingType.ASCII);
+
+                        int typeOffset = BitConverter.ToInt32(bytecode, variablesOffset + 16) + chunkOffset;
+                        int defaultValueOffset = BitConverter.ToInt32(bytecode, variablesOffset + 20);
+
+                        CBuffers[i].Variables[a] = new DxbcConstantBufferVariable()
+                        {
+                            Name = variableName,
+                            VariableSize = BitConverter.ToInt32(bytecode, variablesOffset + 8),
+                            VariableFlags = BitConverter.ToInt32(bytecode, variablesOffset + 12),
+                            VariableClass = BitConverter.ToUInt16(bytecode, typeOffset + 0),
+                            VariableType = BitConverter.ToUInt16(bytecode, typeOffset + 2),
+                            NumMatrixRows = BitConverter.ToUInt16(bytecode, typeOffset + 4),
+                            NumMatrixColumns = BitConverter.ToUInt16(bytecode, typeOffset + 6),
+                            NumArrayVariables = BitConverter.ToUInt16(bytecode, typeOffset + 8),
+                            NumStructMembers = BitConverter.ToUInt16(bytecode, typeOffset + 10)
+                        };
+
+                        if (defaultValueOffset != 0)
+                        {
+                            CBuffers[i].Variables[a].DefaultValue = bytecode.GetRange(defaultValueOffset + chunkOffset, CBuffers[i].Variables[a].VariableSize);
+                        }
+
+                        variablesOffset += shaderModel == 4 ? 24 : 40;
+                    }
+
+                    cbOffset += 24;
+                }
+
+                //Resource Bindings:
+                count = BitConverter.ToInt32(bytecode, resourceIdx + 16);
+                int rbOffset = BitConverter.ToInt32(bytecode, resourceIdx + 20) + chunkOffset;
+
+                ResourceBindings = new DxbcResourceBinding[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    string name = StringEx.GetString(bytecode, BitConverter.ToInt32(bytecode, rbOffset + 0) + chunkOffset, false, StringEx.EncodingType.ASCII);
+
+                    ResourceBindings[i] = new DxbcResourceBinding()
+                    {
+                        Name = name,
+                        ShaderInputType = (DxbcResourceBinding.ResourceBindingType)BitConverter.ToInt32(bytecode, rbOffset + 4),
+                        ResourceReturnType = BitConverter.ToInt32(bytecode, rbOffset + 8),
+                        ResourceViewDimension = BitConverter.ToInt32(bytecode, rbOffset + 12),
+                        NumSamples = BitConverter.ToInt32(bytecode, rbOffset + 16),
+                        BindPoint = BitConverter.ToInt32(bytecode, rbOffset + 20),
+                        BindCount = BitConverter.ToInt32(bytecode, rbOffset + 24)
+                    };
+
+                    if (shaderModel == 5)
+                    {
+                        ResourceBindings[i].ShaderInputFlags = BitConverter.ToInt32(bytecode, rbOffset + 28);
+                    }
+
+                    rbOffset += 32;
+                }
+
+            }
+
             //Input Signature
             int inputIdx = ArraySearch.IndexOf(bytecode, INPUT_CHUNK);
 
@@ -48,125 +148,18 @@ namespace XenoKit.Engine.Shader.DXBC
                 }
             }
 
-            //Resources:
-            int resourceIdx = ArraySearch.IndexOf(bytecode, RESOURCE_CHUNK);
-
-            if (resourceIdx != -1)
-            { 
-                //Constant Bindings:
-                int count = BitConverter.ToInt32(bytecode, resourceIdx + 8);
-                int chunkOffset = resourceIdx + 8;
-                int cbOffset = BitConverter.ToInt32(bytecode, resourceIdx + 12) + chunkOffset;
-
-                CBuffers = new DxbcConstantBuffer[count];
-
-                for(int i = 0; i < count; i++)
-                {
-                    int numVariables = BitConverter.ToInt32(bytecode, cbOffset + 4);
-                    int variablesOffset = BitConverter.ToInt32(bytecode, cbOffset + 8) + chunkOffset;
-
-                    CBuffers[i] = new DxbcConstantBuffer()
-                    {
-                        SizeInBytes = BitConverter.ToInt32(bytecode, cbOffset + 12),
-                        Name = StringEx.GetString(bytecode, BitConverter.ToInt32(bytecode, cbOffset + 0) + chunkOffset, false, StringEx.EncodingType.ASCII),
-                        NumVariables = numVariables,
-                        Type = BitConverter.ToInt32(bytecode, cbOffset + 20),
-                        Flags = BitConverter.ToInt32(bytecode, cbOffset + 16),
-                        Variables = new DxbcConstantBufferVariable[numVariables]
-                    };
-
-                    for(int a = 0; a < numVariables; a++)
-                    {
-                        string variableName = StringEx.GetString(bytecode, BitConverter.ToInt32(bytecode, variablesOffset + 0) + chunkOffset, false, StringEx.EncodingType.ASCII);
-
-                        int typeOffset = BitConverter.ToInt32(bytecode, variablesOffset + 16) + chunkOffset;
-                        int defaultValueOffset = BitConverter.ToInt32(bytecode, variablesOffset + 20);
-                        
-                        CBuffers[i].Variables[a] = new DxbcConstantBufferVariable()
-                        {
-                            Name = variableName,
-                            VariableSize = BitConverter.ToInt32(bytecode, variablesOffset + 8),
-                            VariableFlags = BitConverter.ToInt32(bytecode, variablesOffset + 12),
-                            VariableClass = BitConverter.ToUInt16(bytecode, typeOffset + 0),
-                            VariableType = BitConverter.ToUInt16(bytecode, typeOffset + 2),
-                            NumMatrixRows = BitConverter.ToUInt16(bytecode, typeOffset + 4),
-                            NumMatrixColumns = BitConverter.ToUInt16(bytecode, typeOffset + 6),
-                            NumArrayVariables = BitConverter.ToUInt16(bytecode, typeOffset + 8),
-                            NumStructMembers = BitConverter.ToUInt16(bytecode, typeOffset + 10)
-                        };
-
-                        if (defaultValueOffset != 0)
-                        {
-                            CBuffers[i].Variables[a].DefaultValue = bytecode.GetRange(defaultValueOffset + chunkOffset, CBuffers[i].Variables[a].VariableSize);
-                        }
-
-                        variablesOffset += 40;
-                    }
-
-
-                    /*
-                    //Fix vs_matrix_cb. We need to remove the (_padding) variables.
-                    if (CBuffers[i].Name == "vs_matrix_cb")
-                    {
-                        var fixedVariables = new DxbcConstantBufferVariable[numVariables - 2];
-                        int idx = 0;
-
-                        foreach (var variable in CBuffers[i].Variables)
-                        {
-                            if (variable.Name != "g_mWV_VS_padding" && variable.Name != "g_mW_VS_padding")
-                            {
-                                fixedVariables[idx] = variable;
-                                idx++;
-                            }
-                        }
-
-                        CBuffers[i].Variables = fixedVariables;
-                    }
-                    */
-
-                    cbOffset += 24;
-                }
-
-                //Resource Bindings:
-                count = BitConverter.ToInt32(bytecode, resourceIdx + 16);
-                int rbOffset = BitConverter.ToInt32(bytecode, resourceIdx + 20) + chunkOffset;
-
-                ResourceBindings = new DxbcResourceBinding[count];
-
-                for(int i = 0; i < count; i++)
-                {
-                    string name = StringEx.GetString(bytecode, BitConverter.ToInt32(bytecode, rbOffset + 0) + chunkOffset, false, StringEx.EncodingType.ASCII);
-
-                    ResourceBindings[i] = new DxbcResourceBinding()
-                    {
-                        Name = name,
-                        ShaderInputType = (DxbcResourceBinding.ResourceBindingType)BitConverter.ToInt32(bytecode, rbOffset + 4),
-                        ResourceReturnType = BitConverter.ToInt32(bytecode, rbOffset + 8),
-                        ResourceViewDimension = BitConverter.ToInt32(bytecode, rbOffset + 12),
-                        NumSamples = BitConverter.ToInt32(bytecode, rbOffset + 16),
-                        BindPoint = BitConverter.ToInt32(bytecode, rbOffset + 20),
-                        BindCount = BitConverter.ToInt32(bytecode, rbOffset + 24),
-                        ShaderInputFlags = BitConverter.ToInt32(bytecode, rbOffset + 28)
-                    };
-
-                    rbOffset += 32;
-                }
-            }
-        
-            if(CBuffers != null && ResourceBindings != null)
+            if (CBuffers != null && ResourceBindings != null)
             {
-                foreach(var cbuffer in CBuffers)
+                foreach (var cbuffer in CBuffers)
                 {
                     var resource = ResourceBindings.FirstOrDefault(x => x.Name == cbuffer.Name && x.ShaderInputType == DxbcResourceBinding.ResourceBindingType.CBuffer);
 
-                    if(resource != null)
+                    if (resource != null)
                     {
                         cbuffer.ResourceBinding = resource;
                         resource.ConstantBuffer = cbuffer;
                     }
-
                 }
-
             }
 
             //Initialize default arrays if no data was found. This avoids tiresome null checking everywhere for something thats unlikely.
@@ -179,7 +172,7 @@ namespace XenoKit.Engine.Shader.DXBC
             if (ResourceBindings == null)
                 ResourceBindings = new DxbcResourceBinding[0];
         }
-    
+
         public bool HasCB(string cbName)
         {
             return CBuffers.Any(x => x.Name == cbName);

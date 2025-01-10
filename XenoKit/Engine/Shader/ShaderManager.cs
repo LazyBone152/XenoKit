@@ -7,6 +7,7 @@ using XenoKit.Editor;
 using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Textures;
 using Xv2CoreLib;
+using Xv2CoreLib.BEV;
 using Xv2CoreLib.EMB_CLASS;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.Resource.App;
@@ -19,6 +20,7 @@ namespace XenoKit.Engine.Shader
         private GameBase game;
         private bool IsRenderSystemActive => game.RenderSystem != null;
 
+        public bool IsExtShadersLoaded { get; private set; }
 
         private readonly SDS_File DefaultSdsFile;
         private readonly SDS_File AgeSdsFile;
@@ -29,6 +31,7 @@ namespace XenoKit.Engine.Shader
 
         //Caches
         private readonly List<ShaderProgram> ShaderPrograms = new List<ShaderProgram>();
+        private readonly List<ShaderProgram> ExtShaders = new List<ShaderProgram>();
         private readonly GlobalSampler[] GlobalSamplers = new GlobalSampler[16];
 
         //Global sampler indices (0 - 4 are object specific samplers, 13+ are global but static so irrelevant)
@@ -46,6 +49,7 @@ namespace XenoKit.Engine.Shader
         //File watch
         private FileSystemWatcher adamShaderWatcher;
         private bool defaultVsEmbDirty, defaultPsEmbDirty, ageVsEmbDirty, agePsEmbDirty;
+        private bool defaultSdsDirty, ageSdsDirty;
 
         public ShaderManager(GameBase game)
         {
@@ -60,135 +64,77 @@ namespace XenoKit.Engine.Shader
             NoRimLightTexture = new Texture2D(game.GraphicsDevice, 128, 8);
 
             InitAdamShaderWatcher();
+
+            LoadExtShaders();
         }
 
-        private void InitAdamShaderWatcher()
+        private void LoadExtShaders()
         {
-            string path = FileManager.Instance.GetAbsolutePath("adam_shader");
-            Directory.CreateDirectory(path);
+            if(ExtShaders.Count > 0)
+            {
+                Log.Add("LoadExtShaders has been called more than once.", LogType.Warning);
+                return;
+            }
 
-            adamShaderWatcher = new FileSystemWatcher();
-            adamShaderWatcher.Path = path;
-            adamShaderWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size;
-            adamShaderWatcher.Filter = "*.emz";
+            if(!Directory.Exists("XenoKit/ExtShaders"))
+            {
+                Log.Add("LoadExtShaders: \"XenoKit/ExtShaders\" was not found. Some post process effects will be disabled.", LogType.Error);
+                return;
+            }
 
-            // Handle events
-            adamShaderWatcher.Changed += (sender, e) => OnShaderFilesChanged(e);
+            ExtShaders.Add(LoadExtShader("TestPostShader", "TestPostShader", "TestPostShader", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Copy", "Copy", "Copy", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Dim", "Dim", "Dim", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_CopyRegion", "CopyRegion", "CopyRegion", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Smooth", "Smooth", "Smooth", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Glare", "Glare", "Glare", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Pixel", "Pixel", "Pixel", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Merge2", "Merge2", "Merge2", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Merge5", "Merge5", "Merge5", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_Merge8", "Merge8", "Merge8", ShaderProgramSource.External));
+            ExtShaders.Add(LoadExtShader("YBS_SceneMerge", "SceneMerge", "SceneMerge", ShaderProgramSource.External));
 
-            // Start watching
-            adamShaderWatcher.EnableRaisingEvents = true;
+            IsExtShadersLoaded = true;
         }
 
-        private void OnShaderFilesChanged(FileSystemEventArgs e)
+        private ShaderProgram LoadExtShader(string name, string vertexShader, string pixelShader, ShaderProgramSource source = ShaderProgramSource.External)
         {
-            switch (e.Name)
+            if(source == ShaderProgramSource.Xenoverse)
             {
-                case "shader_default_ps.emz":
-                    defaultPsEmbDirty = true;
-                    break;
-                case "shader_default_vs.emz":
-                    defaultVsEmbDirty = true;
-                    break;
-                case "shader_age_ps.emz":
-                    agePsEmbDirty = true;
-                    break;
-                case "shader_age_vs.emz":
-                    ageVsEmbDirty = true;
-                    break;
+                Log.Add($"LoadExtShader: Game shaders cannot be loaded in this way.", LogType.Error);
             }
+
+            string vsPath = $"XenoKit/ExtShaders/{vertexShader}.xvu";
+            string psPath = $"XenoKit/ExtShaders/{pixelShader}.xpu";
+
+            if (!File.Exists(vsPath))
+            {
+                Log.Add($"Shader not found: \"{vsPath}\"", LogType.Error);
+                return null;
+            }
+
+            if (!File.Exists(psPath))
+            {
+                Log.Add($"Shader not found: \"{psPath}\"", LogType.Error);
+                return null;
+            }
+
+            byte[] vsShader = File.ReadAllBytes(vsPath);
+            byte[] psShader = File.ReadAllBytes(psPath);
+
+            return new ShaderProgram(name, vsShader, psShader, source, game.GraphicsDevice);
         }
 
-        private void HandleShaderReloading()
+        public ShaderProgram GetExtShaderProgram(string shaderProgramName)
         {
-            if (!SettingsManager.settings.XenoKit_AutoReloadShaders) return;
+            ShaderProgram shaderProgram = ExtShaders.FirstOrDefault(x => x.Name == shaderProgramName);
 
-            List<string> vertexShadersModified = new List<string>();
-            List<string> pixelShadersModified = new List<string>();
-
-            if (defaultPsEmbDirty)
+            if (shaderProgram == null)
             {
-                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_ps.emz", false, true, true);
-                UpdateShaderEmb(emb, DefaultEmb_PS, pixelShadersModified);
-                defaultPsEmbDirty = false;
+                Log.Add($"GetExtShaderProgram: could not find shader \"{shaderProgramName}\"", LogType.Error);
             }
 
-            if (defaultVsEmbDirty)
-            {
-                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_vs.emz", false, true, true);
-                UpdateShaderEmb(emb, DefaultEmb_VS, vertexShadersModified);
-                defaultVsEmbDirty = false;
-            }
-
-            if (agePsEmbDirty)
-            {
-                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_ps.emz", false, true, true);
-                UpdateShaderEmb(emb, AgeEmb_PS, pixelShadersModified);
-                agePsEmbDirty = false;
-            }
-
-            if (ageVsEmbDirty)
-            {
-                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_vs.emz", false, true, true);
-                UpdateShaderEmb(emb, AgeEmb_VS, vertexShadersModified);
-                ageVsEmbDirty = false;
-            }
-
-            if(vertexShadersModified.Count > 0 || pixelShadersModified.Count > 0)
-            {
-                List<ShaderProgram> modifiedShaderPrograms = new List<ShaderProgram>();
-
-                lock (ShaderPrograms)
-                {
-                    for (int i = ShaderPrograms.Count - 1; i >= 0; i--)
-                    {
-                        ShaderProgram shader = ShaderPrograms[i];
-
-                        if (pixelShadersModified.Contains(shader.SdsEntry.PixelShader) || vertexShadersModified.Contains(shader.SdsEntry.VertexShader))
-                        {
-                            //Remove it and reload, now with new vert/pixel shaders
-                            ShaderPrograms.RemoveAt(i);
-                            var newShader = GetShaderProgram(shader.Name);
-
-                            if (shader == null)
-                            {
-                                Log.Add("Shader reload failed? shader was null!", LogType.Error);
-                                ShaderPrograms.Remove(newShader);
-                                ShaderPrograms.Add(shader);
-                            }
-                            else
-                            {
-                                modifiedShaderPrograms.Add(newShader);
-                            }
-
-                        }
-
-                    }
-                }
-
-                game.CompiledObjectManager.ForceShaderUpdate(modifiedShaderPrograms);
-
-                Log.Add("Shaders hot reloaded!");
-            }
-        }
-
-        private static void UpdateShaderEmb(EMB_File newEmb, EMB_File embFile, List<string> modifiedShaders)
-        {
-            foreach (var entry in embFile.Entry)
-            {
-                var newEntry = newEmb.GetEntry(entry.Name);
-
-                if(newEntry.Name == "ParticleGlare_T1_PS.xpu" && entry.Name == "ParticleGlare_T1_PS.xpu")
-                {
-                    File.WriteAllBytes("test/original.xpu", entry.Data);
-                    File.WriteAllBytes("test/modified.xpu", newEntry.Data);
-                }
-
-                if (!entry.Compare(newEntry))
-                {
-                    entry.Data = newEntry.Data;
-                    modifiedShaders.Add(Path.GetFileNameWithoutExtension(entry.Name));
-                }
-            }
+            return shaderProgram;
         }
 
         public ShaderProgram GetShaderProgram(string shaderProgramName)
@@ -240,6 +186,189 @@ namespace XenoKit.Engine.Shader
         {
             HandleShaderReloading();
         }
+
+        #region ShaderReload
+        private void InitAdamShaderWatcher()
+        {
+            string path = FileManager.Instance.GetAbsolutePath("adam_shader");
+            Directory.CreateDirectory(path);
+
+            adamShaderWatcher = new FileSystemWatcher();
+            adamShaderWatcher.Path = path;
+            adamShaderWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size;
+            adamShaderWatcher.Filter = "*.emz";
+
+            // Handle events
+            adamShaderWatcher.Changed += (sender, e) => OnShaderFilesChanged(e);
+
+            // Start watching
+            adamShaderWatcher.EnableRaisingEvents = true;
+        }
+
+        private void OnShaderFilesChanged(FileSystemEventArgs e)
+        {
+            switch (e.Name)
+            {
+                case "shader_default_ps.emz":
+                    defaultPsEmbDirty = true;
+                    break;
+                case "shader_default_vs.emz":
+                    defaultVsEmbDirty = true;
+                    break;
+                case "shader_age_ps.emz":
+                    agePsEmbDirty = true;
+                    break;
+                case "shader_age_vs.emz":
+                    ageVsEmbDirty = true;
+                    break;
+                case "technique_default_sds.emz":
+                    defaultSdsDirty = true;
+                    break;
+                case "technique_age_sds.emz":
+                    ageSdsDirty = true;
+                    break;
+            }
+        }
+
+        private void HandleShaderReloading()
+        {
+            if (!SettingsManager.settings.XenoKit_AutoReloadShaders) return;
+
+            List<string> vertexShadersModified = new List<string>();
+            List<string> pixelShadersModified = new List<string>();
+            List<string> sdsShadersModified = new List<string>();
+
+            if (defaultSdsDirty)
+            {
+                SDS_File sds = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_default_sds.emz", false, true, true);
+                UpdateShaderSds(sds, DefaultSdsFile, sdsShadersModified);
+                defaultSdsDirty = false;
+            }
+
+            if (ageSdsDirty)
+            {
+                SDS_File sds = (SDS_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/technique_age_sds.emz", false, true, true);
+                UpdateShaderSds(sds, AgeSdsFile, sdsShadersModified);
+                ageSdsDirty = false;
+            }
+
+            if (defaultPsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_ps.emz", false, true, true);
+                UpdateShaderEmb(emb, DefaultEmb_PS, pixelShadersModified);
+                defaultPsEmbDirty = false;
+            }
+
+            if (defaultVsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_default_vs.emz", false, true, true);
+                UpdateShaderEmb(emb, DefaultEmb_VS, vertexShadersModified);
+                defaultVsEmbDirty = false;
+            }
+
+            if (agePsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_ps.emz", false, true, true);
+                UpdateShaderEmb(emb, AgeEmb_PS, pixelShadersModified);
+                agePsEmbDirty = false;
+            }
+
+            if (ageVsEmbDirty)
+            {
+                EMB_File emb = (EMB_File)FileManager.Instance.GetParsedFileFromGame("adam_shader/shader_age_vs.emz", false, true, true);
+                UpdateShaderEmb(emb, AgeEmb_VS, vertexShadersModified);
+                ageVsEmbDirty = false;
+            }
+
+            if (vertexShadersModified.Count > 0 || pixelShadersModified.Count > 0 || sdsShadersModified.Count > 0)
+            {
+                List<ShaderProgram> modifiedShaderPrograms = new List<ShaderProgram>();
+
+                lock (ShaderPrograms)
+                {
+                    for (int i = ShaderPrograms.Count - 1; i >= 0; i--)
+                    {
+                        ShaderProgram shader = ShaderPrograms[i];
+
+                        if (pixelShadersModified.Contains(shader.SdsEntry.PixelShader) || 
+                            vertexShadersModified.Contains(shader.SdsEntry.VertexShader) ||
+                            sdsShadersModified.Contains(shader.SdsEntry.Name))
+                        {
+                            //Remove it and reload, now with new vert/pixel shaders
+                            ShaderPrograms.RemoveAt(i);
+                            var newShader = GetShaderProgram(shader.Name);
+
+                            if (shader == null)
+                            {
+                                Log.Add("Shader reload failed? shader was null!", LogType.Error);
+                                ShaderPrograms.Remove(newShader);
+                                ShaderPrograms.Add(shader);
+                            }
+                            else
+                            {
+                                modifiedShaderPrograms.Add(newShader);
+                            }
+
+                        }
+
+                    }
+                }
+
+                game.CompiledObjectManager.ForceShaderUpdate(modifiedShaderPrograms);
+
+                Log.Add("Shaders hot reloaded!");
+            }
+        }
+
+        private static void UpdateShaderSds(SDS_File newSds, SDS_File sdsFile, List<string> modifiedShaderPrograms)
+        {
+            foreach(var newSdsEntry in newSds.ShaderPrograms)
+            {
+                var existingEntry = sdsFile.ShaderPrograms.FirstOrDefault(x => x.Name == newSdsEntry.Name);
+
+                if(existingEntry != null)
+                {
+                    if (!newSdsEntry.Compare(existingEntry))
+                    {
+                        modifiedShaderPrograms.Add(newSdsEntry.Name);
+
+                        //Copy over new entry state
+                        existingEntry.VertexShader = newSdsEntry.VertexShader;
+                        existingEntry.PixelShader = newSdsEntry.PixelShader;
+                        existingEntry.Parameters = newSdsEntry.Parameters;
+                    }
+                }
+                else
+                {
+                    //New shader - add to in memory SDS
+                    sdsFile.ShaderPrograms.Add(newSdsEntry);
+                }
+            }
+        }
+
+        private static void UpdateShaderEmb(EMB_File newEmb, EMB_File embFile, List<string> modifiedShaders)
+        {
+            foreach (var newEmbEntry in newEmb.Entry)
+            {
+                var existingEntry = embFile.GetEntry(newEmbEntry.Name);
+
+                if(existingEntry != null)
+                {
+                    if (!newEmbEntry.Compare(existingEntry))
+                    {
+                        existingEntry.Data = newEmbEntry.Data;
+                        modifiedShaders.Add(Path.GetFileNameWithoutExtension(newEmbEntry.Name));
+                    }
+                }
+                else
+                {
+                    //New entry - add to in memory EMB
+                    embFile.Entry.Add(newEmbEntry);
+                }
+            }
+        }
+
+        #endregion
 
         #region GlobalSamplers
         public GlobalSampler GetGlobalSampler(int slot)
@@ -434,7 +563,6 @@ namespace XenoKit.Engine.Shader
 
         public string GetSamplerName(int slot)
         {
-
             switch (slot)
             {
                 case 0:
@@ -470,6 +598,7 @@ namespace XenoKit.Engine.Shader
                 case 15:
                     return "State_ImageSamplerTemp15";
             }
+
             return slot.ToString();
         }
 
@@ -510,6 +639,7 @@ namespace XenoKit.Engine.Shader
                 case 15:
                     return "Texture_ImageSamplerTemp15";
             }
+
             return slot.ToString();
         }
 

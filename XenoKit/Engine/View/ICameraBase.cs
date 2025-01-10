@@ -19,5 +19,7 @@ namespace XenoKit.Engine.View
         float DistanceFromCamera(Vector3 worldPos);
 
         Vector3 TransformRelativeToCamera(Vector3 position, float distanceModifier);
+
+        void ResetViewerAngles();
     }
 }

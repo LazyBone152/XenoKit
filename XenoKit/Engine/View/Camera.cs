@@ -1,6 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using LB_Common.Numbers;
+using Microsoft.Xna.Framework;
 using MonoGame.Framework.WpfInterop;
 using System;
+using XenoKit.Editor;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.Resource.App;
@@ -383,6 +385,22 @@ namespace XenoKit.Engine.View
             TargetPosition = state.TargetPosition;
             FieldOfView = state.FieldOfView;
             Roll = state.Roll;
+        }
+
+        public void SetState(CustomVector4 cameraPos, CustomVector4 targetPos, float roll, float fieldOfView)
+        {
+            Position = new Vector3(cameraPos.X, cameraPos.Y, cameraPos.Z);
+            TargetPosition = new Vector3(targetPos.X, targetPos.Y, targetPos.Z);
+            Roll = roll;
+            FieldOfView = fieldOfView;
+        }
+        
+        public void SetState(SerializedCameraState state)
+        {
+            Position = state.CameraPosition.ToVector3();
+            TargetPosition = state.CameraTarget.ToVector3();
+            FieldOfView = state.CameraFOV;
+            Roll = state.CameraRoll;
         }
 
         public void SetFocus(Actor actor)

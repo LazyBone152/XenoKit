@@ -13,7 +13,7 @@
         xmlns:simulationParams="clr-namespace:XenoKit.Views.SimulationParameters"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        Title="XenoKit" TitleCharacterCasing="Normal" MinHeight="720" MinWidth="1280" Height="720" Width="1550" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" Closing="MetroWindow_Closing" StateChanged="MetroWindow_StateChanged" SizeChanged="WindowResized" ResizeMode="CanResizeWithGrip" Drop="MetroWindow_Drop" AllowDrop="True">
+        Title="XenoKit" TitleCharacterCasing="Normal" MinHeight="720" MinWidth="1280" Height="720" Width="1550" Loaded="Window_Loaded" WindowStartupLocation="CenterScreen" StateChanged="MetroWindow_StateChanged" SizeChanged="WindowResized" ResizeMode="CanResizeWithGrip" Drop="MetroWindow_Drop" AllowDrop="True">
     <Window.InputBindings>
         <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=UndoCommand}"/>
         <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Source={x:Static undoRedo:UndoManager.Instance}, Path=RedoCommand}"/>
@@ -185,6 +185,9 @@
             </Controls:MetroTabItem>
             <Controls:MetroTabItem x:Name="victimParamTab" Header="Victim" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <simulationParams:VictimParameters x:Name="victimParams" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem x:Name="screenshotTab" Header="Screenshot" Controls:HeaderedControlHelper.HeaderFontSize="14">
+                <_views:Screenshot HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </Controls:MetroTabItem>
             <Controls:MetroTabItem x:Name="inputParamTab" Header="Input" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="Collapsed">
                 <simulationParams:InputParameters x:Name="inputParams" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>

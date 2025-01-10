@@ -374,6 +374,7 @@ namespace XenoKit
             SettingsWindow settings = new SettingsWindow(this);
             settings.ShowDialog();
             SettingsManager.Instance.SaveSettings();
+            LocalSettings.Save();
             InitTheme();
 
             //Reload game cpk stuff if directory was changed
@@ -501,22 +502,12 @@ namespace XenoKit
             var dialog = await this.ShowMessageAsync("Exit", "Do you wish to exit? Any unsaved data will be lost!", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
 
             if (dialog == MessageDialogResult.Affirmative)
+            {
+                SettingsManager.Instance.SaveSettings(false);
+                LocalSettings.Save();
                 Environment.Exit(0);
+            }
 
-        }
-
-        private async void MetroWindow_Closing(object sender, CancelEventArgs e)
-        {
-            SettingsManager.Instance.SaveSettings(false);
-
-#if !DEBUG
-            e.Cancel = true;
-
-            var dialog = await this.ShowMessageAsync("Exit", "Do you wish to exit? Any unsaved data will be lost!", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
-
-            if (dialog == MessageDialogResult.Affirmative)
-                Environment.Exit(0);
-#endif
         }
         #endregion
 

@@ -70,6 +70,12 @@ namespace XenoKit.Engine
 
             MainRenderTarget = new RenderTargetWrapper(RenderSystem, 1, SurfaceFormat.Color, true, "MainRenderTarget");
             RenderSystem.RegisterRenderTarget(MainRenderTarget);
+
+            //Set viewport background color
+            if (LocalSettings.Instance.SerializedBackgroundColor != null)
+            {
+                SceneManager.ViewportBackgroundColor = LocalSettings.Instance.SerializedBackgroundColor.ToColor();
+            }
         }
 
         protected override void LoadContent()
@@ -193,7 +199,7 @@ namespace XenoKit.Engine
 
             //Draw MainRenderTarget onto screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);
-            GraphicsDevice.Clear(BackgroundColor);
+            GraphicsDevice.Clear(SceneManager.ViewportBackgroundColor);
             GraphicsDevice.SetDepthBuffer(RenderSystem.DepthBuffer.RenderTarget);
 
             //Merge RTs
@@ -309,6 +315,16 @@ namespace XenoKit.Engine
                     {
                         EnableFullscreen();
                     }
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F12) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl))
+                {
+                    SetHotkeyCooldown();
+                    RenderSystem.RequestScreenshot(ScreenshotType.TransparentBackground);
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F12))
+                {
+                    SetHotkeyCooldown();
+                    RenderSystem.RequestScreenshot(ScreenshotType.CustomBackgroundColor);
                 }
             }
 

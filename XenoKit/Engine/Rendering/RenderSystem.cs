@@ -14,6 +14,7 @@ namespace XenoKit.Engine.Rendering
     public class RenderSystem : Entity
     {
         public readonly PostFilter PostFilter;
+        private readonly YBSPostProcess YBS;
 
         private readonly List<Entity> Characters = new List<Entity>();
         private readonly List<Entity> Stages = new List<Entity>();
@@ -32,6 +33,8 @@ namespace XenoKit.Engine.Rendering
 
         //Render Settings:
         private readonly Color NormalsBackgroundColor = new Color(0.50196f, 0.50196f, 0, 0);
+        private bool ScreenshotRequested = false;
+        private ScreenshotType ScreenshotType = ScreenshotType.TransparentBackground;
         public bool DumpRenderTargetsNextFrame = false;
         public int RecreateRenderTargetsNextFrames = 0;
 
@@ -64,6 +67,9 @@ namespace XenoKit.Engine.Rendering
         private readonly RenderTargetWrapper LowRezSmokeRT0;
         private readonly RenderTargetWrapper LowRezSmokeRT0_New;
         private readonly RenderTargetWrapper LowRezSmokeRT1;
+
+        //Test
+        private readonly RenderTargetWrapper ScreenshotRT;
 
         //The final render target that everything will be drawn onto at the end of the frame. This can also be used for the "State_SamplerSmallScene" sampler as that is for the previously rendered frame (unsure about State_SamplerCurrentScene)
         private readonly RenderTargetWrapper FinalRenderTarget;
@@ -127,11 +133,13 @@ namespace XenoKit.Engine.Rendering
             NextColorPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "NextColorPassRT0");
             FinalRenderTarget = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "FinalRenderTarget");
             SamplerAlphaDepth = new RenderTargetWrapper(this, 1, SurfaceFormat.Single, false, "SamplerAlphaDepth");
-            LowRezRT0 = new RenderTargetWrapper(this, 2, SurfaceFormat.Color, true, "LowRezRT0");
-            LowRezRT1 = new RenderTargetWrapper(this, 2, SurfaceFormat.Color, false, "LowRezRT1");
-            LowRezSmokeRT0 = new RenderTargetWrapper(this, 4, SurfaceFormat.Color, true, "LowRezSmokeRT0");
-            LowRezSmokeRT0_New = new RenderTargetWrapper(this, 4, SurfaceFormat.Color, true, "LowRezSmokeRT0_New");
-            LowRezSmokeRT1 = new RenderTargetWrapper(this, 4, SurfaceFormat.Color, false, "LowRezSmokeRT1");
+            LowRezRT0 = new RenderTargetWrapper(this, 0.5f, SurfaceFormat.Color, true, "LowRezRT0");
+            LowRezRT1 = new RenderTargetWrapper(this, 0.5f, SurfaceFormat.Color, false, "LowRezRT1");
+            LowRezSmokeRT0 = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "LowRezSmokeRT0");
+            LowRezSmokeRT0_New = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "LowRezSmokeRT0_New");
+            LowRezSmokeRT1 = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, false, "LowRezSmokeRT1");
+            ScreenshotRT = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "PostTestRT");
+
 
             //Register all render targets so they get auto-updated if the viewport changes size
             RegisterRenderTarget(ShadowPassRT0);
@@ -148,9 +156,13 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(LowRezSmokeRT0_New);
             RegisterRenderTarget(LowRezSmokeRT1);
             RegisterRenderTarget(DepthBuffer);
+            RegisterRenderTarget(ScreenshotRT);
 
             //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
             //TestOutlineTexture2 = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest2.dds"), GraphicsDevice);
+
+            if(ShaderManager.IsExtShadersLoaded)
+                YBS = new YBSPostProcess(GameBase, this, NextColorPassRT0, ColorPassRT1);
         }
 
         private void SetRenderResolution()
@@ -261,16 +273,37 @@ namespace XenoKit.Engine.Rendering
             PostFilter.SetDefaultTexCord2();
             PostFilter.Apply(AGE_MERGE_AddLowRez_AddMrt);
 
+            //YBS post process effects (just glare for now)
+            RenderTargetWrapper result;
+
+            if (ShaderManager.IsExtShadersLoaded)
+            {
+                YBS.Draw();
+                result = YBS.GetRenderTarget();
+            }
+            else
+            {
+                result = NextColorPassRT0;
+            }
+
             //Create final RenderTarget
             SetRenderTargets(FinalRenderTarget.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
 
-            DisplayRenderTarget(NextColorPassRT0.RenderTarget);
+            DisplayRenderTarget(result.RenderTarget, false);
 
+            //Process screenshots at this stage, before merging the RT with the rest of the scene
+            if (ScreenshotRequested)
+            {
+                ProcessScreenshot(FinalRenderTarget);
+            }
+
+#if DEBUG
             if (DumpRenderTargetsNextFrame)
             {
                 DumpRenderTargets();
             }
+#endif
 
             ActiveParticleCount = _particleCount;
         }
@@ -284,8 +317,8 @@ namespace XenoKit.Engine.Rendering
 
         public void SetTexture(Texture texture, int textureSlot = 0)
         {
-            if (textureSlot >= 4)
-                throw new ArgumentOutOfRangeException("RenderSystem.SetTexture: textureSlot value passed into the method was 4 or greater, which is not allowed!");
+            if (textureSlot > 8)
+                throw new ArgumentOutOfRangeException("RenderSystem.SetTexture: textureSlot value passed into the method was 8 or greater, which is not allowed!");
 
             GraphicsDevice.Textures[textureSlot] = texture;
         }
@@ -308,6 +341,66 @@ namespace XenoKit.Engine.Rendering
 
             GraphicsDevice.SetRenderTargets(renderTargets);
         }
+
+        #region Screenshot
+        /// <summary>
+        /// Requests a screenshot to be saved during the renderering of the next frame.
+        /// </summary>
+        public void RequestScreenshot(ScreenshotType screenshotType)
+        {
+            ScreenshotRequested = true;
+            ScreenshotType = screenshotType;
+        }
+
+        private void ProcessScreenshot(RenderTargetWrapper renderTarget)
+        {
+            ScreenshotRequested = false;
+
+            string name = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            string ext = LocalSettings.Instance.ScreenshotFormat.ToString().ToLower();
+            string path = SettingsManager.Instance.GetAbsPathInAppFolder($"Screenshots/{name}_transbg.{ext}");
+            string pathBlackBackground = SettingsManager.Instance.GetAbsPathInAppFolder($"Screenshots/{name}.{ext}");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+
+            switch (ScreenshotType)
+            {
+                case ScreenshotType.TransparentBackground:
+                    ProcessScreenshot(renderTarget, path, Color.Transparent);
+                    break;
+                case ScreenshotType.CustomBackgroundColor:
+                    ProcessScreenshot(renderTarget, pathBlackBackground, LocalSettings.GetScreenshotColor());
+                    break;
+                case ScreenshotType.Both:
+                    ProcessScreenshot(renderTarget, pathBlackBackground, LocalSettings.GetScreenshotColor());
+                    ProcessScreenshot(renderTarget, path, Color.Transparent);
+                    break;
+            }
+
+            Log.Add($"Screenshot saved in the XenoKit/Screenshots folder!");
+
+        }
+
+        private void ProcessScreenshot(RenderTargetWrapper renderTarget, string path, Color clearColor)
+        {
+            //Copying it to a seperate RT before saving allows changing of the background color
+            SetRenderTargets(ScreenshotRT.RenderTarget);
+            GraphicsDevice.Clear(clearColor);
+            DisplayRenderTarget(renderTarget.RenderTarget);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                if(LocalSettings.Instance.ScreenshotFormat == ScreenshotFormat.PNG)
+                {
+                    ScreenshotRT.RenderTarget.SaveAsPng(ms, ScreenshotRT.Width, ScreenshotRT.Height);
+                }
+                else
+                {
+                    ScreenshotRT.RenderTarget.SaveAsJpeg(ms, ScreenshotRT.Width, ScreenshotRT.Height);
+                }
+                File.WriteAllBytes(path, ms.ToArray());
+            }
+        }
+        #endregion
 
         #region Update
 
@@ -571,5 +664,18 @@ namespace XenoKit.Engine.Rendering
             }
         }
         #endregion
+    }
+
+    public enum ScreenshotType
+    {
+        TransparentBackground,
+        CustomBackgroundColor,
+        Both
+    }
+
+    public enum ScreenshotFormat
+    {
+        PNG,
+        JPG
     }
 }

@@ -172,30 +172,40 @@ namespace XenoKit.Engine.Shader
             if(ShaderType != ShaderType.PostFilter)
                 shaderProgram = GameBase.ShaderManager.GetShaderProgram(Material.ShaderProgram);
 
-            //Initialize the SDS parameter array. These are the list of parameters this shader uses and should be updated OnApply
-            SdsParameters = new ShaderParameter[shaderProgram.SdsEntry.Parameters.Count];
-
-            for(int i = 0; i < shaderProgram.SdsEntry.Parameters.Count; i++)
+            if (shaderProgram.ShaderSource == ShaderProgramSource.Xenoverse)
             {
-                if (!Enum.TryParse(shaderProgram.SdsEntry.Parameters[i].Name, out ShaderParameter param))
-                {
-                    param = ShaderParameter.Unknown;
-                    Editor.Log.Add($"Unknown ShaderParameter: {shaderProgram.SdsEntry.Parameters[i].Name}", Editor.LogType.Debug);
-                }
+                //Initialize the SDS parameter array. These are the list of parameters this shader uses and should be updated OnApply
+                SdsParameters = new ShaderParameter[shaderProgram.SdsEntry.Parameters.Count];
 
-                SdsParameters[i] = param;
+                for (int i = 0; i < shaderProgram.SdsEntry.Parameters.Count; i++)
+                {
+                    if (!Enum.TryParse(shaderProgram.SdsEntry.Parameters[i].Name, out ShaderParameter param))
+                    {
+                        param = ShaderParameter.Unknown;
+                        Editor.Log.Add($"Unknown ShaderParameter: {shaderProgram.SdsEntry.Parameters[i].Name}", Editor.LogType.Debug);
+                    }
+
+                    SdsParameters[i] = param;
+                }
+            }
+            else
+            {
+                SdsParameters = new ShaderParameter[0];
             }
 
             //Start load parametrs
-            EffectParameter[] parameters = new EffectParameter[shaderProgram.VsParser.CBuffers.Sum(x => x.Variables.Length) + shaderProgram.PsParser.CBuffers.Sum(x => x.Variables.Length)];
+            
+            int paramCount = shaderProgram.VsParser.CBuffers.Sum(x => x.Variables.Length) + shaderProgram.PsParser.CBuffers.Sum(x => x.Variables.Length);
+
+            EffectParameter[] parameters = new EffectParameter[paramCount];
 
             //Initialize CBs
             ReadConstantBuffers(shaderProgram);
 
             //Parameters
             int idx = 0;
-            ReadParameters(shaderProgram.VsParser, parameters, ref idx);
             ReadParameters(shaderProgram.PsParser, parameters, ref idx);
+            ReadParameters(shaderProgram.VsParser, parameters, ref idx);
 
             Parameters = new EffectParameterCollection(parameters);
 
@@ -241,7 +251,8 @@ namespace XenoKit.Engine.Shader
                             //Is []
                             byte[] defaultValue = (param.DefaultValue != null) ? param.DefaultValue : new byte[rowCount * columnCount * elements * 4];
                             elementParameters = new EffectParameter[elements];
-                            int elementSize = param.VariableSize / elements;
+                            //int elementSize2 = param.VariableSize / elements;
+                            int elementSize = 4 * columnCount * rowCount;
                             object arrayValue = null;
 
                             for (int i = 0; i < elements; i++)
@@ -353,15 +364,13 @@ namespace XenoKit.Engine.Shader
 
         private void ReadConstantBuffers(ShaderProgram shaderProgram)
         {
-            // Read in all the constant buffers.
-            var buffers = shaderProgram.VsParser.CBuffers.Length + shaderProgram.PsParser.CBuffers.Length;
-            ConstantBuffers = new ConstantBuffer[buffers];
+            ConstantBuffers = new ConstantBuffer[shaderProgram.PsParser.CBuffers.Length + shaderProgram.VsParser.CBuffers.Length];
 
             int idx = 0;
             int pIdx = 0;
 
-            ReadConstantBuffersForShader(shaderProgram.VsParser, ref idx, ref pIdx);
             ReadConstantBuffersForShader(shaderProgram.PsParser, ref idx, ref pIdx);
+            ReadConstantBuffersForShader(shaderProgram.VsParser, ref idx, ref pIdx);
         }
 
         private void ReadConstantBuffersForShader(DxbcParser parser, ref int idx, ref int pIdx)

@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using XenoKit.Editor;
 using XenoKit.Engine;
 using XenoKit.Engine.Shader;
 using Xv2CoreLib.Resource.App;
@@ -99,6 +100,25 @@ namespace XenoKit.Windows
                 {
                     SettingsManager.settings.XenoKit_AutoReloadShaders = value;
                 }
+            }
+        }
+        public int Glare
+        {
+            get
+            {
+                return settings.XenoKit_GlareLevel + 1;
+            }
+            set
+            {
+                settings.XenoKit_GlareLevel = value - 1;
+            }
+        }
+        public System.Windows.Media.Color BackgroundColor
+        {
+            get => System.Windows.Media.Color.FromRgb(SceneManager.ViewportBackgroundColor.R, SceneManager.ViewportBackgroundColor.G, SceneManager.ViewportBackgroundColor.B);
+            set
+            {
+                SceneManager.ViewportBackgroundColor = new Microsoft.Xna.Framework.Color(value.R, value.G, value.B);
             }
         }
 

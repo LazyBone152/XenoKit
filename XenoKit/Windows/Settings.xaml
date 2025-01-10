@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         mc:Ignorable="d"
-        Title="Settings" Height="300" Width="532.444" WindowStyle="ToolWindow" ShowInTaskbar="False" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Closing="Window_Closing" TitleCharacterCasing="Normal">
+        Title="Settings" Height="350" Width="532.444" WindowStyle="ToolWindow" ShowInTaskbar="False" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Closing="Window_Closing" TitleCharacterCasing="Normal">
     <Window.Resources>
         <ObjectDataProvider x:Key="accents" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -17,7 +17,7 @@
         </ObjectDataProvider>
     </Window.Resources>
     <Grid Margin="0, 2">
-        <Controls:MetroTabControl HorizontalAlignment="Left" Height="273" VerticalAlignment="Top" Width="532" Margin="0,0,0,-0.333" Controls:TabControlHelper.Underlined="TabPanel">
+        <Controls:MetroTabControl HorizontalAlignment="Left" Height="323" VerticalAlignment="Top" Width="532" Margin="0,0,0,-0.333" Controls:TabControlHelper.Underlined="TabPanel">
             <Controls:MetroTabItem Header="General" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <Grid Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundAltMediumLow}">
 
@@ -64,6 +64,7 @@
             
             <Controls:MetroTabItem Header="Rendering" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <Grid Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundAltMediumLow}">
+
                     <StackPanel HorizontalAlignment="Left">
                         <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable or disable rimlighting.">
                             <Grid.ColumnDefinitions>
@@ -80,6 +81,27 @@
                             </Grid.ColumnDefinitions>
                             <Label Content="Outline"/>
                             <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding EnableOutline, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+                        <Grid Margin="3,5,0,0" Width="250" ToolTip="Renders the glare effect at a higher resolution. Less accurate to how the game appears, but good for photos.">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="40"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Glare High Res"/>
+                            <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding settings.XenoKit_GlareLevelHighRes, UpdateSourceTrigger=PropertyChanged}"/>
+                        </Grid>
+                        <Grid Margin="3,5,0,0" Width="250" ToolTip="Controls the level of the glare post process effect.&#x0a;&#x0a;NOTE: Despite the name, OFF does not entirely disable the effect in the game (there is a minimal level of glare still applied). This is why there is a seperate DISABLE option available.">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Glare"/>
+                            <ComboBox Grid.Column="1" SelectedIndex="{Binding Glare, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBoxItem Content="DISABLE ENITRELY"/>
+                                <ComboBoxItem Content="OFF"/>
+                                <ComboBoxItem Content="LOW"/>
+                                <ComboBoxItem Content="HIGH"/>
+                            </ComboBox>
                         </Grid>
                         <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable dynamic lighting based on camera position.&#x0a;&#x0a;Very experiential and not game accurate right now!">
                             <Grid.ColumnDefinitions>
@@ -108,8 +130,15 @@
                                 <ComboBoxItem Content="x2"/>
                             </ComboBox>
                         </Grid>
+                        <Grid Margin="3,5,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Background Color"/>
+                            <Controls:ColorPicker Grid.Column="1" SelectedColor="{Binding BackgroundColor, UpdateSourceTrigger=PropertyChanged}"  IsColorPalettesTabVisible="False"/>
+                        </Grid>
                     </StackPanel>
-
                 </Grid>
                 
             </Controls:MetroTabItem>
