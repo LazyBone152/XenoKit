@@ -42,6 +42,7 @@ namespace XenoKit.Engine
         public ManualFiles ActiveStage = null;
 
         private RenderTargetWrapper MainRenderTarget;
+        private RenderTargetWrapper AxisCorrectionRenderTarget;
 
         //Fullscreen
         private FullscreenWindow fullscreenWindow = null;
@@ -69,7 +70,11 @@ namespace XenoKit.Engine
             VfxPreview = new VfxPreview(this);
 
             MainRenderTarget = new RenderTargetWrapper(RenderSystem, 1, SurfaceFormat.Color, true, "MainRenderTarget");
+            AxisCorrectionRenderTarget = new RenderTargetWrapper(RenderSystem, 1, SurfaceFormat.Color, true, "AxisCorrectionRenderTarget");
             RenderSystem.RegisterRenderTarget(MainRenderTarget);
+            RenderSystem.RegisterRenderTarget(AxisCorrectionRenderTarget);
+
+            RenderSystem.YBS.SetupAxisCorrectionFilter(AxisCorrectionRenderTarget);
 
             //Set viewport background color
             if (LocalSettings.Instance.SerializedBackgroundColor != null)
@@ -198,19 +203,30 @@ namespace XenoKit.Engine
             }
 
             //Draw MainRenderTarget onto screen
-            GraphicsDevice.SetRenderTarget(InternalRenderTarget);
+            GraphicsDevice.SetRenderTarget(AxisCorrectionRenderTarget.RenderTarget);
             GraphicsDevice.Clear(SceneManager.ViewportBackgroundColor);
             GraphicsDevice.SetDepthBuffer(RenderSystem.DepthBuffer.RenderTarget);
 
             //Merge RTs
-            RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget(), true);
-            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget, true);
+            RenderSystem.DisplayRenderTarget(RenderSystem.GetFinalRenderTarget());
+            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget);
 
             //Draw last and over everything else
             TextRenderer.Draw();
             CurrentGizmo.Draw();
             BacHitboxGizmo.Draw();
             EntityTransformGizmo.Draw();
+
+            //Now apply axis correction
+            GraphicsDevice.SetRenderTarget(MainRenderTarget.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            RenderSystem.YBS.ApplyAxisCorrection();
+
+            //Present on screen
+            GraphicsDevice.SetRenderTarget(InternalRenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget, true);
+
         }
 
         public void ResetState(bool resetAnims = true, bool resetCamPos = false)

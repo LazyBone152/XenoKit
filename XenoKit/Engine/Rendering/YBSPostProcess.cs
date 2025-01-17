@@ -70,12 +70,15 @@ namespace XenoKit.Engine.Rendering
         private PostShaderEffect Merge5Shader;
         private PostShaderEffect Merge8Shader;
         private PostShaderEffect SceneMergeShader;
+        private PostShaderEffect AxisCorrection;
 
         private Texture2D SceneMergeInput2, SceneMergeInput3;
 
         private List<YBSPostFilterStep> GlareFilterSteps = new List<YBSPostFilterStep>();
         private int currentGlareLevel = -1;
         private bool currentGlareHighRes = false;
+
+        private YBSPostFilterStep AxisCorrectionFilter;
 
         public YBSPostProcess(GameBase game, RenderSystem renderSystem, RenderTargetWrapper sceneRT, RenderTargetWrapper glareRT) : base(game)
         {
@@ -179,6 +182,7 @@ namespace XenoKit.Engine.Rendering
 
         private void InitializeShaders()
         {
+            AxisCorrection = GetShader("AxisCorrection");
             CopyShader = GetShader("YBS_Copy");
             DimShader = GetShader("YBS_Dim");
             CopyRegionShader = GetShader("YBS_CopyRegion");
@@ -661,6 +665,14 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
+        public void ApplyAxisCorrection()
+        {
+            if(AxisCorrectionFilter != null)
+            {
+                AxisCorrectionFilter.Apply(renderSystem);
+            }
+        }
+
         private PostShaderEffect GetShader(string name)
         {
             return CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetExtShaderProgram(name), GameBase, ShaderType.PostFilter);
@@ -675,6 +687,12 @@ namespace XenoKit.Engine.Rendering
         public RenderTargetWrapper GetRenderTarget()
         {
             return SCENE_MERGE_RT;
+        }
+    
+        public void SetupAxisCorrectionFilter(RenderTargetWrapper input)
+        {
+            YBSPostFilterStep filter = new YBSPostFilterStep(AxisCorrection, null, input);
+            AxisCorrectionFilter = filter;
         }
     }
 

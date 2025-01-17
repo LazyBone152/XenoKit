@@ -82,17 +82,29 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
-            ExtShaders.Add(LoadExtShader("TestPostShader", "TestPostShader", "TestPostShader", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Copy", "Copy", "Copy", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Dim", "Dim", "Dim", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_CopyRegion", "CopyRegion", "CopyRegion", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Smooth", "Smooth", "Smooth", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Glare", "Glare", "Glare", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Pixel", "Pixel", "Pixel", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Merge2", "Merge2", "Merge2", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Merge5", "Merge5", "Merge5", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_Merge8", "Merge8", "Merge8", ShaderProgramSource.External));
-            ExtShaders.Add(LoadExtShader("YBS_SceneMerge", "SceneMerge", "SceneMerge", ShaderProgramSource.External));
+#if !DEBUG
+            try
+#endif
+            {
+                ExtShaders.Add(LoadExtShader("AxisCorrection", "AxisCorrection", "AxisCorrection", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Copy", "Copy", "Copy", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Dim", "Dim", "Dim", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_CopyRegion", "CopyRegion", "CopyRegion", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Smooth", "Smooth", "Smooth", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Glare", "Glare", "Glare", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Pixel", "Pixel", "Pixel", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Merge2", "Merge2", "Merge2", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Merge5", "Merge5", "Merge5", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_Merge8", "Merge8", "Merge8", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("YBS_SceneMerge", "SceneMerge", "SceneMerge", ShaderProgramSource.External));
+            }
+#if !DEBUG
+            catch (Exception ex)
+            {
+                Log.Add($"LoadExtShaders: failed to load post process shaders, with error: {ex.Message}", ex.ToString(), LogType.Error);
+                return;
+            }
+#endif
 
             IsExtShadersLoaded = true;
         }

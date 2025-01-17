@@ -14,7 +14,7 @@ namespace XenoKit.Engine.Rendering
     public class RenderSystem : Entity
     {
         public readonly PostFilter PostFilter;
-        private readonly YBSPostProcess YBS;
+        public readonly YBSPostProcess YBS;
 
         private readonly List<Entity> Characters = new List<Entity>();
         private readonly List<Entity> Stages = new List<Entity>();

@@ -107,6 +107,7 @@ namespace XenoKit.Engine.Shader
         protected EffectParameter g_mMatrixPalette_VS;
         protected EffectParameter g_bSkinning_VS;
 
+        private static Vector3 EyePosValue = new Vector3(50f, 20f, 20f);
 
         //Updating
         public bool IsShaderProgramDirty { get; set; }
@@ -719,6 +720,11 @@ namespace XenoKit.Engine.Shader
                     break;
                 case ShaderParameter.UserFlag0_VS:
                     g_vUserFlag0_VS?.SetValue(GameBase.LightSource.Position);
+                    break;
+                case ShaderParameter.EyePos_VS:
+                    //Dont know what this actually is, but it seems to be a local position (relative to object) of something. So its being set to basically a random position for now...
+                    if (ActorSlot != -1)
+                        g_vEyePos_VS?.SetValue(new Vector4(EyePosValue - SceneManager.Actors[ActorSlot].Transform.Translation, 1));
                     break;
 
                 case ShaderParameter.FadeColor:

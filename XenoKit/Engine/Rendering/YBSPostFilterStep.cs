@@ -62,8 +62,11 @@ namespace XenoKit.Engine.Rendering
 
         public void Apply(RenderSystem renderSystem)
         {
-            renderSystem.SetRenderTargets(RenderTarget.RenderTarget);
-            renderSystem.GraphicsDevice.Clear(ClearColor);
+            if(RenderTarget != null)
+            {
+                renderSystem.SetRenderTargets(RenderTarget.RenderTarget);
+                renderSystem.GraphicsDevice.Clear(ClearColor);
+            }
 
             for (int i = 0; i < RTInputs.Length; i++)
             {
