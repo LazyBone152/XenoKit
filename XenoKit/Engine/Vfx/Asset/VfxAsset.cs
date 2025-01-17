@@ -200,9 +200,9 @@ namespace XenoKit.Engine.Vfx.Asset
             if (EffectPart.AttachementType == EffectPart.Attachment.Camera)
             {
                 //Place transform directly in front of the camera
-                Vector3 direction = GameBase.ActiveCameraBase.CameraState.ActualTargetPosition - GameBase.ActiveCameraBase.CameraState.ActualPosition;
+                Vector3 direction = GameBase.ActiveCameraBase.CameraState.TargetPosition - GameBase.ActiveCameraBase.CameraState.Position;
                 Vector3 cameraForward = Vector3.Normalize(direction);
-                Vector3 positionInFrontOfCamera = GameBase.ActiveCameraBase.CameraState.ActualPosition + (cameraForward * 1f);
+                Vector3 positionInFrontOfCamera = GameBase.ActiveCameraBase.CameraState.Position + (cameraForward * 1f);
 
                 transform.Translation = positionInFrontOfCamera;
             }
@@ -229,7 +229,7 @@ namespace XenoKit.Engine.Vfx.Asset
                     break;
                 case EffectPart.OrientationType.Camera:
                     //Effect Position + rotate to face camera.
-                    transform = CurrentRotation * Matrix.CreateBillboard(transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.ActualPosition, Vector3.Up, Vector3.Forward);
+                    transform = CurrentRotation * Matrix.CreateBillboard(transform.Translation, SceneManager.MainCamera.CameraBase.CameraState.Position, Vector3.Up, Vector3.Forward);
                     break;
                 case EffectPart.OrientationType.RotateMovement:
                     //This rotates the effect by 45 degrees if there is active movement going on.

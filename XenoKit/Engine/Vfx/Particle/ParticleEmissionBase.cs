@@ -152,7 +152,7 @@ namespace XenoKit.Engine.Vfx.Particle
                 rotAmount /= 60f;
 
             _ = Transform.Decompose(out Vector3 scale, out _, out Vector3 translation);
-            Matrix world = Matrix.CreateTranslation(translation) * Matrix.CreateScale(scale) * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
+            Matrix world = Matrix.CreateTranslation(translation) * Matrix.CreateScale(scale) * Matrix.CreateScale(ParticleSystem.Scale) * attachBone;
             Vector3 rotAxis;
 
             if (Node.NodeFlags2.HasFlag(NodeFlags2.RandomUpVector))

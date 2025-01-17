@@ -90,6 +90,8 @@ namespace XenoKit.Engine.Rendering
             InitializeTextures();
             InitializeGlareChain();
 
+            AxisCorrectionFilter = new YBSPostFilterStep(AxisCorrection, null);
+
             SettingsManager.SettingsSaved += SettingsManager_SettingsSaved;
         }
 
@@ -182,7 +184,7 @@ namespace XenoKit.Engine.Rendering
 
         private void InitializeShaders()
         {
-            AxisCorrection = GetShader("AxisCorrection");
+            AxisCorrection = GetShader("LB_AxisCorrection");
             CopyShader = GetShader("YBS_Copy");
             DimShader = GetShader("YBS_Dim");
             CopyRegionShader = GetShader("YBS_CopyRegion");
@@ -665,10 +667,11 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        public void ApplyAxisCorrection()
+        public void ApplyAxisCorrection(Vector4 defaultColor)
         {
             if(AxisCorrectionFilter != null)
             {
+                AxisCorrectionFilter.Parameters.DefaultColor = defaultColor;
                 AxisCorrectionFilter.Apply(renderSystem);
             }
         }
@@ -689,11 +692,6 @@ namespace XenoKit.Engine.Rendering
             return SCENE_MERGE_RT;
         }
     
-        public void SetupAxisCorrectionFilter(RenderTargetWrapper input)
-        {
-            YBSPostFilterStep filter = new YBSPostFilterStep(AxisCorrection, null, input);
-            AxisCorrectionFilter = filter;
-        }
     }
 
 }

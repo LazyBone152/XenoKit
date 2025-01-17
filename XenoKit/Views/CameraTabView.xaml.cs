@@ -726,12 +726,12 @@ namespace XenoKit.Controls
         public RelayCommand AddKeyframeCommand => new RelayCommand(AddKeyframeAsync, CanAddKeyframe);
         private void AddKeyframeAsync()
         {
-            float posX = SceneManager.MainGameInstance.camera.CameraState.ActualPosition.X;
-            float posY = SceneManager.MainGameInstance.camera.CameraState.ActualPosition.Y;
-            float posZ = SceneManager.MainGameInstance.camera.CameraState.ActualPosition.Z;
-            float rotX = SceneManager.MainGameInstance.camera.CameraState.ActualTargetPosition.X;
-            float rotY = SceneManager.MainGameInstance.camera.CameraState.ActualTargetPosition.Y;
-            float rotZ = SceneManager.MainGameInstance.camera.CameraState.ActualTargetPosition.Z;
+            float posX = SceneManager.MainGameInstance.camera.CameraState.Position.X;
+            float posY = SceneManager.MainGameInstance.camera.CameraState.Position.Y;
+            float posZ = SceneManager.MainGameInstance.camera.CameraState.Position.Z;
+            float rotX = SceneManager.MainGameInstance.camera.CameraState.TargetPosition.X;
+            float rotY = SceneManager.MainGameInstance.camera.CameraState.TargetPosition.Y;
+            float rotZ = SceneManager.MainGameInstance.camera.CameraState.TargetPosition.Z;
             float scaleX = -MathHelper.ToRadians(SceneManager.MainGameInstance.camera.CameraState.Roll);
             float scaleY = MathHelper.ToRadians(SceneManager.MainGameInstance.camera.CameraState.FieldOfView);
 

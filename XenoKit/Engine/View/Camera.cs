@@ -138,10 +138,10 @@ namespace XenoKit.Engine.View
             var targetPos = cameraInstance.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Rotation);
             var camera = cameraInstance.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Scale);
 
-            CameraState.Position.X = (SceneManager.ResolveLeftHandSymetry) ? -pos.GetKeyframeValue(_drawFrame, Axis.X) : pos.GetKeyframeValue(_drawFrame, Axis.X);
+            CameraState.Position.X = pos.GetKeyframeValue(_drawFrame, Axis.X);
             CameraState.Position.Y = pos.GetKeyframeValue(_drawFrame, Axis.Y);
             CameraState.Position.Z = pos.GetKeyframeValue(_drawFrame, Axis.Z);
-            CameraState.TargetPosition.X = (SceneManager.ResolveLeftHandSymetry) ? -targetPos.GetKeyframeValue(_drawFrame, Axis.X) : targetPos.GetKeyframeValue(_drawFrame, Axis.X);
+            CameraState.TargetPosition.X = targetPos.GetKeyframeValue(_drawFrame, Axis.X);
             CameraState.TargetPosition.Y = targetPos.GetKeyframeValue(_drawFrame, Axis.Y);
             CameraState.TargetPosition.Z = targetPos.GetKeyframeValue(_drawFrame, Axis.Z);
 
@@ -160,29 +160,22 @@ namespace XenoKit.Engine.View
             if (SceneManager.CharacterExists(cameraInstance.cameraTarget.CharacterIndex) && !SceneManager.IsOnTab(EditorTabs.Camera))
             {
                 Vector3 bonePos = SceneManager.Actors[cameraInstance.cameraTarget.CharacterIndex].GetBoneCurrentAbsolutePosition(cameraInstance.cameraTarget.Bone);
-                if (SceneManager.ResolveLeftHandSymetry)
-                {
-                    CameraState.Position += new Vector3(-bonePos.X, bonePos.Y, bonePos.Z);
-                    CameraState.TargetPosition += new Vector3(-bonePos.X, bonePos.Y, bonePos.Z);
-                }
-                else
-                {
-                    CameraState.Position += bonePos;
-                    CameraState.TargetPosition += bonePos;
-                }
+
+                CameraState.Position += bonePos;
+                CameraState.TargetPosition += bonePos;
             }
 
             //Bac modifers
             if (cameraInstance.bacCameraSettings.Enabled)
             {
-                CameraState.Roll += cameraInstance.bacCameraSettings.GetCurrentRoll(CameraState.ActualPosition);
+                CameraState.Roll += cameraInstance.bacCameraSettings.GetCurrentRoll(CameraState.Position);
                 CameraState.FieldOfView += cameraInstance.bacCameraSettings.GetCurrentFoV();
-                CameraState.ActualPosition += cameraInstance.bacCameraSettings.GetCurrentRotation(CameraState.ActualPosition, CameraState.ActualTargetPosition);
+                CameraState.Position += cameraInstance.bacCameraSettings.GetCurrentRotation(CameraState.Position, CameraState.TargetPosition);
 
                 //I think Position Z offsets are not 100% correct... the target position seems off
-                Vector3 positionDelta = cameraInstance.bacCameraSettings.GetCurrentPosition(CameraState.ActualPosition, CameraState.ActualTargetPosition);
-                CameraState.ActualPosition += positionDelta;
-                CameraState.ActualTargetPosition += positionDelta;
+                Vector3 positionDelta = cameraInstance.bacCameraSettings.GetCurrentPosition(CameraState.Position, CameraState.TargetPosition);
+                CameraState.Position += positionDelta;
+                CameraState.TargetPosition += positionDelta;
             }
 
             //Scale animations to fit current actor size
@@ -321,28 +314,6 @@ namespace XenoKit.Engine.View
     public class CameraState
     {
         //Transforms
-        public Vector3 ActualPosition
-        {
-            get
-            {
-                return (SceneManager.ResolveLeftHandSymetry) ? new Vector3(-Position.X, Position.Y, Position.Z) : Position;
-            }
-            set
-            {
-                Position = (SceneManager.ResolveLeftHandSymetry) ? new Vector3(-value.X, value.Y, value.Z) : value;
-            }
-        }
-        public Vector3 ActualTargetPosition
-        {
-            get
-            {
-                return (SceneManager.ResolveLeftHandSymetry) ? new Vector3(-TargetPosition.X, TargetPosition.Y, TargetPosition.Z) : TargetPosition;
-            }
-            set
-            {
-                TargetPosition = (SceneManager.ResolveLeftHandSymetry) ? new Vector3(-value.X, value.Y, value.Z) : value;
-            }
-        }
         public Vector3 Position = new Vector3(0, 1f, -5);
         public Vector3 TargetPosition = new Vector3(0, 1f, 1f);
         private float _fieldOfView = EAN_File.DefaultFoV;
@@ -406,8 +377,8 @@ namespace XenoKit.Engine.View
         public void SetFocus(Actor actor)
         {
             Reset();
-            ActualPosition += actor.Transform.Translation;
-            ActualTargetPosition += actor.Transform.Translation;
+            Position += actor.Transform.Translation;
+            TargetPosition += actor.Transform.Translation;
         }
     }
 

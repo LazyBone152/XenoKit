@@ -74,12 +74,15 @@ namespace XenoKit.Engine
             RenderSystem.RegisterRenderTarget(MainRenderTarget);
             RenderSystem.RegisterRenderTarget(AxisCorrectionRenderTarget);
 
-            RenderSystem.YBS.SetupAxisCorrectionFilter(AxisCorrectionRenderTarget);
-
             //Set viewport background color
             if (LocalSettings.Instance.SerializedBackgroundColor != null)
             {
                 SceneManager.ViewportBackgroundColor = LocalSettings.Instance.SerializedBackgroundColor.ToColor();
+            }
+
+            if (LocalSettings.Instance.CustomScreenshotBackgroundColor != null)
+            {
+                SceneManager.ScreenshotBackgroundColor = LocalSettings.Instance.CustomScreenshotBackgroundColor.ToColor();
             }
         }
 
@@ -219,8 +222,9 @@ namespace XenoKit.Engine
 
             //Now apply axis correction
             GraphicsDevice.SetRenderTarget(MainRenderTarget.RenderTarget);
+            RenderSystem.SetTextures(AxisCorrectionRenderTarget.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
-            RenderSystem.YBS.ApplyAxisCorrection();
+            RenderSystem.YBS.ApplyAxisCorrection(Vector4.Zero);
 
             //Present on screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);

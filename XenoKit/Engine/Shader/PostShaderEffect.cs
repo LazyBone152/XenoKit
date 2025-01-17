@@ -31,7 +31,8 @@ namespace XenoKit.Engine.Shader
             YBS_Merge2,
             YBS_Merge5,
             YBS_Merge8,
-            YBS_SceneMerge
+            YBS_SceneMerge,
+            LB_AxisCorrection
         }
 
         public PostProccessShader Shader { get; private set; }
@@ -185,6 +186,9 @@ namespace XenoKit.Engine.Shader
                     Parameters["afRGBA_Modulate"].SetValue(YBSParameters.afRGBA_Modulate);
                     Parameters["afRGBA_Offset"].SetValue(YBSParameters.afRGBA_Offset);
                     break;
+                case PostProccessShader.LB_AxisCorrection:
+                    Parameters["DefaultColor"].SetValue(YBSParameters.DefaultColor);
+                    break;
             }
         }
 
@@ -303,6 +307,7 @@ namespace XenoKit.Engine.Shader
         public Vector4[] afRGBA_Modulate; //32
         public Vector4[] afRGBA_Offset; //16
         public Vector4 fParam_DitherOffsetScale;
+        public Vector4 DefaultColor;
 
         public static YBSShaderParameters Default()
         {
@@ -314,7 +319,8 @@ namespace XenoKit.Engine.Shader
                 afUV_TexCoordOffsetP32 = new Vector4[96],
                 afRGBA_Modulate = new Vector4[32],
                 afRGBA_Offset = new Vector4[16],
-                fParam_DitherOffsetScale = new Vector4(0.00392156886f, 0.00392156886f, -0.00392156886f, 0f)
+                fParam_DitherOffsetScale = new Vector4(0.00392156886f, 0.00392156886f, -0.00392156886f, 0f),
+                DefaultColor = Vector4.Zero
             };
         }
 

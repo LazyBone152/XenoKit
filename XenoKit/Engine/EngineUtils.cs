@@ -15,6 +15,8 @@ namespace XenoKit.Engine
         //Mouse Picking
         public static Ray CalculateRay(Vector2 mouseLocation, GameBase gameBase)
         {
+            mouseLocation.X = gameBase.GraphicsDevice.Viewport.Width - mouseLocation.X;
+
             Vector3 nearPoint = gameBase.GraphicsDevice.Viewport.Unproject(new Vector3(mouseLocation.X,
                     mouseLocation.Y, 0.0f),
                     gameBase.ActiveCameraBase.ProjectionMatrix,

@@ -579,7 +579,7 @@ namespace XenoKit.Engine.Model
                 }
             }
 
-            materials[SubmeshIndex].World = (SceneManager.ResolveLeftHandSymetry) ? (world * Matrix.CreateScale(-1, 1f, 1f)) : world;
+            materials[SubmeshIndex].World = world;
             materials[SubmeshIndex].PrevWVP = PrevWVP[actor];
 
             //Set samplers/textures
@@ -603,7 +603,7 @@ namespace XenoKit.Engine.Model
 
         public void Draw(Matrix world, int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton = null)
         {
-            material.World = world * Matrix.CreateScale(-1, 1f, 1f);
+            material.World = world;
             material.PrevWVP = PrevWVP[actor];
 
             DrawEnd(actor, material, skeleton);

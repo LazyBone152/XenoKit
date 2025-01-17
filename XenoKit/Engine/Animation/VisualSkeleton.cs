@@ -96,10 +96,6 @@ namespace XenoKit.Engine.Animation
                     Matrix newWorld = bones[i].AbsoluteAnimationMatrix * transform;
                     bool selected = SceneManager.MainGameInstance.CurrentGizmo.IsEnabledOnBone(i);
 
-                    //Fix symetry
-                    if (SceneManager.ResolveLeftHandSymetry)
-                        newWorld *= Matrix.CreateScale(-1f, 1f, 1f);
-
                     visualBones[i].Draw(newWorld, selected);
 
                     //Render Bone names

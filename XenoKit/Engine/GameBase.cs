@@ -187,11 +187,6 @@ namespace XenoKit.Engine
                     SceneManager.ShowWorldAxis = !SceneManager.ShowWorldAxis;
                     SetHotkeyCooldown();
                 }
-                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.L))
-                {
-                    SettingsManager.settings.XenoKit_EnableDynamicLighting = !SettingsManager.settings.XenoKit_EnableDynamicLighting;
-                    SetHotkeyCooldown();
-                }
             }
             else
             {

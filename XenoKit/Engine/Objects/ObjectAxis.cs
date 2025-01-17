@@ -30,7 +30,7 @@ namespace XenoKit.Engine.Objects
         {
             if((IsWorldAxis && SceneManager.ShowWorldAxis) || !IsWorldAxis)
             {
-                xCube.Draw(Matrix.CreateRotationZ(-(float)Math.PI / 2.0f) * Matrix.CreateScale(-1f, 1f, 1f) * world);
+                xCube.Draw(Matrix.CreateRotationZ(-(float)Math.PI / 2.0f) * world);
                 yCube.Draw(world);
                 zCube.Draw(Matrix.CreateRotationX((float)Math.PI / 2.0f) * world);
                 if (isLeft)

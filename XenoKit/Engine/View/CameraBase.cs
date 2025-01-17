@@ -14,13 +14,6 @@ namespace XenoKit.Engine.View
     {
         //Based on the Xenoviewer camera code, ported here by Olganix
         
-        public virtual Matrix TestViewMatrix
-        {
-            get
-            {
-                return Matrix.CreateLookAt(CameraState.ActualPosition, CameraState.ActualTargetPosition, Vector3.Up) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
-            }
-        }
         public virtual Matrix ViewMatrix
         {
             get
@@ -103,7 +96,7 @@ namespace XenoKit.Engine.View
         // classic xenoverse camera:
         private void spinCamera(Vector2 delta)
         {
-            viewer_angle.X += delta.X * (-4.0f);
+            viewer_angle.X += (-delta.X) * (-4.0f);
             viewer_angle.Y += delta.Y * (-4.0f);
 
             const float two_pi = 2.0f * (float)Math.PI;
@@ -129,7 +122,7 @@ namespace XenoKit.Engine.View
             Quaternion orientation = Quaternion.CreateFromRotationMatrix(viewMatrix);
             orientation.Normalize();
 
-            CameraState.TargetPosition += Vector3.Transform(new Vector3((delta.X * (zoom + 0.5f) * (-2.0f)), -(delta.Y * (zoom + 0.5f) * (-2.0f)), 0.0f), orientation) / factor;
+            CameraState.TargetPosition += Vector3.Transform(new Vector3(((-delta.X) * (zoom + 0.5f) * (-2.0f)), -(delta.Y * (zoom + 0.5f) * (-2.0f)), 0.0f), orientation) / factor;
 
             repositionCamera();
         }
@@ -182,11 +175,11 @@ namespace XenoKit.Engine.View
 
             if (GameIsFocused && Input.IsKeyDown(Keys.A) && !Input.IsKeyDown(Keys.LeftAlt))
             {
-                Translate(0f, 1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                Translate(0f, -1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }
             else if (GameIsFocused && Input.IsKeyDown(Keys.D) && !Input.IsKeyDown(Keys.LeftAlt))
             {
-                Translate(0f, -1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                Translate(0f, 1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }
 
             if (GameIsFocused && Input.IsKeyDown(Keys.R) && Input.IsKeyDown(Keys.LeftControl))

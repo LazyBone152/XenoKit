@@ -125,7 +125,7 @@ namespace XenoKit.Engine.Vfx.Particle
                     float rotAmount = RandomDirection ? -RotationAmount : RotationAmount;
 
                     //Used for setting the translation component of the final billboard matrix
-                    Matrix worldTranslation = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
+                    Matrix worldTranslation = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone;
 
                     if (Node.EmissionNode.VelocityOriented)
                     {
@@ -135,7 +135,7 @@ namespace XenoKit.Engine.Vfx.Particle
                             DrawThisFrame = false;
                         }
 
-                        Matrix world = Transform * attachBone * Matrix.CreateScale(-1f, 1, 1);
+                        Matrix world = Transform * attachBone;
 
                         //This is not entirely correct.
                         //Matrix.CreateBillboard does not create the same result as in game. This method makes the particle always look at the current camera position, while in game it only cares about camera direction
@@ -152,7 +152,7 @@ namespace XenoKit.Engine.Vfx.Particle
                 {
                     Matrix attachBone = GetAttachmentBone();
                     float rotAmount = RandomDirection ? -RotationAmount : RotationAmount;
-                    Matrix world = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone * Matrix.CreateScale(-1f, 1, 1);
+                    Matrix world = Transform * Matrix.CreateScale(ParticleSystem.Scale) * attachBone;
 
                     newWorld = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.CreateBillboard(world.Translation, attachBone.Translation, Vector3.Up, null) * Matrix.CreateScale(ParticleSystem.Scale);
                     newWorld.Translation = world.Translation;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using XenoKit.Editor;
 using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Textures;
@@ -78,15 +79,15 @@ namespace XenoKit.Engine.Shader
 
             if(!Directory.Exists("XenoKit/ExtShaders"))
             {
-                Log.Add("LoadExtShaders: \"XenoKit/ExtShaders\" was not found. Some post process effects will be disabled.", LogType.Error);
-                return;
+                MessageBox.Show("The folder \"XenoKit/ExtShaders\" was not found. XenoKit CANNOT function without this folder, as it contains important shaders. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(0);
             }
 
 #if !DEBUG
             try
 #endif
             {
-                ExtShaders.Add(LoadExtShader("AxisCorrection", "AxisCorrection", "AxisCorrection", ShaderProgramSource.External));
+                ExtShaders.Add(LoadExtShader("LB_AxisCorrection", "AxisCorrection", "AxisCorrection", ShaderProgramSource.External));
                 ExtShaders.Add(LoadExtShader("YBS_Copy", "Copy", "Copy", ShaderProgramSource.External));
                 ExtShaders.Add(LoadExtShader("YBS_Dim", "Dim", "Dim", ShaderProgramSource.External));
                 ExtShaders.Add(LoadExtShader("YBS_CopyRegion", "CopyRegion", "CopyRegion", ShaderProgramSource.External));
@@ -121,14 +122,14 @@ namespace XenoKit.Engine.Shader
 
             if (!File.Exists(vsPath))
             {
-                Log.Add($"Shader not found: \"{vsPath}\"", LogType.Error);
-                return null;
+                MessageBox.Show($"The shader \"{vsPath}\" was not found. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(0);
             }
 
             if (!File.Exists(psPath))
             {
-                Log.Add($"Shader not found: \"{psPath}\"", LogType.Error);
-                return null;
+                MessageBox.Show($"The shader \"{psPath}\" was not found. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(0);
             }
 
             byte[] vsShader = File.ReadAllBytes(vsPath);

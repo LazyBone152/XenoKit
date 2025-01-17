@@ -23,7 +23,7 @@ namespace XenoKit.Engine.Objects
             if (SceneManager.ShowWorldAxis)
             {
                 oCube.Draw(Transform);
-                xCube.Draw(Transform * Matrix.CreateScale(-1f, 1f, 1f));
+                xCube.Draw(Transform);
                 yCube.Draw(Transform);
                 zCube.Draw(Transform);
             }

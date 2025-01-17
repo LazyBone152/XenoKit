@@ -221,7 +221,7 @@ namespace XenoKit.Engine.Shapes
         {
             Material.Projection = CameraBase.ProjectionMatrix;
             Material.View = CameraBase.ViewMatrix;
-            Material.World = Transform * world * Matrix.CreateScale(-1f, 1f, 1f);
+            Material.World = Transform * world;
 
             DrawInternal();
         }

@@ -7,6 +7,7 @@ using XenoKit.Engine.Shader.DXBC;
 using XenoKit.Engine.Vfx;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.SDS;
+using System.Windows.Documents;
 
 namespace XenoKit.Engine.Shader
 {
@@ -51,6 +52,7 @@ namespace XenoKit.Engine.Shader
         private Xv2Shader[] _shaders;
 
         public Matrix World = Matrix.Identity;
+        private Matrix WV = Matrix.Identity;
         public Matrix WVP = Matrix.Identity;
         public Matrix PrevWVP = Matrix.Identity;
 
@@ -651,10 +653,9 @@ namespace XenoKit.Engine.Shader
                     g_mW_VS?.SetValue(World);
                     break;
                 case ShaderParameter.WV:
-                    g_mWV_VS?.SetValue(World * GameBase.ActiveCameraBase.ViewMatrix);
+                    g_mWV_VS?.SetValue(WV);
                     break;
                 case ShaderParameter.WVP:
-                    WVP = World * GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix;
                     g_mWVP_VS?.SetValue(WVP);
                     break;
                 case ShaderParameter.VP:
@@ -713,10 +714,10 @@ namespace XenoKit.Engine.Shader
                     break;
 
                 case ShaderParameter.LightVec0_VS:
-                    g_vLightVec0_VS?.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
+                    g_vLightVec0_VS?.SetValue(GameBase.LightSource.GetLightDirection(WVP));
                     break;
                 case ShaderParameter.LightVec0_PS:
-                    g_vLightVec0_PS?.SetValue(GameBase.LightSource.GetLightDirection(ActorSlot));
+                    g_vLightVec0_PS?.SetValue(GameBase.LightSource.GetLightDirection(WVP));
                     break;
                 case ShaderParameter.UserFlag0_VS:
                     g_vUserFlag0_VS?.SetValue(GameBase.LightSource.Position);
@@ -765,7 +766,11 @@ namespace XenoKit.Engine.Shader
                 IsShaderProgramDirty = false;
             }
 
-            foreach(ShaderParameter parameter in SdsParameters)
+            //Calculate matrices
+            WV = World * GameBase.ActiveCameraBase.ViewMatrix;
+            WVP = World * GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix;
+
+            foreach (ShaderParameter parameter in SdsParameters)
             {
                 ApplyParameter(parameter);
             }
@@ -1078,7 +1083,7 @@ namespace XenoKit.Engine.Shader
             RasterizerState state = new RasterizerState();
 
             state.FillMode = GameBase.WireframeMode ? FillMode.WireFrame : FillMode.Solid;
-            state.CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullCounterClockwiseFace;
+            state.CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullClockwiseFace;
 
             switch (ShaderType)
             {

@@ -533,6 +533,8 @@ namespace XenoKit.Engine.Gizmo
                             if (PrecisionModeEnabled)
                                 delta *= PRECISION_MODE_SCALE;
 
+                            delta.X = -delta.X; //Axis correction
+
                             if (ActiveMode == GizmoMode.Translate)
                             {
                                 // transform (local or world)
@@ -669,7 +671,7 @@ namespace XenoKit.Engine.Gizmo
 
         protected void UpdateElements()
         {
-            _position = new Vector3(-WorldMatrix.Translation.X, WorldMatrix.Translation.Y, WorldMatrix.Translation.Z);
+            _position = new Vector3(WorldMatrix.Translation.X, WorldMatrix.Translation.Y, WorldMatrix.Translation.Z);
 
             Vector3 vLength = GameBase.ActiveCameraBase.CameraState.Position - _position;
 

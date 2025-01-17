@@ -59,10 +59,10 @@ namespace XenoKit.Views
         }
         public System.Windows.Media.Color BackgroundColor
         {
-            get => System.Windows.Media.Color.FromScRgb(LocalSettings.Instance.CustomScreenshotBackgroundColor.X, LocalSettings.Instance.CustomScreenshotBackgroundColor.Y, LocalSettings.Instance.CustomScreenshotBackgroundColor.Z, LocalSettings.Instance.CustomScreenshotBackgroundColor.W);
+            get => System.Windows.Media.Color.FromScRgb(SceneManager.ScreenshotBackgroundColor.A / 255f, SceneManager.ScreenshotBackgroundColor.R / 255f, SceneManager.ScreenshotBackgroundColor.G / 255f, SceneManager.ScreenshotBackgroundColor.B / 255f);
             set
             {
-                LocalSettings.Instance.CustomScreenshotBackgroundColor.SetValues(value.R, value.G, value.B, value.A);
+                SceneManager.ScreenshotBackgroundColor = new Microsoft.Xna.Framework.Color(value.R, value.G, value.B, value.A);
             }
         }
 

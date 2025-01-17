@@ -348,6 +348,10 @@ namespace XenoKit.Engine.Rendering
         /// </summary>
         public void RequestScreenshot(ScreenshotType screenshotType)
         {
+            if (!ShaderManager.IsExtShadersLoaded)
+            {
+                return;
+            }
             ScreenshotRequested = true;
             ScreenshotType = screenshotType;
         }
@@ -368,10 +372,10 @@ namespace XenoKit.Engine.Rendering
                     ProcessScreenshot(renderTarget, path, Color.Transparent);
                     break;
                 case ScreenshotType.CustomBackgroundColor:
-                    ProcessScreenshot(renderTarget, pathBlackBackground, LocalSettings.GetScreenshotColor());
+                    ProcessScreenshot(renderTarget, pathBlackBackground, SceneManager.ScreenshotBackgroundColor);
                     break;
                 case ScreenshotType.Both:
-                    ProcessScreenshot(renderTarget, pathBlackBackground, LocalSettings.GetScreenshotColor());
+                    ProcessScreenshot(renderTarget, pathBlackBackground, SceneManager.ScreenshotBackgroundColor);
                     ProcessScreenshot(renderTarget, path, Color.Transparent);
                     break;
             }
@@ -384,8 +388,9 @@ namespace XenoKit.Engine.Rendering
         {
             //Copying it to a seperate RT before saving allows changing of the background color
             SetRenderTargets(ScreenshotRT.RenderTarget);
+            SetTextures(renderTarget.RenderTarget);
             GraphicsDevice.Clear(clearColor);
-            DisplayRenderTarget(renderTarget.RenderTarget);
+            YBS.ApplyAxisCorrection(clearColor.ToVector4());
 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -406,7 +411,7 @@ namespace XenoKit.Engine.Rendering
 
         private void DrawEntityList(List<Entity> entities, bool simpleDraw, bool normalPass)
         {
-            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.ActualPosition, x.AbsoluteTransform.Translation)))
+            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
             {
                 if (entity.DrawThisFrame)
                 {
@@ -427,7 +432,7 @@ namespace XenoKit.Engine.Rendering
         {
             int particleCount = 0;
 
-            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.ActualPosition, x.AbsoluteTransform.Translation)))
+            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
             {
                 if (entity.LowRezMode != lowRezMode) continue;
 
@@ -441,7 +446,7 @@ namespace XenoKit.Engine.Rendering
             }
 
             //Render subtractive blend type last
-            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.ActualPosition, x.AbsoluteTransform.Translation)))
+            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
             {
                 if (entity.LowRezMode != lowRezMode) continue;
 

@@ -117,6 +117,7 @@ namespace XenoKit.Engine
         public static Vector4 ScreenSize;
 
         public static Color ViewportBackgroundColor = new Color(20, 20, 20, 255);
+        public static Color ScreenshotBackgroundColor = new Color(20, 20, 20, 255);
 
         /// <summary>
         /// 
@@ -289,7 +290,6 @@ namespace XenoKit.Engine
 
         public static bool ShowDebugBones = false;
         public static bool ShowWorldAxis = true;
-        public static bool ResolveLeftHandSymetry = true; //https://stackoverflow.com/questions/29370361/does-xna-opengl-use-left-handed-matrices //Legacy option. Disabling this will break stuff, as older code will respect it, while newer code wont (auto-resolved is the default now - because why not?).
         /// <summary>
         /// Movement that occurs in a BAC entry is reverted by default when the entry ends. With this setting, that is disabled.
         /// </summary>

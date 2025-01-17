@@ -58,17 +58,6 @@ namespace XenoKit.Windows
                 }
             }
         }
-        public bool DynamicLighting
-        {
-            get => SettingsManager.settings.XenoKit_EnableDynamicLighting;
-            set
-            {
-                if (SettingsManager.settings.XenoKit_EnableDynamicLighting != value)
-                {
-                    SettingsManager.settings.XenoKit_EnableDynamicLighting = value;
-                }
-            }
-        }
         public bool SuppressErrors
         {
             get => SettingsManager.settings.XenoKit_SuppressErrorsToLogOnly;

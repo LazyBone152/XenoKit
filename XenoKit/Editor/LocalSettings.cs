@@ -82,6 +82,7 @@ namespace XenoKit.Editor
             if (instance != null)
             {
                 instance.SerializedBackgroundColor = new SerializedVector(SceneManager.ViewportBackgroundColor);
+                instance.CustomScreenshotBackgroundColor = new SerializedVector(SceneManager.ScreenshotBackgroundColor);
 
 #if !DEBUG
                 try

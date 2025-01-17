@@ -103,14 +103,6 @@
                                 <ComboBoxItem Content="HIGH"/>
                             </ComboBox>
                         </Grid>
-                        <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable dynamic lighting based on camera position.&#x0a;&#x0a;Very experiential and not game accurate right now!">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="120"/>
-                                <ColumnDefinition Width="40"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Dynamic Lighting*" FontWeight="SemiBold"/>
-                            <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding DynamicLighting, UpdateSourceTrigger=PropertyChanged}"/>
-                        </Grid>
                         <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable the Automatic Shader Reload feature.&#x0a;&#x0a;Shaders will be automatically reloaded whenever a change is detected in the adam_shader game files.">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120"/>

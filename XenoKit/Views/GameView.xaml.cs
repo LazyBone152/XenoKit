@@ -182,8 +182,8 @@ namespace XenoKit.Controls
                 return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
                     MonoGame.camera.CameraState.FieldOfView,
                     MonoGame.camera.CameraState.Roll,
-                    MonoGame.camera.CameraState.ActualPosition,
-                    MonoGame.camera.CameraState.ActualTargetPosition,
+                    MonoGame.camera.CameraState.Position,
+                    MonoGame.camera.CameraState.TargetPosition,
                     (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
                     GetSelectedBoneName());
             }
@@ -202,9 +202,7 @@ namespace XenoKit.Controls
             {
                 if (MonoGame?.camera == null) return null;
 #if DEBUG
-                return string.Format("\nLIGHTING:\nPos: {0}\nDir: {1}\n\nDEBUG:\nCompiled Objects: {2}\nPooled Objects (Active): {3}\nPooled Objects (Free): {4}\nRender Objects: {5}",
-                    MonoGame.LightSource.GetLightPosition(),
-                    MonoGame.LightSource.GetLightDirection(),
+                return string.Format("\nDEBUG:\nCompiled Objects: {0}\nPooled Objects (Active): {1}\nPooled Objects (Free): {2}\nRender Objects: {3}",
                     MonoGame.CompiledObjectManager.ObjectCount,
                     MonoGame.ObjectPoolManager.ParticleEmitterPool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.UsedObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.UsedObjectCount,
                     MonoGame.ObjectPoolManager.ParticleEmitterPool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleNodeBasePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticlePlanePool.FreeObjectCount + MonoGame.ObjectPoolManager.ParticleMeshPool.FreeObjectCount,
