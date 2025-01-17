@@ -35,54 +35,65 @@ namespace XenoKit.Editor
 
         private static bool Load()
         {
+#if !DEBUG
             try
+#endif
             {
-                YAXSerializer serializer = new YAXSerializer(typeof(LocalSettings), YAXSerializationOptions.DontSerializeNullObjects);
-                LocalSettings settings = (LocalSettings)serializer.DeserializeFromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, PATH));
+                string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), PATH);
 
-                if (settings != null)
+                if (File.Exists(path))
                 {
-                    instance = settings;
-
-                    if(instance.CameraStates == null)
-                    {
-                        instance.CameraStates = new SerializedCameraState[5];
-                    }
-
-                    for(int i = 0; i < instance.CameraStates.Length; i++)
-                    {
-                        instance.CameraStates[i] = new SerializedCameraState();
-                    }
-
-                    return true;
+                    YAXSerializer serializer = new YAXSerializer(typeof(LocalSettings), YAXSerializationOptions.DontSerializeNullObjects);
+                    instance = (LocalSettings)serializer.DeserializeFromFile(path);
                 }
                 else
                 {
                     instance = new LocalSettings();
-                    return false;
                 }
+
+                if (instance.CameraStates == null)
+                {
+                    instance.CameraStates = new SerializedCameraState[5];
+                }
+
+                for (int i = 0; i < instance.CameraStates.Length; i++)
+                {
+                    if(instance.CameraStates[i] == null)
+                        instance.CameraStates[i] = new SerializedCameraState();
+                }
+
+                return true;
             }
+#if !DEBUG
             catch
             {
                 instance = new LocalSettings();
                 return false;
             }
+#endif
         }
     
         public static void Save()
         {
             //Call once when closing the program
 
-            if(instance != null)
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), PATH);
+
+            if (instance != null)
             {
                 instance.SerializedBackgroundColor = new SerializedVector(SceneManager.ViewportBackgroundColor);
 
+#if !DEBUG
                 try
+#endif
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
                     YAXSerializer serializer = new YAXSerializer(typeof(LocalSettings));
-                    serializer.SerializeToFile(instance, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, PATH));
+                    serializer.SerializeToFile(instance, path);
                 }
+#if !DEBUG
                 catch { }
+#endif
             }
         }
     
