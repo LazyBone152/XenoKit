@@ -808,7 +808,7 @@ namespace XenoKit.Engine.Shader
                 //Testing:
                 g_vParam1_PS?.SetValue(new Vector4(0f, 1, 1.0f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
                 g_vParam2_PS?.SetValue(new Vector4(0f, 0.00f, 1.0f, 0.0f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
-                g_vParam3_PS?.SetValue(new Vector4(0.001f, 10000.00f, 0.40f, 0.00f)); //Z = BPE Outline strength
+                g_vParam3_PS?.SetValue(new Vector4(10f, 10000.00f, 0.00f, 0.00f)); //Z = BPE Outline strength
                 return;
             }
 
