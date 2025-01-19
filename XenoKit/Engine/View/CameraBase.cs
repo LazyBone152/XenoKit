@@ -175,11 +175,11 @@ namespace XenoKit.Engine.View
 
             if (GameIsFocused && Input.IsKeyDown(Keys.A) && !Input.IsKeyDown(Keys.LeftAlt))
             {
-                Translate(0f, -1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                Translate(0f, 1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }
             else if (GameIsFocused && Input.IsKeyDown(Keys.D) && !Input.IsKeyDown(Keys.LeftAlt))
             {
-                Translate(0f, 1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                Translate(0f, -1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
             }
 
             if (GameIsFocused && Input.IsKeyDown(Keys.R) && Input.IsKeyDown(Keys.LeftControl))
@@ -187,19 +187,19 @@ namespace XenoKit.Engine.View
                 ResetCamera();
             }
 
-            if ((GameIsFocused) && Input.IsKeyDown(Keys.Q) && Input.IsKeyDown(Keys.LeftControl))
+            if ((GameIsFocused) && Input.IsKeyDown(Keys.E) && Input.IsKeyDown(Keys.LeftControl))
             {
                 CameraState.Roll -= 0.1f;
             }
-            else if ((GameIsFocused) && Input.IsKeyDown(Keys.Q))
+            else if ((GameIsFocused) && Input.IsKeyDown(Keys.E))
             {
                 CameraState.Roll--;
             }
-            if ((GameIsFocused) && Input.IsKeyDown(Keys.E) && Input.IsKeyDown(Keys.LeftControl))
+            if ((GameIsFocused) && Input.IsKeyDown(Keys.Q) && Input.IsKeyDown(Keys.LeftControl))
             {
                 CameraState.Roll += 0.1f;
             }
-            else if ((GameIsFocused) && Input.IsKeyDown(Keys.E))
+            else if ((GameIsFocused) && Input.IsKeyDown(Keys.Q))
             {
                 CameraState.Roll++;
             }
