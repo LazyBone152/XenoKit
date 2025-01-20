@@ -139,12 +139,14 @@ namespace XenoKit.Engine.Vfx.Particle
 
                         //This is not entirely correct.
                         //Matrix.CreateBillboard does not create the same result as in game. This method makes the particle always look at the current camera position, while in game it only cares about camera direction
-                        newWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null) * Matrix.CreateScale(ParticleSystem.Scale);
+                        //newWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null) * Matrix.CreateScale(ParticleSystem.Scale);
+                        newWorld = Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null) * Matrix.CreateScale(ParticleSystem.Scale);
+
                         newWorld.Translation = worldTranslation.Translation;
                     }
                     else
                     {
-                        newWorld = Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.Invert(CameraBase.ViewMatrix) * Matrix.CreateScale(ParticleSystem.Scale);
+                        newWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateFromAxisAngle(Vector3.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix.Invert(CameraBase.ViewMatrix) * Matrix.CreateScale(ParticleSystem.Scale);
                         newWorld.Translation = worldTranslation.Translation;
                     }
                 }
