@@ -77,7 +77,7 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
-            if(!Directory.Exists("XenoKit/ExtShaders"))
+            if(!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XenoKit/ExtShaders")))
             {
                 MessageBox.Show("The folder \"XenoKit/ExtShaders\" was not found. XenoKit CANNOT function without this folder, as it contains important shaders. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(0);
@@ -117,8 +117,8 @@ namespace XenoKit.Engine.Shader
                 Log.Add($"LoadExtShader: Game shaders cannot be loaded in this way.", LogType.Error);
             }
 
-            string vsPath = $"XenoKit/ExtShaders/{vertexShader}.xvu";
-            string psPath = $"XenoKit/ExtShaders/{pixelShader}.xpu";
+            string vsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"XenoKit/ExtShaders/{vertexShader}.xvu");
+            string psPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"XenoKit/ExtShaders/{pixelShader}.xpu");
 
             if (!File.Exists(vsPath))
             {

@@ -378,9 +378,16 @@ namespace XenoKit.Engine
                             break;
                     }
 
-                    //Load character
-                    Actor defaultActor = Files.Instance.LoadCharacter(charId, 0, null, true);
-                    SetActor(defaultActor, actorSlot);
+                    try
+                    {
+                        //Load character
+                        Actor defaultActor = Files.Instance.LoadCharacter(charId, 0, null, true);
+                        SetActor(defaultActor, actorSlot);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Add("Actor Set Error: " + ex.Message, ex.ToString(), LogType.Error);
+                    }
                 }
             }
         }

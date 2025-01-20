@@ -57,9 +57,11 @@
 *.zip
 
 MonoGame/Artifacts
+MonoGame/Artifacts/MonoGame.Framework
 bin
 obj
 !packages
+packages/MonoGame.Extended.3.8.0
 
 LB Mod Installer/obj/Release/
 LB Mod Installer/obj/Debug/

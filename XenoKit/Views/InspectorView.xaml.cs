@@ -11,6 +11,8 @@ using EEPK_Organiser.View;
 using XenoKit.Engine;
 using XenoKit.Inspector;
 using XenoKit.Inspector.InspectorEntities;
+using System;
+using XenoKit.Editor;
 
 namespace XenoKit.Views
 {
@@ -267,32 +269,39 @@ namespace XenoKit.Views
 
         void IDropTarget.Drop(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is DataObject data)
+            try
             {
-                InspectorEntity targetItem = dropInfo.TargetItem as InspectorEntity;
-
-                if (data.GetDataPresent(DataFormats.FileDrop))
+                if (dropInfo.Data is DataObject data)
                 {
-                    string[] droppedFilePaths = data.GetData(DataFormats.FileDrop, true) as string[];
-                    Inspector.LoadFiles(droppedFilePaths, targetItem);
-                }
-            }
-            else
-            {
-                InspectorEntity sourceItem = dropInfo.Data as InspectorEntity;
-                InspectorEntity targetItem = dropInfo.TargetItem as InspectorEntity;
+                    InspectorEntity targetItem = dropInfo.TargetItem as InspectorEntity;
 
-                if (Keyboard.IsKeyDown(Key.LeftCtrl) && (sourceItem is TextureInspectorEntity || sourceItem is MaterialInspectorEntity))
-                {
-                    //Copy file instead of moving it
-                    InspectorEntity newItem = sourceItem.Clone();
-                    Inspector.ChangeParent(newItem, targetItem);
-                    Inspector.InternalAddAllRenderEntities(targetItem != null ? targetItem.ChildEntities : Inspector.Entities);
+                    if (data.GetDataPresent(DataFormats.FileDrop))
+                    {
+                        string[] droppedFilePaths = data.GetData(DataFormats.FileDrop, true) as string[];
+                        Inspector.LoadFiles(droppedFilePaths, targetItem);
+                    }
                 }
                 else
                 {
-                    Inspector.ChangeParent(sourceItem, targetItem);
+                    InspectorEntity sourceItem = dropInfo.Data as InspectorEntity;
+                    InspectorEntity targetItem = dropInfo.TargetItem as InspectorEntity;
+
+                    if (Keyboard.IsKeyDown(Key.LeftCtrl) && (sourceItem is TextureInspectorEntity || sourceItem is MaterialInspectorEntity))
+                    {
+                        //Copy file instead of moving it
+                        InspectorEntity newItem = sourceItem.Clone();
+                        Inspector.ChangeParent(newItem, targetItem);
+                        Inspector.InternalAddAllRenderEntities(targetItem != null ? targetItem.ChildEntities : Inspector.Entities);
+                    }
+                    else
+                    {
+                        Inspector.ChangeParent(sourceItem, targetItem);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Add("File Load Error: " + ex.Message, ex.ToString(), LogType.Error);
             }
         }
 

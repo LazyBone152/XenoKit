@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -199,8 +200,8 @@ namespace XenoKit.Engine.Rendering
 
         private void InitializeTextures()
         {
-            SceneMergeInput2 = TextureLoader.ConvertToTexture2D("XenoKit/ExtShaders/SceneMergeInput2.dds", GraphicsDevice);
-            SceneMergeInput3 = TextureLoader.ConvertToTexture2D("XenoKit/ExtShaders/SceneMergeInput3.dds", GraphicsDevice);
+            SceneMergeInput2 = TextureLoader.ConvertToTexture2D(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XenoKit/ExtShaders/SceneMergeInput2.dds"), GraphicsDevice);
+            SceneMergeInput3 = TextureLoader.ConvertToTexture2D(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XenoKit/ExtShaders/SceneMergeInput3.dds"), GraphicsDevice);
         }
 
         private void InitializeGlareChain()

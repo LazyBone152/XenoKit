@@ -64,204 +64,211 @@ namespace XenoKit.Inspector
 
         public void LoadFiles(string[] paths, InspectorEntity attachTo = null)
         {
-            List<InspectorEntity> files = new List<InspectorEntity>();
-            List<InspectorEntity> sortedFiles = new List<InspectorEntity>();
-            List<InspectorEntity> sortAfterFiles = new List<InspectorEntity>();
-
-            //Load files
-            for (int i = 0; i < paths.Length; i++)
+            try
             {
-                switch (Path.GetExtension(paths[i]).ToLower())
+                List<InspectorEntity> files = new List<InspectorEntity>();
+                List<InspectorEntity> sortedFiles = new List<InspectorEntity>();
+                List<InspectorEntity> sortAfterFiles = new List<InspectorEntity>();
+
+                //Load files
+                for (int i = 0; i < paths.Length; i++)
                 {
-                    case ".emd":
-                    case ".emg":
-                        files.Add(new MeshInspectorEntity(paths[i]));
-                        break;
-                    case ".esk":
-                    case ".nsk":
-                    case ".emo":
-                        files.Add(new SkinnedInspectorEntity(paths[i]));
-                        break;
-                    case ".emb":
-                        files.Add(new TextureInspectorEntity(paths[i]));
-                        break;
-                    case ".emm":
-                        files.Add(new MaterialInspectorEntity(paths[i]));
-                        break;
-                    case ".ean":
-                        files.Add(new EanInspectorEntity(paths[i]));
-                        break;
-                }
-            }
-
-            if (SortOnLoadEnabled)
-            {
-                List<string> emdsLoaded = new List<string>();
-
-                //Sort files:
-                //-Attempt to attach character models to the ESK, and physics part EMDs to their ESKs, and then attach them to the character ESK, all based on the file name
-                //-Stages and EMOs are automatically attached since they are all packaged into the same file
-                for (int i = 0; i < files.Count; i++)
-                {
-                    string extension = Path.GetExtension(files[i].Path).ToLower();
-
-                    if (extension == ".esk")
+                    switch (Path.GetExtension(paths[i]).ToLower())
                     {
-                        bool isScd = Path.GetFileNameWithoutExtension(files[i].Path).Length != 7;
+                        case ".emd":
+                        case ".emg":
+                            files.Add(new MeshInspectorEntity(paths[i]));
+                            break;
+                        case ".esk":
+                        case ".nsk":
+                        case ".emo":
+                            files.Add(new SkinnedInspectorEntity(paths[i]));
+                            break;
+                        case ".emb":
+                            files.Add(new TextureInspectorEntity(paths[i]));
+                            break;
+                        case ".emm":
+                            files.Add(new MaterialInspectorEntity(paths[i]));
+                            break;
+                        case ".ean":
+                            files.Add(new EanInspectorEntity(paths[i]));
+                            break;
+                    }
+                }
 
-                        //Sort SCDs in a second pass, as the character ESK must be sorted first
-                        if (isScd)
+                if (SortOnLoadEnabled)
+                {
+                    List<string> emdsLoaded = new List<string>();
+
+                    //Sort files:
+                    //-Attempt to attach character models to the ESK, and physics part EMDs to their ESKs, and then attach them to the character ESK, all based on the file name
+                    //-Stages and EMOs are automatically attached since they are all packaged into the same file
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        string extension = Path.GetExtension(files[i].Path).ToLower();
+
+                        if (extension == ".esk")
                         {
-                            sortAfterFiles.Add(files[i]);
-                            files.RemoveAt(i);
-                            i--;
-                            continue;
-                        }
+                            bool isScd = Path.GetFileNameWithoutExtension(files[i].Path).Length != 7;
 
-                        InspectorEntity skeleton = files[i];
-                        string charaCode = Path.GetFileNameWithoutExtension(files[i].Path).Substring(0, 3);
-
-                        //Fetch all EMDs that contain this chara code in their path and attach them to this skeleton
-                        for (int a = files.Count - 1; a >= 0; a--)
-                        {
-                            if (Path.GetExtension(files[a].Path).ToLower() == ".emd")
+                            //Sort SCDs in a second pass, as the character ESK must be sorted first
+                            if (isScd)
                             {
-                                if (Path.GetFileNameWithoutExtension(files[a].Path).Contains($"{charaCode}_") && !Path.GetFileNameWithoutExtension(files[a].Path).Contains($"_scd"))
+                                sortAfterFiles.Add(files[i]);
+                                files.RemoveAt(i);
+                                i--;
+                                continue;
+                            }
+
+                            InspectorEntity skeleton = files[i];
+                            string charaCode = Path.GetFileNameWithoutExtension(files[i].Path).Substring(0, 3);
+
+                            //Fetch all EMDs that contain this chara code in their path and attach them to this skeleton
+                            for (int a = files.Count - 1; a >= 0; a--)
+                            {
+                                if (Path.GetExtension(files[a].Path).ToLower() == ".emd")
+                                {
+                                    if (Path.GetFileNameWithoutExtension(files[a].Path).Contains($"{charaCode}_") && !Path.GetFileNameWithoutExtension(files[a].Path).Contains($"_scd"))
+                                    {
+                                        if (files[a] is MeshInspectorEntity mesh)
+                                            mesh.Parent = skeleton as SkinnedInspectorEntity;
+
+                                        emdsLoaded.Add(Utils.SanitizePath($"{Path.GetDirectoryName(files[a].Path)}/{Path.GetFileNameWithoutExtension(files[a].Path)}"));
+                                        skeleton.ChildEntities.Add(files[a]);
+                                        files.RemoveAt(a);
+                                    }
+                                }
+                            }
+
+                            files.Remove(skeleton);
+                            sortedFiles.Add(skeleton);
+
+                            //Reset iterator
+                            i = -1;
+                        }
+                    }
+
+                    //Sort SCDs:
+                    for (int i = 0; i < sortAfterFiles.Count; i++)
+                    {
+                        string extension = Path.GetExtension(sortAfterFiles[i].Path).ToLower();
+
+                        if (extension == ".esk")
+                        {
+                            bool isScd = Path.GetFileNameWithoutExtension(sortAfterFiles[i].Path).Length != 7;
+
+                            if (!isScd)
+                            {
+                                throw new Exception("non SCD file");
+                            }
+
+                            InspectorEntity skeleton = sortAfterFiles[i];
+                            string path = Utils.SanitizePath($"{Path.GetDirectoryName(skeleton.Path)}/{Path.GetFileNameWithoutExtension(skeleton.Path)}");
+                            string charaCode = Path.GetFileNameWithoutExtension(sortAfterFiles[i].Path).Substring(0, 3);
+
+                            //Fetch the EMD that match this file path and attach them to the SCD skeleton
+                            for (int a = files.Count - 1; a >= 0; a--)
+                            {
+                                if (Utils.SanitizePath(files[a].Path) == $"{path}.emd")
                                 {
                                     if (files[a] is MeshInspectorEntity mesh)
                                         mesh.Parent = skeleton as SkinnedInspectorEntity;
 
-                                    emdsLoaded.Add(Utils.SanitizePath($"{Path.GetDirectoryName(files[a].Path)}/{Path.GetFileNameWithoutExtension(files[a].Path)}"));
+                                    emdsLoaded.Add(path);
                                     skeleton.ChildEntities.Add(files[a]);
                                     files.RemoveAt(a);
+                                    break;
                                 }
                             }
+
+                            //Add SCD ESK onto a parent ESK
+                            SkinnedInspectorEntity parentEsk = null;
+
+                            foreach (var _file in sortedFiles)
+                            {
+                                if (Path.GetFileNameWithoutExtension(_file.Path).Substring(0, 3) == charaCode && _file is SkinnedInspectorEntity)
+                                {
+                                    parentEsk = _file as SkinnedInspectorEntity;
+                                    break;
+                                }
+                            }
+
+                            if (parentEsk != null)
+                            {
+                                sortAfterFiles.Remove(skeleton);
+                                parentEsk.ChildEntities.Add(skeleton);
+                            }
+                            else
+                            {
+                                sortAfterFiles.Remove(skeleton);
+                                sortedFiles.Add(skeleton);
+                            }
+
+                            i -= 1;
                         }
-
-                        files.Remove(skeleton);
-                        sortedFiles.Add(skeleton);
-
-                        //Reset iterator
-                        i = -1;
                     }
-                }
 
-                //Sort SCDs:
-                for (int i = 0; i < sortAfterFiles.Count; i++)
-                {
-                    string extension = Path.GetExtension(sortAfterFiles[i].Path).ToLower();
-
-                    if (extension == ".esk")
+                    //Remove EMBs and EMMs from files for any loaded EMD. This is to prevent clutter when all of a characters files are selected for load
+                    foreach (string emdPath in emdsLoaded)
                     {
-                        bool isScd = Path.GetFileNameWithoutExtension(sortAfterFiles[i].Path).Length != 7;
-
-                        if (!isScd)
-                        {
-                            throw new Exception("non SCD file");
-                        }
-
-                        InspectorEntity skeleton = sortAfterFiles[i];
-                        string path = Utils.SanitizePath($"{Path.GetDirectoryName(skeleton.Path)}/{Path.GetFileNameWithoutExtension(skeleton.Path)}");
-                        string charaCode = Path.GetFileNameWithoutExtension(sortAfterFiles[i].Path).Substring(0, 3);
-
-                        //Fetch the EMD that match this file path and attach them to the SCD skeleton
-                        for (int a = files.Count - 1; a >= 0; a--)
-                        {
-                            if (Utils.SanitizePath(files[a].Path) == $"{path}.emd")
-                            {
-                                if (files[a] is MeshInspectorEntity mesh)
-                                    mesh.Parent = skeleton as SkinnedInspectorEntity;
-
-                                emdsLoaded.Add(path);
-                                skeleton.ChildEntities.Add(files[a]);
-                                files.RemoveAt(a);
-                                break;
-                            }
-                        }
-
-                        //Add SCD ESK onto a parent ESK
-                        SkinnedInspectorEntity parentEsk = null;
-
-                        foreach(var _file in sortedFiles)
-                        {
-                            if(Path.GetFileNameWithoutExtension(_file.Path).Substring(0, 3) == charaCode && _file is SkinnedInspectorEntity)
-                            {
-                                parentEsk = _file as SkinnedInspectorEntity;
-                                break;
-                            }
-                        }
-
-                        if(parentEsk != null)
-                        {
-                            sortAfterFiles.Remove(skeleton);
-                            parentEsk.ChildEntities.Add(skeleton);
-                        }
-                        else
-                        {
-                            sortAfterFiles.Remove(skeleton);
-                            sortedFiles.Add(skeleton);
-                        }
-
-                        i -= 1;
+                        files.RemoveAll(x => Utils.SanitizePath(x.Path) == $"{emdPath}.emb");
+                        files.RemoveAll(x => Utils.SanitizePath(x.Path) == $"{emdPath}.dyt.emb");
+                        files.RemoveAll(x => Utils.SanitizePath(x.Path) == $"{emdPath}.emm");
                     }
                 }
 
-                //Remove EMBs and EMMs from files for any loaded EMD. This is to prevent clutter when all of a characters files are selected for load
-                foreach(string emdPath in emdsLoaded)
+                //Add in all unsorted files
+                sortedFiles.AddRange(files);
+
+                //Attempt to attach files to the file it was dropped onto
+                if (attachTo != null)
                 {
-                    files.RemoveAll(x => Utils.SanitizePath(x.Path) == $"{emdPath}.emb");
-                    files.RemoveAll(x => Utils.SanitizePath(x.Path) == $"{emdPath}.dyt.emb");
-                    files.RemoveAll(x => Utils.SanitizePath(x.Path) == $"{emdPath}.emm");
+                    for (int i = sortedFiles.Count - 1; i >= 0; i--)
+                    {
+                        MeshInspectorEntity meshParent = attachTo as MeshInspectorEntity;
+                        SkinnedInspectorEntity skinnedParent = attachTo as SkinnedInspectorEntity;
+
+                        if (sortedFiles[i] is TextureInspectorEntity texture && meshParent != null)
+                        {
+                            if (texture.IsDyt)
+                            {
+                                meshParent.AddDyt(texture);
+                            }
+                            else
+                            {
+                                meshParent.AddTexture(texture);
+                            }
+
+                            sortedFiles.RemoveAt(i);
+                        }
+                        else if (sortedFiles[i] is MaterialInspectorEntity material && meshParent != null)
+                        {
+                            meshParent.AddMaterial(material);
+                            sortedFiles.RemoveAt(i);
+                        }
+                        else if (sortedFiles[i] is SkinnedInspectorEntity && skinnedParent != null)
+                        {
+                            AddFile(sortedFiles[i], skinnedParent.ChildEntities);
+                            sortedFiles.RemoveAt(i);
+                        }
+                        else if (sortedFiles[i] is MeshInspectorEntity mesh && skinnedParent != null)
+                        {
+                            mesh.Parent = skinnedParent;
+                            AddFile(sortedFiles[i], skinnedParent.ChildEntities);
+                            sortedFiles.RemoveAt(i);
+                        }
+
+                        MeshInspectorEntity.CheckDrawOrder(attachTo.ChildEntities);
+                    }
                 }
+
+                //Add files
+                AddFiles(sortedFiles);
             }
-
-            //Add in all unsorted files
-            sortedFiles.AddRange(files);
-
-            //Attempt to attach files to the file it was dropped onto
-            if (attachTo != null)
+            catch (Exception ex)
             {
-                for (int i = sortedFiles.Count - 1; i >= 0; i--)
-                {
-                    MeshInspectorEntity meshParent = attachTo as MeshInspectorEntity;
-                    SkinnedInspectorEntity skinnedParent = attachTo as SkinnedInspectorEntity;
-
-                    if (sortedFiles[i] is TextureInspectorEntity texture && meshParent != null)
-                    {
-                        if (texture.IsDyt)
-                        {
-                            meshParent.AddDyt(texture);
-                        }
-                        else
-                        {
-                            meshParent.AddTexture(texture);
-                        }
-
-                        sortedFiles.RemoveAt(i);
-                    }
-                    else if (sortedFiles[i] is MaterialInspectorEntity material && meshParent != null)
-                    {
-                        meshParent.AddMaterial(material);
-                        sortedFiles.RemoveAt(i);
-                    }
-                    else if (sortedFiles[i] is SkinnedInspectorEntity && skinnedParent != null)
-                    {
-                        AddFile(sortedFiles[i], skinnedParent.ChildEntities);
-                        sortedFiles.RemoveAt(i);
-                    }
-                    else if (sortedFiles[i] is MeshInspectorEntity mesh && skinnedParent != null)
-                    {
-                        mesh.Parent = skinnedParent;
-                        AddFile(sortedFiles[i], skinnedParent.ChildEntities);
-                        sortedFiles.RemoveAt(i);
-                    }
-
-                    MeshInspectorEntity.CheckDrawOrder(attachTo.ChildEntities);
-                }
+                Log.Add("File Load Error: " + ex.Message, ex.ToString(), LogType.Error);
             }
-
-            //Add files
-            AddFiles(sortedFiles);
         }
 
         public void SaveFiles()

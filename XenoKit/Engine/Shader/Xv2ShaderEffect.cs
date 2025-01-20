@@ -724,7 +724,7 @@ namespace XenoKit.Engine.Shader
                     break;
                 case ShaderParameter.EyePos_VS:
                     //Dont know what this actually is, but it seems to be a local position (relative to object) of something. So its being set to basically a random position for now...
-                    if (ActorSlot != -1)
+                    if (ActorSlot != -1 && SceneManager.Actors[ActorSlot] != null)
                         g_vEyePos_VS?.SetValue(new Vector4(EyePosValue - SceneManager.Actors[ActorSlot].Transform.Translation, 1));
                     break;
 
