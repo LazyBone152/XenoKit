@@ -270,7 +270,8 @@ namespace XenoKit.Views.TimeLines
 
             if (_template != null)
             {
-                adder.ContentTemplate = _template;
+                adder.ApplyContentTemplate(_template);
+                //adder.ContentTemplate = _template;
             }
 
             /*adder.PreviewMouseLeftButtonDown += item_PreviewEditButtonDown;
@@ -366,7 +367,7 @@ namespace XenoKit.Views.TimeLines
             if(sender is TimeLineItemControl ctrl)
             {
                 _selectionSet = false;
-                _action = ctrl.GetClickAction();
+                _action = ctrl.GetClickAction(true);
                 ctrl.CaptureMouse();
                 ParentTimeLine.TryGetFocus();
             }

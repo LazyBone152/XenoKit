@@ -34,6 +34,9 @@ namespace XenoKit.Views.TimeLines
 
         public bool UseGhostTrail { get; set; }
 
+        private float NormalHeight { get; set; }
+        private float MouseOverSize => 1.4f;
+
         #region DPs
         public int StartTime
         {
@@ -81,6 +84,7 @@ namespace XenoKit.Views.TimeLines
 
         private ContentPresenter _LeftIndicator;
         private ContentPresenter _RightIndicator;
+        private ContentPresenter _MouseOver;
 
         public void SetFloatingStartAndDuration(float start, float duration)
         {
@@ -133,15 +137,24 @@ namespace XenoKit.Views.TimeLines
             }
         }
 
+        public void ApplyContentTemplate(DataTemplate template)
+        {
+            ContentTemplate = template;
+        }
+
         public override void OnApplyTemplate()
         {
             _LeftIndicator = Template.FindName("PART_LeftIndicator", this) as ContentPresenter;
             _RightIndicator = Template.FindName("PART_RightIndicator", this) as ContentPresenter;
+            _MouseOver = Template.FindName("PART_MouseOver", this) as ContentPresenter;
             if (_LeftIndicator != null)
                 _LeftIndicator.Visibility = Visibility.Collapsed;
             if (_RightIndicator != null)
                 _RightIndicator.Visibility = Visibility.Collapsed;
+            if (_RightIndicator != null)
+                _MouseOver.Visibility = Visibility.Collapsed;
             base.OnApplyTemplate();
+
         }
 
         internal double CalculateMainWidth()
@@ -183,32 +196,52 @@ namespace XenoKit.Views.TimeLines
             {
                 _RightIndicator.Visibility = right;
             }
+
+            if(left == Visibility.Visible || right == Visibility.Visible)
+            {
+                _MouseOver.Visibility = Visibility.Collapsed;
+            }
         }
 
         #endregion
 
         #region MouseEvents
+        protected override void OnMouseEnter(MouseEventArgs e)
+        {
+            _MouseOver.Visibility = Visibility.Visible;
+            base.OnMouseLeave(e);
+        }
+
         protected override void OnMouseMove(MouseEventArgs e)
         {
-
-            switch (GetClickAction())
+            _MouseOver.Visibility = Visibility.Visible;
+            //Show the resize indicators only if the timeline object is large enough
+            if(ConvertTimeToDistance(Duration) >= 15)
             {
+                switch (GetClickAction(false))
+                {
 
-                case TimeLineAction.StretchStart:
-                    SetIndicators(Visibility.Visible, Visibility.Collapsed);
-                    break;
-                case TimeLineAction.StretchEnd:
-                    SetIndicators(Visibility.Collapsed, Visibility.Visible);
-                    //this.Cursor = Cursors.SizeWE;//Cursors.Hand;//Cursors.ScrollWE;
-                    break;
-                default:
-                    SetIndicators(Visibility.Collapsed, Visibility.Collapsed);
-                    break;
+                    case TimeLineAction.StretchStart:
+                        SetIndicators(Visibility.Visible, Visibility.Collapsed);
+                        break;
+                    case TimeLineAction.StretchEnd:
+                        SetIndicators(Visibility.Collapsed, Visibility.Visible);
+                        //this.Cursor = Cursors.SizeWE;//Cursors.Hand;//Cursors.ScrollWE;
+                        break;
+                    default:
+                        SetIndicators(Visibility.Collapsed, Visibility.Collapsed);
+                        break;
+                }
+            }
+            else
+            {
+                SetIndicators(Visibility.Collapsed, Visibility.Collapsed);
             }
         }
 
         protected override void OnMouseLeave(MouseEventArgs e)
         {
+            _MouseOver.Visibility = Visibility.Collapsed;
             SetIndicators(Visibility.Collapsed, Visibility.Collapsed);
             base.OnMouseLeave(e);
         }
@@ -229,14 +262,14 @@ namespace XenoKit.Views.TimeLines
         #endregion
 
         #region Manipulation Tools
-        internal TimeLineAction GetClickAction()
+        internal TimeLineAction GetClickAction(bool checkVisibility)
         {
             double X = Mouse.GetPosition(this).X;
             double borderThreshold = (double)GetValue(EditBorderThresholdProperty);// 4;
 
-            if (X < borderThreshold)
+            if (X < borderThreshold && (_LeftIndicator.Visibility == Visibility.Visible || !checkVisibility))
                 return TimeLineAction.StretchStart;
-            if (X > Width - borderThreshold)
+            if (X > Width - borderThreshold && (_RightIndicator.Visibility == Visibility.Visible || !checkVisibility))
                 return TimeLineAction.StretchEnd;
             return TimeLineAction.Move;
 
