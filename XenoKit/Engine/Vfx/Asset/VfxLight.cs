@@ -34,7 +34,7 @@ namespace XenoKit.Engine.Vfx.Asset
         }
 
         public float[] RGBA = new float[4]; //g_vColor0_PS
-        public float[] Light = new float[4]; //g_vParam4_PS
+        public float[] Light = new float[4]; //g_vParam4_PS (x = min attenuation, y = max attenuation)
         public float[] LightStrength = new float[4]; //g_vParam3_PS (Ambient Light Strength = 1f, Anim Light Strength = A / 2, capped to 10 max)
         public float[] LightSourcePosition = new float[4]; //g_vParam5_PS, relative to local world
 

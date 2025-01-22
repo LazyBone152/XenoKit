@@ -13,56 +13,56 @@ namespace XenoKit.ViewModel.BAC
     {
         private BAC_Type23 bacType;
 
-        public byte VerticalGapWidth
+        public byte HorizontalLineSize
         {
             get
             {
-                return bacType.VerticalGapWidth;
+                return bacType.HorizontalLineSize;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.VerticalGapWidth), bacType, bacType.VerticalGapWidth, value, "VerticalGapWidth"));
-                bacType.VerticalGapWidth = value;
-                RaisePropertyChanged(() => VerticalGapWidth);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.HorizontalLineSize), bacType, bacType.HorizontalLineSize, value, "Horizontal Line Size"));
+                bacType.HorizontalLineSize = value;
+                RaisePropertyChanged(() => HorizontalLineSize);
             }
         }
-        public byte HorizontalGapHeight
+        public byte VerticalLineSize
         {
             get
             {
-                return bacType.HorizontalGapHeight;
+                return bacType.VerticalLineSize;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.HorizontalGapHeight), bacType, bacType.HorizontalGapHeight, value, "HorizontalGapHeight"));
-                bacType.HorizontalGapHeight = value;
-                RaisePropertyChanged(() => HorizontalGapHeight);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.VerticalLineSize), bacType, bacType.VerticalLineSize, value, "Vertical Line Size"));
+                bacType.VerticalLineSize = value;
+                RaisePropertyChanged(() => VerticalLineSize);
             }
         }
-        public byte VisiblePixelWidth
+        public byte HorizontalLineSpacing
         {
             get
             {
-                return bacType.VisiblePixelWidth;
+                return bacType.HorizontalLineSpacing;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.VisiblePixelWidth), bacType, bacType.VisiblePixelWidth, value, "VisiblePixelWidth"));
-                bacType.VisiblePixelWidth = value;
-                RaisePropertyChanged(() => VisiblePixelWidth);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.HorizontalLineSpacing), bacType, bacType.HorizontalLineSpacing, value, "Horizontal Line Spacing"));
+                bacType.HorizontalLineSpacing = value;
+                RaisePropertyChanged(() => HorizontalLineSpacing);
             }
         }
-        public ushort Dilution
+        public ushort VerticalLineSpacing
         {
             get
             {
-                return bacType.Dilution;
+                return bacType.VerticalLineSpacing;
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.Dilution), bacType, bacType.Dilution, value, "Transparency Dilution"));
-                bacType.Dilution = value;
-                RaisePropertyChanged(() => Dilution);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.VerticalLineSpacing), bacType, bacType.VerticalLineSpacing, value, "Vertical Line Spacing"));
+                bacType.VerticalLineSpacing = value;
+                RaisePropertyChanged(() => VerticalLineSpacing);
             }
         }
         public byte I_14
@@ -179,56 +179,20 @@ namespace XenoKit.ViewModel.BAC
             }
         }
 
-        //Flags
-        public bool Flag_Unk1
+        //Shader Path Options
+        public ShaderPathOptions ShaderOptions
         {
             get
             {
-                return bacType.TransparencyFlags.HasFlag(TransparencyFlagsEnum.Unk1);
+                return bacType.ShaderOptions;
             }
             set
             {
-                SetTransparencyFlag(TransparencyFlagsEnum.Unk1, value);
-                RaisePropertyChanged(() => Flag_Unk1);
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(bacType.ShaderOptions), bacType, bacType.ShaderOptions, value, "Shader Path Options"));
+                bacType.ShaderOptions = value;
+                RaisePropertyChanged(() => ShaderOptions);
             }
         }
-        public bool Flag_Activate
-        {
-            get
-            {
-                return bacType.TransparencyFlags.HasFlag(TransparencyFlagsEnum.Activate);
-            }
-            set
-            {
-                SetTransparencyFlag(TransparencyFlagsEnum.Activate, value);
-                RaisePropertyChanged(() => Flag_Activate);
-            }
-        }
-        public bool Flag_Unk3
-        {
-            get
-            {
-                return bacType.TransparencyFlags.HasFlag(TransparencyFlagsEnum.Unk3);
-            }
-            set
-            {
-                SetTransparencyFlag(TransparencyFlagsEnum.Unk3, value);
-                RaisePropertyChanged(() => Flag_Unk3);
-            }
-        }
-        public bool Flag_Unk4
-        {
-            get
-            {
-                return bacType.TransparencyFlags.HasFlag(TransparencyFlagsEnum.Unk4);
-            }
-            set
-            {
-                SetTransparencyFlag(TransparencyFlagsEnum.Unk4, value);
-                RaisePropertyChanged(() => Flag_Unk4);
-            }
-        }
-
 
         public BACType23ViewModel(BAC_Type23 _bacType)
         {
@@ -258,33 +222,18 @@ namespace XenoKit.ViewModel.BAC
         private void UpdateProperties()
         {
             //Needed for updating properties when undo/redo is called
-            RaisePropertyChanged(() => VerticalGapWidth);
-            RaisePropertyChanged(() => HorizontalGapHeight);
-            RaisePropertyChanged(() => VisiblePixelWidth);
-            RaisePropertyChanged(() => Dilution);
+            RaisePropertyChanged(() => HorizontalLineSize);
+            RaisePropertyChanged(() => VerticalLineSize);
+            RaisePropertyChanged(() => HorizontalLineSpacing);
+            RaisePropertyChanged(() => VerticalLineSpacing);
             RaisePropertyChanged(() => I_14);
             RaisePropertyChanged(() => I_15);
             RaisePropertyChanged(() => F_36);
             RaisePropertyChanged(() => F_40);
             RaisePropertyChanged(() => F_44);
             RaisePropertyChanged(() => F_48);
-            RaisePropertyChanged(() => Flag_Unk1);
-            RaisePropertyChanged(() => Flag_Activate);
-            RaisePropertyChanged(() => Flag_Unk3);
-            RaisePropertyChanged(() => Flag_Unk4);
             RaisePropertyChanged(() => Tint);
+            RaisePropertyChanged(() => ShaderOptions);
         }
-
-        private void SetTransparencyFlag(TransparencyFlagsEnum flag, bool state)
-        {
-            var newFlag = bacType.TransparencyFlags.SetFlag(flag, state);
-
-            if (bacType.TransparencyFlags != newFlag)
-            {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type23>(nameof(BAC_Type23.TransparencyFlags), bacType, bacType.TransparencyFlags, newFlag, "TransparencyFlags"));
-                bacType.TransparencyFlags = newFlag;
-            }
-        }
-
     }
 }

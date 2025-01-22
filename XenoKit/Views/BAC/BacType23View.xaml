@@ -6,9 +6,18 @@
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:local="clr-namespace:XenoKit.Views.BAC"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:bac="clr-namespace:Xv2CoreLib.BAC;assembly=Xv2CoreLib"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:bacDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib" d:DataContext="{d:DesignInstance Type=local:BacType23View}"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="ShaderPathEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="bac:BAC_Type23+ShaderPathOptions"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
     <Grid>
         <StackPanel>
             <Expander Header="Transparency Effect" IsExpanded="True">
@@ -18,33 +27,41 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="Activate"/>
-                        <CheckBox Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.Flag_Activate, UpdateSourceTrigger=Default}"/>
+                        <Label Content="Shader Options"/>
+                        <ComboBox Grid.Column="1" SelectedItem="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.ShaderOptions, UpdateSourceTrigger=Default}" ItemsSource="{Binding Source={StaticResource ResourceKey=ShaderPathEnum}}"/>
                     </Grid>
-                    <WrapPanel MaxWidth="800" HorizontalAlignment="Left">
+                    <WrapPanel MaxWidth="550" HorizontalAlignment="Left">
                         <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Vertical Gap Width"/>
-                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.VerticalGapWidth, UpdateSourceTrigger=Default}"/>
+                            <Label Content="Horizontal Line Size"/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.HorizontalLineSize, UpdateSourceTrigger=Default}"/>
                         </Grid>
                         <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Horizontal Gap Height" FontSize="11"/>
-                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.HorizontalGapHeight, UpdateSourceTrigger=Default}"/>
+                            <Label Content="Vertical Line Size" FontSize="11"/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.VerticalLineSize, UpdateSourceTrigger=Default}"/>
                         </Grid>
                         <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Visible Pixel Width"/>
-                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.VisiblePixelWidth, UpdateSourceTrigger=Default}"/>
+                            <Label Content="Horizontal Line Spacing" FontSize="11"/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.HorizontalLineSpacing, UpdateSourceTrigger=Default}"/>
+                        </Grid>
+                        <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Vertical Line Spacing"/>
+                            <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.VerticalLineSpacing, UpdateSourceTrigger=Default}"/>
                         </Grid>
 
 
@@ -60,25 +77,6 @@
                         <controls:ColorPicker Grid.Column="1" DefaultColor="White" TabIndex="1" IsRecentColorPaletteVisible="False"
                                               SelectedColor="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.Tint, UpdateSourceTrigger=LostFocus}" />
                     </Grid>
-
-                    <StackPanel Margin="10, 3" MaxWidth="1000" HorizontalAlignment="Left">
-                        <Label Content="Transparency Flags" HorizontalContentAlignment="Center" VerticalContentAlignment="Top" FontSize="10" FontWeight="SemiBold"/>
-                        <Separator/>
-                        <WrapPanel>
-
-                            <StackPanel Orientation="Horizontal">
-                                <StackPanel Margin="20, 5" Width="125">
-                                    <CheckBox Content="Unk1" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.Flag_Unk1, UpdateSourceTrigger=Default}"/>
-                                </StackPanel>
-                                <StackPanel Margin="20, 5" Width="125">
-                                    <CheckBox Content="Unk3" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.Flag_Unk3, UpdateSourceTrigger=Default}"/>
-                                </StackPanel>
-                                <StackPanel Margin="20, 5" Width="125">
-                                    <CheckBox Content="Unk4" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType23View}}, Path=BacViewModel.Flag_Unk4, UpdateSourceTrigger=Default}"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </WrapPanel>
-                    </StackPanel>
                 </StackPanel>
             </Expander>
             <Expander Header="Unknown Values" IsExpanded="False">

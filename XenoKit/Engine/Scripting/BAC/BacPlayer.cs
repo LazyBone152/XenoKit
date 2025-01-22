@@ -319,6 +319,42 @@ namespace XenoKit.Engine.Scripting.BAC
 
                     BacEntryInstance.ActiveEyeMovement = eyeMovement;
                 }
+
+                //Transparency Effect
+                if(type is BAC_Type23 transparency)
+                {
+                    //Shader path is activated, and values faded into over duration
+                    //Shader reverts to normal when BAC entry ends or overriden by another BAC_Type23
+
+                    switch (transparency.ShaderOptions)
+                    {
+                        case BAC_Type23.ShaderPathOptions.Vanish:
+                        case BAC_Type23.ShaderPathOptions.Vanish2:
+                        case BAC_Type23.ShaderPathOptions.Vanish3:
+                            character.ShaderParameters.ShaderPath = Shader.ActorShaderPath.Vanish;
+                            float fadeInFactor = (CurrentFrame - type.StartTime) / (float)type.Duration;
+
+                            Vector4 color = new Vector4(transparency.Tint_R, transparency.Tint_G, transparency.Tint_B, transparency.Tint_A);
+                            Vector4 startColor = color * 0.5f;
+
+                            character.ShaderParameters.g_vColor4_PS = Vector4.Lerp(startColor, color, fadeInFactor);
+                            //character.ShaderParameters.g_vColor4_PS = new Vector4(transparency.Tint_R, transparency.Tint_G, transparency.Tint_B, transparency.Tint_A) * fadeInFactor;
+                            character.ShaderParameters.g_vParam9_PS = new Vector4(
+                                MathHelper.Max((int)(transparency.HorizontalLineSize * fadeInFactor), transparency.HorizontalLineSize > 0 ? 1 : 0),
+                                MathHelper.Max((int)(transparency.VerticalLineSize * fadeInFactor), transparency.VerticalLineSize > 0 ? 1 : 0),
+                                MathHelper.Max((int)(transparency.HorizontalLineSpacing * fadeInFactor), transparency.HorizontalLineSpacing > 0 ? 1 : 0),
+                                MathHelper.Max((int)(transparency.VerticalLineSpacing * fadeInFactor), transparency.VerticalLineSpacing > 1 ? 0 : 0));
+                            break;
+                        case BAC_Type23.ShaderPathOptions.HC:
+                            character.ShaderParameters.ShaderPath = Shader.ActorShaderPath.HC;
+                            break;
+                        default:
+                            character.ShaderParameters.ShaderPath = Shader.ActorShaderPath.Default;
+                            break;
+                    }
+
+                    //character.ShaderParameters.g_vParam9_PS = new Vector4(0, 10, 0, 30);
+                }
             }
 
             //Update Eye Movements

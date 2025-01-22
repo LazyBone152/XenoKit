@@ -10,6 +10,7 @@ using Xv2CoreLib.EAN;
 using XenoKit.Controls;
 using XenoKit.Engine.Character;
 using XenoKit.Engine.Collision;
+using XenoKit.Engine.Shader;
 
 namespace XenoKit.Engine
 {
@@ -66,6 +67,9 @@ namespace XenoKit.Engine
         public BoundingBox Hitbox { get; set; }
         public float[] AABB { get; private set; }
         public bool HitboxEnabled = true;
+
+        //Shader Effects
+        public ActorShaderExtraParameters ShaderParameters;
 
         //Character Source Files:
         public Xv2Character CharacterData { get; private set; }
@@ -179,6 +183,7 @@ namespace XenoKit.Engine
 
         public void ResetState(bool keepAnimation = false)
         {
+            ShaderParameters.ShaderPath = ActorShaderPath.Default;
             BdmTimeScaleDuration = 0;
             BdmTimeScale = 1f;
             BacTimeScale = 1f;
