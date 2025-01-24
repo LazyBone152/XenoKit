@@ -36,7 +36,7 @@ namespace XenoKit.Engine
         public ShaderManager ShaderManager { get; private set; }
         public virtual ICameraBase ActiveCameraBase { get; }
         public DirLight LightSource { get; private set; }
-        public Input Input { get; private set; } = new Input();
+        public Input Input { get; private set; }
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; protected set; }
         public RenderSystem RenderSystem { get; protected set; }
@@ -46,6 +46,7 @@ namespace XenoKit.Engine
 
         //Engine Values:
         public virtual bool IsMainInstance => false;
+        public virtual int SuperSamplingFactor => 1;
         public bool IsPlaying = false;
         public bool RenderCharacters = true;
         public bool WireframeMode = false;
@@ -78,6 +79,7 @@ namespace XenoKit.Engine
             //Load font
             TextRenderer = new TextRenderer(GraphicsDevice, spriteBatch);
 
+            Input = new Input(this);
             LightSource = new DirLight(this);
             ObjectPoolManager = new ObjectPoolManager(this);
             ShaderManager = new ShaderManager(this);

@@ -662,6 +662,7 @@ namespace XenoKit.Engine
             {
                 Actors[0].AnimationPlayer.FirstFrame();
                 Actors[0].ActionControl.Stop();
+                Actors[0].ShaderParameters.ShaderPath = Shader.ActorShaderPath.Default;
             }
 
             if (Actors[1] != null)

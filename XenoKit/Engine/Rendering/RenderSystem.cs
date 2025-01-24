@@ -46,37 +46,37 @@ namespace XenoKit.Engine.Rendering
         public int CurrentRT_Height { get; private set; }
 
         //RTs:
-        public readonly RenderTargetWrapper DepthBuffer;
+        public RenderTargetWrapper DepthBuffer;
 
         //Characters are drawn onto these RTs using the shader NORMAL_FADE_WATERDEPTH_W_M
-        private readonly RenderTargetWrapper NormalPassRT0;
-        private readonly RenderTargetWrapper NormalPassRT1;
+        private RenderTargetWrapper NormalPassRT0;
+        private RenderTargetWrapper NormalPassRT1;
 
         //Characters and the stage enviroments are drawn onto these RTs using their proper materials
-        private readonly RenderTargetWrapper ColorPassRT0;
-        private readonly RenderTargetWrapper ColorPassRT1;
+        private RenderTargetWrapper ColorPassRT0;
+        private RenderTargetWrapper ColorPassRT1;
 
         //ShaderProgram BIRD_BG_EDGELINE_RGB_HF is used with ColorPassRT0 as input, drawn onto this RT (adds black outline to charas)
         //The remaining stage elements are then drawn to this RT and ColorPassRT1
-        private readonly RenderTargetWrapper NextColorPassRT0;
+        private RenderTargetWrapper NextColorPassRT0;
 
         //Some BPE effects such as BodyOutline are done at this point, and drawn onto NextColorPassRT0 + ColorPassRT1
         //Next are effects, using the same RTs
-        private readonly RenderTargetWrapper LowRezRT0;
-        private readonly RenderTargetWrapper LowRezRT1;
-        private readonly RenderTargetWrapper LowRezSmokeRT0;
-        private readonly RenderTargetWrapper LowRezSmokeRT0_New;
-        private readonly RenderTargetWrapper LowRezSmokeRT1;
+        private RenderTargetWrapper LowRezRT0;
+        private RenderTargetWrapper LowRezRT1;
+        private RenderTargetWrapper LowRezSmokeRT0;
+        private RenderTargetWrapper LowRezSmokeRT0_New;
+        private RenderTargetWrapper LowRezSmokeRT1;
 
         //Test
-        private readonly RenderTargetWrapper ScreenshotRT;
+        private RenderTargetWrapper ScreenshotRT;
 
         //The final render target that everything will be drawn onto at the end of the frame. This can also be used for the "State_SamplerSmallScene" sampler as that is for the previously rendered frame (unsure about State_SamplerCurrentScene)
-        private readonly RenderTargetWrapper FinalRenderTarget;
+        private RenderTargetWrapper FinalRenderTarget;
 
         //Global sampler RTs:
-        public readonly RenderTargetWrapper ShadowPassRT0; //Characters and the stage enviroments are drawn onto this RT with the different shaders (Chara: ShadowModel_W, Stage: ShadowModel, Grass: GI_ShadowModel_Grass)
-        public readonly RenderTargetWrapper SamplerAlphaDepth;
+        public RenderTargetWrapper ShadowPassRT0; //Characters and the stage enviroments are drawn onto this RT with the different shaders (Chara: ShadowModel_W, Stage: ShadowModel, Grass: GI_ShadowModel_Grass)
+        public RenderTargetWrapper SamplerAlphaDepth;
 
         //ShaderPrograms:
         public Xv2ShaderEffect ShadowModel_W { get; private set; }
@@ -97,7 +97,7 @@ namespace XenoKit.Engine.Rendering
         //private Texture2D TestOutlineTexture;
         //private Texture2D TestOutlineTexture2;
 
-        public RenderSystem(GameBase game) : base(game)
+        public RenderSystem(GameBase game, bool createInternalResources) : base(game)
         {
             SetRenderResolution();
             CurrentRT_Width = RenderWidth;
@@ -105,23 +105,40 @@ namespace XenoKit.Engine.Rendering
 
             PostFilter = new PostFilter(game, this);
 
+            if (createInternalResources)
+                CreateInternalResources();
+
+            //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
+            //TestOutlineTexture2 = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest2.dds"), GraphicsDevice);
+
+            if(ShaderManager.IsExtShadersLoaded)
+                YBS = new YBSPostProcess(GameBase, this, NextColorPassRT0, ColorPassRT1);
+        }
+
+        private void CreateInternalResources()
+        {
+            if(ShadowModel_W != null)
+            {
+                throw new InvalidOperationException("RenderSystem.CreateInternalResources: Internal resources have already been created!");
+            }
+
             //Load shaders used for the shadow and normal passes. These are used instead of the regular shaders defined in EMM during those passes.
-            ShadowModel_W = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel_W"), game, ShaderType.CharaShadow);
-            ShadowModel = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel"), game);
-            GI_ShadowModel_Grass = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel_Grass"), game);
-            NORMAL_FADE_WATERDEPTH_W_M = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("NORMAL_FADE_WATERDEPTH_W_M"), game, ShaderType.CharaNormals);
+            ShadowModel_W = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel_W"), GameBase, ShaderType.CharaShadow);
+            ShadowModel = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel"), GameBase);
+            GI_ShadowModel_Grass = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel_Grass"), GameBase);
+            NORMAL_FADE_WATERDEPTH_W_M = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("NORMAL_FADE_WATERDEPTH_W_M"), GameBase, ShaderType.CharaNormals);
 
             //Load all the shaders that are used in the rendering process
-            AGE_TEST_EDGELINE_MRT = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_EDGELINE_MRT"), game);
-            BIRD_BG_EDGELINE_RGB_HF = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("BIRD_BG_EDGELINE_RGB_HF"), game);
-            DepthToDepth = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DepthToDepth"), game);
-            DepthToColor = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DepthToColor"), game);
-            AddTex = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AddTex"), game);
-            NineConeFilter = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("NineConeFilter"), game);
-            AGE_MERGE_AddLowRez_AddMrt = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_MERGE_AddLowRez_AddMrt"), game);
-            Sampler0 = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("Sampler0"), game);
-            EDGELINE_VFX = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("EDGELINE_VFX"), game);
-            AGE_TEST_DEPTH_TO_PFXD = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_DEPTH_TO_PFXD"), game);
+            AGE_TEST_EDGELINE_MRT = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_EDGELINE_MRT"), GameBase);
+            BIRD_BG_EDGELINE_RGB_HF = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("BIRD_BG_EDGELINE_RGB_HF"), GameBase);
+            DepthToDepth = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DepthToDepth"), GameBase);
+            DepthToColor = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DepthToColor"), GameBase);
+            AddTex = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AddTex"), GameBase);
+            NineConeFilter = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("NineConeFilter"), GameBase);
+            AGE_MERGE_AddLowRez_AddMrt = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_MERGE_AddLowRez_AddMrt"), GameBase);
+            Sampler0 = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("Sampler0"), GameBase);
+            EDGELINE_VFX = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("EDGELINE_VFX"), GameBase);
+            AGE_TEST_DEPTH_TO_PFXD = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_DEPTH_TO_PFXD"), GameBase);
 
             //Create RTs
             ShadowPassRT0 = RenderTargetWrapper.CreateShadowMap(this);
@@ -157,12 +174,6 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(LowRezSmokeRT1);
             RegisterRenderTarget(DepthBuffer);
             RegisterRenderTarget(ScreenshotRT);
-
-            //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
-            //TestOutlineTexture2 = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest2.dds"), GraphicsDevice);
-
-            if(ShaderManager.IsExtShadersLoaded)
-                YBS = new YBSPostProcess(GameBase, this, NextColorPassRT0, ColorPassRT1);
         }
 
         private void SetRenderResolution()

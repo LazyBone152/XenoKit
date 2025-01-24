@@ -1,32 +1,26 @@
 ﻿using System;
-using System.IO;
-using XenoKit.Engine.View;
-using XenoKit.Engine.Objects;
-using XenoKit.Engine.Gizmo;
-using XenoKit.Engine.Audio;
-using SpriteFontPlus;
-using XenoKit.Engine.Text;
-using XenoKit.Editor;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame.Framework.WpfInterop;
-using MonoGame.Framework.WpfInterop.Input;
 using Xv2CoreLib.EMD;
-using XenoKit.Engine.Model;
 using Xv2CoreLib.EMB_CLASS;
 using Xv2CoreLib.EMM;
-using XenoKit.Engine.Textures;
-using System.Collections.Generic;
-using XenoKit.Engine.Shader;
-using System.Threading;
-using System.Threading.Tasks;
 using XenoKit.Engine.Vfx;
+using XenoKit.Engine.Rendering;
+using XenoKit.Engine.View;
+using XenoKit.Engine.Objects;
+using XenoKit.Engine.Shader;
+using XenoKit.Engine.Textures;
+using XenoKit.Engine.Model;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine
 {
     public class EmdViewer : GameBase
     {
         public override ICameraBase ActiveCameraBase => camera;
+        public override int SuperSamplingFactor => SettingsManager.settings.XenoKit_SuperSamplingFactor;
 
         //Objects:
         public SimpleCamera camera { get; private set; }
@@ -47,6 +41,8 @@ namespace XenoKit.Engine
         //Sampler
         private SamplerInfo DytSampler;
 
+        private RenderTargetWrapper RenderTargetModel { get; set; }
+        private RenderTargetWrapper RenderTargetPost { get; set; }
 
         protected override void Initialize()
         {
@@ -55,7 +51,7 @@ namespace XenoKit.Engine
 
             //Now initialize objects
             camera = new SimpleCamera(this);
-            RenderSystem = new Rendering.RenderSystem(this);
+            RenderSystem = new RenderSystem(this, false);
             //ModelGizmo = new ModelGizmo(this);
 
             DytSampler = new SamplerInfo()
@@ -79,27 +75,28 @@ namespace XenoKit.Engine
             };
 
             VfxManager = new VfxManager(this);
-            camera.CameraState.FieldOfView = 20;
-        }
-
-        protected override void LoadContent()
-        {
             worldGrid = new WorldGrid(this);
+            camera.CameraState.FieldOfView = 30;
 
-            base.LoadContent();
+            RenderTargetModel = new RenderTargetWrapper(RenderSystem, 1, SurfaceFormat.Color, true, "ModelViewerMainRT");
+            RenderTargetPost = new RenderTargetWrapper(RenderSystem, 1, SurfaceFormat.Color, true, "ModelViewerPostRT");
+            RenderSystem.RegisterRenderTarget(RenderTargetModel);
+            RenderSystem.RegisterRenderTarget(RenderTargetPost);
         }
 
         protected override void Update(GameTime time)
         {
             base.Update(time);
 
+            RenderSystem.Update();
             Model?.Update(0);
             camera.Update();
         }
 
         protected override void Draw(GameTime time)
         {
-            GraphicsDevice.Clear(Color.Transparent);
+            GraphicsDevice.SetRenderTarget(RenderTargetModel.RenderTarget);
+            GraphicsDevice.Clear(SceneManager.ViewportBackgroundColor);
             worldGrid.Draw();
 
             //Handle Dyt texture and Sampler
@@ -113,7 +110,16 @@ namespace XenoKit.Engine
 
             Model?.Draw(Matrix.Identity, 0, Materials, Textures, DytTexture, 0);
 
-            //ModelGizmo.Draw();
+            //Now apply axis correction
+            GraphicsDevice.SetRenderTarget(RenderTargetPost.RenderTarget);
+            RenderSystem.SetTextures(RenderTargetModel.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            RenderSystem.YBS.ApplyAxisCorrection(Vector4.Zero);
+
+            //Present on screen
+            GraphicsDevice.SetRenderTarget(InternalRenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            RenderSystem.DisplayRenderTarget(RenderTargetPost.RenderTarget, true);
         }
 
         public async Task RefreshModel()

@@ -246,7 +246,8 @@ namespace XenoKit.Engine.View
 
         public float GetCurrentRoll(Vector3 cameraPosition)
         {
-            return IsRotationReversed ? (-CurrentRotZ) * CurrentGlobalFactor() : CurrentRotZ * CurrentGlobalFactor();
+            return CurrentRotZ * CurrentGlobalFactor();
+            //return IsRotationReversed ? -CurrentRotZ * CurrentGlobalFactor() : (CurrentRotZ) * CurrentGlobalFactor();
         }
 
         public Vector3 GetCurrentRotation(Vector3 position, Vector3 targetPosition)
@@ -267,6 +268,8 @@ namespace XenoKit.Engine.View
 
             //CurrentRotX needs to be inverted based on the cameras Z position, else the rotation will happen in the wrong direction if the camera is behind the target
             temp = IsRotationReversed ? Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotX))) : Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(-CurrentRotX)));
+            //temp = Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotX)));
+
             newPosition = targetPosition + temp;
 
             return (newPosition - position) * CurrentGlobalFactor();

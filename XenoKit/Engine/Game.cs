@@ -28,6 +28,7 @@ namespace XenoKit.Engine
 
         //Engine Values:
         public override bool IsMainInstance => true;
+        public override int SuperSamplingFactor => IsFullScreen ? 1 : SettingsManager.settings.XenoKit_SuperSamplingFactor;
 
         //Gizmos
         public GizmoBase CurrentGizmo = null;
@@ -66,7 +67,7 @@ namespace XenoKit.Engine
             camera = new Camera(this);
             AudioEngine = new AudioEngine();
             VfxManager = new VfxManager(this);
-            RenderSystem = new RenderSystem(this);
+            RenderSystem = new RenderSystem(this, true);
             VfxPreview = new VfxPreview(this);
 
             MainRenderTarget = new RenderTargetWrapper(RenderSystem, 1, SurfaceFormat.Color, true, "MainRenderTarget");
