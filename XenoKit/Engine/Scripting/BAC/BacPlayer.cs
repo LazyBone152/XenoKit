@@ -332,10 +332,11 @@ namespace XenoKit.Engine.Scripting.BAC
                         case BAC_Type23.ShaderPathOptions.Vanish2:
                         case BAC_Type23.ShaderPathOptions.Vanish3:
                             character.ShaderParameters.ShaderPath = Shader.ActorShaderPath.Vanish;
-                            float fadeInFactor = (CurrentFrame - type.StartTime) / (float)type.Duration;
+                            float fadeInFactor = (CurrentFrame - type.StartTime + 1) / (float)type.Duration;
 
                             Vector4 color = new Vector4(transparency.Tint_R, transparency.Tint_G, transparency.Tint_B, transparency.Tint_A);
-                            Vector4 startColor = color * 0.5f;
+                            //Vector4 startColor = color * 0.5f;
+                            Vector4 startColor = Vector4.One - color;
 
                             character.ShaderParameters.g_vColor4_PS = Vector4.Lerp(startColor, color, fadeInFactor);
                             //character.ShaderParameters.g_vColor4_PS = new Vector4(transparency.Tint_R, transparency.Tint_G, transparency.Tint_B, transparency.Tint_A) * fadeInFactor;
