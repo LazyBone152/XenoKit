@@ -422,12 +422,6 @@
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Misc\LoadFromGameHelper.cs">
       <Link>Views\EEPK Organiser\Misc\LoadFromGameHelper.cs</Link>
     </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Name\Namelist.cs">
-      <Link>Views\EEPK Organiser\Names\Namelist.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Name\NameListManager.cs">
-      <Link>Views\EEPK Organiser\Names\NameListManager.cs</Link>
-    </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\AssetContainerViewModel.cs">
       <Link>Views\EEPK Organiser\ViewModel\AssetContainerViewModel.cs</Link>
     </Compile>

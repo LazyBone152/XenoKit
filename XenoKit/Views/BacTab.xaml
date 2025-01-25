@@ -37,7 +37,9 @@
                 <RowDefinition Height="60"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <DataGrid x:Name="bacEntryDataGrid" Grid.Row="1" Margin="5" SelectedItem="{Binding ElementName=UserControl, Path=SelectedBacEntry}" ItemsSource="{Binding ElementName=UserControl, Path=ViewBacTypes}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Controls:ControlsHelper.ContentCharacterCasing="Normal">
+            <DataGrid x:Name="bacEntryDataGrid" Grid.Row="1" Margin="5" SelectedItem="{Binding ElementName=UserControl, Path=SelectedBacEntry}" ItemsSource="{Binding ElementName=UserControl, Path=ViewBacTypes}" 
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" 
+                      Controls:ControlsHelper.ContentCharacterCasing="Normal" PreviewKeyDown="bacEntryDataGrid_PreviewKeyDown" CellEditEnding="bacEntryDataGrid_CellEditEnding">
 
                 <DataGrid.InputBindings>
                     <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyBacEntryCommand}"/>
@@ -59,11 +61,11 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellEditingTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Flag" Width="*" Binding="{Binding FlagStr}" IsReadOnly="True" Visibility="Collapsed"/> <!-- Unsure if should keep at this level? -->
-                    <DataGridTextColumn Header="Name" Width="2.5*" Binding="{Binding MovesetBacEntryName}" IsReadOnly="True" x:Name="nameHeader"/>
+                    <DataGridTextColumn x:Name="userDefinedNameColumn" Header="Name" Width="2.5*" Binding="{Binding Path=UserDefinedName, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
+                        <MenuItem Header="Rename" Command="{Binding BacEntryRenameCommand}"/>
                         <MenuItem Header="Hide Empty" IsCheckable="True" IsChecked="{Binding HideEmptryBacEntries}"/>
                         <Separator/>
                         <MenuItem Header="Add" Command="{Binding AddBacEntryCommand}"/>

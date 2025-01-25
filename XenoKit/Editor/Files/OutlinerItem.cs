@@ -476,6 +476,7 @@ namespace XenoKit.Editor
                     {
                         SelectedEepk.File.ChangeFilePath(SelectedEepk.Path);
                         SelectedEepk.File.Save();
+                        CustomEntryNames.SaveNames(SelectedEepk.RelativePath, SelectedEepk.File);
                         pathSaved = SelectedEepk.Path;
                     }
                     break;
@@ -498,6 +499,7 @@ namespace XenoKit.Editor
                     {
                         SelectedBacFile.File.SaveIBacTypes();
                         SelectedBacFile.File.Save(SelectedBacFile.Path);
+                        CustomEntryNames.SaveNames(SelectedBacFile.RelativePath, SelectedBacFile.File);
                         pathSaved = SelectedBacFile.Path;
                     }
                     break;

@@ -494,6 +494,7 @@ namespace XenoKit.Editor
                 move.Files.BacFiles.Add(new Xv2File<BAC_File>((BAC_File)file.Instance.GetParsedFileFromGame(xv2.CMN_DBA_BAC_PATH), file.Instance.GetAbsolutePath(xv2.CMN_DBA_BAC_PATH), false, null, false, xv2.MoveFileTypes.BAC, 1, true, xv2.MoveType.Common));
                 move.Files.BacFiles.Add(new Xv2File<BAC_File>((BAC_File)file.Instance.GetParsedFileFromGame(xv2.CMN_QEA_BAC_PATH), file.Instance.GetAbsolutePath(xv2.CMN_QEA_BAC_PATH), false, null, false, xv2.MoveFileTypes.BAC, 2, true, xv2.MoveType.Common));
                 move.Files.BacFiles.Add(new Xv2File<BAC_File>((BAC_File)file.Instance.GetParsedFileFromGame(xv2.CMN_M_BAC_PATH), file.Instance.GetAbsolutePath(xv2.CMN_M_BAC_PATH), false, null, false, xv2.MoveFileTypes.BAC, 3, true, xv2.MoveType.Common));
+                BAC.AddDefaultMovesetNamesToBac(move.Files.BacFiles[0].File);
 
                 List<Task> eepkTasks = new List<Task>();
 

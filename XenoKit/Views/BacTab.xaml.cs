@@ -18,6 +18,7 @@ using Xv2CoreLib.Resource;
 using XenoKit.Windows.EAN;
 using Xv2CoreLib;
 using Xv2CoreLib.BEV;
+using System.Windows.Input;
 
 namespace XenoKit.Controls
 {
@@ -402,7 +403,7 @@ namespace XenoKit.Controls
             {
                 if(files.SelectedMove.Files.BacFile.File.GetEntry(bacEntry.SortID) == null)
                 {
-                    ids.Add(new Xv2Item(bacEntry.SortID, bacEntry.MovesetBacEntryName));
+                    ids.Add(new Xv2Item(bacEntry.SortID, bacEntry.UserDefinedName));
                 }
             }
 
@@ -720,6 +721,41 @@ namespace XenoKit.Controls
             ViewMode = timelineToggle.IsOn ? BacViewMode.TimeLine : BacViewMode.DataGrid;
 
         }
+
+        private void bacEntryDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F2)
+            {
+                var dataGrid = sender as DataGrid;
+
+                if (dataGrid.CurrentCell.Column is DataGridTextColumn column && dataGrid.CurrentItem != null && column == userDefinedNameColumn)
+                {
+                    column.IsReadOnly = false;
+                    dataGrid.BeginEdit();
+                    e.Handled = true;
+                }
+            }
+            else if(e.Key == Key.Enter)
+            {
+                var dataGrid = sender as DataGrid;
+
+                if (dataGrid.CurrentCell.Column is DataGridTextColumn column && dataGrid.CurrentItem != null && column == userDefinedNameColumn)
+                {
+                    column.IsReadOnly = true;
+                    dataGrid.CommitEdit();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void bacEntryDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.Column == userDefinedNameColumn)
+            {
+                userDefinedNameColumn.IsReadOnly = true;
+            }
+        }
+
         #endregion
 
         private void UpdateSelectedBacFile()
@@ -735,8 +771,7 @@ namespace XenoKit.Controls
                 IsMovesetBac = (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.SelectedBacFile?.FileType == Xenoverse2.MoveFileTypes.AFTER_BAC);
                 NotifyPropertyChanged(nameof(IsMovesetOrCMNBac));
                 NotifyPropertyChanged(nameof(IsMovesetBac));
-
-                nameHeader.Visibility = IsMovesetOrCMNBac ? Visibility .Visible : Visibility.Collapsed;
+                
                 cmnOverrideMenu.Visibility = IsMovesetBac ? Visibility.Visible : Visibility.Collapsed;
             }
         }
@@ -830,6 +865,14 @@ namespace XenoKit.Controls
         {
             bacEntryDataGrid.SelectedItem = entry;
             bacEntryDataGrid.ScrollIntoView(entry);
+        }
+
+        public RelayCommand BacEntryRenameCommand => new RelayCommand(RenameBacEntry, IsBacEntrySelected);
+        private void RenameBacEntry()
+        {
+            userDefinedNameColumn.IsReadOnly = false;
+            bacEntryDataGrid.CurrentColumn = userDefinedNameColumn;
+            bacEntryDataGrid.BeginEdit();
         }
 
         public void SetSelectedBacType(IBacType bacType)
