@@ -116,10 +116,12 @@
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Label Content="Super Sampling" ToolTip="Set a super sampling factor to use when rendering. This renders the scene at a higher resolution and then scales it down to fit the viewport, improving image quality.&#x0a;&#x0a;NOTE: Only applies in the viewport. Fullscreen mode will always run at the screen resolution."/>
+                            <Label Content="Super Sampling" ToolTip="Set a super sampling factor to use when rendering. This renders the scene at a higher resolution and then scales it down to fit the viewport, improving image quality. Screenshots will be saved in the supersample resolution.&#x0a;&#x0a;WARNING: Supersampling can be very demanding - do not enable higher settings if you do not have a capable PC! GPU and RAM requirements will be increased greatly at higher settings.&#x0a;&#x0a;NOTE: Only applies in the viewport. Fullscreen mode will always run at the screen resolution."/>
                             <ComboBox Grid.Column="1" SelectedIndex="{Binding SuperSampling, UpdateSourceTrigger=PropertyChanged}">
                                 <ComboBoxItem Content="Disabled"/>
-                                <ComboBoxItem Content="x2"/>
+                                <ComboBoxItem Content="x2 (Default)"/>
+                                <ComboBoxItem Content="x4"/>
+                                <ComboBoxItem Content="x8"/>
                             </ComboBox>
                         </Grid>
                         <Grid Margin="3,5,0,0" Width="250">

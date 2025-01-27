@@ -179,13 +179,17 @@ namespace XenoKit.Controls
             get
             {
                 if (MonoGame?.camera == null) return null;
-                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}",
+                return string.Format("CAMERA:\nFoV: {0}\nRoll: {1}\nPos: {2}\nTarget Pos: {3}\n\nCHARACTER:\nPosition: {4}\nBone: {5}\n\nPERFORMANCE:\nFPS (current/avg): {6} / {7}\nResolution (Viewport): {8}\nRender Resolution: {9}",
                     MonoGame.camera.CameraState.FieldOfView,
                     MonoGame.camera.CameraState.Roll,
                     MonoGame.camera.CameraState.Position,
                     MonoGame.camera.CameraState.TargetPosition,
                     (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].Transform.Translation.ToString() : "No character loaded",
-                    GetSelectedBoneName());
+                    GetSelectedBoneName(),
+                    MonoGame.FrameRate.CurrentFramesPerSecond.ToString("0.00"),
+                    MonoGame.FrameRate.AverageFramesPerSecond.ToString("0.00"),
+                    $"{MonoGame.GraphicsDevice.Viewport.Width}x{MonoGame.GraphicsDevice.Viewport.Height}",
+                    $"{MonoGame.RenderSystem.RenderWidth}x{MonoGame.RenderSystem.RenderHeight},");
             }
         }
         public string VfxOverlay

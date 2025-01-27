@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using SharpDX.WIC;
 using System;
 using Xv2CoreLib.EMM;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Shader
 {
@@ -167,7 +168,9 @@ namespace XenoKit.Engine.Shader
                     break;
                 case PostProccessShader.AGE_TEST_EDGELINE_MRT:
                     Parameters["g_vParam0_PS"]?.SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
-                    Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
+                    //Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
+                    float factor = GameBase.RenderSystem.SuperSampleFactor > 1 ? 0.85f : 1f;
+                    Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00055f, 3f, 0.6f) * factor);
                     break;
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
                     Parameters["g_vParam0_PS"]?.SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));

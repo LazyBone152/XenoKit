@@ -73,9 +73,6 @@ namespace XenoKit.Engine
             _keyboard = new WpfKeyboard(this);
             _mouse = new WpfMouse(this);
 
-            // must be called after the WpfGraphicsDeviceService instance was created
-            base.Initialize();
-
             //Load font
             TextRenderer = new TextRenderer(GraphicsDevice, spriteBatch);
 
@@ -84,6 +81,10 @@ namespace XenoKit.Engine
             ObjectPoolManager = new ObjectPoolManager(this);
             ShaderManager = new ShaderManager(this);
             Simulation = new Simulation(this);
+
+            // must be called after the WpfGraphicsDeviceService instance was created
+            base.Initialize();
+
         }
 
         protected override void LoadContent()

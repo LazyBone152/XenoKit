@@ -1,10 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using AForge.Math.Metrics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using XenoKit.Editor;
+using XenoKit.Engine.Model;
 using XenoKit.Engine.Shader;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.Resource.App;
@@ -36,10 +38,12 @@ namespace XenoKit.Engine.Rendering
         private bool ScreenshotRequested = false;
         private ScreenshotType ScreenshotType = ScreenshotType.TransparentBackground;
         public bool DumpRenderTargetsNextFrame = false;
+        public bool DumpShadowMapNextFrame = false;
         public int RecreateRenderTargetsNextFrames = 0;
 
         //Render Resolution:
         public readonly float[] RenderResolution = new float[4];
+        public float SuperSampleFactor { get; private set; }
         public int RenderWidth { get; private set; }
         public int RenderHeight { get; private set; }
         public int CurrentRT_Width { get; private set; }
@@ -113,6 +117,7 @@ namespace XenoKit.Engine.Rendering
 
             if(ShaderManager.IsExtShadersLoaded)
                 YBS = new YBSPostProcess(GameBase, this, NextColorPassRT0, ColorPassRT1);
+
         }
 
         private void CreateInternalResources()
@@ -174,6 +179,7 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(LowRezSmokeRT1);
             RegisterRenderTarget(DepthBuffer);
             RegisterRenderTarget(ScreenshotRT);
+
         }
 
         private void SetRenderResolution()
@@ -205,9 +211,13 @@ namespace XenoKit.Engine.Rendering
 
             //Shadow Pass (Chara + Stage Enviroment)
             GraphicsDevice.SetRenderTarget(ShadowPassRT0.RenderTarget);
-            GraphicsDevice.Clear(Color.White);
+            GraphicsDevice.SetDepthBuffer(ShadowPassRT0.RenderTarget);
+            GraphicsDevice.Clear(Color.Red);
             DrawEntityList(Characters, true, false);
             DrawEntityList(Stages, true, false);
+
+            if (DumpShadowMapNextFrame)
+                DumpRenderTargets();
 
             //Normals Pass (Chara)
             SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);
@@ -215,7 +225,7 @@ namespace XenoKit.Engine.Rendering
             DrawEntityList(Characters, true, true);
 
             //Color Pass (Chara + Stage Enviroment)
-            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
+            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
             DrawEntityList(Characters, false, false);
@@ -505,16 +515,25 @@ namespace XenoKit.Engine.Rendering
                 _toBeDisposed.Clear();
             }
 
+            bool resolutionChanged = false;
+
             //Update RTs if the ViewPort size has changed.
             foreach (RenderTargetWrapper rt in registeredRenderTargets)
             {
                 if (rt.ShouldUpdate() && GameIsFocused)
                 {
+                    resolutionChanged = true;
+                    
                     if (rt.RenderTarget != null)
                         _toBeDisposed.Add(rt.RenderTarget);
 
                     rt.UpdateRenderTarget();
                 }
+            }
+
+            if (resolutionChanged)
+            {
+                SuperSampleFactor = GameBase.IsFullScreen ? 1f : SettingsManager.settings.XenoKit_SuperSamplingFactor;
             }
 
             DrawThisFrame = true;
@@ -563,6 +582,8 @@ namespace XenoKit.Engine.Rendering
         private void DumpRenderTargets()
         {
             DumpRenderTargetsNextFrame = false;
+            bool dumpShadowMap = DumpShadowMapNextFrame;
+            DumpShadowMapNextFrame = false;
 
             //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
             //return;
@@ -571,6 +592,8 @@ namespace XenoKit.Engine.Rendering
 
             foreach (RenderTargetWrapper renderTarget in registeredRenderTargets)
             {
+                if (dumpShadowMap && renderTarget.Name != nameof(RenderSystem.ShadowPassRT0)) continue;
+
                 if (!string.IsNullOrEmpty(renderTarget.Name))
                 {
                     using (MemoryStream ms = new MemoryStream())

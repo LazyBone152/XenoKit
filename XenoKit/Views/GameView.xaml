@@ -58,9 +58,9 @@
             </Separator.RenderTransform>
         </Separator>
         <StackPanel Grid.Row="1" VerticalAlignment="Top" Width="596" Height="400" HorizontalAlignment="Left" Margin="10,10,0,0" Visibility="{Binding ElementName=UserControl, Path=OverlayVisibility}">
-            <TextBlock x:Name="standardOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=StandardOverlay}" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-            <TextBlock x:Name="vfxOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=VfxOverlay}" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
-            <TextBlock x:Name="debugOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=DebugOverlay}" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+            <TextBlock x:Name="standardOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=StandardOverlay}" Foreground="Magenta"/>
+            <TextBlock x:Name="vfxOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=VfxOverlay}" Foreground="Magenta"/>
+            <TextBlock x:Name="debugOverlay" TextWrapping="Wrap" Text="{Binding ElementName=UserControl, Path=DebugOverlay}" Foreground="Magenta"/>
         </StackPanel>
 
         <Button Grid.Row="1" ToolTip="Toggle viewport overlays" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="GameOverlayToggle_Click" Margin="80,0,0,53" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">

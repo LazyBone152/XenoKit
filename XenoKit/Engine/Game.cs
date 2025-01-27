@@ -37,6 +37,7 @@ namespace XenoKit.Engine
         public BacMatrixGizmo BacMatrixGizmo;
         public HitboxGizmo BacHitboxGizmo;
         public EntityTransformGizmo EntityTransformGizmo;
+        private InfiniteWorldGrid WorldGrid;
 
 
         //Stage. Not final design just a quick hacky way to get stages into the application.
@@ -220,6 +221,7 @@ namespace XenoKit.Engine
             CurrentGizmo.Draw();
             BacHitboxGizmo.Draw();
             EntityTransformGizmo.Draw();
+            WorldGrid.Draw();
 
             //Now apply axis correction
             GraphicsDevice.SetRenderTarget(MainRenderTarget.RenderTarget);
@@ -351,6 +353,7 @@ namespace XenoKit.Engine
 
             base.CheckHotkeys();
         }
+
 
         #region UiButtons
         public void StartPlayback()

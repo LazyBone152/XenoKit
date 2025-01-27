@@ -509,9 +509,11 @@
     <Compile Include="Engine\Animation\ISkinned.cs" />
     <Compile Include="Engine\Character\ActorController.cs" />
     <Compile Include="Engine\Collision\BacHitbox.cs" />
+    <Compile Include="Engine\FrameRateCounter.cs" />
     <Compile Include="Engine\Gizmo\EntityTransformGizmo.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
     <Compile Include="Engine\Character\DamageManager.cs" />
+    <Compile Include="Engine\Objects\InfiniteWorldGrid.cs" />
     <Compile Include="Engine\Rendering\YBSPostFilterStep.cs" />
     <Compile Include="Engine\Rendering\YBSPostProcess.cs" />
     <Compile Include="Engine\Scripting\Simulation.cs" />

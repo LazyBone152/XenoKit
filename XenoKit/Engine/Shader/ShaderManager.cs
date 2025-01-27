@@ -87,6 +87,7 @@ namespace XenoKit.Engine.Shader
             try
 #endif
             {
+                ExtShaders.Add(LoadExtShader("LB_WorldGrid", "WorldGrid", "WorldGrid", ShaderProgramSource.External));
                 ExtShaders.Add(LoadExtShader("LB_AxisCorrection", "AxisCorrection", "AxisCorrection", ShaderProgramSource.External));
                 ExtShaders.Add(LoadExtShader("YBS_Copy", "Copy", "Copy", ShaderProgramSource.External));
                 ExtShaders.Add(LoadExtShader("YBS_Dim", "Dim", "Dim", ShaderProgramSource.External));
