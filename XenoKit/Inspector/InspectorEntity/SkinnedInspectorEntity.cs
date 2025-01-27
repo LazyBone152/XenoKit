@@ -51,12 +51,12 @@ namespace XenoKit.Inspector.InspectorEntities
                 case ".nsk":
                     NskFile = NSK_File.Load(Path);
                     Skeleton = new Xv2Skeleton(NskFile.EskFile);
-                    ChildEntities.Add(new MeshInspectorEntity(NskFile, Path));
+                    ChildEntities.Add(new MeshInspectorEntity(this, NskFile, Path));
                     break;
                 case ".emo":
                     EmoFile = EMO_File.Load(Path);
                     Skeleton = new Xv2Skeleton(EmoFile.Skeleton);
-                    ChildEntities.Add(new MeshInspectorEntity(EmoFile, Path));
+                    ChildEntities.Add(new MeshInspectorEntity(this, EmoFile, Path));
                     break;
                 default:
                     throw new InvalidOperationException($"SkinnedInspectorEntity.Load: File type \"{System.IO.Path.GetExtension(Path)}\" is not a valid skeleton file.");

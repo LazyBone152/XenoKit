@@ -60,7 +60,7 @@ namespace XenoKit.Engine.Textures
                 // so we're assuming 32bit data format is needed. One can always
                 // upscale 24bit / 16bit / 15bit data (not shown in sample).
                 var newTexture = new Texture2D(graphicsDevice, image.Width, image.Height, false, SurfaceFormat.Color);
-
+                
                 if (!string.IsNullOrWhiteSpace(name))
                     newTexture.Name = name;
 
@@ -106,17 +106,6 @@ namespace XenoKit.Engine.Textures
                 data[i + 1] = r;
                 data[i + 2] = a;
                 data[i + 3] = b;
-            }
-
-            //XNA blacks out any pixels with an alpha of zero.
-            for (int i = 0; i < data.Length; i += 4)
-            {
-                if (data[i + 3] == 0)
-                {
-                    data[i + 0] = 0;
-                    data[i + 1] = 0;
-                    data[i + 2] = 0;
-                }
             }
             
             texture.SetData(data);

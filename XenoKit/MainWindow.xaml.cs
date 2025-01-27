@@ -622,6 +622,11 @@ namespace XenoKit
         {
             SceneManager.MainGameBase.RenderSystem.DumpRenderTargetsNextFrame = true;
         }
+
+        private void DebugMenu_DumpShadowMap_Click(object sender, RoutedEventArgs e)
+        {
+            SceneManager.MainGameBase.RenderSystem.DumpShadowMapNextFrame = true;
+        }
         #endregion
 
     }

@@ -71,6 +71,7 @@
                     <MenuItem Header="Reload System" Click="MenuItem_ReloadSystem_Click"/>
                     <MenuItem Header="Force GC" Click="DebugMenu_ForceGC"/>
                     <MenuItem Header="Dump Render Targets" Click="DebugMenu_DumpRenderTargets_Click"/>
+                    <MenuItem Header="Dump Shadow Map" Click="DebugMenu_DumpShadowMap_Click"/>
                 </MenuItem>
             </Menu>
 

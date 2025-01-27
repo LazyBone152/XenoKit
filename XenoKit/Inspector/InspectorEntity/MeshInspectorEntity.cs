@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using XenoKit.Editor;
 using XenoKit.Engine;
+using XenoKit.Engine.Animation;
 using XenoKit.Engine.Model;
 using XenoKit.Engine.Shader;
 using Xv2CoreLib.EMD;
@@ -42,8 +43,9 @@ namespace XenoKit.Inspector.InspectorEntities
             Load();
         }
 
-        public MeshInspectorEntity(NSK_File nskFile, string path) : base(path)
+        public MeshInspectorEntity(SkinnedInspectorEntity parent, NSK_File nskFile, string path) : base(path)
         {
+            Parent = parent;
             _entityType = EntityType.Stage;
             Path = path;
             NskFile = nskFile;
@@ -52,8 +54,9 @@ namespace XenoKit.Inspector.InspectorEntities
             LoadAssets();
         }
 
-        public MeshInspectorEntity(EMO_File emoFile, string path) : base(path)
+        public MeshInspectorEntity(SkinnedInspectorEntity parent, EMO_File emoFile, string path) : base(path)
         {
+            Parent = parent;
             _entityType = EntityType.Model;
             ShaderType = ShaderType.Default;
             Path = path;

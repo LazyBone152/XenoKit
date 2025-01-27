@@ -57,8 +57,9 @@ namespace XenoKit.Engine
             MouseState = mouse.GetState();
             KeyboardState = keyboard.GetState();
 
-            //Update mouse position (axis corrected)
-            _mousePos = new Vector2((game.GraphicsDevice.Viewport.Width - MouseState.X) * game.SuperSamplingFactor, MouseState.Y * game.SuperSamplingFactor);
+            //Update mouse position (axis corrected) //Okay, WHY does it not work with the correction now?!
+            //_mousePos = new Vector2((game.GraphicsDevice.Viewport.Width - MouseState.X) * game.SuperSamplingFactor, MouseState.Y * game.SuperSamplingFactor);
+            _mousePos = new Vector2((MouseState.X) * game.SuperSamplingFactor, MouseState.Y * game.SuperSamplingFactor);
 
             //Update scroll
             MouseScrollThisFrame = MouseState.ScrollWheelValue - CurrentMouseWheelValue;

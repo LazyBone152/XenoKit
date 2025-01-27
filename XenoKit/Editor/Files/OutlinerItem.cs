@@ -7,16 +7,11 @@ using Xv2CoreLib.EAN;
 using xv2 = Xv2CoreLib.Xenoverse2;
 using file = Xv2CoreLib.FileManager;
 using XenoKit.Engine;
-using Xv2CoreLib.BCS;
 using Xv2CoreLib.EffectContainer;
 using System.IO;
 using System.Collections.Generic;
 using XenoKit.Engine.Model;
-using Xv2CoreLib.NSK;
 using XenoKit.Editor.Data;
-using System.Threading.Tasks;
-using MahApps.Metro.Controls.Dialogs;
-using Xv2CoreLib.CUS;
 using Xv2CoreLib.BAC;
 
 namespace XenoKit.Editor
@@ -252,6 +247,10 @@ namespace XenoKit.Editor
                 case ".vfxpackage":
                     Type = OutlinerItemType.EEPK;
                     ManualFiles = ManualFiles.LoadEepk(path);
+                    break;
+                case ".nsk":
+                    Type = OutlinerItemType.STAGE_MANUAL;
+                    ManualFiles = ManualFiles.LoadNsk(new[] { path } );
                     break;
                 default:
                     throw new InvalidDataException($"OutlinerItem: The filetype of \"{path}\" is unsupported.");

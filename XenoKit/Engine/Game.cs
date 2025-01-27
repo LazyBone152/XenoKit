@@ -25,6 +25,7 @@ namespace XenoKit.Engine
         public Camera camera;
         public AudioEngine AudioEngine;
         public VfxPreview VfxPreview;
+        public FrameRateCounter FrameRate { get; private set; } = new FrameRateCounter();
 
         //Engine Values:
         public override bool IsMainInstance => true;
@@ -90,15 +91,17 @@ namespace XenoKit.Engine
 
         protected override void LoadContent()
         {
-            AddEntity(new WorldAxis(this), false);
-            AddEntity(new ObjectAxis(true, this), false);
-            AddEntity(new WorldGrid(this), false);
+            //AddEntity(new WorldAxis(this), false);
+            //AddEntity(new ObjectAxis(true, this), false);
+            //AddEntity(new WorldGrid(this), false);
+            WorldGrid = new InfiniteWorldGrid(this);
 
             base.LoadContent();
         }
 
         protected override void Update(GameTime time)
         {
+            FrameRate.Update((float)time.ElapsedGameTime.TotalSeconds);
             base.Update(time);
             ShaderManager.Update();
             CurrentGizmo.Update();

@@ -270,6 +270,8 @@ namespace XenoKit.Engine.View
         //WSAD Movement
         private void Translate(float foward, float left, bool preciseMode, bool fastMode)
         {
+            foward *= 2f;
+            left *= 2f;
             float factor = preciseMode ? 0.25f: 1f;
 
             if (fastMode)
