@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -48,6 +49,8 @@ namespace XenoKit.Engine.Shader
         private Texture2D NoRimLightTexture;
 
         //File watch
+        private FileSystemWatcher extShaderWatcher;
+        private bool extShaderDirty = false;
         private FileSystemWatcher adamShaderWatcher;
         private bool defaultVsEmbDirty, defaultPsEmbDirty, ageVsEmbDirty, agePsEmbDirty;
         private bool defaultSdsDirty, ageSdsDirty;
@@ -67,6 +70,9 @@ namespace XenoKit.Engine.Shader
             InitAdamShaderWatcher();
 
             LoadExtShaders();
+#if DEBUG
+            InitExtShaderWatcher();
+#endif
         }
 
         private void LoadExtShaders()
@@ -199,7 +205,131 @@ namespace XenoKit.Engine.Shader
         public void DelayedUpdate()
         {
             HandleShaderReloading();
+
+#if DEBUG
+            HandleExtShaderReloading();
+#endif
         }
+
+#if DEBUG
+        //Handle ExtShader auto reloading
+        private void InitExtShaderWatcher()
+        {
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XenoKit/ExtShaders");
+
+            extShaderWatcher = new FileSystemWatcher();
+            extShaderWatcher.Path = path;
+            extShaderWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size;
+            extShaderWatcher.Filter = "*.*";
+
+            // Handle events
+            extShaderWatcher.Changed += (sender, e) => OnExtShaderFileChanged(e);
+
+            // Start watching
+            extShaderWatcher.EnableRaisingEvents = true;
+        }
+
+        private void OnExtShaderFileChanged(FileSystemEventArgs e)
+        {
+            if(Path.GetExtension(e.Name) == ".hlsl")
+            {
+                //Compile hlsl file with fxc.exe
+                CompileHlsl(e.FullPath);
+            }
+        }
+
+        private void HandleExtShaderReloading()
+        {
+            if(extShaderDirty)
+            {
+                ExtShaders.Clear();
+                LoadExtShaders();
+                game.CompiledObjectManager.ForceShaderUpdate(ExtShaders);
+
+                extShaderDirty = false;
+                Log.Add("ExtShaders hot reloaded!");
+            }
+        }
+
+        private void CompileHlsl(string hlslFile)
+        {
+            if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XenoKit/ExtShaders", "fxc.exe")))
+                return;
+
+            Log.ClearAll();
+
+            try
+            {
+                string psName = $"{Path.GetDirectoryName(hlslFile)}/{Path.GetFileNameWithoutExtension(hlslFile)}.xpu";
+                string vsName = $"{Path.GetDirectoryName(hlslFile)}/{Path.GetFileNameWithoutExtension(hlslFile)}.xvu";
+
+                string outputPs = $"{Path.GetDirectoryName(hlslFile)}/{Path.GetFileNameWithoutExtension(hlslFile)}_tempPS.dxbc";
+                string outputVs = $"{Path.GetDirectoryName(hlslFile)}/{Path.GetFileNameWithoutExtension(hlslFile)}_tempVS.dxbc";
+
+                CompileShader(hlslFile, "VSMain", "vs_5_0", outputVs);
+                CompileShader(hlslFile, "PSMain", "ps_5_0", outputPs);
+
+                if (File.Exists(psName))
+                    File.Delete(psName);
+
+                if (File.Exists(vsName))
+                    File.Delete(vsName);
+
+                File.Move(outputPs, psName);
+                File.Move(outputVs, vsName);
+
+                extShaderDirty = true;
+            }
+            catch (Exception ex)
+            {
+                Log.Add($"HLSL Compile Error: {ex.Message}", LogType.Error);
+            }
+        }
+
+        private bool CompileShader(string hlslFile, string entryPoint, string target, string outputFile)
+        {
+            try
+            {
+                string fxcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XenoKit/ExtShaders", "fxc.exe");
+
+                // Create a new process to run fxc.exe
+                Process process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = fxcPath,
+                        Arguments = $"/Od /T {target} /E {entryPoint} /Fo \"{outputFile}\" \"{hlslFile}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+
+                // Start the process and capture output
+                process.Start();
+
+                string stdout = process.StandardOutput.ReadToEnd();
+                string stderr = process.StandardError.ReadToEnd();
+
+                process.WaitForExit();
+
+                // Output results
+                Log.Add(stdout);
+                if (!string.IsNullOrEmpty(stderr))
+                {
+                    Log.Add($"{stderr}");
+                }
+
+                return process.ExitCode == 0;
+            }
+            catch (Exception ex)
+            {
+                Log.Add($"Exception while compiling shader: {ex.Message}");
+                return false;
+            }
+        }
+#endif
 
         #region ShaderReload
         private void InitAdamShaderWatcher()
@@ -402,7 +532,7 @@ namespace XenoKit.Engine.Shader
                     case 7:
                         //ShadowMap / SamplerProjectionMap
                         {
-                            //Texture2D texture = TextureLoader.ConvertToTexture2D(GetPathInShaderDir("Texture/ShadowMap.dds"), game.GraphicsDevice);
+                            //Texture2D texture = Texture2D.FromFile(game.GraphicsDevice, "shadowmap.png");
                             sampler = new GlobalSampler(slot, game.RenderSystem.ShadowPassRT0,
                                                         new SamplerState()
                                                         {
