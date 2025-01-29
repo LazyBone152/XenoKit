@@ -230,7 +230,7 @@ namespace XenoKit.Engine
             GraphicsDevice.SetRenderTarget(MainRenderTarget.RenderTarget);
             RenderSystem.SetTextures(AxisCorrectionRenderTarget.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
-            RenderSystem.YBS.ApplyAxisCorrection(Vector4.Zero);
+            RenderSystem.YBS.ApplyAxisCorrection();
 
             //Present on screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);

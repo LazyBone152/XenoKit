@@ -203,9 +203,6 @@ namespace XenoKit.Engine.Shader
                     Parameters["afRGBA_Modulate"].SetValue(YBSParameters.afRGBA_Modulate);
                     Parameters["afRGBA_Offset"].SetValue(YBSParameters.afRGBA_Offset);
                     break;
-                case PostProccessShader.LB_AxisCorrection:
-                    Parameters["DefaultColor"].SetValue(YBSParameters.DefaultColor);
-                    break;
             }
         }
 

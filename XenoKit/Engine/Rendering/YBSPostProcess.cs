@@ -668,11 +668,10 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        public void ApplyAxisCorrection(Vector4 defaultColor)
+        public void ApplyAxisCorrection()
         {
             if(AxisCorrectionFilter != null)
             {
-                AxisCorrectionFilter.Parameters.DefaultColor = defaultColor;
                 AxisCorrectionFilter.Apply(renderSystem);
             }
         }

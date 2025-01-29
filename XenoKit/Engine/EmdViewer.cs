@@ -114,7 +114,7 @@ namespace XenoKit.Engine
             GraphicsDevice.SetRenderTarget(RenderTargetPost.RenderTarget);
             RenderSystem.SetTextures(RenderTargetModel.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
-            RenderSystem.YBS.ApplyAxisCorrection(Vector4.Zero);
+            RenderSystem.YBS.ApplyAxisCorrection();
 
             //Present on screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);

@@ -384,8 +384,7 @@ namespace XenoKit.Engine.Rendering
 
             string name = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             string ext = LocalSettings.Instance.ScreenshotFormat.ToString().ToLower();
-            string path = SettingsManager.Instance.GetAbsPathInAppFolder($"Screenshots/{name}_transbg.{ext}");
-            string pathBlackBackground = SettingsManager.Instance.GetAbsPathInAppFolder($"Screenshots/{name}.{ext}");
+            string path = SettingsManager.Instance.GetAbsPathInAppFolder($"Screenshots/{name}.{ext}");
             Directory.CreateDirectory(Path.GetDirectoryName(path));
 
             switch (ScreenshotType)
@@ -394,11 +393,7 @@ namespace XenoKit.Engine.Rendering
                     ProcessScreenshot(renderTarget, path, Color.Transparent);
                     break;
                 case ScreenshotType.CustomBackgroundColor:
-                    ProcessScreenshot(renderTarget, pathBlackBackground, SceneManager.ScreenshotBackgroundColor);
-                    break;
-                case ScreenshotType.Both:
-                    ProcessScreenshot(renderTarget, pathBlackBackground, SceneManager.ScreenshotBackgroundColor);
-                    ProcessScreenshot(renderTarget, path, Color.Transparent);
+                    ProcessScreenshot(renderTarget, path, SceneManager.ScreenshotBackgroundColor);
                     break;
             }
 
@@ -410,19 +405,24 @@ namespace XenoKit.Engine.Rendering
         {
             //Copying it to a seperate RT before saving allows changing of the background color
             SetRenderTargets(ScreenshotRT.RenderTarget);
-            SetTextures(renderTarget.RenderTarget);
             GraphicsDevice.Clear(clearColor);
-            YBS.ApplyAxisCorrection(clearColor.ToVector4());
+            DisplayRenderTarget(renderTarget.RenderTarget);
+
+            //Apply axis correction
+            SetRenderTargets(ColorPassRT0.RenderTarget);
+            SetTextures(ScreenshotRT.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            YBS.ApplyAxisCorrection();
 
             using (MemoryStream ms = new MemoryStream())
             {
                 if(LocalSettings.Instance.ScreenshotFormat == ScreenshotFormat.PNG)
                 {
-                    ScreenshotRT.RenderTarget.SaveAsPng(ms, ScreenshotRT.Width, ScreenshotRT.Height);
+                    ColorPassRT0.RenderTarget.SaveAsPng(ms, ScreenshotRT.Width, ScreenshotRT.Height);
                 }
                 else
                 {
-                    ScreenshotRT.RenderTarget.SaveAsJpeg(ms, ScreenshotRT.Width, ScreenshotRT.Height);
+                    ColorPassRT0.RenderTarget.SaveAsJpeg(ms, ScreenshotRT.Width, ScreenshotRT.Height);
                 }
                 File.WriteAllBytes(path, ms.ToArray());
             }
