@@ -125,6 +125,7 @@ namespace XenoKit.Engine.Shader
         //Updating
         public bool IsShaderProgramDirty { get; set; }
         public bool IsDirty { get; set; }
+        private bool UseWV, UseWVP;
 
         //Color Fade
         private float[] ECF_Multi = null;
@@ -186,6 +187,8 @@ namespace XenoKit.Engine.Shader
             if(ShaderType != ShaderType.PostFilter)
                 shaderProgram = GameBase.ShaderManager.GetShaderProgram(Material.ShaderProgram);
 
+            UseWVP = UseWV = false;
+
             if (shaderProgram.ShaderSource == ShaderProgramSource.Xenoverse)
             {
                 //Initialize the SDS parameter array. These are the list of parameters this shader uses and should be updated OnApply
@@ -200,6 +203,17 @@ namespace XenoKit.Engine.Shader
                     }
 
                     SdsParameters[i] = param;
+
+                    switch (param)
+                    {
+                        case ShaderParameter.WV:
+                            UseWV = true;
+                            break;
+                        case ShaderParameter.WVP:
+                        case ShaderParameter.WVP_Prev:
+                            UseWVP = true;
+                            break;
+                    }
                 }
             }
             else
@@ -531,18 +545,24 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vShadowColor_PS"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 0));
                 Parameters["g_vEdge_PS"].SetValue(MatParam.NoEdge > 0 ? Vector4.Zero : Vector4.One);
                 Parameters["g_vGlare_PS"].SetValue(Vector4.Zero);
-                Parameters["g_vTone_PS"].SetValue(Vector4.One);
+                Parameters["g_vTone_PS"].SetValue(new Vector4(0.01f, 0.01f, 0.01f, 0.173f));
                 Parameters["g_vScale_PS"].SetValue(new Vector4(1.00f, 0.00f, 0.50f, 0.50f));
 
                 //Values from BFten
-                Parameters["g_vFogMultiColor_PS"].SetValue(new Vector4(0.75229f, 0.79817f, 0.875f, 1.00f));
-                Parameters["g_vFogAddColor_PS"].SetValue(new Vector4(0.11009f, 0.15596f, 0.38095f, 1.00f));
+                //Parameters["g_vFogMultiColor_PS"].SetValue(new Vector4(0.75229f, 0.79817f, 0.875f, 1.00f));
+                //Parameters["g_vFogAddColor_PS"].SetValue(new Vector4(0.11009f, 0.15596f, 0.38095f, 1.00f));
+
+                //No fog
+                Parameters["g_vFogMultiColor_PS"].SetValue(Vector4.One);
+                Parameters["g_vFogAddColor_PS"].SetValue(Vector4.Zero);
+
+                Parameters["g_vAltFadeMulti_PS"].SetValue(new Vector4(1, 1, 1, 1f));
             }
 
             //ps_alphatest_cb
             if (shaderProgram.UsePixelShaderBuffer[PS_ALPHATEST_CB])
             {
-                Parameters["g_vAlphaTest_PS"].SetValue(MatParam.AlphaTest > 0 ? new Vector4(MatParam.AlphaTest / 255f, 0, 0, 0) : Vector4.Zero);
+                Parameters["g_vAlphaTest_PS"]?.SetValue(MatParam.AlphaTest > 0 ? new Vector4(MatParam.AlphaTest / 255f, 0, 0, 0) : Vector4.Zero);
             }
 
             //ps_common_cb
@@ -609,6 +629,7 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_bFog_PS"].SetValue(false); //Disable for now. Default values are set from BFten, but that may not look good on all stages. Likely the stage spm contains these values which XenoKit has no way of loading as of now.
                 Parameters["g_bOutputGlareMRT_PS"].SetValue(MatParam.Glare == 1);
                 Parameters["ps_bool_padding0"].SetValue(true);
+                Parameters["g_bDepthTex_PS"]?.SetValue(true);
             }
 
             //Set parameter references that will be updated every frame (since doing it via string look up would be bad)
@@ -677,15 +698,20 @@ namespace XenoKit.Engine.Shader
                     g_mWVP_VS?.SetValue(WVP);
                     break;
                 case ShaderParameter.VP:
-                    g_mVP_VS?.SetValue(GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix);
+                    g_mVP_VS?.SetValue(GameBase.ActiveCameraBase.ViewProjectionMatrix);
                     break;
-                case ShaderParameter.WLPB_SM:
+                case ShaderParameter.WLPB_SM: //World Light Projection Bias (Shadow Map)
+                    Parameters["g_mWLPB_SM_VS"]?.SetValue(World * GameBase.LightSource.LightBiasMatrix);
+                    //Parameters["g_mWLPB_SM_VS"]?.SetValue(GameBase.LightSource.LightMatrix);
                     break;
                 case ShaderParameter.WLPB_PM:
+                    Parameters["g_mWLPB_PM_VS"]?.SetValue(World * GameBase.LightSource.LightBiasMatrix);
                     break;
                 case ShaderParameter.WLP_PM:
+                    Parameters["g_mWLP_PM_VS"]?.SetValue(World * GameBase.LightSource.LightMatrix);
                     break;
-                case ShaderParameter.WLP_SM:
+                case ShaderParameter.WLP_SM: //World Light Projection (Shadow Map)
+                    g_mWLP_SM_VS?.SetValue(World * GameBase.LightSource.LightMatrix);
                     break;
                 case ShaderParameter.WIT:
                     break;
@@ -785,8 +811,11 @@ namespace XenoKit.Engine.Shader
             }
 
             //Calculate matrices
-            WV = World * GameBase.ActiveCameraBase.ViewMatrix;
-            WVP = World * GameBase.ActiveCameraBase.ViewMatrix * GameBase.ActiveCameraBase.ProjectionMatrix;
+            if(UseWV)
+                WV = World * GameBase.ActiveCameraBase.ViewMatrix;
+
+            if(UseWVP)
+                WVP = World * GameBase.ActiveCameraBase.ViewProjectionMatrix;
 
             foreach (ShaderParameter parameter in SdsParameters)
             {
@@ -855,15 +884,12 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
-            
-            //if(ShaderType == ShaderType.Default)
-            {
-                if (shaderProgram.UsePixelShaderBuffer[CB_PS_BOOL])
-                {
-                    Parameters["g_bFog_PS"]?.SetValue(true);
-                    Parameters["g_bDepthTex_PS"]?.SetValue(true);
-                }
-            }
+            //Testing
+            //Parameters["g_bShadowPCF1_PS"]?.SetValue(true);
+            //Parameters["g_bShadowPCF4_PS"]?.SetValue(true);
+            //Parameters["g_bShadowPCF8_PS"]?.SetValue(true);
+            //Parameters["g_bShadowPCF16_PS"]?.SetValue(false);
+            //Parameters["g_bShadowPCF24_PS"]?.SetValue(true);
 
             //Update global parameters
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
@@ -940,7 +966,7 @@ namespace XenoKit.Engine.Shader
                 blendState.ApplyNone(1);
                 blendState[0].ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
 
-                return blendState;
+                //return blendState;
             }
 
             //Default path; used for effects (PBIND, TBIND and EMO) and regular character shaders
@@ -1088,7 +1114,7 @@ namespace XenoKit.Engine.Shader
                 depth.CounterClockwiseStencilPass = StencilOperation.Zero;
                 depth.StencilPass = StencilOperation.Zero;
 
-                return depth;
+                //return depth;
             }
 
             //Default path: Valid for effects
@@ -1113,7 +1139,9 @@ namespace XenoKit.Engine.Shader
                 depth.CounterClockwiseStencilFunction = CompareFunction.Always;
             }
 
-            if(MatParam.ZWriteMask == 1)
+            //This is not right.
+            //Materials marked as ZWriteMask seem to be rendered last
+            if (MatParam.ZWriteMask == 1)
             {
                 depth.DepthBufferWriteEnable = false;
             }

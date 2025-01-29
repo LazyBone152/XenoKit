@@ -17,9 +17,12 @@ namespace XenoKit.Engine.View
 
         }
 
-        public void Update()
+        public override void Update()
         {
             ProcessCameraControl();
+
+
+            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
         }
     }
 }

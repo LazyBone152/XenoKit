@@ -34,6 +34,7 @@ namespace XenoKit.Engine.Rendering
         private List<RenderTarget2D> _toBeDisposed = new List<RenderTarget2D>();
 
         //Render Settings:
+        public DrawPass CurrentDrawPass { get; private set; }
         private readonly Color NormalsBackgroundColor = new Color(0.50196f, 0.50196f, 0, 0);
         private bool ScreenshotRequested = false;
         private ScreenshotType ScreenshotType = ScreenshotType.TransparentBackground;
@@ -213,8 +214,8 @@ namespace XenoKit.Engine.Rendering
             GraphicsDevice.SetRenderTarget(ShadowPassRT0.RenderTarget);
             GraphicsDevice.SetDepthBuffer(ShadowPassRT0.RenderTarget);
             GraphicsDevice.Clear(Color.Red);
-            DrawEntityList(Characters, true, false);
-            DrawEntityList(Stages, true, false);
+            DrawEntityList(Characters, false);
+            DrawEntityList(Stages, false);
 
             if (DumpShadowMapNextFrame)
                 DumpRenderTargets();
@@ -222,14 +223,14 @@ namespace XenoKit.Engine.Rendering
             //Normals Pass (Chara)
             SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);
             GraphicsDevice.Clear(new Color(0.50196f, 0.50196f, 0, 0));
-            DrawEntityList(Characters, true, true);
+            DrawEntityList(Characters, true);
 
             //Color Pass (Chara + Stage Enviroment)
             SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            DrawEntityList(Characters, false, false);
-            DrawEntityList(Stages, false, false);
+            DrawEntityList(Characters, LOW_REZ_NONE);
+            DrawEntityList(Stages, LOW_REZ_NONE);
 
             //Black Chara Outline Shader
             if (SettingsManager.settings.XenoKit_UseOutlinePostEffect)
@@ -430,34 +431,38 @@ namespace XenoKit.Engine.Rendering
 
         #region Update
 
-        private void DrawEntityList(List<Entity> entities, bool simpleDraw, bool normalPass)
+        private void DrawEntityList(List<Entity> entities, bool normalPass)
         {
-            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
+            foreach (Entity entity in entities)
             {
                 if (entity.DrawThisFrame)
                 {
-                    if (simpleDraw)
-                    {
-                        if (entity.EntityType != EntityType.Actor && normalPass) continue;
-                        entity.DrawPass(normalPass);
-                    }
-                    else
-                    {
-                        entity.Draw();
-                    }
+                    if (entity.EntityType != EntityType.Actor && normalPass) continue; //skip if stage and its a normal pass (stages only have a shadow pass here)
+                    entity.DrawPass(normalPass);
                 }
             }
         }
 
+#if DEBUG
+        public string[] DRAW_ORDER = new string[10];
+        public int CurrentDrawIdx = 0;
+#endif
+
         private void DrawEntityList(List<Entity> entities, int lowRezMode)
         {
             int particleCount = 0;
+#if DEBUG
+            CurrentDrawIdx = 0;
+#endif
 
-            foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
+            //OPAQUE PASS
+            CurrentDrawPass = Rendering.DrawPass.Opaque;
+
+            foreach (Entity entity in entities)
             {
                 if (entity.LowRezMode != lowRezMode) continue;
 
-                if (entity.DrawThisFrame && entity.AlphaBlendType <= 1)
+                if (entity.DrawThisFrame)
                 {
                     entity.Draw();
 
@@ -466,17 +471,43 @@ namespace XenoKit.Engine.Rendering
                 }
             }
 
-            //Render subtractive blend type last
+            //ALPHA BLEND PASS
+            CurrentDrawPass = Rendering.DrawPass.AlphaBlend;
+
             foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
             {
                 if (entity.LowRezMode != lowRezMode) continue;
 
-                if (entity.DrawThisFrame && entity.AlphaBlendType == 2)
+                if (entity.DrawThisFrame)
                 {
                     entity.Draw();
+                }
+            }
 
-                    if (entity.EntityType == EntityType.VFX)
-                        particleCount++;
+            //ADDITIVE PASS
+            CurrentDrawPass = Rendering.DrawPass.Additive;
+
+            foreach (Entity entity in entities)
+            {
+                if (entity.LowRezMode != lowRezMode) continue;
+
+                if (entity.DrawThisFrame)
+                {
+                    entity.Draw();
+                }
+            }
+
+            //SUBTRACTIVE PASS
+            CurrentDrawPass = Rendering.DrawPass.Subtractive;
+
+            foreach (Entity entity in entities)
+            {
+                if (entity.LowRezMode != lowRezMode) continue;
+
+                if (entity.DrawThisFrame)
+                {
+                    entity.Draw();
+                    entity.DrawThisFrame = false;
                 }
             }
 
@@ -703,6 +734,18 @@ namespace XenoKit.Engine.Rendering
             }
         }
         #endregion
+
+        public bool CheckDrawPass(Xv2ShaderEffect material)
+        {
+            if (material.MatParam.AlphaBlend == 0 && CurrentDrawPass == Rendering.DrawPass.Opaque) return true;
+            if (material.MatParam.AlphaBlend == 0 && CurrentDrawPass != Rendering.DrawPass.Opaque) return false;
+
+            if (material.MatParam.AlphaBlendType == 0 && CurrentDrawPass == Rendering.DrawPass.AlphaBlend) return true;
+            if (material.MatParam.AlphaBlendType == 1 && CurrentDrawPass == Rendering.DrawPass.Additive) return true;
+            if (material.MatParam.AlphaBlendType == 2 && CurrentDrawPass == Rendering.DrawPass.Subtractive) return true;
+
+            return false;
+        }
     }
 
     public enum ScreenshotType
@@ -716,5 +759,13 @@ namespace XenoKit.Engine.Rendering
     {
         PNG,
         JPG
+    }
+
+    public enum DrawPass
+    {
+        Opaque,
+        AlphaBlend,
+        Additive,
+        Subtractive
     }
 }

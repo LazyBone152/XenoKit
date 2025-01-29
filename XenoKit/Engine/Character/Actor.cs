@@ -289,17 +289,21 @@ namespace XenoKit.Engine
 
         public override void Draw()
         {
-            DrawThisFrame = false;
             if (!GameBase.RenderCharacters || !IsVisible) return;
 
-            ActionControl.Draw();
+            if(RenderSystem.CurrentDrawPass == Rendering.DrawPass.Opaque)
+                ActionControl.Draw();
+
             PartSet.Draw();
 
-            if (AnimationPlayer != null && SceneManager.ShowDebugBones)
-                _debugSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
+            if(RenderSystem.CurrentDrawPass == Rendering.DrawPass.Opaque)
+            {
+                if (AnimationPlayer != null && SceneManager.ShowDebugBones)
+                    _debugSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
 
-            if (AnimationPlayer != null)
-                _visualSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
+                if (AnimationPlayer != null)
+                    _visualSkeleton.Draw(Skeleton.Bones, Skeleton.Bones, Transform);
+            }
         }
 
         public override void DrawPass(bool normalPass)

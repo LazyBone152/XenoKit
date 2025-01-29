@@ -6,6 +6,7 @@ namespace XenoKit.Engine.View
     {
         Matrix ViewMatrix { get; }
         Matrix ProjectionMatrix { get; }
+        Matrix ViewProjectionMatrix { get; }
         CameraState CameraState { get; }
 
         Vector2 ProjectToScreenPosition(Vector3 worldPos);

@@ -17,6 +17,7 @@ using Xv2CoreLib.NSK;
 using Xv2CoreLib.Resource.App;
 using EmmMaterial = Xv2CoreLib.EMM.EmmMaterial;
 using static Xv2CoreLib.EMD.EMD_TextureSamplerDef;
+using XenoKit.Editor;
 
 namespace XenoKit.Engine.Model
 {
@@ -484,9 +485,10 @@ namespace XenoKit.Engine.Model
                 //This is right and wrong depending on the case... why?
                 //When return world = fixes; broken effects, like sparks, but breaks boost auras
                 //When skeleton.Bones[AttachBone].SkinningMatrix * world; fixes boost auras, breaks sparks
+                //Stages only work properly with AbsoluteMatrix * world
 
                 //return world;
-                return skeleton.Bones[AttachBone].SkinningMatrix * world;
+                return skeleton.Bones[AttachBone].AbsoluteAnimationMatrix * world;
             }
 
             return world;
@@ -567,6 +569,16 @@ namespace XenoKit.Engine.Model
         {
             if (materials == null) return;
 
+            if (!RenderSystem.CheckDrawPass(materials[SubmeshIndex])) return;
+
+#if DEBUG
+            if (RenderSystem.CurrentDrawIdx < RenderSystem.DRAW_ORDER.Length)
+            {
+                RenderSystem.DRAW_ORDER[RenderSystem.CurrentDrawIdx] = materials[SubmeshIndex].Material.Name;
+                RenderSystem.CurrentDrawIdx++;
+            }
+#endif
+
             //Handle BCS Colors
             if (dyts != null)
             {
@@ -603,6 +615,8 @@ namespace XenoKit.Engine.Model
 
         public void Draw(Matrix world, int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton = null)
         {
+            if (!RenderSystem.CheckDrawPass(material)) return;
+
             material.World = world;
             material.PrevWVP = PrevWVP[actor];
 
@@ -835,14 +849,10 @@ namespace XenoKit.Engine.Model
                 Samplers[i].state.Filter = GetTextureFilter(samplerDefs[i].FilteringMin, samplerDefs[i].FilteringMag);
                 Samplers[i].state.MaxAnisotropy = 1;
                 Samplers[i].state.MaxMipLevel = 1;
-
+                Samplers[i].state.FilterMode = TextureFilterMode.Default;
                 Samplers[i].name = ShaderManager.GetSamplerName(i);
                 Samplers[i].state.Name = Samplers[i].name;
                 Samplers[i].parameter = samplerDefs[i].EmbIndex;
-
-                //Force AF x16
-                Samplers[i].state.Filter = TextureFilter.Anisotropic;
-                Samplers[i].state.MaxAnisotropy = 16;
             }
         
             //Set the texture tile parameters. These are used by the vertex shader to apply the correct tiling to the textures

@@ -62,6 +62,9 @@ namespace XenoKit.Engine.View
                 ProcessCameraControl();
             }
 
+            //Calculate viewProjtion matrix once here each frame, and reuse that value in shaders
+            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
+
             locked = false;
         }
 

@@ -40,10 +40,7 @@ namespace XenoKit.Engine
         public virtual string Name { get; set; }
         public virtual Matrix AbsoluteTransform { get; protected set; }
         public virtual Matrix Transform { get; set; } = Matrix.Identity;
-        /// <summary>
-        /// (Mostly just used by RenderDepthSystem to enable it to skip drawing objects that haven't been updated this frame)
-        /// </summary>
-        public virtual bool DrawThisFrame { get; protected set; }
+        public virtual bool DrawThisFrame { get; set; }
         public virtual int AlphaBlendType => -1;
         public virtual int LowRezMode => 0;
 

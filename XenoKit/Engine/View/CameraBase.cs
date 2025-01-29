@@ -35,6 +35,8 @@ namespace XenoKit.Engine.View
                 return Matrix.CreatePerspectiveFieldOfView(fieldOfViewRadians, aspectRatio, nearClipPlane, farClipPlane);
             }
         }
+        public virtual Matrix ViewProjectionMatrix { get; protected set; }
+
         public virtual CameraState CameraState { get; protected set; } = new CameraState();
 
         //camera moves

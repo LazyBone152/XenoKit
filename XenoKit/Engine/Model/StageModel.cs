@@ -42,8 +42,6 @@ namespace XenoKit.Engine.Model
 
         public override void Draw()
         {
-            DrawThisFrame = false;
-
             Model.Draw(Matrix.Identity, 0, Materials, Textures, null, 0, Skeleton);
         }
 

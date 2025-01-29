@@ -29,7 +29,7 @@ namespace XenoKit.Inspector.InspectorEntities
         public EMG_File EmgFile { get; private set; }
 
         public Xv2ModelFile Model { get; private set; }
-        private Engine.Shader.ShaderType ShaderType { get; set; }
+        private ShaderType ShaderType { get; set; }
         private SamplerInfo DytSampler;
 
         public TextureInspectorEntity TextureFile { get; private set; }
