@@ -294,11 +294,18 @@ namespace XenoKit.Engine
             IsFullScreen = true;
             _graphicsDeviceManager.IsFullScreen = true;
 
-            fullscreenWindow = new FullscreenWindow();
-            fullscreenWindow.Show();
-            alternateInputElement = fullscreenWindow;
-            _mouse.SetAlternateFocusElement(fullscreenWindow);
-            RenderSystem.RecreateRenderTargetsNextFrames = 2;
+            try
+            {
+                fullscreenWindow = new FullscreenWindow();
+                fullscreenWindow.Show();
+                alternateInputElement = fullscreenWindow;
+                _mouse.SetAlternateFocusElement(fullscreenWindow);
+                RenderSystem.RecreateRenderTargetsNextFrames = 2;
+            }
+            catch
+            {
+                //Dont really need to do anything here. Just want to prevent crashing when opening fullscreen mode (rare)
+            }
         }
 
         public void DisableFullscreen()

@@ -615,7 +615,7 @@ namespace XenoKit.Engine.Model
 
         public void Draw(Matrix world, int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton = null)
         {
-            if (!RenderSystem.CheckDrawPass(material)) return;
+            //if (!RenderSystem.CheckDrawPass(material)) return;
 
             material.World = world;
             material.PrevWVP = PrevWVP[actor];
@@ -750,6 +750,8 @@ namespace XenoKit.Engine.Model
         {
             if ((CustomColrDytCreatedFromIndex != dytIdx || CustomColorDyt == null) && CustomColorIndex != -1 && Dyts.Length > CustomColrDytCreatedFromIndex)
             {
+                CustomColorDyt?.Dispose();
+
                 var colors = SceneManager.Actors[actor].CharacterData.BcsFile.File.GetColor(CustomColorGroup, CustomColorIndex);
 
                 if (colors == null)

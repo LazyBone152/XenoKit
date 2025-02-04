@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Controls;
 using XenoKit.Editor;
 using XenoKit.Engine;
+using XenoKit.Engine.Shader;
 using XenoKit.Windows;
 using Xv2CoreLib;
 using Xv2CoreLib.Resource.App;
@@ -370,6 +371,7 @@ namespace XenoKit
         private void ShowSettingsWindow()
         {
             string originalGameDir = SettingsManager.Instance.Settings.GameDirectory;
+            int shadowMapRes = SettingsManager.Instance.Settings.XenoKit_ShadowMapRes;
 
             SettingsWindow settings = new SettingsWindow(this);
             settings.ShowDialog();
@@ -381,6 +383,11 @@ namespace XenoKit
             if (SettingsManager.Instance.Settings.GameDirectory != originalGameDir && SettingsManager.Instance.Settings.ValidGameDir)
             {
                 AsyncInit();
+            }
+
+            if(shadowMapRes != SettingsManager.settings.XenoKit_ShadowMapRes)
+            {
+                SceneManager.MainGameInstance.CompiledObjectManager.ForceShaderUpdate();
             }
         }
 

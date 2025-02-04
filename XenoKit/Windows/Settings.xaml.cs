@@ -117,12 +117,16 @@ namespace XenoKit.Windows
             {
                 switch (settings.XenoKit_ShadowMapRes)
                 {
+                    case 16:
+                        return 0; //Disabled
                     case 2048:
-                        return 0;
-                    case 4096:
                         return 1;
-                    case 8192:
+                    case 4096:
                         return 2;
+                    case 8192:
+                        return 3;
+                    case 16384:
+                        return 4;
                     default:
                         return 0;
                 }
@@ -132,13 +136,19 @@ namespace XenoKit.Windows
                 switch (value)
                 {
                     case 0:
-                        settings.XenoKit_ShadowMapRes = 2048;
+                        settings.XenoKit_ShadowMapRes = 16;
                         break;
                     case 1:
-                        settings.XenoKit_ShadowMapRes = 4096;
+                        settings.XenoKit_ShadowMapRes = 2048;
                         break;
                     case 2:
+                        settings.XenoKit_ShadowMapRes = 4096;
+                        break;
+                    case 3:
                         settings.XenoKit_ShadowMapRes = 8192;
+                        break;
+                    case 4:
+                        settings.XenoKit_ShadowMapRes = 16384;
                         break;
                 }
             }

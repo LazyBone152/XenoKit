@@ -129,6 +129,20 @@
                                 <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
+                            <Label Content="Shadow Quality" ToolTip="Quality of the shadow maps. &#x0a;&#x0a;LOW, MEDIUM and HIGH match the in-game shadow settings. ULTRA is twice the resolution of HIGH (16k), and probably shouldn't be used..."/>
+                            <ComboBox Grid.Column="1" SelectedIndex="{Binding ShadowMapRes, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBoxItem Content="DISABLED"/>
+                                <ComboBoxItem Content="LOW"/>
+                                <ComboBoxItem Content="MEDIUM"/>
+                                <ComboBoxItem Content="HIGH"/>
+                                <ComboBoxItem Content="ULTRA"/>
+                            </ComboBox>
+                        </Grid>
+                        <Grid Margin="3,5,0,0" Width="250">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Label Content="Background Color"/>
                             <Controls:ColorPicker Grid.Column="1" SelectedColor="{Binding BackgroundColor, UpdateSourceTrigger=PropertyChanged}"  IsColorPalettesTabVisible="False"/>
                         </Grid>

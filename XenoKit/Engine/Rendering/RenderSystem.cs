@@ -80,8 +80,8 @@ namespace XenoKit.Engine.Rendering
         private RenderTargetWrapper FinalRenderTarget;
 
         //Global sampler RTs:
-        public RenderTargetWrapper ShadowPassRT0; //Characters and the stage enviroments are drawn onto this RT with the different shaders (Chara: ShadowModel_W, Stage: ShadowModel, Grass: GI_ShadowModel_Grass)
-        public RenderTargetWrapper SamplerAlphaDepth;
+        private RenderTargetWrapper ShadowPassRT0; //Characters and the stage enviroments are drawn onto this RT with the different shaders (Chara: ShadowModel_W, Stage: ShadowModel, Grass: GI_ShadowModel_Grass)
+        private RenderTargetWrapper SamplerAlphaDepth;
 
         //ShaderPrograms:
         public Xv2ShaderEffect ShadowModel_W { get; private set; }
@@ -214,11 +214,15 @@ namespace XenoKit.Engine.Rendering
             GraphicsDevice.SetRenderTarget(ShadowPassRT0.RenderTarget);
             GraphicsDevice.SetDepthBuffer(ShadowPassRT0.RenderTarget);
             GraphicsDevice.Clear(Color.Red);
-            DrawEntityList(Characters, false);
-            DrawEntityList(Stages, false);
 
-            if (DumpShadowMapNextFrame)
-                DumpRenderTargets();
+            if (SettingsManager.settings.XenoKit_ShadowMapRes > 16)
+            {
+                DrawEntityList(Characters, false);
+                DrawEntityList(Stages, false);
+
+                if (DumpShadowMapNextFrame)
+                    DumpRenderTargets();
+            }
 
             //Normals Pass (Chara)
             SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);
@@ -734,6 +738,21 @@ namespace XenoKit.Engine.Rendering
             }
         }
         #endregion
+
+        public RenderTargetWrapper GetShaderRT()
+        {
+            return ShadowPassRT0;
+        }
+
+        public RenderTargetWrapper GetNormalRT()
+        {
+            return NormalPassRT0;
+        }
+
+        public RenderTargetWrapper GetSamplerAlphaDepthRT()
+        {
+            return SamplerAlphaDepth;
+        }
 
         public bool CheckDrawPass(Xv2ShaderEffect material)
         {

@@ -4,10 +4,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Xv2CoreLib.EMM;
 using XenoKit.Engine.Shader.DXBC;
-using XenoKit.Engine.Vfx;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.SDS;
-using System.Windows.Documents;
+using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Shader
 {
@@ -116,7 +115,6 @@ namespace XenoKit.Engine.Shader
         protected EffectParameter g_mMatrixPalette_VS;
         protected EffectParameter g_bSkinning_VS;
 
-        private static Vector3 EyePosValue = new Vector3(50f, 20f, 20f);
         private static Vector4 HC_Param11 = new Vector4(1.10f, 0.20f, 0.80f, 0.10f);
         private static Vector4 HC_Param12 = new Vector4(-0.55689f, 0.79556f, -0.23867f, 1.00f);
         private static Vector4 HC_Param13 = new Vector4(8.00f, 0.40f, 0.00f, 0.00f);
@@ -211,6 +209,8 @@ namespace XenoKit.Engine.Shader
                             break;
                         case ShaderParameter.WVP:
                         case ShaderParameter.WVP_Prev:
+                        case ShaderParameter.LightVec0_VS: //Requires WVP to get camera direction
+                        case ShaderParameter.LightVec0_PS:
                             UseWVP = true;
                             break;
                     }
@@ -479,7 +479,7 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vSpecular_VS"].SetValue(new Vector4(MatParam.SpcCoeff, MatParam.SpcPower, 0, 0));
                 Parameters["g_vEyePos_VS"].SetVector4(MatParam.gCamPos.Values);
                 Parameters["g_vLightDif0_VS"].SetVector4(MatParam.MatDif.Values, MatParam.MatDifScale);
-                Parameters["g_vLightSpc0_VS"].SetVector4(MatParam.MatSpc.Values);
+                Parameters["g_vLightSpc0_VS"].SetVector4(MatParam.MatSpc.Values); //Not sure...
 
                 Parameters["g_vLightVec1_VS"].SetValue(new Vector3(0f, 1f, 0f));
                 Parameters["g_vLightVec2_VS"].SetValue(new Vector3(0f, 1f, 0f));
@@ -540,8 +540,7 @@ namespace XenoKit.Engine.Shader
             //ps_stage_cb
             if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB])
             {
-                Parameters["g_vShadowMap_PS"].SetValue(new Vector4(2048f, 00049f, 0.001f, 0.85f));
-                //Parameters["g_vShadowMap_PS"].SetValue(new Vector4(4096f, 0.00012f, 0.001f, 0.85f));
+                Parameters["g_vShadowMap_PS"].SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 00049f, 0.001f, 0.85f));
                 Parameters["g_vShadowColor_PS"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 0));
                 Parameters["g_vEdge_PS"].SetValue(MatParam.NoEdge > 0 ? Vector4.Zero : Vector4.One);
                 Parameters["g_vGlare_PS"].SetValue(Vector4.Zero);
@@ -580,8 +579,8 @@ namespace XenoKit.Engine.Shader
                 //Parameters["g_vLightVec0_PS"].SetValue(MatParam.g_vLightVec);
                 Parameters["g_vLightVec1_PS"].SetValue(new Vector3(0f, 1f, 0f));
                 Parameters["g_vLightVec2_PS"].SetValue(new Vector3(0f, 1f, 0f));
-                Parameters["g_vLightSpc0_PS"].SetVector4(MatParam.gLightSpc.Values);
-                Parameters["g_vLightDif0_PS"].SetVector4(MatParam.gLightDif.Values);
+                Parameters["g_vLightSpc0_PS"].SetVector4(MatParam.MatSpc.Values, 0.3f); //does not seem to be MatParam.gLightSpc (was set to this) 
+                Parameters["g_vLightDif0_PS"].SetVector4(MatParam.MatDif.Values, MatParam.MatDifScale); //not MatParam.gLightDif
                 Parameters["g_vEyePos_PS"].SetVector4(MatParam.gCamPos.Values);
                 Parameters["g_vSpecular_PS"].SetValue(new Vector4(MatParam.SpcCoeff, MatParam.SpcPower, 0, 0));
                 Parameters["g_vRim_PS"].SetValue(new Vector4(MatParam.RimCoeff, MatParam.RimPower, 0, 0));
@@ -621,6 +620,11 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vParam12_PS"].SetValue(new Vector4(0, 0, 0, 1));
                 Parameters["g_vParam13_PS"].SetValue(new Vector4(1f));
                 Parameters["g_vParam14_PS"].SetValue(new Vector4(1f));
+            }
+
+            if (shaderProgram.UsePixelShaderBuffer[PS_USER_CB])
+            {
+                Parameters["g_vShadowParam_PS"].SetValue(new Vector4(34.32481f, 68.64962f, 0, 0));
             }
 
             //cb_ps_bool
@@ -700,18 +704,18 @@ namespace XenoKit.Engine.Shader
                 case ShaderParameter.VP:
                     g_mVP_VS?.SetValue(GameBase.ActiveCameraBase.ViewProjectionMatrix);
                     break;
+                case ShaderParameter.WLP_SM: //World Light Projection (Shadow Map)
+                    g_mWLP_SM_VS?.SetValue(World * GameBase.SunLight.LightViewProjectionMatrix);
+                    break;
                 case ShaderParameter.WLPB_SM: //World Light Projection Bias (Shadow Map)
-                    Parameters["g_mWLPB_SM_VS"]?.SetValue(World * GameBase.LightSource.LightBiasMatrix);
+                    Parameters["g_mWLPB_SM_VS"]?.SetValue(World * GameBase.SunLight.LightViewProjectionBiasMatrix);
                     //Parameters["g_mWLPB_SM_VS"]?.SetValue(GameBase.LightSource.LightMatrix);
                     break;
-                case ShaderParameter.WLPB_PM:
-                    Parameters["g_mWLPB_PM_VS"]?.SetValue(World * GameBase.LightSource.LightBiasMatrix);
+                case ShaderParameter.WLP_PM: //Same as _SM variant
+                    Parameters["g_mWLP_PM_VS"]?.SetValue(World * GameBase.SunLight.LightViewProjectionMatrix);
                     break;
-                case ShaderParameter.WLP_PM:
-                    Parameters["g_mWLP_PM_VS"]?.SetValue(World * GameBase.LightSource.LightMatrix);
-                    break;
-                case ShaderParameter.WLP_SM: //World Light Projection (Shadow Map)
-                    g_mWLP_SM_VS?.SetValue(World * GameBase.LightSource.LightMatrix);
+                case ShaderParameter.WLPB_PM: //Same as _SM variant
+                    Parameters["g_mWLPB_PM_VS"]?.SetValue(World * GameBase.SunLight.LightViewProjectionBiasMatrix);
                     break;
                 case ShaderParameter.WIT:
                     break;
@@ -766,10 +770,11 @@ namespace XenoKit.Engine.Shader
                 case ShaderParameter.UserFlag0_VS:
                     g_vUserFlag0_VS?.SetValue(GameBase.LightSource.Position);
                     break;
-                case ShaderParameter.EyePos_VS:
-                    //Dont know what this actually is, but it seems to be a local position (relative to object) of something. So its being set to basically a random position for now...
-                    if (ActorSlot != -1 && SceneManager.Actors[ActorSlot] != null)
-                        g_vEyePos_VS?.SetValue(new Vector4(EyePosValue - SceneManager.Actors[ActorSlot].Transform.Translation, 1));
+                case ShaderParameter.EyePos_VS: //Camera position in object space
+                    g_vEyePos_VS?.SetValue(new Vector4(Vector3.Transform(GameBase.ActiveCameraBase.CameraState.Position, Matrix.Invert(World)), 1f));
+                    break;
+                case ShaderParameter.EyePos_PS:
+                    g_vEyePos_PS?.SetValue(new Vector4(Vector3.Transform(GameBase.ActiveCameraBase.CameraState.Position, Matrix.Invert(World)), 1f));
                     break;
 
                 case ShaderParameter.FadeColor:
@@ -808,6 +813,14 @@ namespace XenoKit.Engine.Shader
             {
                 InitTechnique();
                 IsShaderProgramDirty = false;
+            }
+
+            //Apply billboarding rotation if material requires it
+            if(MatParam.Billboard == 1)
+            {
+                Matrix billboardWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.Invert(GameBase.ActiveCameraBase.ViewMatrix);
+                billboardWorld.Translation = World.Translation;
+                World = billboardWorld;
             }
 
             //Calculate matrices
@@ -888,8 +901,16 @@ namespace XenoKit.Engine.Shader
             //Parameters["g_bShadowPCF1_PS"]?.SetValue(true);
             //Parameters["g_bShadowPCF4_PS"]?.SetValue(true);
             //Parameters["g_bShadowPCF8_PS"]?.SetValue(true);
-            //Parameters["g_bShadowPCF16_PS"]?.SetValue(false);
-            //Parameters["g_bShadowPCF24_PS"]?.SetValue(true);
+            //Parameters["g_vEyePos_VS"]?.SetValue(Vector4.Zero);
+            //Parameters["g_vShadowParam_PS"]?.SetValue(new Vector4(34.32481f, 68.64962f, 0, 0));
+            //Parameters["g_vShadowColor_PS"]?.SetValue(new Vector4(0.5f,0.5f,0.5f, 1));
+            //Parameters["g_vShadowMap_PS"]?.SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 0.00012f, 0.001f, 0.85f));
+
+            //Parameters["g_vLightDif0_PS"]?.SetValue(new Vector4(0.48649f, 0.48649f, 0.49324f, 1.00f)); //Needs to be set
+
+            //Parameters["g_vLightSpc0_PS"]?.SetValue(new Vector4(0.3f, 0.3f, 0.3f, 1)); //NOT set. SogLightDir  is NOT this?
+            //Parameters["g_vSpecular_PS"]?.SetValue(new Vector4(2,4,0,0)); //No effect?
+            //Parameters["g_vAmbUni_PS"]?.SetValue(new Vector4(0.1175f, 0.17391f, 0.30072f, 1.00f)); //Needs to be set
 
             //Update global parameters
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])

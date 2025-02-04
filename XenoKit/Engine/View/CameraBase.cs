@@ -12,8 +12,6 @@ namespace XenoKit.Engine.View
     /// </summary>
     public class CameraBase : Entity, ICameraBase
     {
-        //Based on the Xenoviewer camera code, ported here by Olganix
-        
         public virtual Matrix ViewMatrix
         {
             get
@@ -36,7 +34,7 @@ namespace XenoKit.Engine.View
             }
         }
         public virtual Matrix ViewProjectionMatrix { get; protected set; }
-
+        public BoundingFrustum Frustum { get; protected set; } = new BoundingFrustum(Matrix.Identity);
         public virtual CameraState CameraState { get; protected set; } = new CameraState();
 
         //camera moves

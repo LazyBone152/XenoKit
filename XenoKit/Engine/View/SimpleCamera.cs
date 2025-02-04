@@ -23,6 +23,7 @@ namespace XenoKit.Engine.View
 
 
             ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
+            Frustum.Matrix = ViewProjectionMatrix;
         }
     }
 }

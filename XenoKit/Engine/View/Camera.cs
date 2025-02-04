@@ -64,6 +64,7 @@ namespace XenoKit.Engine.View
 
             //Calculate viewProjtion matrix once here each frame, and reuse that value in shaders
             ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
+            Frustum.Matrix = ViewProjectionMatrix;
 
             locked = false;
         }

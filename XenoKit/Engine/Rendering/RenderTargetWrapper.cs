@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using XenoKit.Editor;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Rendering
@@ -55,7 +56,7 @@ namespace XenoKit.Engine.Rendering
 
         public static RenderTargetWrapper CreateShadowMap(RenderSystem renderSystem)
         {
-            RenderTargetWrapper rt = new RenderTargetWrapper(renderSystem, SurfaceFormat.Single, DepthFormat.Depth16, nameof(RenderSystem.ShadowPassRT0));
+            RenderTargetWrapper rt = new RenderTargetWrapper(renderSystem, SurfaceFormat.Single, DepthFormat.Depth16, "ShadowPassRT0");
             rt.WidthAtInit = SettingsManager.settings.XenoKit_ShadowMapRes;
             rt.HeightAtInit = SettingsManager.settings.XenoKit_ShadowMapRes;
             rt.isShadowMap = true;
@@ -69,8 +70,11 @@ namespace XenoKit.Engine.Rendering
 
             if (isShadowMap)
             {
-                height = HeightAtInit;
-                width = WidthAtInit;
+                height = SettingsManager.settings.XenoKit_ShadowMapRes;
+                width = SettingsManager.settings.XenoKit_ShadowMapRes;
+                HeightAtInit = height;
+                WidthAtInit = width;
+                Log.Add($"Changing shadowmap res to {height}");
             }
             else
             {

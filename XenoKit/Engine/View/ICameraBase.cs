@@ -8,6 +8,7 @@ namespace XenoKit.Engine.View
         Matrix ProjectionMatrix { get; }
         Matrix ViewProjectionMatrix { get; }
         CameraState CameraState { get; }
+        BoundingFrustum Frustum { get; }
 
         Vector2 ProjectToScreenPosition(Vector3 worldPos);
 

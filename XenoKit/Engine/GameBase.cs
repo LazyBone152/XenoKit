@@ -36,6 +36,7 @@ namespace XenoKit.Engine
         public ShaderManager ShaderManager { get; private set; }
         public virtual ICameraBase ActiveCameraBase { get; }
         public DirLight LightSource { get; private set; }
+        public SunLight SunLight { get; private set; }
         public Input Input { get; private set; }
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; protected set; }
@@ -78,6 +79,7 @@ namespace XenoKit.Engine
 
             Input = new Input(this);
             LightSource = new DirLight(this);
+            SunLight = new SunLight(this);
             ObjectPoolManager = new ObjectPoolManager(this);
             ShaderManager = new ShaderManager(this);
             Simulation = new Simulation(this);
@@ -99,6 +101,7 @@ namespace XenoKit.Engine
             Input.Update(_mouse, _keyboard);
             CheckHotkeys();
 
+            SunLight.Update();
             LightSource.Update();
 
             //Entities

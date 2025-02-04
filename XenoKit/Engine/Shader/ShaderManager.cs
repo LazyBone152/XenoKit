@@ -529,11 +529,30 @@ namespace XenoKit.Engine.Shader
                 switch (slot)
                 {
                     case 6:
+                        //SamplerProjectionMap - this is the NormalPassRT0
+                        {
+                            sampler = new GlobalSampler(slot,
+                                                        game.RenderSystem.GetNormalRT(),
+                                                        new SamplerState()
+                                                        {
+                                                            AddressU = TextureAddressMode.Clamp,
+                                                            AddressV = TextureAddressMode.Clamp,
+                                                            AddressW = TextureAddressMode.Wrap,
+                                                            BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
+                                                            MaxAnisotropy = 1,
+                                                            ComparisonFunction = CompareFunction.Never,
+                                                            Filter = TextureFilter.Point,
+                                                            MipMapLevelOfDetailBias = 0,
+                                                            Name = GetSamplerName(slot),
+                                                            GraphicsDevice = game.GraphicsDevice
+                                                        });
+                            break;
+                        }
                     case 7:
-                        //ShadowMap / SamplerProjectionMap
+                        //ShadowMap
                         {
                             //Texture2D texture = Texture2D.FromFile(game.GraphicsDevice, "shadowmap.png");
-                            sampler = new GlobalSampler(slot, game.RenderSystem.ShadowPassRT0,
+                            sampler = new GlobalSampler(slot, game.RenderSystem.GetShaderRT(),
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Border,
@@ -553,7 +572,7 @@ namespace XenoKit.Engine.Shader
                     case 10:
                         //SamplerAlphaDepth
                         {
-                            sampler = new GlobalSampler(slot, game.RenderSystem.SamplerAlphaDepth,
+                            sampler = new GlobalSampler(slot, game.RenderSystem.GetSamplerAlphaDepthRT(),
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Wrap,
@@ -835,6 +854,11 @@ namespace XenoKit.Engine.Shader
             Slot = slot;
             RT = texture;
             Sampler = sampler;
+        }
+    
+        public void UpdateTexture(Texture texture)
+        {
+            Texture = texture;
         }
     }
 }
