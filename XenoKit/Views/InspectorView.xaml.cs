@@ -158,6 +158,7 @@ namespace XenoKit.Views
             }
         }
 
+        /*
         public RelayCommand DrawLastCommand => new RelayCommand(DrawLast, IsModelFile);
         private void DrawLast()
         {
@@ -166,6 +167,7 @@ namespace XenoKit.Views
                 SceneManager.MainGameBase.RenderSystem.MoveRenderEntityToFront(mesh);
             }
         }
+        */
 
 
         private bool IsModelFile()
@@ -311,7 +313,6 @@ namespace XenoKit.Views
 
         void IDropTarget.DragLeave(IDropInfo dropInfo)
         {
-
         }
 
         public void ProcessFileDrop(string[] files)

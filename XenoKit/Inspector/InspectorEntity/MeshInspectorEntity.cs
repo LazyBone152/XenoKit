@@ -232,11 +232,20 @@ namespace XenoKit.Inspector.InspectorEntities
         public override void DrawPass(bool normalPass)
         {
             if (!Visible) return;
+            if (normalPass && ShaderType == ShaderType.Stage) return; //No normal pass for stages
 
-            if (normalPass && ShaderType != ShaderType.Stage)
+            Xv2ShaderEffect shader = RenderSystem.NORMAL_FADE_WATERDEPTH_W_M;
+
+            if(ShaderType == ShaderType.Stage)
             {
-                Model.Draw(Parent != null ? Parent.Transform : Matrix.Identity, 0, RenderSystem.NORMAL_FADE_WATERDEPTH_W_M, Parent?.Skeleton);
+                shader = RenderSystem.ShadowModel;
             }
+            else if(ShaderType == ShaderType.Chara)
+            {
+                shader = RenderSystem.ShadowModel_W;
+            }
+
+            Model.Draw(Parent != null ? Parent.Transform : Matrix.Identity, 0, shader, Parent?.Skeleton);
         }
     
         /// <summary>
