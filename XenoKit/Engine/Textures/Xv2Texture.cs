@@ -21,7 +21,7 @@ namespace XenoKit.Engine.Textures
                 }
                 return _texture;
             }
-            set
+            private set
             {
                 IsDirty = false;
                 _texture = value;
