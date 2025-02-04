@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Graphics;
 using XenoKit.Editor;
 using Xv2CoreLib.EMB_CLASS;
 using Pfim;
-using System.Diagnostics;
 
 namespace XenoKit.Engine.Textures
 {

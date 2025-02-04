@@ -1,16 +1,12 @@
 ﻿using System;
+using System.IO;
+using System.ComponentModel;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using XenoKit.Editor;
 using XenoKit.Engine;
-using Xv2CoreLib.Resource;
 using XenoKit.Inspector.InspectorEntities;
-using System.IO;
-using Microsoft.Xna.Framework;
 using Xv2CoreLib;
-using System.ComponentModel;
+using Xv2CoreLib.Resource;
 
 namespace XenoKit.Inspector
 {

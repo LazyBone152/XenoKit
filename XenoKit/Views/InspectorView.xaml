@@ -122,6 +122,9 @@
                             <MenuItem Header="8" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="8"/>
                             <MenuItem Header="9" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetDytLevelCommand}" CommandParameter="9"/>
                         </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Set as ENV" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetEnvMapCommand}"/>
+                        <MenuItem Header="Set as REF" Command="{Binding Source={StaticResource Proxy}, Path=Data.SetRefCommand}"/>
                     </ContextMenu>
                 </TreeView.ContextMenu>
                 <TreeView.InputBindings>

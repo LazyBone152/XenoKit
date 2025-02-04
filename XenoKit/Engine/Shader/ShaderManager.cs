@@ -47,6 +47,7 @@ namespace XenoKit.Engine.Shader
         private const int SamplerSmallScene = 12;
 
         private Texture2D NoRimLightTexture;
+        private TextureCube Texture_SamplerCubeMap; //Cubemap for current stage, located in data/stage/{stage}/{stage}_ENV.emb. For now just load a default one.
 
         //File watch
         private FileSystemWatcher extShaderWatcher;
@@ -528,6 +529,26 @@ namespace XenoKit.Engine.Shader
 
                 switch (slot)
                 {
+                    case 5:
+                        //Sampler_SamplerCubeMap
+                        if (Texture_SamplerCubeMap == null)
+                            SetSceneCubeMap(null); //Load default cubemap
+
+                        sampler = new GlobalSampler(slot, Texture_SamplerCubeMap, new SamplerState()
+                        {
+                            AddressU = TextureAddressMode.Clamp,
+                            AddressV = TextureAddressMode.Clamp,
+                            AddressW = TextureAddressMode.Wrap,
+                            BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
+                            MaxAnisotropy = 1,
+                            ComparisonFunction = CompareFunction.Never,
+                            Filter = TextureFilter.Linear,
+                            MipMapLevelOfDetailBias = 0,
+                            Name = GetSamplerName(slot),
+                            FilterMode = TextureFilterMode.Default,
+                            GraphicsDevice = game.GraphicsDevice
+                        });
+                        break;
                     case 6:
                         //SamplerProjectionMap - this is the NormalPassRT0
                         {
@@ -693,6 +714,27 @@ namespace XenoKit.Engine.Shader
             GlobalSamplers[slot] = null;
         }
 
+        public void SetSceneCubeMap(TextureCube textureCube)
+        {
+            if(textureCube == null)
+            {
+                //EMB_File defaultEnv = FileManager.Instance.GetParsedFileFromGame("stage/BFhel/BFhelENV.emb") as EMB_File;
+                //EMB_File defaultEnv = FileManager.Instance.GetParsedFileFromGame("stage/BFtfl/BFtflENV.emb") as EMB_File;
+                EMB_File defaultEnv = FileManager.Instance.GetParsedFileFromGame("stage/BFtwn/BFtwnENV.emb") as EMB_File;
+                textureCube = TextureLoader.ConvertToTextureCube(defaultEnv.Entry[0], GetTextureName(5), game.GraphicsDevice);
+            }
+
+            if(Texture_SamplerCubeMap != null)
+            {
+                Texture_SamplerCubeMap.Dispose();
+            }
+
+            Texture_SamplerCubeMap = textureCube;
+
+            //Set cubemap on sampler
+            var sampler = GetGlobalSampler(5);
+            sampler.UpdateTexture(Texture_SamplerCubeMap);
+        }
         #endregion
 
         #region Helpers

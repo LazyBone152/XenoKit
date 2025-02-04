@@ -13,6 +13,9 @@ using XenoKit.Inspector;
 using XenoKit.Inspector.InspectorEntities;
 using System;
 using XenoKit.Editor;
+using XenoKit.Engine.Textures;
+using Microsoft.Xna.Framework.Graphics;
+using System.IO;
 
 namespace XenoKit.Views
 {
@@ -155,6 +158,52 @@ namespace XenoKit.Views
 
                 EmdViewer modelViewer = new EmdViewer(mesh.EmdFile, mesh.TextureFile?.EmbFile, mesh.DytFile?.EmbFile, mesh.MaterialFile?.EmmFile, mesh.Name);
                 modelViewer.Show();
+            }
+        }
+
+        public RelayCommand SetEnvMapCommand => new RelayCommand(SetEnvMap, IsFileSelected);
+        private void SetEnvMap()
+        {
+            if (SelectedItem is TextureInspectorEntity emb)
+            {
+                if(emb.EmbFile.Entry.Count == 0)
+                {
+                    Log.Add("The selected EMB file has no textures in it.", LogType.Error);
+                    return;
+                }
+
+                DDS_File dds = new DDS_File(emb.EmbFile.Entry[0].Data);
+
+                if(!dds.Header.IsCubemap())
+                {
+                    Log.Add("The selected EMB file does not appear to be a ENV stage texture file, as it does not contain a cubemap at idx 0.", LogType.Error);
+                    return;
+                }
+
+                TextureCube cubemap = TextureLoader.ConvertToTextureCube(emb.EmbFile.Entry[0], "ENV");
+                SceneManager.MainGameInstance?.ShaderManager.SetSceneCubeMap(cubemap);
+
+                Log.Add($"Scene cubemap changed to \"{Path.GetFileName(emb.Path)}\"");
+            }
+        }
+
+        public RelayCommand SetRefCommand => new RelayCommand(SetRef, IsFileSelected);
+        private void SetRef()
+        {
+            if (SelectedItem is SkinnedInspectorEntity nsk)
+            {
+                if (!nsk.Path.EndsWith(".nsk", StringComparison.OrdinalIgnoreCase))
+                {
+                    Log.Add($"Cannot set \"{nsk.Path}\" as the scene reflection source as it is not a NSK file.", LogType.Warning);
+                    return;
+                }
+
+                //SceneManager.MainGameInstance?.RenderSystem.SetReflectionModel(nsk);
+
+                //Make it invisible in the main scene
+                SelectedItem.Visible = false;
+
+                Log.Add($"Scene reflection changed to \"{Path.GetFileName(nsk.Path)}\"");
             }
         }
 
