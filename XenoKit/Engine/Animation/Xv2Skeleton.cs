@@ -86,6 +86,7 @@ namespace XenoKit.Engine.Animation
                 Bones[i].ParentIndex = parentIdx;
 
                 Bones[i].RelativeMatrix = ConvertEmoMatrix(EmoSkeleton.Bones[i].RelativeMatrix);
+                Bones[i].AnimationMatrix = Bones[i].RelativeMatrix;
             }
 
             UpdateAbsoluteMatrixFromRelative();
@@ -121,6 +122,7 @@ namespace XenoKit.Engine.Animation
                 Bones[i].IsFaceBone = esk.Skeleton.NonRecursiveBones[i].Name.StartsWith("f_");
 
                 Bones[i].RelativeMatrix = ConvertEskTransformToMatrix(esk.Skeleton.NonRecursiveBones[i].RelativeTransform);
+                Bones[i].AnimationMatrix = Bones[i].RelativeMatrix;
 
                 if(Bones[i].Name == ESK_File.BaseBone)
                 {

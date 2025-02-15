@@ -157,6 +157,23 @@ namespace XenoKit.Engine
             }
         }
 
+        public void ForceShaderUpdate(string shaderProgram)
+        {
+            foreach (KeyValuePair<object, CompiledObjectCacheEntry> obj in CachedObjects)
+            {
+                if (obj.Value.CachedObject.IsAlive && obj.Value.CachedObject.Target is Xv2ShaderEffect shader)
+                {
+                    if (shader.shaderProgram != null)
+                    {
+                        if(shader.shaderProgram.Name == shaderProgram)
+                        {
+                            shader.InitTechnique();
+                        }
+                    }
+                }
+            }
+        }
+
         public void ForceShaderUpdate(List<ShaderProgram> modifiedShaderPrograms)
         {
             foreach (KeyValuePair<object, CompiledObjectCacheEntry> obj in CachedObjects)

@@ -590,6 +590,26 @@ namespace XenoKit.Engine.Shader
                                                         });
                             break;
                         }
+                    case 8:
+                        //SamplerReflect
+                        {
+                            sampler = new GlobalSampler(slot, game.RenderSystem.GetReflectionRT(),
+                                                        new SamplerState()
+                                                        {
+                                                            AddressU = TextureAddressMode.Clamp,
+                                                            AddressV = TextureAddressMode.Clamp,
+                                                            AddressW = TextureAddressMode.Wrap,
+                                                            BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
+                                                            MaxAnisotropy = 1,
+                                                            ComparisonFunction = CompareFunction.Never,
+                                                            Filter = TextureFilter.Linear,
+                                                            MipMapLevelOfDetailBias = 0,
+                                                            Name = GetSamplerName(slot),
+                                                            FilterMode = TextureFilterMode.Comparison,
+                                                            GraphicsDevice = game.GraphicsDevice
+                                                        });
+                            break;
+                        }
                     case 10:
                         //SamplerAlphaDepth
                         {
@@ -606,6 +626,25 @@ namespace XenoKit.Engine.Shader
                                                             MipMapLevelOfDetailBias = 0,
                                                             Name = GetSamplerName(slot),
                                                             FilterMode = TextureFilterMode.Comparison,
+                                                            GraphicsDevice = game.GraphicsDevice
+                                                        });
+                            break;
+                        }
+                    case 12:
+                        //SmallScene
+                        {
+                            sampler = new GlobalSampler(slot, game.RenderSystem.GetSmallSceneRT(),
+                                                        new SamplerState()
+                                                        {
+                                                            AddressU = TextureAddressMode.Wrap,
+                                                            AddressV = TextureAddressMode.Wrap,
+                                                            AddressW = TextureAddressMode.Wrap,
+                                                            BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
+                                                            MaxAnisotropy = 1,
+                                                            ComparisonFunction = CompareFunction.Never,
+                                                            Filter = TextureFilter.Linear,
+                                                            MipMapLevelOfDetailBias = 0,
+                                                            Name = GetSamplerName(slot),
                                                             GraphicsDevice = game.GraphicsDevice
                                                         });
                             break;

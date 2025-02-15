@@ -17,5 +17,9 @@ namespace XenoKit.Engine.View
         Vector3 TransformRelativeToCamera(Vector3 position, float distanceModifier);
 
         void ResetViewerAngles();
+
+        void SetReflectionView(bool reflection);
+
+        void RecalculateMatrices();
     }
 }

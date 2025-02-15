@@ -232,10 +232,13 @@ namespace XenoKit.Engine
             GraphicsDevice.Clear(Color.Transparent);
             RenderSystem.YBS.ApplyAxisCorrection();
 
+            RenderSystem.CreateSmallScene(MainRenderTarget.RenderTarget);
+
             //Present on screen
             GraphicsDevice.SetRenderTarget(InternalRenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             RenderSystem.DisplayRenderTarget(MainRenderTarget.RenderTarget, true);
+            //RenderSystem.DisplayRenderTarget(RenderSystem.GetReflectionRT().RenderTarget, true);
 
         }
 

@@ -433,7 +433,9 @@ namespace XenoKit.Engine.Gizmo
             if (!IsVisible)
             {
                 //Attempt to enable control if valid input
-                if (Input.IsKeyDown(Keys.R) || Input.IsKeyDown(Keys.T) || Input.IsKeyDown(Keys.S) || (WasAutoHidden && IsContextValid()))
+                if (Input.IsKeyDown(Keys.T) || 
+                    ((Input.IsKeyDown(Keys.R) || Input.IsKeyDown(Keys.S)) && SceneManager.CurrentSceneState != EditorTabs.Inspector) || 
+                    (WasAutoHidden && IsContextValid()))
                 {
                     Enable();
                 }

@@ -20,10 +20,7 @@ namespace XenoKit.Engine.View
         public override void Update()
         {
             ProcessCameraControl();
-
-
-            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
-            Frustum.Matrix = ViewProjectionMatrix;
+            RecalculateMatrices();
         }
     }
 }

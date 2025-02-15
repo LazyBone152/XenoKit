@@ -18,10 +18,12 @@ namespace XenoKit.Engine.Rendering
         public readonly PostFilter PostFilter;
         public readonly YBSPostProcess YBS;
 
+        private readonly List<Entity> Reflections = new List<Entity>();
         private readonly List<Entity> Characters = new List<Entity>();
         private readonly List<Entity> Stages = new List<Entity>();
         private readonly List<Entity> Effects = new List<Entity>(); //PBIND, TBIND, EMO
 
+        private readonly List<Entity> ReflectionsToRemove = new List<Entity>();
         private readonly List<Entity> CharasToRemove = new List<Entity>();
         private readonly List<Entity> StagesToRemove = new List<Entity>();
         private readonly List<Entity> EffectsToRemove = new List<Entity>();
@@ -33,11 +35,15 @@ namespace XenoKit.Engine.Rendering
         private List<RenderTargetWrapper> registeredRenderTargets = new List<RenderTargetWrapper>();
         private List<RenderTarget2D> _toBeDisposed = new List<RenderTarget2D>();
 
-        //Render Settings:
+        //Render Settings
         public DrawPass CurrentDrawPass { get; private set; }
+        public bool IsReflectionPass { get; private set; }
+        private readonly Color ReflectionBackgroundColor = new Color(0.25098f, 0.25098f, 0.25098f, 1f);
         private readonly Color NormalsBackgroundColor = new Color(0.50196f, 0.50196f, 0, 0);
-        private bool ScreenshotRequested = false;
+
+        //Screenshot / RT Dump
         private ScreenshotType ScreenshotType = ScreenshotType.TransparentBackground;
+        private bool ScreenshotRequested = false;
         public bool DumpRenderTargetsNextFrame = false;
         public bool DumpShadowMapNextFrame = false;
         public int RecreateRenderTargetsNextFrames = 0;
@@ -52,6 +58,9 @@ namespace XenoKit.Engine.Rendering
 
         //RTs:
         public RenderTargetWrapper DepthBuffer;
+
+        //Some stages have a "REF" NSK that is rendered upside down to this, and used for reflections
+        private RenderTargetWrapper ReflectionRT;
 
         //Characters are drawn onto these RTs using the shader NORMAL_FADE_WATERDEPTH_W_M
         private RenderTargetWrapper NormalPassRT0;
@@ -82,6 +91,7 @@ namespace XenoKit.Engine.Rendering
         //Global sampler RTs:
         private RenderTargetWrapper ShadowPassRT0; //Characters and the stage enviroments are drawn onto this RT with the different shaders (Chara: ShadowModel_W, Stage: ShadowModel, Grass: GI_ShadowModel_Grass)
         private RenderTargetWrapper SamplerAlphaDepth;
+        private RenderTargetWrapper SmallSceneRT;
 
         //ShaderPrograms:
         public Xv2ShaderEffect ShadowModel_W { get; private set; }
@@ -147,6 +157,7 @@ namespace XenoKit.Engine.Rendering
             AGE_TEST_DEPTH_TO_PFXD = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_DEPTH_TO_PFXD"), GameBase);
 
             //Create RTs
+            ReflectionRT = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "ReflectionRT");
             ShadowPassRT0 = RenderTargetWrapper.CreateShadowMap(this);
             DepthBuffer = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true);
             NormalPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "NormalPassRT0");
@@ -161,10 +172,12 @@ namespace XenoKit.Engine.Rendering
             LowRezSmokeRT0 = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "LowRezSmokeRT0");
             LowRezSmokeRT0_New = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "LowRezSmokeRT0_New");
             LowRezSmokeRT1 = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, false, "LowRezSmokeRT1");
-            ScreenshotRT = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "PostTestRT");
+            ScreenshotRT = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "ScreenshotRT");
+            SmallSceneRT = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "SmallSceneRT");
 
 
             //Register all render targets so they get auto-updated if the viewport changes size
+            RegisterRenderTarget(ReflectionRT);
             RegisterRenderTarget(ShadowPassRT0);
             RegisterRenderTarget(NormalPassRT0);
             RegisterRenderTarget(NormalPassRT1);
@@ -180,6 +193,7 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(LowRezSmokeRT1);
             RegisterRenderTarget(DepthBuffer);
             RegisterRenderTarget(ScreenshotRT);
+            RegisterRenderTarget(SmallSceneRT);
 
         }
 
@@ -210,15 +224,25 @@ namespace XenoKit.Engine.Rendering
             GraphicsDevice.SetRenderTarget(RenderSystem.DepthBuffer.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
 
+            //Reflection Pass
+            IsReflectionPass = true;
+            CameraBase.SetReflectionView(true);
+            GraphicsDevice.SetRenderTarget(ReflectionRT.RenderTarget);
+            GraphicsDevice.Clear(ReflectionBackgroundColor);
+            DrawEntity(Reflections, -1); //Ignore LowRez param, since reflections are already rendering at 1/4 screen res
+            IsReflectionPass = false;
+
             //Shadow Pass (Chara + Stage Enviroment)
+            CameraBase.SetReflectionView(false);
             GraphicsDevice.SetRenderTarget(ShadowPassRT0.RenderTarget);
             GraphicsDevice.SetDepthBuffer(ShadowPassRT0.RenderTarget);
             GraphicsDevice.Clear(Color.Red);
 
+            //ShadowMapRes == 16 means shadows are disabled
             if (SettingsManager.settings.XenoKit_ShadowMapRes > 16)
             {
-                DrawEntityList(Characters, false);
-                DrawEntityList(Stages, false);
+                DrawSimpleEntity(Characters, false);
+                DrawSimpleEntity(Stages, false);
 
                 if (DumpShadowMapNextFrame)
                     DumpRenderTargets();
@@ -226,15 +250,15 @@ namespace XenoKit.Engine.Rendering
 
             //Normals Pass (Chara)
             SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);
-            GraphicsDevice.Clear(new Color(0.50196f, 0.50196f, 0, 0));
-            DrawEntityList(Characters, true);
+            GraphicsDevice.Clear(NormalsBackgroundColor);
+            DrawSimpleEntity(Characters, true);
 
             //Color Pass (Chara + Stage Enviroment)
             SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            DrawEntityList(Characters, LOW_REZ_NONE);
-            DrawEntityList(Stages, LOW_REZ_NONE);
+            DrawEntity(Characters, LOW_REZ_NONE);
+            DrawEntity(Stages, LOW_REZ_NONE);
 
             //Black Chara Outline Shader
             if (SettingsManager.settings.XenoKit_UseOutlinePostEffect)
@@ -264,14 +288,14 @@ namespace XenoKit.Engine.Rendering
             SetRenderTargets(NextColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
             GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
             _particleCount = 0;
-            DrawEntityList(Effects, LOW_REZ_NONE);
+            DrawEntity(Effects, LOW_REZ_NONE);
 
             //LowRez Pass
             SetRenderTargets(LowRezRT0.RenderTarget, LowRezRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             UseDepthToDepth();
-            DrawEntityList(Effects, LOW_REZ);
-            DrawEntityList(Effects, LOW_REZ_SMOKE); //LowRezSmoke pass is broken... effects dont render. So for now, render them in LowRez pass until its fixed
+            DrawEntity(Effects, LOW_REZ);
+            DrawEntity(Effects, LOW_REZ_SMOKE); //LowRezSmoke pass is broken... effects dont render. So for now, render them in LowRez pass until its fixed
 
             //LowRezSmoke Pass
             SetRenderTargets(LowRezSmokeRT0.RenderTarget, LowRezSmokeRT1.RenderTarget);
@@ -368,6 +392,15 @@ namespace XenoKit.Engine.Rendering
             GraphicsDevice.SetRenderTargets(renderTargets);
         }
 
+        public void CreateSmallScene(RenderTarget2D finalScene)
+        {
+            SetRenderTargets(SmallSceneRT.RenderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            DisplayRenderTarget(finalScene, false, SmallSceneRT.ResolutionScale);
+
+            SetRenderTargets(finalScene);
+        }
+
         #region Screenshot
         /// <summary>
         /// Requests a screenshot to be saved during the renderering of the next frame.
@@ -435,7 +468,7 @@ namespace XenoKit.Engine.Rendering
 
         #region Update
 
-        private void DrawEntityList(List<Entity> entities, bool normalPass)
+        private void DrawSimpleEntity(List<Entity> entities, bool normalPass)
         {
             foreach (Entity entity in entities)
             {
@@ -452,7 +485,7 @@ namespace XenoKit.Engine.Rendering
         public int CurrentDrawIdx = 0;
 #endif
 
-        private void DrawEntityList(List<Entity> entities, int lowRezMode)
+        private void DrawEntity(List<Entity> entities, int lowRezMode)
         {
             int particleCount = 0;
 #if DEBUG
@@ -464,7 +497,7 @@ namespace XenoKit.Engine.Rendering
 
             foreach (Entity entity in entities)
             {
-                if (entity.LowRezMode != lowRezMode) continue;
+                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
@@ -480,7 +513,7 @@ namespace XenoKit.Engine.Rendering
 
             foreach (Entity entity in entities.OrderByDescending(x => Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
             {
-                if (entity.LowRezMode != lowRezMode) continue;
+                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
@@ -493,7 +526,7 @@ namespace XenoKit.Engine.Rendering
 
             foreach (Entity entity in entities)
             {
-                if (entity.LowRezMode != lowRezMode) continue;
+                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
@@ -506,7 +539,7 @@ namespace XenoKit.Engine.Rendering
 
             foreach (Entity entity in entities)
             {
-                if (entity.LowRezMode != lowRezMode) continue;
+                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
@@ -531,6 +564,7 @@ namespace XenoKit.Engine.Rendering
             EntityListUpdate(Characters, CharasToRemove);
             EntityListUpdate(Stages, StagesToRemove);
             EntityListUpdate(Effects, EffectsToRemove);
+            EntityListUpdate(Reflections, ReflectionsToRemove);
         }
 
         public override void DelayedUpdate()
@@ -605,9 +639,9 @@ namespace XenoKit.Engine.Rendering
             PostFilter.Apply(AddTex);
         }
 
-        public void DisplayRenderTarget(RenderTarget2D renderTarget, bool scaleToViewport = false)
+        public void DisplayRenderTarget(RenderTarget2D renderTarget, bool scaleToViewport = false, float scale = 1f)
         {
-            Rectangle destination = scaleToViewport ? new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height) : new Rectangle(0, 0, renderTarget.Width, renderTarget.Height);
+            Rectangle destination = scaleToViewport ? new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height) : new Rectangle(0, 0, (int)(renderTarget.Width * scale), (int)(renderTarget.Height * scale));
 
             GameBase.spriteBatch.Begin(depthStencilState: DepthStencilState.DepthRead, blendState: BlendState.AlphaBlend);
             GameBase.spriteBatch.Draw(renderTarget, destination, Color.White);
@@ -657,6 +691,33 @@ namespace XenoKit.Engine.Rendering
         #endregion
 
         #region AddRemoveEntity
+
+        public void AddReflectionRenderEntity(Entity entity)
+        {
+            if (entity == null) return;
+
+            if(entity.EntityType == EntityType.Stage)
+            {
+                if(!Reflections.Contains(entity))
+                    Reflections.Add(entity);
+            }
+        }
+
+        public void RemoveReflectionRenderEntity(Entity entity)
+        {
+            if (entity == null) return;
+
+            if (entity.EntityType == EntityType.Stage)
+            {
+                if (Reflections.Contains(entity))
+                    ReflectionsToRemove.Add(entity);
+            }
+        }
+
+        public void RemoveAllReflectionRenderEntity()
+        {
+            ReflectionsToRemove.AddRange(Reflections);
+        }
 
         public void AddRenderEntity(Entity entity)
         {
@@ -754,6 +815,16 @@ namespace XenoKit.Engine.Rendering
             return SamplerAlphaDepth;
         }
 
+        public RenderTargetWrapper GetReflectionRT()
+        {
+            return ReflectionRT;
+        }
+
+        public RenderTargetWrapper GetSmallSceneRT()
+        {
+            return SmallSceneRT;
+        }
+
         public bool CheckDrawPass(Xv2ShaderEffect material)
         {
             if (material.MatParam.AlphaBlend == 0 && CurrentDrawPass == Rendering.DrawPass.Opaque) return true;
@@ -770,8 +841,7 @@ namespace XenoKit.Engine.Rendering
     public enum ScreenshotType
     {
         TransparentBackground,
-        CustomBackgroundColor,
-        Both
+        CustomBackgroundColor
     }
 
     public enum ScreenshotFormat

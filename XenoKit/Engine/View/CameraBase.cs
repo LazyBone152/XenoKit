@@ -12,30 +12,13 @@ namespace XenoKit.Engine.View
     /// </summary>
     public class CameraBase : Entity, ICameraBase
     {
-        public virtual Matrix ViewMatrix
-        {
-            get
-            {
-                return Matrix.CreateLookAt(CameraState.Position, CameraState.TargetPosition, Vector3.Up) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
-            }
-        }
-        public virtual Matrix ProjectionMatrix
-        {
-            get
-            {
-                float fieldOfViewRadians = (float)(Math.PI / 180 * CameraState.FieldOfView);
-                //float nearClipPlane = 0.01f;
-                //float farClipPlane = 5000;
-                float nearClipPlane = 0.1f;
-                float farClipPlane = 15000;
-                float aspectRatio = GraphicsDevice.Viewport.Width / (float)GraphicsDevice.Viewport.Height;
-
-                return Matrix.CreatePerspectiveFieldOfView(fieldOfViewRadians, aspectRatio, nearClipPlane, farClipPlane);
-            }
-        }
-        public virtual Matrix ViewProjectionMatrix { get; protected set; }
+        public Matrix ViewMatrix { get; private set; }
+        public Matrix ProjectionMatrix { get; private set; }
+        public Matrix ViewProjectionMatrix { get; private set; }
         public BoundingFrustum Frustum { get; protected set; } = new BoundingFrustum(Matrix.Identity);
         public virtual CameraState CameraState { get; protected set; } = new CameraState();
+
+        private bool IsReflectionView = false;
 
         //camera moves
         private bool enable_spinning = false;
@@ -401,5 +384,41 @@ namespace XenoKit.Engine.View
             return cameraForward * distanceModifier;
         }
         #endregion
+
+        public void SetReflectionView(bool reflectionEnabled)
+        {
+            IsReflectionView = reflectionEnabled;
+            RecalculateMatrices();
+        }
+
+        public void RecalculateMatrices()
+        {
+            //Projection Matrix
+            float fieldOfViewRadians = (float)(Math.PI / 180 * CameraState.FieldOfView);
+            float nearClipPlane = 0.1f;
+            float farClipPlane = 5000;
+            float aspectRatio = GraphicsDevice.Viewport.Width / (float)GraphicsDevice.Viewport.Height;
+
+            ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(fieldOfViewRadians, aspectRatio, nearClipPlane, farClipPlane);
+            //ProjectionMatrix = EngineUtils.CreateInfinitePerspective(fieldOfViewRadians, aspectRatio, nearClipPlane);
+
+            //View Matrix
+            if (IsReflectionView)
+            {
+                //Dont think this is needed? Flipping the World matrix on the Y axis seems to do the trick
+                Vector3 pos = new Vector3(CameraState.Position.X, -CameraState.Position.Y, CameraState.Position.Z);
+                Vector3 target = new Vector3(CameraState.TargetPosition.X, -CameraState.TargetPosition.Y, CameraState.TargetPosition.Z);
+                //ViewMatrix = Matrix.CreateLookAt(pos, target, Vector3.Down) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
+
+                ViewMatrix = Matrix.CreateLookAt(pos, target, Vector3.Up) * Matrix.CreateScale(1, -1, 1) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
+            }
+            else
+            {
+                ViewMatrix = Matrix.CreateLookAt(CameraState.Position, CameraState.TargetPosition, Vector3.Up) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
+            }
+
+            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix; 
+            Frustum.Matrix = ViewProjectionMatrix;
+        }
     }
 }

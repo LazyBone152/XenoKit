@@ -18,7 +18,7 @@ namespace XenoKit.Engine.Rendering
         private DepthFormat depthFormat;
         private SurfaceFormat surfaceFormat;
         private float RefResolutionScale = 1f;
-        private float ResolutionScale;
+        public float ResolutionScale { get; private set; }
         private int MultiSampleCount;
         private int WidthAtInit;
         private int HeightAtInit;

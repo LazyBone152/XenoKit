@@ -218,7 +218,7 @@ namespace XenoKit.Inspector.InspectorEntities
 
         public override void Draw()
         {
-            if (!Visible) return;
+            if (!Visible && !RenderSystem.IsReflectionPass) return;
 
             if (DytFile != null)
             {
