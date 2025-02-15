@@ -14,6 +14,7 @@ using XenoKit.Engine.Rendering;
 using XenoKit.Inspector;
 using XenoKit.Windows;
 using Xv2CoreLib.Resource.App;
+using Xv2CoreLib.SPM;
 
 namespace XenoKit.Engine
 {
@@ -340,6 +341,11 @@ namespace XenoKit.Engine
                     SettingsManager.settings.XenoKit_UseOutlinePostEffect = !SettingsManager.settings.XenoKit_UseOutlinePostEffect;
                     SetHotkeyCooldown();
                 }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F))
+                {
+                    LocalSettings.Instance.EnableFog = !LocalSettings.Instance.EnableFog;
+                    SetHotkeyCooldown();
+                }
                 else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F11) || (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape) && IsFullScreen))
                 {
                     SetHotkeyCooldown();
@@ -367,6 +373,10 @@ namespace XenoKit.Engine
             base.CheckHotkeys();
         }
 
+        public void SetDefaultSpm(SPM_File spmFile)
+        {
+            _defaultStage?.SetSpmFile(spmFile);
+        }
 
         #region UiButtons
         public void StartPlayback()

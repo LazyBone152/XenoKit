@@ -518,6 +518,7 @@
     <Compile Include="Engine\Rendering\YBSPostFilterStep.cs" />
     <Compile Include="Engine\Rendering\YBSPostProcess.cs" />
     <Compile Include="Engine\Scripting\Simulation.cs" />
+    <Compile Include="Engine\Stage\Xv2Stage.cs" />
     <Compile Include="Engine\Textures\DdsParser.cs" />
     <Compile Include="Engine\Vertex\VertexPositionTexture5.cs" />
     <Compile Include="Inspector\InspectorEntity\EanInspectorEntity.cs" />

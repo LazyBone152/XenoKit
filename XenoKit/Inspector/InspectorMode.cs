@@ -7,6 +7,7 @@ using XenoKit.Engine;
 using XenoKit.Inspector.InspectorEntities;
 using Xv2CoreLib;
 using Xv2CoreLib.Resource;
+using Xv2CoreLib.SPM;
 
 namespace XenoKit.Inspector
 {
@@ -88,6 +89,10 @@ namespace XenoKit.Inspector
                             break;
                         case ".ean":
                             files.Add(new EanInspectorEntity(paths[i]));
+                            break;
+                        case ".spm":
+                            SceneManager.SetDefaultSpm(SPM_File.Load(paths[i]));
+                            Log.Add($"Default SPM set to \"{Path.GetFileName(paths[i])}\"");
                             break;
                     }
                 }

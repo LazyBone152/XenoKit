@@ -249,6 +249,7 @@ namespace XenoKit.Views
             ".emb",
             ".emm",
             ".ean",
+            ".spm"
         };
 
         void IDropTarget.DragOver(IDropInfo dropInfo)

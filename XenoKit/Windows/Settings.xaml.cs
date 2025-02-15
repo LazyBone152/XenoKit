@@ -31,6 +31,7 @@ namespace XenoKit.Windows
 
         private MainWindow _parent;
         public Settings settings { get; set; }
+        public LocalSettings LocalSettings => LocalSettings.Instance;
 
         public Visibility LightAccentVisibility { get { return (settings.GetCurrentTheme() == AppTheme.Light) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility DarkAccentVisibility { get { return (settings.GetCurrentTheme() == AppTheme.Dark) ? Visibility.Visible : Visibility.Collapsed; } }

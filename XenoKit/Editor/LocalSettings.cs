@@ -31,6 +31,10 @@ namespace XenoKit.Editor
         [YAXSerializeAs("value")]
         public ScreenshotFormat ScreenshotFormat { get; set; }
 
+        [CustomSerialize]
+        [YAXErrorIfMissed(YAXExceptionTypes.Ignore)]
+        public bool EnableFog { get; set; }
+
         public SerializedCameraState[] CameraStates { get; set; } = new SerializedCameraState[5];
 
         private static bool Load()

@@ -63,6 +63,7 @@ namespace XenoKit.Engine.Shader
 
         private bool SkinningEnabled { get; set; }
         public int ActorSlot { get; set; }
+        private bool updateFog = false;
 
         private ShaderParameter[] SdsParameters;
 
@@ -897,6 +898,22 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
+            if(ShaderType == ShaderType.Stage)
+            {
+                if (GameBase.CurrentStage.FogEnabled)
+                {
+                    Parameters["g_vFogMultiColor_PS"]?.SetValue(GameBase.CurrentStage.FogMultiColor);
+                    Parameters["g_vFogAddColor_PS"]?.SetValue(GameBase.CurrentStage.FogAddColor);
+                    Parameters["g_vFog_VS"]?.SetValue(GameBase.CurrentStage.Fog);
+                    Parameters["g_bFog_PS"]?.SetValue(GameBase.CurrentStage.FogEnabled);
+                    updateFog = true;
+                }
+                else if (updateFog)
+                {
+                    Parameters["g_bFog_PS"]?.SetValue(false);
+                    updateFog = false;
+                }
+            }
             //Testing
             //Parameters["g_bShadowPCF1_PS"]?.SetValue(true);
             //Parameters["g_bShadowPCF4_PS"]?.SetValue(true);

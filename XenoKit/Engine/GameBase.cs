@@ -21,6 +21,7 @@ using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Shader;
 using Xv2CoreLib.Resource.App;
 using XenoKit.Engine.Scripting;
+using XenoKit.Engine.Stage;
 
 namespace XenoKit.Engine
 {
@@ -44,6 +45,10 @@ namespace XenoKit.Engine
         public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
         public ObjectPoolManager ObjectPoolManager { get; private set; }
         public Simulation Simulation { get; private set; }
+
+        protected Xv2Stage _defaultStage;
+        protected Xv2Stage _setStage;
+        public Xv2Stage CurrentStage { get; private set; }
 
         //Engine Values:
         public virtual bool IsMainInstance => false;
@@ -77,6 +82,8 @@ namespace XenoKit.Engine
             //Load font
             TextRenderer = new TextRenderer(GraphicsDevice, spriteBatch);
 
+            _defaultStage = Xv2Stage.CreateDefaultStage(this);
+            CurrentStage = _defaultStage;
             Input = new Input(this);
             LightSource = new DirLight(this);
             SunLight = new SunLight(this);
@@ -204,5 +211,6 @@ namespace XenoKit.Engine
         {
             HotkeyCooldown = 20;
         }
+    
     }
 }
