@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using XenoKit.Editor;
 using Xv2CoreLib.EAN;
+using Xv2CoreLib.EMA;
 
 namespace XenoKit.Inspector.InspectorEntities
 {
@@ -35,7 +37,16 @@ namespace XenoKit.Inspector.InspectorEntities
 
         public override bool Load()
         {
-            EanFile = EAN_File.Load(Path);
+            if(System.IO.Path.GetExtension(Path) == ".ema")
+            {
+                EMA_File ema = EMA_File.Load(Path);
+                EanFile = ema.ConvertToEan(false);
+            }
+            else
+            {
+                EanFile = EAN_File.Load(Path);
+            }
+
             IsSecondaryAnimation = false;
 
             if (EanFile?.Skeleton != null)
@@ -55,6 +66,11 @@ namespace XenoKit.Inspector.InspectorEntities
 
         public override bool Save()
         {
+            if (System.IO.Path.GetExtension(Path) == ".ema")
+            {
+                Log.Add("Save is not supported for ema files right now.");
+                return false;
+            }
             EanFile.Save(Path);
             return true;
         }

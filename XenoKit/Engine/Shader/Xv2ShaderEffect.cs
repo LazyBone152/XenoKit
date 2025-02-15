@@ -763,10 +763,24 @@ namespace XenoKit.Engine.Shader
                     break;
 
                 case ShaderParameter.LightVec0_VS:
-                    g_vLightVec0_VS?.SetValue(GameBase.LightSource.GetLightDirection(WVP));
+                    if(ShaderType == ShaderType.Stage)
+                    {
+                        g_vLightVec0_VS?.SetValue(GameBase.SunLight.Direction);
+                    }
+                    else
+                    {
+                        g_vLightVec0_VS?.SetValue(GameBase.LightSource.GetLightDirection(WVP));
+                    }
                     break;
                 case ShaderParameter.LightVec0_PS:
-                    g_vLightVec0_PS?.SetValue(GameBase.LightSource.GetLightDirection(WVP));
+                    if (ShaderType == ShaderType.Stage)
+                    {
+                        g_vLightVec0_PS?.SetValue(GameBase.SunLight.Direction);
+                    }
+                    else
+                    {
+                        g_vLightVec0_PS?.SetValue(GameBase.LightSource.GetLightDirection(WVP));
+                    }
                     break;
                 case ShaderParameter.UserFlag0_VS:
                     g_vUserFlag0_VS?.SetValue(GameBase.LightSource.Position);

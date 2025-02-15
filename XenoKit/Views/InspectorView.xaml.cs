@@ -257,6 +257,7 @@ namespace XenoKit.Views
             ".emb",
             ".emm",
             ".ean",
+            ".ema",
             ".spm"
         };
 

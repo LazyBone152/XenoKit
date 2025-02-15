@@ -88,6 +88,7 @@ namespace XenoKit.Inspector
                             files.Add(new MaterialInspectorEntity(paths[i]));
                             break;
                         case ".ean":
+                        case ".ema":
                             files.Add(new EanInspectorEntity(paths[i]));
                             break;
                         case ".spm":
