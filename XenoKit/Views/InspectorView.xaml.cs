@@ -198,7 +198,15 @@ namespace XenoKit.Views
                     return;
                 }
 
-                //SceneManager.MainGameInstance?.RenderSystem.SetReflectionModel(nsk);
+                SceneManager.MainGameInstance?.RenderSystem.RemoveAllReflectionRenderEntity();
+
+                foreach (var child in nsk.ChildEntities)
+                {
+                    if(child is MeshInspectorEntity mesh)
+                    {
+                        SceneManager.MainGameInstance?.RenderSystem.AddReflectionRenderEntity(mesh);
+                    }
+                }
 
                 //Make it invisible in the main scene
                 SelectedItem.Visible = false;

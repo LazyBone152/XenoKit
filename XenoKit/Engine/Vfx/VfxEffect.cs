@@ -149,7 +149,8 @@ namespace XenoKit.Engine.Vfx
         {
             foreach (VfxAsset asset in Assets)
             {
-                asset.Draw();
+                //Everything is drawn through RenderSystem now
+                //asset.Draw();
             }
         }
 

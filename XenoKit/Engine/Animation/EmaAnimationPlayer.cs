@@ -5,6 +5,7 @@ using XenoKit.Editor;
 using XenoKit.Helper;
 using Xv2CoreLib.EMA;
 using Xv2CoreLib.ESK;
+using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Engine.Animation
@@ -167,14 +168,13 @@ namespace XenoKit.Engine.Animation
                     continue;
 
                 
-                //Not needed
                 Bone bone = animation.EmaFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
                 ESK_RelativeTransform transform = bone.EskRelativeTransform;
 
                 Vector3 ean_initialBonePosition = new Vector3(transform.PositionX, transform.PositionY, transform.PositionZ) * transform.PositionW;
                 Quaternion ean_initialBoneOrientation = new Quaternion(transform.RotationX, transform.RotationY, transform.RotationZ, transform.RotationW);
                 Vector3 ean_initialBoneScale = new Vector3(transform.ScaleX, transform.ScaleY, transform.ScaleZ) * transform.ScaleW;
-
+                Vector3 ema_initalEulerAngles = EngineUtils.QuaternionToEuler(ean_initialBoneOrientation);
 
                 Matrix relativeMatrix_EanBone_inv = Matrix.Identity;
                 relativeMatrix_EanBone_inv *= Matrix.CreateScale(ean_initialBoneScale);
@@ -197,31 +197,31 @@ namespace XenoKit.Engine.Animation
                 Matrix transformAnimation = Matrix.Identity;
 
                 //Scale:
-                float valueScaleX = scaleX != null ? scaleX.GetKeyframeValue(animation.CurrentFrame) : 1f;
-                float valueScaleY = scaleY != null ? scaleY.GetKeyframeValue(animation.CurrentFrame) : 1f;
-                float valueScaleZ = scaleZ != null ? scaleZ.GetKeyframeValue(animation.CurrentFrame) : 1f;
+                float valueScaleX = scaleX != null ? scaleX.GetKeyframeValue(animation.CurrentFrame) : ean_initialBoneScale.X;
+                float valueScaleY = scaleY != null ? scaleY.GetKeyframeValue(animation.CurrentFrame) : ean_initialBoneScale.Y;
+                float valueScaleZ = scaleZ != null ? scaleZ.GetKeyframeValue(animation.CurrentFrame) : ean_initialBoneScale.Z;
                 Vector3 scale_tmp = new Vector3(valueScaleX, valueScaleY, valueScaleZ);
 
                 transformAnimation *= Matrix.CreateScale(scale_tmp);
 
                 //Rotation:
-                float valueRotX = rotX != null ? rotX.GetKeyframeValue(animation.CurrentFrame) : 0f;
-                float valueRotY = rotY != null ? rotY.GetKeyframeValue(animation.CurrentFrame) : 0f;
-                float valueRotZ = rotZ != null ? rotZ.GetKeyframeValue(animation.CurrentFrame) : 0f;
+                float valueRotX = rotX != null ? rotX.GetKeyframeValue(animation.CurrentFrame) : ema_initalEulerAngles.X;
+                float valueRotY = rotY != null ? rotY.GetKeyframeValue(animation.CurrentFrame) : ema_initalEulerAngles.Y;
+                float valueRotZ = rotZ != null ? rotZ.GetKeyframeValue(animation.CurrentFrame) : ema_initalEulerAngles.Z;
                 Quaternion quat_tmp = GeneralHelpers.EulerAnglesToQuaternion(new Vector3(MathHelper.ToRadians(valueRotX), MathHelper.ToRadians(valueRotY), MathHelper.ToRadians(valueRotZ)));
 
                 transformAnimation *= Matrix.CreateFromQuaternion(quat_tmp);
 
                 //Position:
-                float valuePosX = posX != null ? posX.GetKeyframeValue(animation.CurrentFrame) : 0f;
-                float valuePosY = posY != null ? posY.GetKeyframeValue(animation.CurrentFrame) : 0f;
-                float valuePosZ = posZ != null ? posZ.GetKeyframeValue(animation.CurrentFrame) : 0f;
+                float valuePosX = posX != null ? posX.GetKeyframeValue(animation.CurrentFrame) : ean_initialBonePosition.X;
+                float valuePosY = posY != null ? posY.GetKeyframeValue(animation.CurrentFrame) : ean_initialBonePosition.Y;
+                float valuePosZ = posZ != null ? posZ.GetKeyframeValue(animation.CurrentFrame) : ean_initialBonePosition.Z;
                 Vector3 pos_tmp = new Vector3(valuePosX, valuePosY, valuePosZ);
 
                 transformAnimation *= Matrix.CreateTranslation(pos_tmp);
 
-                //Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation * relativeMatrix_EanBone_inv;
-                Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation;
+                Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation * relativeMatrix_EanBone_inv;
+                //Skeleton.Bones[boneIdx].AnimationMatrix = transformAnimation;
             }
         }
 

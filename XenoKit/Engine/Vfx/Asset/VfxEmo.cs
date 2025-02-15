@@ -16,6 +16,7 @@ namespace XenoKit.Engine.Vfx.Asset
 {
     public class VfxEmo : VfxAsset
     {
+        public override EntityType EntityType => EntityType.Model;
         private readonly Xv2CoreLib.EffectContainer.Asset Asset;
 
         private Xv2ModelFile Model;
@@ -65,8 +66,8 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private void InitializeFiles()
         {
-            //if (Model != null)
-            //    RemoveFromRenderSystem();
+            if (Model != null)
+                RemoveFromRenderSystem();
 
             Model = null;
             Materials = null;
@@ -116,44 +117,24 @@ namespace XenoKit.Engine.Vfx.Asset
             }
 
             SetAnimation();
-            //AddToRenderSystem();
+            AddToRenderSystem();
         }
 
         private void RemoveFromRenderSystem()
         {
             if (Model == null) return;
-
-            foreach(var model in Model.Models)
-            {
-                foreach(var mesh in model.Meshes)
-                {
-                    foreach(var submesh in mesh.Submeshes)
-                    {
-                        RenderSystem.RemoveRenderEntity(submesh);
-                    }
-                }
-            }
+            RenderSystem.RemoveRenderEntity(this);
         }
 
         private void AddToRenderSystem()
         {
             if (Model == null) return;
-
-            foreach (var model in Model.Models)
-            {
-                foreach (var mesh in model.Meshes)
-                {
-                    foreach (var submesh in mesh.Submeshes)
-                    {
-                        RenderSystem.AddRenderEntity(submesh);
-                    }
-                }
-            }
+            RenderSystem.AddRenderEntity(this);
         }
 
         public override void Dispose()
         {
-            //RemoveFromRenderSystem();
+            RemoveFromRenderSystem();
             base.Dispose();
         }
 
