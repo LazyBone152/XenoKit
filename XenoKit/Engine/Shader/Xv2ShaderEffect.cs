@@ -637,6 +637,10 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_bDepthTex_PS"]?.SetValue(true);
             }
 
+            //Set defeault shadow params
+            Parameters["g_vShadowParam_PS"]?.SetValue(new Vector4(16, 32, 0, 0));
+            Parameters["g_vShadowColor_PS"]?.SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1));
+            
             //Set parameter references that will be updated every frame (since doing it via string look up would be bad)
             g_mWVP_VS = Parameters["g_mWVP_VS"];
             g_mVP_VS = Parameters["g_mVP_VS"];
@@ -928,12 +932,19 @@ namespace XenoKit.Engine.Shader
                     updateFog = false;
                 }
             }
+
+            //Always set this
+            Parameters["g_vShadowMap_PS"]?.SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 0.00012f, 0.001f, 0.85f));
+
+
             //Testing
             //Parameters["g_bShadowPCF1_PS"]?.SetValue(true);
             //Parameters["g_bShadowPCF4_PS"]?.SetValue(true);
             //Parameters["g_bShadowPCF8_PS"]?.SetValue(true);
+            //Parameters["g_bShadowPCF16_PS"]?.SetValue(true);
+            //Parameters["g_bShadowPCF24_PS"]?.SetValue(true);
             //Parameters["g_vEyePos_VS"]?.SetValue(Vector4.Zero);
-            //Parameters["g_vShadowParam_PS"]?.SetValue(new Vector4(34.32481f, 68.64962f, 0, 0));
+            //Parameters["g_vShadowParam_PS"]?.SetValue(new Vector4(16, 32, 0, 0));
             //Parameters["g_vShadowColor_PS"]?.SetValue(new Vector4(0.5f,0.5f,0.5f, 1));
             //Parameters["g_vShadowMap_PS"]?.SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 0.00012f, 0.001f, 0.85f));
 
