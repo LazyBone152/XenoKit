@@ -8,6 +8,7 @@ using System.Linq;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
 using XenoKit.Engine.Shader;
+using XenoKit.Inspector.InspectorEntities;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.Resource.App;
 
@@ -96,7 +97,7 @@ namespace XenoKit.Engine.Rendering
         //ShaderPrograms:
         public Xv2ShaderEffect ShadowModel_W { get; private set; }
         public Xv2ShaderEffect ShadowModel { get; private set; }
-        public Xv2ShaderEffect GI_ShadowModel_Grass { get; private set; }
+        //public Xv2ShaderEffect GI_ShadowModel_Grass { get; private set; }
         public Xv2ShaderEffect NORMAL_FADE_WATERDEPTH_W_M { get; private set; }
         private PostShaderEffect AGE_TEST_EDGELINE_MRT;
         private PostShaderEffect BIRD_BG_EDGELINE_RGB_HF;
@@ -141,7 +142,7 @@ namespace XenoKit.Engine.Rendering
             //Load shaders used for the shadow and normal passes. These are used instead of the regular shaders defined in EMM during those passes.
             ShadowModel_W = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel_W"), GameBase, ShaderType.CharaShadow);
             ShadowModel = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel"), GameBase);
-            GI_ShadowModel_Grass = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel_Grass"), GameBase);
+            //GI_ShadowModel_Grass = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel_Grass"), GameBase);
             NORMAL_FADE_WATERDEPTH_W_M = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("NORMAL_FADE_WATERDEPTH_W_M"), GameBase, ShaderType.CharaNormals);
 
             //Load all the shaders that are used in the rendering process
@@ -271,7 +272,7 @@ namespace XenoKit.Engine.Rendering
 
             //Create SamplerAlphaDepth
             SetRenderTargets(SamplerAlphaDepth.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
+            GraphicsDevice.Clear(Color.Red);
             GraphicsDevice.SetDepthAsTexture(DepthBuffer.RenderTarget, 0);
             PostFilter.Apply(AGE_TEST_DEPTH_TO_PFXD);
             GraphicsDevice.Textures[0] = null;
@@ -837,6 +838,11 @@ namespace XenoKit.Engine.Rendering
         public RenderTargetWrapper GetSmallSceneRT()
         {
             return SmallSceneRT;
+        }
+
+        public RenderTargetWrapper GetColorPassRT0()
+        {
+            return ColorPassRT0;
         }
 
         public bool CheckDrawPass(Xv2ShaderEffect material)

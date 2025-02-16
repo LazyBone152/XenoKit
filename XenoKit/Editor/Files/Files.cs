@@ -27,6 +27,7 @@ using System.Windows;
 using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.SAV;
 using Xv2CoreLib.Resource.UndoRedo;
+using Xv2CoreLib.SPM;
 
 namespace XenoKit.Editor
 {
@@ -294,6 +295,10 @@ namespace XenoKit.Editor
                     case ".nsk":
                         ManualLoad(drop);
                         return;
+                    case ".spm":
+                        SceneManager.SetDefaultSpm(SPM_File.Load(drop));
+                        Log.Add($"Default SPM set to \"{Path.GetFileName(drop)}\"");
+                        break;
                     default:
                         if (!error)
                             MessageBox.Show($"The filetype of \"{drop}\" is not supported.", "File Drop", MessageBoxButton.OK, MessageBoxImage.Error);

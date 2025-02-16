@@ -185,13 +185,22 @@ namespace XenoKit.Engine.Shader
                         byte[] vs = GetVertexShader(sdsEntry.VertexShader, isDefaultSds);
 
                         shaderProgram = new ShaderProgram(sdsEntry, vs, ps, HasSkinningEnable(sdsEntry), game.GraphicsDevice);
-                        ShaderPrograms.Add(shaderProgram);
+
+                        if (shaderProgram.ShaderValidationPassed)
+                        {
+                            ShaderPrograms.Add(shaderProgram);
+                        }
+                        else
+                        {
+                            Log.Add($"ShaderProgram {shaderProgramName} failed validation; using default shader", LogType.Error);
+                            return GetShaderProgram("Red");
+                        }
                     }
-                    else
-                    {
-                        Log.Add($"ShaderProgram {shaderProgramName} not found.", LogType.Error);
-                        return null;
-                    }
+                }
+
+                if(shaderProgram == null && shaderProgramName != "Red")
+                {
+                    return GetShaderProgram("Red");
                 }
 
                 return shaderProgram;
@@ -616,22 +625,41 @@ namespace XenoKit.Engine.Shader
                             sampler = new GlobalSampler(slot, game.RenderSystem.GetSamplerAlphaDepthRT(),
                                                         new SamplerState()
                                                         {
+                                                            AddressU = TextureAddressMode.Clamp,
+                                                            AddressV = TextureAddressMode.Clamp,
+                                                            AddressW = TextureAddressMode.Wrap,
+                                                            BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
+                                                            MaxAnisotropy = 1,
+                                                            ComparisonFunction = CompareFunction.Never,
+                                                            Filter = TextureFilter.Point,
+                                                            MipMapLevelOfDetailBias = 0,
+                                                            Name = GetSamplerName(slot),
+                                                            FilterMode = TextureFilterMode.Default,
+                                                            GraphicsDevice = game.GraphicsDevice
+                                                        });
+                            break;
+                        }
+                    case 11:
+                        //CurrentScene; exposes ColorPassRT0 to use in effects
+                        {
+                            sampler = new GlobalSampler(slot, game.RenderSystem.GetColorPassRT0(),
+                                                        new SamplerState()
+                                                        {
                                                             AddressU = TextureAddressMode.Wrap,
                                                             AddressV = TextureAddressMode.Wrap,
                                                             AddressW = TextureAddressMode.Wrap,
                                                             BorderColor = new Microsoft.Xna.Framework.Color(1, 1, 1, 1),
                                                             MaxAnisotropy = 1,
-                                                            ComparisonFunction = CompareFunction.LessEqual,
+                                                            ComparisonFunction = CompareFunction.Never,
                                                             Filter = TextureFilter.Point,
                                                             MipMapLevelOfDetailBias = 0,
                                                             Name = GetSamplerName(slot),
-                                                            FilterMode = TextureFilterMode.Comparison,
                                                             GraphicsDevice = game.GraphicsDevice
                                                         });
                             break;
                         }
                     case 12:
-                        //SmallScene
+                        //SmallScene; exposes the completed previous frame, at 1/4 res
                         {
                             sampler = new GlobalSampler(slot, game.RenderSystem.GetSmallSceneRT(),
                                                         new SamplerState()
@@ -719,6 +747,7 @@ namespace XenoKit.Engine.Shader
 
         public void SetGlobalSampler(int slot, bool isVertexShader)
         {
+            //if (slot == 10) return;
             GlobalSampler sampler = GetGlobalSampler(slot);
 
             if (sampler != null)
@@ -741,8 +770,12 @@ namespace XenoKit.Engine.Shader
             SetGlobalSampler(7, true);
             SetGlobalSampler(6, true);
             SetGlobalSampler(7, false);
+            SetGlobalSampler(5, false);
             SetGlobalSampler(6, false);
+            SetGlobalSampler(8, false);
             SetGlobalSampler(10, false);
+            SetGlobalSampler(11, false);
+            SetGlobalSampler(12, false);
             SetGlobalSampler(14, false);
             SetGlobalSampler(15, false);
         }

@@ -140,6 +140,8 @@ namespace XenoKit.Engine.Shader
                 IsShaderProgramDirty = false;
             }
 
+            ApplyStates();
+
             Matrix world = Matrix.Identity;
             Matrix viewMatrix = Matrix.Identity;
             Matrix projMatrix = Matrix.CreateOrthographicOffCenter(

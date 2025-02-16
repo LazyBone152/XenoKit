@@ -32,6 +32,8 @@ namespace XenoKit.Engine.Shader
         public readonly bool[] UsePixelShaderBuffer = new bool[9];
         public readonly bool[] UseVertexShaderBuffer = new bool[9];
 
+        public bool ShaderValidationPassed { get; private set; }
+
         public ShaderProgram(SDSShaderProgram shaderProgram, byte[] vsByteCode, byte[] psByteCode, bool allowHardwareSkinning, GraphicsDevice graphicsDevice)
         {
             SdsEntry = shaderProgram;
@@ -42,7 +44,6 @@ namespace XenoKit.Engine.Shader
             VS_Bytecode = vsByteCode;
             PS_Bytecode = psByteCode;
             CreateShaders(true);
-
         }
 
         public ShaderProgram(string name, byte[] vsByteCode, byte[] psByteCode, ShaderProgramSource source, GraphicsDevice graphicsDevice)
@@ -53,7 +54,7 @@ namespace XenoKit.Engine.Shader
             PS_Bytecode = psByteCode;
             this.graphicsDevice = graphicsDevice;
             CreateShaders(false);
-            
+
             SdsEntry = new SDSShaderProgram()
             {
                 Name = "DUMMY",
@@ -65,30 +66,53 @@ namespace XenoKit.Engine.Shader
         {
             VsParser = new DxbcParser(VS_Bytecode);
             PsParser = new DxbcParser(PS_Bytecode);
+            ShaderValidationPassed = ValidateShader();
 
-            VS = new VertexShader((Device)graphicsDevice.Handle, VS_Bytecode);
-            PS = new PixelShader((Device)graphicsDevice.Handle, PS_Bytecode);
+            if (!ShaderValidationPassed) return;
 
-            if (createBufferBools)
+            try
             {
-                //Check for buffers
-                UsePixelShaderBuffer[0] = PsParser.HasCB("ps_stage_cb");
-                UsePixelShaderBuffer[1] = PsParser.HasCB("ps_alphatest_cb");
-                UsePixelShaderBuffer[2] = PsParser.HasCB("ps_common_cb");
-                UsePixelShaderBuffer[4] = PsParser.HasCB("ps_versatile_cb");
-                UsePixelShaderBuffer[5] = PsParser.HasCB("ps_user_cb");
-                UsePixelShaderBuffer[8] = PsParser.HasCB("cb_ps_bool");
+                VS = new VertexShader((Device)graphicsDevice.Handle, VS_Bytecode);
+                PS = new PixelShader((Device)graphicsDevice.Handle, PS_Bytecode);
 
-                UseVertexShaderBuffer[0] = VsParser.HasCB("vs_matrix_cb");
-                UseVertexShaderBuffer[1] = VsParser.HasCB("vs_stage_cb");
-                UseVertexShaderBuffer[2] = VsParser.HasCB("vs_common_light_cb");
-                UseVertexShaderBuffer[3] = VsParser.HasCB("vs_common_material_cb");
-                UseVertexShaderBuffer[4] = VsParser.HasCB("vs_mtxplt_cb") || VsParser.HasCB("vs_mtxplt_alias_sspl_cb");
-                UseVertexShaderBuffer[5] = VsParser.HasCB("vs_mtxplt_prev_cb");
-                UseVertexShaderBuffer[6] = VsParser.HasCB("vs_versatile_cb");
-                UseVertexShaderBuffer[8] = VsParser.HasCB("cb_vs_bool");
+                if (createBufferBools)
+                {
+                    //Check for buffers
+                    UsePixelShaderBuffer[0] = PsParser.HasCB("ps_stage_cb");
+                    UsePixelShaderBuffer[1] = PsParser.HasCB("ps_alphatest_cb");
+                    UsePixelShaderBuffer[2] = PsParser.HasCB("ps_common_cb");
+                    UsePixelShaderBuffer[4] = PsParser.HasCB("ps_versatile_cb");
+                    UsePixelShaderBuffer[5] = PsParser.HasCB("ps_user_cb");
+                    UsePixelShaderBuffer[8] = PsParser.HasCB("cb_ps_bool");
+
+                    UseVertexShaderBuffer[0] = VsParser.HasCB("vs_matrix_cb");
+                    UseVertexShaderBuffer[1] = VsParser.HasCB("vs_stage_cb");
+                    UseVertexShaderBuffer[2] = VsParser.HasCB("vs_common_light_cb");
+                    UseVertexShaderBuffer[3] = VsParser.HasCB("vs_common_material_cb");
+                    UseVertexShaderBuffer[4] = VsParser.HasCB("vs_mtxplt_cb") || VsParser.HasCB("vs_mtxplt_alias_sspl_cb");
+                    UseVertexShaderBuffer[5] = VsParser.HasCB("vs_mtxplt_prev_cb");
+                    UseVertexShaderBuffer[6] = VsParser.HasCB("vs_versatile_cb");
+                    UseVertexShaderBuffer[8] = VsParser.HasCB("cb_vs_bool");
+                }
+            }
+            catch
+            {
+                ShaderValidationPassed = false;
             }
         }
 
+        private bool ValidateShader()
+        {
+            foreach(var input in VsParser.InputSignature)
+            {
+                if (input.Name == "INSTDATA")
+                {
+                    return false;
+                }
+
+            }
+
+            return true;
+        }
     }
 }
