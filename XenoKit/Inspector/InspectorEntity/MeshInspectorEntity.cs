@@ -264,5 +264,10 @@ namespace XenoKit.Inspector.InspectorEntities
                 }
             }
         }
+    
+        public void SetAsReflectionMesh(bool isReflection)
+        {
+            Model?.SetAsReflectionMesh(isReflection);
+        }
     }
 }

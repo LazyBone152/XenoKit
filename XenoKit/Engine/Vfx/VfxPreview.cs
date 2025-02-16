@@ -35,6 +35,7 @@ namespace XenoKit.Engine.Vfx
 
         public override void Draw()
         {
+            /*
             switch (SceneManager.CurrentSceneState)
             {
                 case EditorTabs.Effect:
@@ -46,6 +47,7 @@ namespace XenoKit.Engine.Vfx
                     Asset?.Draw();
                     break;
             }
+            */
         }
 
         public void PreviewEffect(Effect effect)

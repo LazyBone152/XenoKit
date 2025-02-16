@@ -236,12 +236,15 @@ namespace XenoKit.Engine.Vfx
 
         public override void Draw()
         {
+            /*
             if (!SettingsManager.Instance.Settings.XenoKit_VfxSimulation) return;
 
+            
             foreach(VfxEffect effect in Effects)
             {
                 effect.Draw();
             }
+            */
         }
 
         #endregion

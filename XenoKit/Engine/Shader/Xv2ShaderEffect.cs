@@ -141,6 +141,11 @@ namespace XenoKit.Engine.Shader
         private float[] MatCol0, MatCol1, MatCol2, MatCol3 = null;
 
 
+        private BlendState _blendState;
+        private DepthStencilState _depthStencilState;
+        private RasterizerState _rasterizerState;
+        private RasterizerState _reflectionRasterizerState;
+
         public Xv2ShaderEffect(EmmMaterial material, ShaderType type, GameBase gameBase) : base(gameBase.GraphicsDevice)
         {
             GraphicsDevice = gameBase.GraphicsDevice;
@@ -253,6 +258,13 @@ namespace XenoKit.Engine.Shader
 
             Techniques = new EffectTechniqueCollection(techniques);
             CurrentTechnique = Techniques[0];
+
+            _depthStencilState = GetDepthState();
+            _blendState = GetBlendState();
+            _rasterizerState = GetRasterizerState();
+
+            if (_reflectionRasterizerState != null)
+                _reflectionRasterizerState = GetReflectionRasterizerState();
         }
 
         private void ReadParameters(DxbcParser shaderParser, EffectParameter[] parameters, ref int idx)
@@ -445,11 +457,7 @@ namespace XenoKit.Engine.Shader
             // Get the pixel shader.
             Xv2Shader pixelShader = _shaders[1];
 
-            BlendState blend = GetBlendState();
-            DepthStencilState depth = GetDepthState();
-            RasterizerState raster = GetRasterizerState();
-
-            passes[0] = new EffectPass(this, name, vertexShader, pixelShader, blend, depth, raster, null);
+            passes[0] = new EffectPass(this, name, vertexShader, pixelShader, null, null, null, null);
 
             return new EffectPassCollection(passes);
         }
@@ -834,8 +842,11 @@ namespace XenoKit.Engine.Shader
                 IsShaderProgramDirty = false;
             }
 
+            //Apply states
+            ApplyStates();
+
             //Apply billboarding rotation if material requires it
-            if(MatParam.Billboard == 1)
+            if (MatParam.Billboard == 1)
             {
                 Matrix billboardWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.Invert(GameBase.ActiveCameraBase.ViewMatrix);
                 billboardWorld.Translation = World.Translation;
@@ -843,10 +854,10 @@ namespace XenoKit.Engine.Shader
             }
 
             //Calculate matrices
-            if(UseWV)
+            if (UseWV)
                 WV = World * GameBase.ActiveCameraBase.ViewMatrix;
 
-            if(UseWVP)
+            if (UseWVP)
                 WVP = World * GameBase.ActiveCameraBase.ViewProjectionMatrix;
 
             foreach (ShaderParameter parameter in SdsParameters)
@@ -854,7 +865,7 @@ namespace XenoKit.Engine.Shader
                 ApplyParameter(parameter);
             }
 
-            if(ShaderType == ShaderType.Chara && ActorSlot != -1)
+            if (ShaderType == ShaderType.Chara && ActorSlot != -1)
             {
                 if (LIGHT_RGBA != null)
                 {
@@ -878,20 +889,20 @@ namespace XenoKit.Engine.Shader
 
                 if (SceneManager.Actors[ActorSlot] != null)
                 {
-                    switch(SceneManager.Actors[ActorSlot].ShaderParameters.ShaderPath)
+                    switch (SceneManager.Actors[ActorSlot].ShaderParameters.ShaderPath)
                     {
                         case ActorShaderPath.Default:
                             g_vUserFlag1_VS?.SetValue(Vector4.Zero);
                             break;
                         case ActorShaderPath.Vanish:
-                            g_vUserFlag1_VS?.SetValue(new Vector4(115f, SceneManager.Actors[ActorSlot].ShaderParameters.g_vUserFlag1_VS.Y, 0,0));
+                            g_vUserFlag1_VS?.SetValue(new Vector4(115f, SceneManager.Actors[ActorSlot].ShaderParameters.g_vUserFlag1_VS.Y, 0, 0));
                             g_vColor4_PS?.SetValue(SceneManager.Actors[ActorSlot].ShaderParameters.g_vColor4_PS);
                             g_vParam9_PS?.SetValue(SceneManager.Actors[ActorSlot].ShaderParameters.g_vParam9_PS);
                             break;
                         case ActorShaderPath.HC:
                             g_vUserFlag1_VS?.SetValue(HC_UserFlag1);
 
-                            if(g_vParam11_PS != null)
+                            if (g_vParam11_PS != null)
                             {
                                 g_vParam11_PS.SetValue(HC_Param11);
                                 g_vParam12_PS.SetValue(HC_Param12);
@@ -916,7 +927,7 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
-            if(ShaderType == ShaderType.Stage)
+            if (ShaderType == ShaderType.Stage)
             {
                 if (GameBase.CurrentStage.FogEnabled)
                 {
@@ -954,6 +965,24 @@ namespace XenoKit.Engine.Shader
             //Parameters["g_vSpecular_PS"]?.SetValue(new Vector4(2,4,0,0)); //No effect?
             //Parameters["g_vAmbUni_PS"]?.SetValue(new Vector4(0.1175f, 0.17391f, 0.30072f, 1.00f)); //Needs to be set
 
+            //Parameters["g_vSpecular_PS"]?.SetValue(new Vector4(2f, 20f, 0, 0));
+            //Parameters["g_vLightSpc0_PS"]?.SetValue(new Vector4(1,1,1,1)); //  112 float4
+
+            //Parameters["g_vTone_PS"]?.SetValue(new Vector4(0.05571f, 0.04429f, 0.06524f, 3.50f));
+            //Parameters["g_bFog_PS"]?.SetValue(true);
+            //Parameters["g_vFogAddColor_PS"]?.SetValue(new Vector4(0,0,0,1));
+            //Parameters["g_vAmbUni_VS"]?.SetValue(new Vector4(0,0,0,1));
+
+            //g_vLightDif0_PS 0.38161, 0.32367, 0.16482, 1.00 96 float4
+            //g_vLightSpc0_PS 0.971, 0.745, 0.718, 1.00     112 float4
+            //g_vSpecular_PS 0.50, 15.00, 0.00, 0.00 288 float4
+
+            //Parameters["g_vSpecular_PS"]?.SetValue(new Vector4(0.50f, 15.00f, 0.00f, 0.00f));
+            //Parameters["g_vLightDif0_PS"]?.SetValue(new Vector4(0.38161f, 0.32367f, 0.16482f, 1.00f));
+            //Parameters["g_vLightSpc0_PS"]?.SetValue(new Vector4(0.971f, 0.745f, 0.718f, 1.00f));
+            //Parameters["g_bOutputDepthMRT_PS"]?.SetValue(true);
+
+
             //Update global parameters
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
@@ -972,6 +1001,25 @@ namespace XenoKit.Engine.Shader
             //Set global samplers/textures
             foreach (Xv2Shader shader in _shaders)
                 shader.SetGlobalSamplers(GameBase.ShaderManager);
+        }
+
+        protected void ApplyStates()
+        {
+            GraphicsDevice.BlendState = _blendState;
+            GraphicsDevice.DepthStencilState = _depthStencilState;
+
+            if (GameBase.RenderSystem.IsReflectionPass)
+            {
+                //Reflection state is only created on demand, since it is only used for reflections
+                if (_reflectionRasterizerState == null)
+                    _reflectionRasterizerState = GetReflectionRasterizerState();
+
+                GraphicsDevice.RasterizerState = _reflectionRasterizerState;
+            }
+            else
+            {
+                GraphicsDevice.RasterizerState = _rasterizerState;
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -1210,6 +1258,14 @@ namespace XenoKit.Engine.Shader
             }
 
             return depth;
+        }
+
+        public RasterizerState GetReflectionRasterizerState()
+        {
+            RasterizerState state = GetRasterizerState();
+            state.CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullCounterClockwiseFace;
+
+            return state;
         }
 
         public virtual RasterizerState GetRasterizerState()

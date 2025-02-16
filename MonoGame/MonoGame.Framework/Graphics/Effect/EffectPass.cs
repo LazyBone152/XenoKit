@@ -36,9 +36,9 @@ namespace Microsoft.Xna.Framework.Graphics
             _vertexShader = vertexShader;
             _pixelShader = pixelShader;
 
-            _blendState = blendState;
-            _depthStencilState = depthStencilState;
-            _rasterizerState = rasterizerState;
+            //_blendState = blendState;
+            //_depthStencilState = depthStencilState;
+            //_rasterizerState = rasterizerState;
 
             Annotations = annotations;
         }
@@ -112,13 +112,14 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
             }
 
+            //LB Note: Handling this in Xv2ShaderEffect
             // Set the render states if we have some.
-            if (_rasterizerState != null)
-                device.RasterizerState = _rasterizerState;
-            if (_blendState != null)
-                device.BlendState = _blendState;
-            if (_depthStencilState != null)
-                device.DepthStencilState = _depthStencilState;
+            //if (_rasterizerState != null)
+            //    device.RasterizerState = _rasterizerState;
+            //if (_blendState != null)
+            //    device.BlendState = _blendState;
+            //if (_depthStencilState != null)
+            //    device.DepthStencilState = _depthStencilState;
         }
 
         private void SetShaderSamplers(Shader shader, TextureCollection textures, SamplerStateCollection samplerStates)

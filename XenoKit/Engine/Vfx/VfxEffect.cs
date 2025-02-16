@@ -145,15 +145,6 @@ namespace XenoKit.Engine.Vfx
             }
         }
 
-        public override void Draw()
-        {
-            foreach (VfxAsset asset in Assets)
-            {
-                //Everything is drawn through RenderSystem now
-                //asset.Draw();
-            }
-        }
-
         public override void Update()
         {
             Update(false);

@@ -27,6 +27,7 @@ namespace XenoKit.Engine.Model
         public NSK_File SourceNskFile = null;
         public EMD_File SourceEmdFile = null;
         public EMO_File SourceEmoFile = null;
+        private bool IsReflectionMesh = false;
 
         public ModelType Type;
         public List<Xv2Model> Models { get; set; } = new List<Xv2Model>();
@@ -436,6 +437,32 @@ namespace XenoKit.Engine.Model
         }
 
         #endregion
+
+        public void SetAsReflectionMesh(bool isReflection)
+        {
+            if (isReflection == IsReflectionMesh) return;
+            IsReflectionMesh = isReflection;
+
+            //Invert normal Y so they are correct in the reflection
+            foreach(Xv2Model model in Models)
+            {
+                foreach(Xv2Mesh mesh in model.Meshes)
+                {
+                    foreach(Xv2Submesh submesh in mesh.Submeshes)
+                    {
+                        for(int i = 0; i < submesh.CpuVertexes.Length; i++)
+                        {
+                            submesh.CpuVertexes[i].Normal = new Vector3(submesh.CpuVertexes[i].Normal.X, -submesh.CpuVertexes[i].Normal.Y, submesh.CpuVertexes[i].Normal.Z);
+                            submesh.CpuVertexes[i].Tangent = new Vector3(submesh.CpuVertexes[i].Tangent.X, -submesh.CpuVertexes[i].Tangent.Y, submesh.CpuVertexes[i].Tangent.Z);
+
+                            submesh.GpuVertexes[i] = submesh.CpuVertexes[i];
+                        }
+
+                    }
+                }
+            }
+
+        }
 
         public List<Xv2Submesh> GetCompiledSubmeshes(IList<EMD_Submesh> sourceSubmeshes)
         {

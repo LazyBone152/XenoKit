@@ -33,7 +33,7 @@ namespace XenoKit.Editor
 
         [CustomSerialize]
         [YAXErrorIfMissed(YAXExceptionTypes.Ignore)]
-        public bool EnableFog { get; set; }
+        public bool EnableFog { get; set; } = true;
 
         public SerializedCameraState[] CameraStates { get; set; } = new SerializedCameraState[5];
 

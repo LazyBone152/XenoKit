@@ -74,7 +74,6 @@ namespace XenoKit.Engine.Rendering
                 width = SettingsManager.settings.XenoKit_ShadowMapRes;
                 HeightAtInit = height;
                 WidthAtInit = width;
-                Log.Add($"Changing shadowmap res to {height}");
             }
             else
             {

@@ -698,8 +698,15 @@ namespace XenoKit.Engine.Rendering
 
             if(entity.EntityType == EntityType.Stage)
             {
-                if(!Reflections.Contains(entity))
+                if (!Reflections.Contains(entity))
+                {
+                    if (entity is MeshInspectorEntity mesh)
+                    {
+                        mesh.SetAsReflectionMesh(true);
+                    }
+
                     Reflections.Add(entity);
+                }
             }
         }
 
@@ -710,7 +717,14 @@ namespace XenoKit.Engine.Rendering
             if (entity.EntityType == EntityType.Stage)
             {
                 if (Reflections.Contains(entity))
+                {
+                    if (entity is MeshInspectorEntity mesh)
+                    {
+                        mesh.SetAsReflectionMesh(false);
+                    }
+
                     ReflectionsToRemove.Add(entity);
+                }
             }
         }
 

@@ -410,7 +410,7 @@ namespace XenoKit.Engine.View
                 Vector3 target = new Vector3(CameraState.TargetPosition.X, -CameraState.TargetPosition.Y, CameraState.TargetPosition.Z);
                 //ViewMatrix = Matrix.CreateLookAt(pos, target, Vector3.Down) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
 
-                ViewMatrix = Matrix.CreateLookAt(pos, target, Vector3.Up) * Matrix.CreateScale(1, -1, 1) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
+                ViewMatrix = Matrix.CreateLookAt(pos, target, Vector3.Up) * Matrix.CreateScale(1f, -1f, 1f) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
             }
             else
             {
