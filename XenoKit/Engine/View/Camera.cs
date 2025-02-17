@@ -186,8 +186,6 @@ namespace XenoKit.Engine.View
                 CameraState.Position.Y += SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[1] - 1f;
                 CameraState.TargetPosition.Y += SceneManager.Actors[0].CharacterData.BcsFile.File.F_48[1] - 1f;
             }
-
-            ResetViewerAngles();
         }
 
         public void ClearCameraAnimation()
@@ -216,7 +214,6 @@ namespace XenoKit.Engine.View
             if (BackupCameraState != null)
             {
                 CameraState.SetState(BackupCameraState);
-                ResetViewerAngles();
 
                 if (removeBackup)
                     BackupCameraState = null;

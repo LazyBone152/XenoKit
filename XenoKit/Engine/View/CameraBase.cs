@@ -1,15 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MonoGame.Framework.WpfInterop;
-using System;
-using Xv2CoreLib.Resource;
 
 namespace XenoKit.Engine.View
 {
-    /// <summary>
-    /// Base Camera class that provides manual control.
-    /// </summary>
     public class CameraBase : Entity, ICameraBase
     {
         public Matrix ViewMatrix { get; private set; }
@@ -19,14 +14,6 @@ namespace XenoKit.Engine.View
         public virtual CameraState CameraState { get; protected set; } = new CameraState();
 
         private bool IsReflectionView = false;
-
-        //camera moves
-        private bool enable_spinning = false;
-        private bool enable_panning = false;
-        public Vector3 viewer_angle = new Vector3((float)Math.PI, 0, 0);
-        private float zoom = 1;
-
-        //mouse
         private bool IsLeftClickHeldDown
         {
             get => Input.LeftClickHeldDownContext == this;
@@ -37,133 +24,228 @@ namespace XenoKit.Engine.View
             get => Input.RightClickHeldDownContext == this;
             set => Input.RightClickHeldDownContext = value ? this : null;
         }
-        private Point mouse_old_position = new Point(-1, -1);
-        private Vector2 MouseMultFactor = Vector2.One;
 
-        public CameraBase(GameBase gameBase) : base(gameBase)
+        public CameraBase(GameBase game) : base(game) { }
+
+        private Vector3 RotateCamera(Vector3 position, Vector3 target, Vector2 mouseDelta, float sensitivity)
         {
-            repositionCamera();
+            float yaw = -mouseDelta.X * sensitivity;
+            float pitch = -mouseDelta.Y * sensitivity;
+
+            Quaternion yawRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(yaw));
+
+            Vector3 right = Vector3.Normalize(Vector3.Cross(position - target, Vector3.Up));
+            Quaternion pitchRotation = Quaternion.CreateFromAxisAngle(right, MathHelper.ToRadians(pitch));
+
+            Quaternion finalRotation = yawRotation * pitchRotation;
+
+            Vector3 direction = position - target;
+            direction = Vector3.Transform(direction, finalRotation);
+
+            return target + direction;
         }
 
-        //Mouse Event
-        private void mousePressEvent(String buttonName)
+        private void PanCamera(Vector2 mouseDelta, float speed)
         {
-            if (buttonName == "left")
-                enable_spinning = true;
-            if (buttonName == "right")
-                enable_panning = true;
-        }
-        private void mouseMoveEvent(Point position, Point delta, int factor)
-        {
-            Vector2 delta_f = new Vector2(delta.X / (float)GraphicsDevice.Viewport.Width, delta.Y / (float)GraphicsDevice.Viewport.Height) * MouseMultFactor;
+            Vector3 forward = -Vector3.Normalize(CameraState.TargetPosition - CameraState.Position);
+            Vector3 right = Vector3.Normalize(Vector3.Cross(Vector3.Up, forward));
+            Vector3 up = Vector3.Cross(forward, right);
 
-            if (enable_spinning)
-                spinCamera(delta_f);
+            Vector3 moveRight = right * mouseDelta.X * speed;
+            Vector3 moveUp = up * mouseDelta.Y * speed;
+            Vector3 panMovement = moveRight + moveUp;
 
-            if (enable_panning)
-                panCamera(delta_f, factor);
-        }
-        private void mouseReleaseEvent(String buttonName)
-        {
-            if (buttonName == "left")
-                enable_spinning = false;
-            if (buttonName == "right")
-                enable_panning = false;
-        }
-        private void wheelEvent(float delta)
-        {
-            zoomCamera(delta);
+            CameraState.Position += panMovement;
+            CameraState.TargetPosition += panMovement;
         }
 
-
-        // classic xenoverse camera:
-        private void spinCamera(Vector2 delta)
+        private void SpinCamera(Vector2 mouseDelta, float speed, bool inverseSpin)
         {
-            viewer_angle.X += (-delta.X) * (-4.0f);
-            viewer_angle.Y += delta.Y * (-4.0f);
-
-            const float two_pi = 2.0f * (float)Math.PI;
-            const float half_pi = (float)Math.PI / 2.0f;
-
-            if (viewer_angle.X >= two_pi)
-                viewer_angle.X -= two_pi;
-            if (viewer_angle.X < 0)
-                viewer_angle.X += two_pi;
-
-            if (viewer_angle.Y >= half_pi - 0.1f)
-                viewer_angle.Y = half_pi - 0.1f;
-            if (viewer_angle.Y < -half_pi + 0.1f)
-                viewer_angle.Y = -half_pi + 0.1f;
-
-            repositionCamera();
-        }
-        private void panCamera(Vector2 delta, int factor)
-        {
-            Matrix viewMatrix = ViewMatrix;
-            viewMatrix = Matrix.Invert(viewMatrix);
-
-            Quaternion orientation = Quaternion.CreateFromRotationMatrix(viewMatrix);
-            orientation.Normalize();
-
-            CameraState.TargetPosition += Vector3.Transform(new Vector3(((-delta.X) * (zoom + 0.5f) * (-2.0f)), -(delta.Y * (zoom + 0.5f) * (-2.0f)), 0.0f), orientation) / factor;
-
-            repositionCamera();
-        }
-        private void zoomCamera(float delta)
-        {
-            float distance = Vector3.Distance(CameraState.Position, CameraState.TargetPosition);
-            zoom = distance / 3f;
-
-            float factor = 0.001f;
-            if (distance > 10.0) factor = 0.01f;
-            if (distance > 100.0) factor = 0.1f;
-            if (distance > 1000.0) factor = 0.1f;
-
-            float newZoom = zoom - (delta * factor);
-            if (newZoom > 0.0000001f)
-                zoom = newZoom;
-
-            repositionCamera();
-        }
-        private void repositionCamera()
-        {
-            Quaternion rotation_x = Quaternion.CreateFromAxisAngle(Vector3.UnitY, viewer_angle.X);
-            Quaternion rotation_y = Quaternion.CreateFromAxisAngle(Vector3.UnitX, viewer_angle.Y);
-
-            CameraState.Position = CameraState.TargetPosition + Vector3.Transform(new Vector3(0, 0, zoom * 3f), rotation_x * rotation_y);
-        }
-
-        //Control Loop
-        protected void ProcessCameraControl()
-        {
-            if (GameBase.IsFullScreen)
+            if (inverseSpin)
             {
-                //With the camera code that Olganix originally implemented, camera pan and spin speed is determined by the viewport size. Whenever the viewport size is increased, the movement speed is decreased... this is undesirable for fullscreen mode
-                //By introducing this mult factor, we can keep the movement speed consistent between the main viewport and fullscreen. The idea is to increase the mouse delta by how much the viewport size has increased in fullscreen mode.
-                MouseMultFactor = new Vector2((float)(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / GameBase.ActualWidth), (float)(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / GameBase.ActualHeight));
+                CameraState.TargetPosition = RotateCamera(CameraState.TargetPosition, CameraState.Position, new Vector2(mouseDelta.X, -mouseDelta.Y), speed * 0.75f);
             }
             else
             {
-                MouseMultFactor = Vector2.One;
+                CameraState.Position = RotateCamera(CameraState.Position, CameraState.TargetPosition, mouseDelta, speed);
+            }
+        }
+
+        private void ZoomCamera(float delta)
+        {
+            float distance = Vector3.Distance(CameraState.Position, CameraState.TargetPosition);
+            float factor = 0.005f;
+
+            factor *= 1f + (MathHelper.Clamp(distance / 200f, 0f, 1f) * 15f);
+
+            if (distance < 25)
+                factor *= 0.5f;
+            if (distance > 100)
+                factor *= 2;
+            if (distance > 500)
+                factor *= 2;
+            if (distance > 1000)
+                factor *= 2;
+
+            Vector3 forward = CameraState.TargetPosition - CameraState.Position;
+            forward.Normalize();
+            Vector3 translation = forward * delta * factor;
+            float distanceMoved = Vector3.Distance(translation + CameraState.Position, CameraState.Position);
+
+            if (delta > 0f && distance - distanceMoved < 0.05f)
+            {
+                //Move target since it is too close and slow down translation
+                translation /= 2.5f;
+                CameraState.TargetPosition += translation;
             }
 
-            if (GameIsFocused && Input.IsKeyDown(Keys.W) && !Input.IsKeyDown(Keys.LeftAlt))
+            CameraState.Position += translation;
+
+        }
+
+        private void TranslateCamera(Vector3 direction, float speed)
+        {
+            Vector3 forward = -Vector3.Normalize(CameraState.TargetPosition - CameraState.Position);
+            Vector3 right = Vector3.Normalize(Vector3.Cross(Vector3.Up, forward));
+            Vector3 up = Vector3.Cross(forward, right);
+
+            Vector3 moveRight = right * direction.X * speed;
+            Vector3 moveUp = up * direction.Y * speed;
+            Vector3 moveForward = forward * direction.Z * speed;
+
+            Vector3 translation = moveRight + moveUp + moveForward;
+
+            CameraState.Position += translation;
+            CameraState.TargetPosition += translation;
+        }
+
+
+        private void HandleTranslation()
+        {
+            if (!GameIsFocused) return;
+
+            float translateSpeed = 0.2f;
+
+            if (Input.IsKeyDown(Keys.LeftControl))
+                translateSpeed *= 0.25f;
+            else if (Input.IsKeyDown(Keys.LeftShift))
+                translateSpeed *= 5f;
+
+            Vector3 translationVector = Vector3.Zero;
+
+            if (Input.IsKeyDown(Keys.W))
             {
-                Translate(-1f, 0f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                translationVector += Vector3.Forward;
             }
-            else if (GameIsFocused && Input.IsKeyDown(Keys.S) && !Input.IsKeyDown(Keys.LeftAlt))
+            else if (Input.IsKeyDown(Keys.S))
             {
-                Translate(1f, 0f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                translationVector += Vector3.Backward;
             }
 
-            if (GameIsFocused && Input.IsKeyDown(Keys.A) && !Input.IsKeyDown(Keys.LeftAlt))
+            if (Input.IsKeyDown(Keys.A))
             {
-                Translate(0f, 1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                translationVector += Vector3.Right;
             }
-            else if (GameIsFocused && Input.IsKeyDown(Keys.D) && !Input.IsKeyDown(Keys.LeftAlt))
+            else if (Input.IsKeyDown(Keys.D))
             {
-                Translate(0f, -1f, Input.IsKeyDown(Keys.LeftControl), Input.IsKeyDown(Keys.LeftShift));
+                translationVector += Vector3.Left;
             }
+
+            if (Input.IsKeyDown(Keys.X))
+            {
+                translationVector += Vector3.Up;
+            }
+            else if (Input.IsKeyDown(Keys.C))
+            {
+                translationVector += Vector3.Down;
+            }
+
+            if(translationVector != Vector3.Zero)
+                TranslateCamera(translationVector, translateSpeed);
+        }
+
+        private void HandlePanning()
+        {
+            if (!GameIsFocused)
+            {
+                IsRightClickHeldDown = false;
+                return;
+            }
+
+            if (Input.RightClickHeldDownContext == null && Input.MouseState.RightButton == ButtonState.Pressed)
+            {
+                IsRightClickHeldDown = true;
+            }
+            else if(IsRightClickHeldDown && Input.MouseState.RightButton == ButtonState.Released)
+            {
+                IsRightClickHeldDown = false;
+            }
+
+            if (IsRightClickHeldDown)
+            {
+                float distance = Vector3.Distance(CameraState.Position, CameraState.TargetPosition);
+
+                float factor = 0.002f;
+                if(distance > 10f)
+                    factor *= 1f + (MathHelper.Clamp(distance / 200f, 0f, 1f) * 50f);
+
+                if (Input.IsKeyDown(Keys.LeftControl))
+                    factor *= 0.2f;
+
+                //float factor = Input.IsKeyDown(Keys.LeftControl) ? 0.0005f : 0.002f;
+                PanCamera(Input.MouseDelta, factor);
+            }
+        }
+
+        private void HandleSpinning()
+        {
+            if (!GameIsFocused)
+            {
+                IsLeftClickHeldDown = false;
+                return;
+            }
+
+            if (Input.LeftClickHeldDownContext == null && Input.MouseState.LeftButton == ButtonState.Pressed)
+            {
+                IsLeftClickHeldDown = true;
+            }
+            else if (IsLeftClickHeldDown && Input.MouseState.LeftButton == ButtonState.Released)
+            {
+                IsLeftClickHeldDown = false;
+            }
+
+            if (IsLeftClickHeldDown)
+            {
+                float factor = Input.IsKeyDown(Keys.LeftControl) ? 0.05f : 0.2f;
+                SpinCamera(-Input.MouseDelta, factor, Input.IsKeyDown(Keys.LeftAlt));
+            }
+        }
+
+        private void HandleZooming()
+        {
+            if (!GameIsFocused || Input.MouseScrollThisFrame == 0) return;
+
+            if (Input.IsKeyUp(Keys.LeftAlt))
+            {
+                //Move Position
+                float factor = Input.IsKeyDown(Keys.LeftControl) ? 1 / 50f : 1f;
+                ZoomCamera(Input.MouseScrollThisFrame * factor);
+            }
+            else if (Input.IsKeyDown(Keys.LeftAlt))
+            {
+                //Change FOV
+                int factor = (Input.MouseScrollThisFrame) / 100;
+                if (CameraState.FieldOfView - factor > 0 && CameraState.FieldOfView - factor < 180)
+                    CameraState.FieldOfView -= factor;
+            }
+        }
+
+        protected void ProcessCameraControl()
+        {
+            HandleTranslation();
+            HandlePanning();
+            HandleSpinning();
+            HandleZooming();
 
             if (GameIsFocused && Input.IsKeyDown(Keys.R) && Input.IsKeyDown(Keys.LeftControl))
             {
@@ -186,173 +268,8 @@ namespace XenoKit.Engine.View
             {
                 CameraState.Roll++;
             }
-
-            if ((GameIsFocused) && Input.MouseScrollThisFrame != 0 && Input.IsKeyDown(Keys.LeftAlt))
-            {
-                int factor = (Input.MouseScrollThisFrame) / 100;
-                if (CameraState.FieldOfView - factor > 0 && CameraState.FieldOfView - factor < 180)
-                    CameraState.FieldOfView -= factor;
-            }
-
-            if ((GameIsFocused) && (Input.MouseState.LeftButton == ButtonState.Pressed) && IsLeftClickHeldDown == false && Input.LeftClickHeldDownContext == null)
-            {
-                IsLeftClickHeldDown = true;
-                mousePressEvent("left");
-            }
-            if ((GameIsFocused) && (Input.MouseState.LeftButton != ButtonState.Pressed) && IsLeftClickHeldDown == true)
-            {
-                IsLeftClickHeldDown = false;
-                mouse_old_position = Input.MouseState.Position;
-                mouseReleaseEvent("left");
-            }
-            if ((GameIsFocused) && (Input.MouseState.RightButton == ButtonState.Pressed) && IsRightClickHeldDown == false && Input.RightClickHeldDownContext == null)
-            {
-                IsRightClickHeldDown = true;
-                mouse_old_position = Input.MouseState.Position;
-                mousePressEvent("right");
-            }
-            if ((GameIsFocused) && (Input.MouseState.RightButton != ButtonState.Pressed) && IsRightClickHeldDown == true)
-            {
-                IsRightClickHeldDown = false;
-                mouseReleaseEvent("right");
-            }
-
-            if ((GameIsFocused) && (Input.MouseScrollThisFrame != 0) && Input.IsKeyUp(Keys.LeftAlt))
-            {
-                if (Input.IsKeyDown(Keys.LeftControl))
-                {
-                    //Move slowly while ctrl is held down
-                    wheelEvent((Input.MouseScrollThisFrame / 50));
-                }
-                else
-                {
-                    wheelEvent(Input.MouseScrollThisFrame);
-                }
-            }
-
-            Point pos_tmp = Input.MouseState.Position;
-
-            if (mouse_old_position.X == -1)                             //avoid moving on initialisation.
-                mouse_old_position = pos_tmp;
-
-            if ((GameIsFocused) && ((pos_tmp.X != mouse_old_position.X) || (pos_tmp.Y != mouse_old_position.Y)))
-            {
-                if (Input.IsKeyDown(Keys.LeftControl))
-                {
-                    mouseMoveEvent(pos_tmp, pos_tmp - mouse_old_position, 10);
-                    mouse_old_position = pos_tmp;
-                }
-                else
-                {
-                    mouseMoveEvent(pos_tmp, pos_tmp - mouse_old_position, 1);
-                    mouse_old_position = pos_tmp;
-                }
-            }
         }
-
-        //WSAD Movement
-        private void Translate(float foward, float left, bool preciseMode, bool fastMode)
-        {
-            foward *= 2f;
-            left *= 2f;
-            float factor = preciseMode ? 0.25f: 1f;
-
-            if (fastMode)
-                factor = 10f;
-
-            factor *= 0.1f;
-
-            foward *= factor;
-            left *= factor;
-
-            float distance = Vector3.Distance(CameraState.Position, CameraState.TargetPosition);
-
-            //Forwards and backwards
-            if (!MathHelpers.FloatEquals(foward, 0f))
-            {
-                float zoom = distance + foward;
-
-                Quaternion rotation_x = Quaternion.CreateFromAxisAngle(Vector3.UnitY, viewer_angle.X);
-                Quaternion rotation_y = Quaternion.CreateFromAxisAngle(Vector3.UnitX, viewer_angle.Y);
-                Vector3 initialPos = CameraState.Position;
-
-                CameraState.Position = CameraState.TargetPosition + Vector3.Transform(new Vector3(0, 0, zoom), rotation_x * rotation_y);
-                CameraState.TargetPosition += CameraState.Position - initialPos;
-            }
-
-            if(!MathHelpers.FloatEquals(left, 0f))
-            {
-                //Left and right
-                float altFactor = distance < 1f ? 1f : distance;
-                panCamera(new Vector2(left, 0), (int)(1 * altFactor));
-            }
-
-        }
-
-        //Reset
-        public void ResetViewerAngles()
-        {
-            viewer_angle.Z = CameraState.Roll * (float)Math.PI / 180.0f;
-
-            Vector3 dir = CameraState.Position - CameraState.TargetPosition;
-            zoom = (dir.Length()) / 3.0f;
-            dir.Normalize();
-
-            viewer_angle.X = 0;
-            viewer_angle.Y = 0;
-
-            //1) calcul yaw
-            Vector2 vectproj = new Vector2(dir.X, -dir.Z);       //projection of the result on (O,x,-z) plane
-            if (vectproj.Length() > 0.000001)           //if undefined => by defaut 0;
-            {
-                vectproj.Normalize();
-
-                viewer_angle.X = (float)Math.Acos(vectproj.X);
-                if (vectproj.Y < 0)
-                    viewer_angle.X = -viewer_angle.X;
-            }
-
-
-            //2) calcul pitch
-            Quaternion rotationInv_Yrot = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -viewer_angle.X);
-
-            Vector3 dir_tmp = Vector3.Transform(dir, rotationInv_Yrot);       //we cancel yaw rotation, the point must be into (O,x,y) plane
-            viewer_angle.Y = (float)Math.Acos(dir_tmp.X);
-            if (dir_tmp.Y > 0)
-                viewer_angle.Y = -viewer_angle.Y;
-
-
-            viewer_angle.X += (float)Math.PI / 2.0f;
-
-
-
-            float two_pi = 2.0f * (float)Math.PI;
-            float half_pi = (float)Math.PI / 2.0f;
-
-            if (viewer_angle.X >= two_pi)
-                viewer_angle.X -= two_pi;
-            if (viewer_angle.X < 0)
-                viewer_angle.X += two_pi;
-
-            if (viewer_angle.Y >= half_pi - 0.1f)
-                viewer_angle.Y = half_pi - 0.1f;
-            if (viewer_angle.Y < -half_pi + 0.1f)
-                viewer_angle.Y = -half_pi + 0.1f;
-        }
-
-        public virtual void ResetCamera()
-        {
-            IsLeftClickHeldDown = false;
-            IsRightClickHeldDown = false;
-            mouse_old_position = new Point(-1, -1);
-            enable_spinning = false;
-            enable_panning = false;
-            viewer_angle = new Vector3((float)Math.PI, 0, 0);
-            zoom = 1;
-            CameraState.Reset();
-            repositionCamera();
-        }
-
+        
         #region Helpers
         public float DistanceFromCamera(Vector3 worldPos)
         {
@@ -383,7 +300,13 @@ namespace XenoKit.Engine.View
             cameraForward.Normalize();
             return cameraForward * distanceModifier;
         }
-        #endregion
+
+        public virtual void ResetCamera()
+        {
+            IsLeftClickHeldDown = false;
+            IsRightClickHeldDown = false;
+            CameraState.Reset();
+        }
 
         public void SetReflectionView(bool reflectionEnabled)
         {
@@ -417,8 +340,10 @@ namespace XenoKit.Engine.View
                 ViewMatrix = Matrix.CreateLookAt(CameraState.Position, CameraState.TargetPosition, Vector3.Up) * Matrix.CreateRotationZ(MathHelper.ToRadians(CameraState.Roll));
             }
 
-            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix; 
+            ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
             Frustum.Matrix = ViewProjectionMatrix;
         }
+
+        #endregion
     }
 }

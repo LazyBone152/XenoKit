@@ -19,6 +19,7 @@ namespace XenoKit.Engine
         private Vector2 _prevMousePos;
         private Vector2 _mousePos;
         public Vector2 MousePosition => _mousePos;
+        public Vector2 MouseDelta { get; private set; }
 
         //public Vector2 MousePosition {  get { return MouseState.Position.ToVector2(); } }
         //public Vector2 AltMousePosition => new Vector2(MouseState.Position.X, MouseState.Position.Y);
@@ -59,6 +60,7 @@ namespace XenoKit.Engine
 
             //_mousePos = new Vector2((game.GraphicsDevice.Viewport.Width - MouseState.X) * game.SuperSamplingFactor, MouseState.Y * game.SuperSamplingFactor);
             _mousePos = MouseState.Position.ToVector2();
+            MouseDelta = _mousePos - _prevMousePos;
 
             //Update scroll
             MouseScrollThisFrame = MouseState.ScrollWheelValue - CurrentMouseWheelValue;

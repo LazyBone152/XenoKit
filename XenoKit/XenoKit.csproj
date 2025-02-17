@@ -521,6 +521,7 @@
     <Compile Include="Engine\Stage\Xv2Stage.cs" />
     <Compile Include="Engine\Textures\DdsParser.cs" />
     <Compile Include="Engine\Vertex\VertexPositionTexture5.cs" />
+    <Compile Include="Engine\View\CameraBase.cs" />
     <Compile Include="Inspector\InspectorEntity\EanInspectorEntity.cs" />
     <Compile Include="Inspector\InspectorEntity\InspectorEntity.cs" />
     <Compile Include="Inspector\InspectorEntity\MaterialInspectorEntity.cs" />
@@ -607,7 +608,7 @@
     <Compile Include="Engine\Vfx\VfxManager.cs" />
     <Compile Include="Engine\Vfx\VfxPreview.cs" />
     <Compile Include="Engine\View\CameraAnimationInstance.cs" />
-    <Compile Include="Engine\View\CameraBase.cs" />
+    <Compile Include="Engine\View\OldCameraBase.cs" />
     <Compile Include="Engine\View\ICameraBase.cs" />
     <Compile Include="Engine\View\SimpleCamera.cs" />
     <Compile Include="Helper\Find.cs" />

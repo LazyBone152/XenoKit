@@ -133,7 +133,6 @@ namespace XenoKit.Views
             if(SceneManager.MainGameBase != null)
             {
                 SceneManager.MainGameBase.ActiveCameraBase.CameraState.SetState(CameraPos, CameraTargetPos, _roll, _fieldOfView);
-                SceneManager.MainGameBase.ActiveCameraBase.ResetViewerAngles();
                 cameraUpdateFromValues = 10;
                 Log.Add("Updating camera state");
             }
@@ -151,7 +150,6 @@ namespace XenoKit.Views
             }
 
             SceneManager.MainGameBase.ActiveCameraBase.CameraState.SetState(LocalSettings.Instance.CameraStates[slot]);
-            SceneManager.MainGameBase.ActiveCameraBase.ResetViewerAngles();
         }
 
         public RelayCommand<int> SaveCameraPresetCommand => new RelayCommand<int>(SaveCameraPreset);

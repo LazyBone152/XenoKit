@@ -189,7 +189,7 @@ namespace XenoKit.Engine
         {
             if(HotkeyCooldown == 0)
             {
-                if(Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.W))
+                if(Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.W))
                 {
                     WireframeMode = !WireframeMode;
                     CompiledObjectManager.ForceShaderUpdate();

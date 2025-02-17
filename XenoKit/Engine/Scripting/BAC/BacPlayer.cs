@@ -502,7 +502,6 @@ namespace XenoKit.Engine.Scripting.BAC
             if (SceneManager.MainGameInstance.camera.cameraInstance == null && SceneManager.UseCameras)
             {
                 SceneManager.MainGameInstance.camera.CameraState.SetState(originalCameraState);
-                SceneManager.MainGameInstance.camera.ResetViewerAngles();
             }
         }
 

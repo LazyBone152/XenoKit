@@ -489,7 +489,6 @@ namespace XenoKit.Engine
         public static void FocusActor(Actor actor)
         {
             MainCamera.CameraState.SetFocus(actor);
-            MainCamera.ResetViewerAngles();
         }
 
         private static string GetActorName(int charaIdx)
