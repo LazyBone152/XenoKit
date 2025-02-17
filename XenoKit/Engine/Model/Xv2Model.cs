@@ -18,6 +18,7 @@ using Xv2CoreLib.Resource.App;
 using EmmMaterial = Xv2CoreLib.EMM.EmmMaterial;
 using static Xv2CoreLib.EMD.EMD_TextureSamplerDef;
 using XenoKit.Editor;
+using Xv2CoreLib;
 
 namespace XenoKit.Engine.Model
 {
@@ -86,7 +87,7 @@ namespace XenoKit.Engine.Model
             Xv2Submesh xv2Submesh = new Xv2Submesh(gameBase, submesh.MaterialName, 0, ModelType.Emg, submesh);
 
             //Triangles
-            xv2Submesh.Indices = submesh.Faces.Copy();
+            xv2Submesh.Indices = ArrayConvert.ConvertToIntArray(submesh.Faces);
 
             //Create vertex array
             xv2Submesh.GpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
@@ -184,11 +185,11 @@ namespace XenoKit.Engine.Model
                             Xv2Submesh submesh = new Xv2Submesh(GameBase, emdSubmesh.Name, submeshIndex, Type, emdSubmesh);
 
                             //Triangles
-                            submesh.Indices = new short[triangleList.Faces.Count];
+                            submesh.Indices = new int[triangleList.Faces.Count];
 
                             for (int i = 0; i < triangleList.Faces.Count; i++)
                             {
-                                submesh.Indices[i] = (short)triangleList.Faces[i];
+                                submesh.Indices[i] = triangleList.Faces[i];
                             }
 
                             //Create vertex array
@@ -274,7 +275,7 @@ namespace XenoKit.Engine.Model
                             Xv2Submesh xv2Submesh = new Xv2Submesh(GameBase, submesh.MaterialName, submeshIndex, Type, submesh);
 
                             //Triangles
-                            xv2Submesh.Indices = submesh.Faces.Copy();
+                            xv2Submesh.Indices = ArrayConvert.ConvertToIntArray(submesh.Faces);
 
                             //Create vertex array
                             xv2Submesh.GpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
@@ -549,7 +550,7 @@ namespace XenoKit.Engine.Model
         //Vertices:
         public VertexPositionNormalTextureBlend[] GpuVertexes { get; set; }
         public VertexPositionNormalTextureBlend[] CpuVertexes { get; set; }
-        public short[] Indices { get; set; }
+        public int[] Indices { get; set; }
         public int[] UsedIndices { get; set; }
 
 

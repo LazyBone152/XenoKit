@@ -293,7 +293,8 @@ namespace XenoKit.Editor
                         ManualLoad(drop);
                         break;
                     case ".nsk":
-                        ManualLoad(drop);
+                        //ManualLoad(drop);
+                        Log.Add("NSK files can only be loaded in Viewer Mode.", LogType.Info);
                         return;
                     case ".spm":
                         SceneManager.SetDefaultSpm(SPM_File.Load(drop));
