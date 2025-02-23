@@ -80,6 +80,14 @@
     <PackageReference Version="4.0.1" Include="SharpDX.XInput" />
     <PackageReference Include="StbImageSharp" Version="2.27.7" />
     <PackageReference Include="StbImageWriteSharp" Version="1.13.5" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <PackageReference Include="Microsoft.NETCore.App">
+      <Version>2.1.30</Version>
+    </PackageReference>
   </ItemGroup>
 
   <Import Project="Platform\DirectX.targets" />

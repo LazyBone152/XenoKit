@@ -31,6 +31,8 @@ Supports .Net 4.5.2, .Net Core 3.1 and .Net 5</Description>
     <PackageReference Include="SharpDX.Direct3D9" Version="4.2.0" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,6 +44,12 @@ Supports .Net 4.5.2, .Net Core 3.1 and .Net 5</Description>
 
   <ItemGroup>
     <ProjectReference Include="..\..\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <PackageReference Include="Microsoft.NETCore.App">
+      <Version>2.1.30</Version>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
