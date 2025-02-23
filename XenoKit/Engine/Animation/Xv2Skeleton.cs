@@ -150,6 +150,7 @@ namespace XenoKit.Engine.Animation
                 Bones[i].InverseBindPoseMatrix = Matrix.Invert(Bones[i].BindPoseMatrix);
                 //Bones[i].SkinningMatrix = Bones[i].AbsoluteMatrix;
                 Bones[i].SkinningMatrix = Matrix.Identity;
+                Bones[i].AbsoluteAnimationMatrix = Bones[i].AbsoluteMatrix;
 
                 BoneIndexCache.Add(Bones[i].Name, i);
             }

@@ -309,6 +309,9 @@ namespace XenoKit.Engine.Scripting.BAC
                         case 0x6: //Invisibility
                             character.IsVisible = false;
                             break;
+                        case 0x30: //Black Void
+                            GameBase.IsBlackVoid = true;
+                            break;
                     }
                 }
 

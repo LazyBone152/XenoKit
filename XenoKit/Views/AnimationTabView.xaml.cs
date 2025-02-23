@@ -792,7 +792,7 @@ namespace XenoKit.Controls
 
             if (copiedAnims.Count > 0)
             {
-                List<EAN_Animation> anims = SerializedAnimation.Deserialize(copiedAnims, SelectedEanFile.Skeleton);
+                List<EAN_Animation> anims = SerializedAnimation.DeserializeToEan(copiedAnims, SelectedEanFile.Skeleton);
                 List<IUndoRedo> undos = new List<IUndoRedo>();
 
                 foreach (var anim in anims)

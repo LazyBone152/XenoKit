@@ -213,7 +213,7 @@ namespace XenoKit.Engine
 
             //Draw MainRenderTarget onto screen
             GraphicsDevice.SetRenderTarget(AxisCorrectionRenderTarget.RenderTarget);
-            GraphicsDevice.Clear(SceneManager.ViewportBackgroundColor);
+            GraphicsDevice.Clear(IsBlackVoid ? Color.Black : SceneManager.ViewportBackgroundColor);
             GraphicsDevice.SetDepthBuffer(RenderSystem.DepthBuffer.RenderTarget);
 
             //Merge RTs

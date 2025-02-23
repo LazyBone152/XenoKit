@@ -14,6 +14,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private ushort EmaIndex;
         private EMA_Animation Animation;
+        private ushort animationEndFrame = 0;
 
         private float Time = 0f;
         private ushort AnimationLoopEndFrame
@@ -28,7 +29,7 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             get
             {
-                if (Animation != null) return Animation.EndFrame;
+                if (Animation != null) return animationEndFrame;
                 return 1000;
             }
         }
@@ -68,6 +69,7 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             Animation = EmaFile.Animations.FirstOrDefault(x => x.Index == EffectPart.EMA_AnimationIndex);
             EmaIndex = EffectPart.EMA_AnimationIndex;
+            animationEndFrame = (ushort)(Animation?.GetEndFrame() ?? 0);
         }
 
         public override void Update()

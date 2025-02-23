@@ -177,10 +177,8 @@ namespace XenoKit.Engine.Vfx.Particle
 
         public override void Draw()
         {
-            if (!RenderSystem.CheckDrawPass(EmissionData.Material)) return;
-
-            if (ParticleSystem == null) return;
-            if (!ParticleSystem.DrawThisFrame) return;
+            if (EmissionData == null || ParticleSystem == null) return;
+            if (!RenderSystem.CheckDrawPass(EmissionData.Material) || !ParticleSystem.DrawThisFrame) return;
 
             if (State == NodeState.Active && !Node.NodeFlags.HasFlag(NodeFlags1.Hide))
             {

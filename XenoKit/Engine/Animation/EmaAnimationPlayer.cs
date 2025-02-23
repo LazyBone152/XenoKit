@@ -30,12 +30,11 @@ namespace XenoKit.Engine.Animation
             get
             {
                 if (PrimaryAnimation != null)
-                    return PrimaryAnimation.CurrentAnimDuration;
+                    return PrimaryAnimation.EndFrame;
                 return 0;
             }
         }
         private bool ExternalControl = false;
-
 
         public EmaAnimationPlayer(Xv2Skeleton skeleton, GameBase game) : base(game)
         {
@@ -134,7 +133,7 @@ namespace XenoKit.Engine.Animation
         {
             if (PrimaryAnimation != null)
             {
-                if (PrimaryAnimation.CurrentFrame >= PrimaryAnimation.Animation.EndFrame)
+                if (PrimaryAnimation.CurrentFrame >= PrimaryAnimation.EndFrame)
                 {
                     //TODO: Add logic for EMA editor
                 }
@@ -146,7 +145,7 @@ namespace XenoKit.Engine.Animation
         {
             if (PrimaryAnimation != null)
             {
-                if (PrimaryAnimation.CurrentFrame < PrimaryAnimation.Animation.EndFrame)
+                if (PrimaryAnimation.CurrentFrame < PrimaryAnimation.EndFrame)
                 {
                     //TimeScale will be handled by VfxEmo. AdvanceFrame here will just be for the EMA editor, so no time scale needed.
                     //float timeScale = (useTimeScale) ? SceneManager.BacTimeScale * SceneManager.MainAnimTimeScale : 1f;
@@ -234,6 +233,7 @@ namespace XenoKit.Engine.Animation
         public ushort EmaIndex;
         public EMA_Animation Animation;
         public float CurrentFrame;
+        public int EndFrame;
 
         //Properties
         public int CurrentFrame_Int
@@ -241,7 +241,6 @@ namespace XenoKit.Engine.Animation
             get => (int)Math.Floor(CurrentFrame);
             set => CurrentFrame = value;
         }
-        public int CurrentAnimDuration => Animation.EndFrame;
 
         //Optimizations:
         //Here some animation-state values are saved for use in a later frame, instead of needlessly (and expensively) computing them each frame.
@@ -262,6 +261,7 @@ namespace XenoKit.Engine.Animation
             CurrentNodeFrameIndex_Pos = new int[3][];
             CurrentNodeFrameIndex_Rot = new int[3][];
             CurrentNodeFrameIndex_Scale = new int[3][];
+            EndFrame = Animation.GetEndFrame();
         }
 
         public void AnimationDataChanged()
@@ -277,6 +277,7 @@ namespace XenoKit.Engine.Animation
             CurrentNodeFrameIndex_Scale[0] = new int[Animation.Nodes.Count];
             CurrentNodeFrameIndex_Scale[1] = new int[Animation.Nodes.Count];
             CurrentNodeFrameIndex_Scale[2] = new int[Animation.Nodes.Count];
+            EndFrame = Animation.GetEndFrame();
         }
 
         public void ResetFrameIndex()

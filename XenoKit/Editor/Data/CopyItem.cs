@@ -584,7 +584,7 @@ namespace XenoKit.Editor
 
                 if(ean != null)
                 {
-                    EAN_Animation newAnimation = animation.Deserialize(ean.Skeleton);
+                    EAN_Animation newAnimation = animation.DeserializeToEan(ean.Skeleton);
 
                     int oldId = animation.ID;
                     int newId = ean.AddEntry(newAnimation);

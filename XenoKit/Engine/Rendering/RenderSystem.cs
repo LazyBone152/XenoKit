@@ -259,7 +259,9 @@ namespace XenoKit.Engine.Rendering
             GraphicsDevice.Clear(Color.Transparent);
             GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
             DrawEntity(Characters, LOW_REZ_NONE);
-            DrawEntity(Stages, LOW_REZ_NONE);
+
+            if(!GameBase.IsBlackVoid)
+                DrawEntity(Stages, LOW_REZ_NONE);
 
             //Black Chara Outline Shader
             if (SettingsManager.settings.XenoKit_UseOutlinePostEffect)
@@ -849,6 +851,11 @@ namespace XenoKit.Engine.Rendering
         {
             if (material.MatParam.AlphaBlend == 0 && CurrentDrawPass == Rendering.DrawPass.Opaque) return true;
             if (material.MatParam.AlphaBlend == 0 && CurrentDrawPass != Rendering.DrawPass.Opaque) return false;
+            
+            //Handle AlphaSortMask; alphaBlend objects shouldn't be sorted with this flag
+            //todo: move to a seperate pass?
+            if (material.MatParam.AlphaBlend == 1 && material.MatParam.AlphaBlendType == 0 && material.MatParam.AlphaSortMask == 1 && CurrentDrawPass == Rendering.DrawPass.Opaque) return true;
+            if (material.MatParam.AlphaBlend == 1 && material.MatParam.AlphaBlendType == 0 && material.MatParam.AlphaSortMask == 1 && CurrentDrawPass != Rendering.DrawPass.Opaque) return false;
 
             if (material.MatParam.AlphaBlendType == 0 && CurrentDrawPass == Rendering.DrawPass.AlphaBlend) return true;
             if (material.MatParam.AlphaBlendType == 1 && CurrentDrawPass == Rendering.DrawPass.Additive) return true;

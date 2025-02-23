@@ -56,6 +56,7 @@ namespace XenoKit.Engine
         public bool IsPlaying = false;
         public bool RenderCharacters = true;
         public bool WireframeMode = false;
+        public bool IsBlackVoid = false;
 
         //Entity
         protected List<Entity> Entities = new List<Entity>(1000);
@@ -104,6 +105,7 @@ namespace XenoKit.Engine
 
         protected override void Update(GameTime time)
         {
+            IsBlackVoid = false;
             GameTime = time;
             Input.Update(_mouse, _keyboard);
             CheckHotkeys();
@@ -189,7 +191,7 @@ namespace XenoKit.Engine
         {
             if(HotkeyCooldown == 0)
             {
-                if(Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.W))
+                if(Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.L))
                 {
                     WireframeMode = !WireframeMode;
                     CompiledObjectManager.ForceShaderUpdate();

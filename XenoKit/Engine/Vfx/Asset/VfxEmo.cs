@@ -29,6 +29,8 @@ namespace XenoKit.Engine.Vfx.Asset
         private ushort EmaIndex = ushort.MaxValue;
         private EMA_Animation MaterialAnimation;
         private EMA_Animation Animation;
+        private ushort _animationEndFrame = 0;
+        private ushort _matAnimationEndFrame = 0;
 
         private EmaAnimationPlayer AnimationPlayer;
         private Xv2Skeleton Skeleton;
@@ -46,8 +48,8 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             get
             {
-                if (Animation != null) return Animation.EndFrame;
-                if (MaterialAnimation != null) return MaterialAnimation.EndFrame;
+                if (Animation != null) return _animationEndFrame;
+                if (MaterialAnimation != null) return _matAnimationEndFrame;
                 return 1000;
             }
         }
@@ -144,12 +146,14 @@ namespace XenoKit.Engine.Vfx.Asset
             {
                 SetDefaultMaterialValues();
                 MaterialAnimation = MaterialAnimations.Animations.FirstOrDefault(x => x.Index == EffectPart.EMA_AnimationIndex);
+                _matAnimationEndFrame = (ushort)(MaterialAnimation?.GetEndFrame() ?? 0);
             }
 
             if (ObjAnimations != null)
             {
                 Animation = ObjAnimations.Animations.FirstOrDefault(x => x.Index == EffectPart.EMA_AnimationIndex);
                 AnimationPlayer?.PlayAnimation(ObjAnimations, EffectPart.EMA_AnimationIndex, true);
+                _animationEndFrame = (ushort)(Animation?.GetEndFrame() ?? 0);
             }
 
             EmaIndex = EffectPart.EMA_AnimationIndex;
