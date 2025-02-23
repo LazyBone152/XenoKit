@@ -616,6 +616,17 @@ namespace XenoKit.Engine.Shader
             //ps_versatile_cb
             if (shaderProgram.UsePixelShaderBuffer[PS_VERSATILE_CB])
             {
+                Parameters["g_vColor0_PS"].SetValue(Vector4.One);
+                Parameters["g_vColor1_PS"].SetValue(new Vector4(0, 0, 0, 1));
+                Parameters["g_vColor2_PS"].SetValue(new Vector4(0, 0, 0, 1));
+                Parameters["g_vColor8_PS"].SetValue(new Vector4(0, 0, 0, 1));
+                Parameters["g_vColor9_PS"].SetValue(new Vector4(0, 0, 0, 1));
+                Parameters["g_vColor10_PS"].SetValue(new Vector4(0, 0, 0, 1));
+                Parameters["g_vColor11_PS"].SetValue(new Vector4(0, 0, 0, 1));
+                Parameters["g_vColor13_PS"].SetValue(Vector4.One); //Required for T1_VFX_MTN_DIS_ALPHA
+                Parameters["g_vColor14_PS"].SetValue(Vector4.One);
+                Parameters["g_vColor15_PS"].SetValue(new Vector4(0,0,0,1));
+
                 Parameters["g_vParam0_PS"].SetValue(new Vector4(1.0f, 0.0f, 1.0f, 1.0f));
                 Parameters["g_vParam1_PS"].SetValue(new Vector4(0, 0, 0, 1f));
                 Parameters["g_vParam2_PS"].SetValue(new Vector4(0, 0, 0, 1f));
@@ -927,7 +938,7 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
-            if (ShaderType == ShaderType.Stage)
+            if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB] || ShaderType == ShaderType.Stage)
             {
                 if (GameBase.CurrentStage.FogEnabled)
                 {
@@ -980,7 +991,9 @@ namespace XenoKit.Engine.Shader
             //Parameters["g_vSpecular_PS"]?.SetValue(new Vector4(0.50f, 15.00f, 0.00f, 0.00f));
             //Parameters["g_vLightDif0_PS"]?.SetValue(new Vector4(0.38161f, 0.32367f, 0.16482f, 1.00f));
             //Parameters["g_vLightSpc0_PS"]?.SetValue(new Vector4(0.971f, 0.745f, 0.718f, 1.00f));
-            //Parameters["g_bOutputDepthMRT_PS"]?.SetValue(true);
+
+            //Required for T1_VFX_MTN_DIS_ALPHA, unsure where the value comes from (it changes)
+            //Parameters["g_vColor13_PS"]?.SetValue(new Vector4(1.00f, 1.00f, 1.00f, 0.80559f));
 
 
             //Update global parameters
