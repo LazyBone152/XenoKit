@@ -151,7 +151,7 @@ namespace XenoKit.Views.TimeLines
                 _LeftIndicator.Visibility = Visibility.Collapsed;
             if (_RightIndicator != null)
                 _RightIndicator.Visibility = Visibility.Collapsed;
-            if (_RightIndicator != null)
+            if (_MouseOver != null)
                 _MouseOver.Visibility = Visibility.Collapsed;
             base.OnApplyTemplate();
 

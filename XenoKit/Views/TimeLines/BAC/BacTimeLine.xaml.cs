@@ -505,9 +505,9 @@ namespace XenoKit.Views.TimeLines
             {
                 _unitSize = newUnitSize;
                 CurrentWidth = CurrentLength * newUnitSize;
-                ResizeAllLayers();
                 NotifyPropertyChanged(nameof(UnitSize));
                 NotifyPropertyChanged(nameof(CurrentWidth));
+                ResizeAllLayers();
             }
             else
             {

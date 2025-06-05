@@ -78,6 +78,7 @@
                 </Grid.ContextMenu>
             </Grid>
         </DataTemplate>
+    
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -174,7 +175,7 @@
             <Slider VerticalAlignment="Center" Width="150" Margin="10,-7.5,0,0" Minimum="1" Maximum="100" Value="{Binding ElementName=UserControl, Path=UnitSize}"/>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" x:Name="timeScroll" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Stretch">
+        <ScrollViewer Grid.Row="1" x:Name="timeScroll" Height="20" Margin="0,0,15,0" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Top">
             <Grid Cursor="Hand">
                 <Canvas x:Name="canvasForFrameMarkings" VerticalAlignment="Top" HorizontalAlignment="Left" Height="20" Width="{Binding ElementName=UserControl, Path=CurrentWidth}"/>
                 <Slider Style="{DynamicResource MahApps.Styles.Slider.Flat}" VerticalAlignment="Top" HorizontalAlignment="Left" Height="20" Width="{Binding ElementName=UserControl, Path=CurrentWidth}" 
@@ -182,7 +183,7 @@
                         Foreground="Transparent" BorderBrush="Transparent" Background="Transparent" IsMoveToPointEnabled="True"/>
             </Grid>
         </ScrollViewer>
-        <ScrollViewer Grid.Row="2" x:Name="mainScroll" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch" ScrollChanged="mainScroll_ScrollChanged">
+        <ScrollViewer Grid.Row="2" x:Name="mainScroll" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" VerticalAlignment="Stretch" ScrollChanged="mainScroll_ScrollChanged">
             <Grid x:Name="mainScollGrid" MouseDown="Grid_MouseDown" MouseUp="Grid_MouseUp" MouseMove="Grid_MouseMove" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Height="Auto">
                 <StackPanel x:Name="mainScrollPanel">
                     <Grid Height="Auto" ContextMenuOpening="MainGrid_ContextMenuOpening">
@@ -247,5 +248,6 @@
                 </StackPanel>
             </Grid>
         </ScrollViewer>
+    
     </Grid>
 </UserControl>
