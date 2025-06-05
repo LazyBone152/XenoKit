@@ -1,14 +1,40 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Xv2CoreLib.EMD;
+using Xv2CoreLib.Resource;
 
 namespace XenoKit.Engine
 {
     public static class Extensions
     {
+        public static bool IsAproxEqual(this Vector3 a, Vector3 b)
+        {
+            return MathHelpers.FloatEquals(a.X, b.X) && MathHelpers.FloatEquals(a.Y, b.Y) && MathHelpers.FloatEquals(a.Z, b.Z);
+        }
+
+        public static BoundingBox ConvertToBoundingBox(this EMD_AABB aabb)
+        {
+            Vector3 min = new Vector3(aabb.MinX, aabb.MinY, aabb.MinZ);
+            Vector3 max = new Vector3(aabb.MaxX, aabb.MaxY, aabb.MaxZ);
+            return new BoundingBox(min, max);
+        }
+
+        public static BoundingBox Transform(this BoundingBox box, Matrix transform)
+        {
+            Vector3[] corners = box.GetCorners();
+            Vector3 min = Vector3.Transform(corners[0], transform);
+            Vector3 max = min;
+
+            for (int i = 1; i < corners.Length; i++)
+            {
+                Vector3 transformed = Vector3.Transform(corners[i], transform);
+                min = Vector3.Min(min, transformed);
+                max = Vector3.Max(max, transformed);
+            }
+
+            return new BoundingBox(min, max);
+        }
 
         public static void CopyState(this BlendState blend, int copyFrom, int copyTo)
         {

@@ -31,6 +31,7 @@ namespace XenoKit.Engine.Rendering
 
         private int _particleCount = 0;
         public int ActiveParticleCount { get; private set; }
+        public int MeshDrawCalls;
         public int Count => Characters.Count + Effects.Count;
 
         private List<RenderTargetWrapper> registeredRenderTargets = new List<RenderTargetWrapper>();
@@ -39,6 +40,7 @@ namespace XenoKit.Engine.Rendering
         //Render Settings
         public DrawPass CurrentDrawPass { get; private set; }
         public bool IsReflectionPass { get; private set; }
+        public bool IsShadowPass { get; private set; }
         private readonly Color ReflectionBackgroundColor = new Color(0.25098f, 0.25098f, 0.25098f, 1f);
         private readonly Color NormalsBackgroundColor = new Color(0.50196f, 0.50196f, 0, 0);
 
@@ -220,6 +222,7 @@ namespace XenoKit.Engine.Rendering
             const int LOW_REZ_NONE = 0, LOW_REZ = 1, LOW_REZ_SMOKE = 2;
 
             if (!DrawThisFrame) return;
+            MeshDrawCalls = 0;
 
             //Clear the common depth buffer
             GraphicsDevice.SetRenderTarget(RenderSystem.DepthBuffer.RenderTarget);
@@ -234,6 +237,7 @@ namespace XenoKit.Engine.Rendering
             IsReflectionPass = false;
 
             //Shadow Pass (Chara + Stage Enviroment)
+            IsShadowPass = true;
             CameraBase.SetReflectionView(false);
             GraphicsDevice.SetRenderTarget(ShadowPassRT0.RenderTarget);
             GraphicsDevice.SetDepthBuffer(ShadowPassRT0.RenderTarget);
@@ -248,6 +252,7 @@ namespace XenoKit.Engine.Rendering
                 if (DumpShadowMapNextFrame)
                     DumpRenderTargets();
             }
+            IsShadowPass = false;
 
             //Normals Pass (Chara)
             SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);

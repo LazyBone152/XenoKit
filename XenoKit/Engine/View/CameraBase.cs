@@ -185,7 +185,7 @@ namespace XenoKit.Engine.View
             {
                 float distance = Vector3.Distance(CameraState.Position, CameraState.TargetPosition);
 
-                float factor = 0.002f;
+                float factor = 0.005f;
                 if(distance > 10f)
                     factor *= 1f + (MathHelper.Clamp(distance / 200f, 0f, 1f) * 50f);
 
@@ -341,7 +341,9 @@ namespace XenoKit.Engine.View
             }
 
             ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
-            Frustum.Matrix = ViewProjectionMatrix;
+
+            if(SceneManager.FrustumUpdateEnabled)
+                Frustum.Matrix = ViewProjectionMatrix;
         }
 
         #endregion

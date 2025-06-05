@@ -172,5 +172,15 @@ namespace XenoKit.Engine.Vfx.Particle
             //Can be fixed with an additional check against RotZero being zero, then removing the rotation from the matrix multiplication, but not sure if worth it
 
         }
+    
+        protected bool FrustumIntersects(Matrix world, BoundingBox boundingBox)
+        {
+#if DEBUG
+            if (!SceneManager.FrustumCullEnabled) return true;
+#endif
+            if (Vector3.Distance(world.Translation, GameBase.ActiveCameraBase.CameraState.Position) < 3f) return true;
+
+            return GameBase.ActiveCameraBase.Frustum.Intersects(boundingBox.Transform(world));
+        }
     }
 }

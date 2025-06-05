@@ -296,6 +296,11 @@ namespace XenoKit.Engine
         /// </summary>
         public static bool RetainActionMovement = false;
 
+        //Frustum/Culling
+        public static bool FrustumUpdateEnabled = true;
+        public static bool FrustumCullEnabled = true;
+        public static bool BoundingBoxVisible = false;
+
         public static bool Loop => SettingsManager.settings.XenoKit_Loop;
         public static bool AutoPlay => SettingsManager.settings.XenoKit_AutoPlay;
         public static bool UseCameras => SettingsManager.settings.XenoKit_EnableCameraAnimations;

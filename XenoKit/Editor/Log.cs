@@ -26,7 +26,7 @@ namespace XenoKit.Editor
                 if (existing != -1)
                 {
                     PushToTop(existing);
-                    LogEntryAddedEvent.Invoke(Entries[existing], null);
+                    LogEntryAddedEvent?.Invoke(Entries[existing], null);
                     return;
                 }
 

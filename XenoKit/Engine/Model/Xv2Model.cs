@@ -19,6 +19,7 @@ using EmmMaterial = Xv2CoreLib.EMM.EmmMaterial;
 using static Xv2CoreLib.EMD.EMD_TextureSamplerDef;
 using XenoKit.Editor;
 using Xv2CoreLib;
+using XenoKit.Engine.Objects;
 
 namespace XenoKit.Engine.Model
 {
@@ -85,6 +86,8 @@ namespace XenoKit.Engine.Model
             EMG_Submesh submesh = emgFile.EmgMeshes[0].Submeshes[0];
 
             Xv2Submesh xv2Submesh = new Xv2Submesh(gameBase, submesh.MaterialName, 0, ModelType.Emg, submesh);
+
+            xv2Submesh.BoundingBox = mesh.AABB.ConvertToBoundingBox();
 
             //Triangles
             xv2Submesh.Indices = ArrayConvert.ConvertToIntArray(submesh.Faces);
@@ -184,6 +187,8 @@ namespace XenoKit.Engine.Model
                         {
                             Xv2Submesh submesh = new Xv2Submesh(GameBase, emdSubmesh.Name, submeshIndex, Type, emdSubmesh);
 
+                            submesh.BoundingBox = emdSubmesh.AABB.ConvertToBoundingBox();
+
                             //Triangles
                             submesh.Indices = new int[triangleList.Faces.Count];
 
@@ -273,6 +278,8 @@ namespace XenoKit.Engine.Model
                         foreach (var submesh in mesh.Submeshes)
                         {
                             Xv2Submesh xv2Submesh = new Xv2Submesh(GameBase, submesh.MaterialName, submeshIndex, Type, submesh);
+
+                            xv2Submesh.BoundingBox = mesh.AABB.ConvertToBoundingBox();
 
                             //Triangles
                             xv2Submesh.Indices = ArrayConvert.ConvertToIntArray(submesh.Faces);
@@ -497,6 +504,7 @@ namespace XenoKit.Engine.Model
 
             return null;
         }
+    
     }
 
     public class Xv2Model : Entity
@@ -553,6 +561,9 @@ namespace XenoKit.Engine.Model
         public int[] Indices { get; set; }
         public int[] UsedIndices { get; set; }
 
+        //AABB
+        public BoundingBox BoundingBox { get; set; }
+        private readonly DrawableBoundingBox VisibleAABB;
 
         //Samplers:
         public SamplerInfo[] Samplers { get; set; }
@@ -587,6 +598,10 @@ namespace XenoKit.Engine.Model
             SubmeshIndex = submeshIndex;
             Type = type;
             SourceSubmesh = sourceSubmesh;
+
+#if DEBUG
+            VisibleAABB = new DrawableBoundingBox(GameBase);
+#endif
         }
 
         public void Update(int actor, Xv2Skeleton skeleton = null)
@@ -598,6 +613,9 @@ namespace XenoKit.Engine.Model
             if (materials == null) return;
 
             if (!RenderSystem.CheckDrawPass(materials[SubmeshIndex])) return;
+
+            if (!FrustumIntersects(world))
+                return;
 
 #if DEBUG
             if (RenderSystem.CurrentDrawIdx < RenderSystem.DRAW_ORDER.Length)
@@ -639,11 +657,20 @@ namespace XenoKit.Engine.Model
             materials[SubmeshIndex].SetTextureTile(TexTile01, TexTile23);
 
             DrawEnd(actor, materials[SubmeshIndex], skeleton);
+
+            //Draw AABBs
+            if(SceneManager.BoundingBoxVisible && VisibleAABB != null)
+            {
+                VisibleAABB.Draw(world, BoundingBox);
+            }
         }
 
         public void Draw(Matrix world, int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton = null)
         {
             //if (!RenderSystem.CheckDrawPass(material)) return;
+
+            if (!FrustumIntersects(world))
+                return;
 
             material.World = world;
             material.PrevWVP = PrevWVP[actor];
@@ -653,6 +680,7 @@ namespace XenoKit.Engine.Model
 
         private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton)
         {
+            RenderSystem.MeshDrawCalls++;
             material.ActorSlot = actor;
 
             if (EnableSkinning && skeleton != null)
@@ -679,6 +707,20 @@ namespace XenoKit.Engine.Model
             }
 
             PrevWVP[actor] = material.WVP;
+        }
+
+        private bool FrustumIntersects(Matrix world)
+        {
+            if (Type != ModelType.Nsk) return true; //Only do culling for NSKs right now. EMD and EMO can be animated, which causes problems for calculating the bounding boxes since the final transformation is done in shader code (on GPU), and not known before drawing. Not worth the effort to workaround
+#if DEBUG
+            if (!SceneManager.FrustumCullEnabled) return true;
+#endif
+            if (Vector3.Distance(world.Translation, GameBase.ActiveCameraBase.CameraState.Position) < 1f) return true;
+
+            BoundingFrustum frustum = RenderSystem.IsShadowPass ? GameBase.SunLight.LightFrustum : GameBase.ActiveCameraBase.Frustum;
+            //BoundingFrustum frustum = GameBase.ActiveCameraBase.Frustum;
+
+            return frustum.Intersects(BoundingBox.Transform(world));
         }
 
         private short[] GetBoneIndices(Xv2Skeleton skeleton)

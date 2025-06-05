@@ -368,6 +368,28 @@ namespace XenoKit.Engine
                     SetHotkeyCooldown();
                     RenderSystem.RequestScreenshot(ScreenshotType.CustomBackgroundColor);
                 }
+#if DEBUG
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.N) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl))
+                {
+                    //Toggle frustum culling
+                    SetHotkeyCooldown();
+                    SceneManager.FrustumCullEnabled = !SceneManager.FrustumCullEnabled;
+                    Log.Add(SceneManager.FrustumCullEnabled ? "Frustum Culling enabled" : "Frustum Culling disabled");
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.M) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl))
+                {
+                    //Toggle frustum update
+                    SetHotkeyCooldown();
+                    SceneManager.FrustumUpdateEnabled = !SceneManager.FrustumUpdateEnabled;
+                    Log.Add(SceneManager.FrustumUpdateEnabled ? "Frustum Update enabled" : "Frustum Update disabled");
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.B) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl))
+                {
+                    SetHotkeyCooldown();
+                    SceneManager.BoundingBoxVisible = !SceneManager.BoundingBoxVisible;
+                }
+
+#endif
             }
 
             base.CheckHotkeys();

@@ -15,6 +15,8 @@ namespace XenoKit.Engine.Lighting
         public Matrix LightViewProjectionMatrix { get; private set; }
         public Matrix LightViewProjectionBiasMatrix { get; private set; }
 
+        public BoundingFrustum LightFrustum { get; private set; }
+
         private readonly Matrix BiasMatrix = new Matrix(
                                                 0.5f, 0.0f, 0.0f, 0.0f,
                                                 0.0f, -0.5f, 0.0f, 0.0f,
@@ -25,6 +27,7 @@ namespace XenoKit.Engine.Lighting
         public SunLight(GameBase game) : base(game) 
         {
             Xv2Stage.CurrentSpmChanged += Xv2Stage_CurrentSpmChanged;
+            LightFrustum = new BoundingFrustum(Matrix.Identity);
         }
 
         private void Xv2Stage_CurrentSpmChanged(object sender, EventArgs e)
@@ -54,6 +57,8 @@ namespace XenoKit.Engine.Lighting
             //LightViewProjectionMatrix = CreateLightViewProjectionMatrix(Direction, CameraBase.Frustum);
             //LightViewProjectionMatrix = CreateLightViewProjectionMatrix();
             LightViewProjectionBiasMatrix = LightViewProjectionMatrix * BiasMatrix;
+
+            LightFrustum.Matrix = LightProjectionMatrix;
         }
 
         private Matrix CreateLightViewProjectionMatrix()

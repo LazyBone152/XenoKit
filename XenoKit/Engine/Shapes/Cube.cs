@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using XenoKit.Engine.View;
+using Xv2CoreLib.Resource;
 
 namespace XenoKit.Engine.Shapes
 {
@@ -16,6 +17,9 @@ namespace XenoKit.Engine.Shapes
         public Vector3 MinBounds;
         public Vector3 MaxBounds;
         private Color Color;
+        private float _initalSize;
+        private Vector3 _initialMinBounds;
+        private Vector3 _initialMaxBounds;
 
         //Settings:
         private readonly bool Wireframe = false;
@@ -160,6 +164,14 @@ namespace XenoKit.Engine.Shapes
         /// </summary>
         public void SetBounds(Vector3 min, Vector3 max, float size, bool useDefinedBounds)
         {
+            //Early out if bounds are already equal to input values
+            if (min.IsAproxEqual(_initialMinBounds) && max.IsAproxEqual(_initialMaxBounds) && MathHelpers.FloatEquals(size, _initalSize))
+                return;
+
+            _initalSize = size;
+            _initialMinBounds = min;
+            _initialMaxBounds = max;
+
             if (useDefinedBounds)
             {
                 //Calculate actual min and max bounds (the bounds defined in bac is arbitary and not in any order)
@@ -172,6 +184,8 @@ namespace XenoKit.Engine.Shapes
                 MinBounds = new Vector3(-size);
                 MaxBounds = new Vector3(size);
             }
+
+
             
             //Resize cube
             CreateVertices();

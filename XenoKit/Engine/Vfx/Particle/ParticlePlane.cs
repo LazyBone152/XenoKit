@@ -16,6 +16,7 @@ namespace XenoKit.Engine.Vfx.Particle
         private const int VERTEX_BOTTOM_RIGHT = 5;
 
         protected readonly VertexPositionTextureColor[] Vertices = new VertexPositionTextureColor[6];
+        protected BoundingBox AABB = new BoundingBox();
 
         public override void Initialize(Matrix emitPoint, Vector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, object effect)
         {
@@ -92,6 +93,13 @@ namespace XenoKit.Engine.Vfx.Particle
             //Duplicate vertices
             Vertices[VERTEX_BOTTOM_LEFT_ALT] = Vertices[VERTEX_BOTTOM_LEFT];
             Vertices[VERTEX_TOP_RIGHT_ALT] = Vertices[VERTEX_TOP_RIGHT];
+
+            //Update AABB
+            float aabbX = scaleU_FirstVertex > ScaleU ? scaleU_FirstVertex : ScaleU;
+            Vector3 min = new Vector3(aabbX, ScaleV, 0f);
+            Vector3 max = new Vector3(-aabbX, -ScaleV, 0f);
+
+            AABB = new BoundingBox(min, max);
         }
 
         public override void Update()
@@ -179,6 +187,11 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             if (EmissionData == null || ParticleSystem == null) return;
             if (!RenderSystem.CheckDrawPass(EmissionData.Material) || !ParticleSystem.DrawThisFrame) return;
+
+            if (!FrustumIntersects(AbsoluteTransform, AABB))
+                return;
+
+            RenderSystem.MeshDrawCalls++;
 
             if (State == NodeState.Active && !Node.NodeFlags.HasFlag(NodeFlags1.Hide))
             {
