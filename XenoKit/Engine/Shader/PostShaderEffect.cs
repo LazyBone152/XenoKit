@@ -171,8 +171,17 @@ namespace XenoKit.Engine.Shader
                 case PostProccessShader.AGE_TEST_EDGELINE_MRT:
                     Parameters["g_vParam0_PS"]?.SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
                     //Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
-                    float factor = GameBase.RenderSystem.SuperSampleFactor > 1 ? 0.85f : 1f;
-                    Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00055f, 3f, 0.6f) * factor);
+                    //float factor = GameBase.RenderSystem.SuperSampleFactor > 1 ? 0.85f : 1f;
+                    //Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00055f, 3f, 0.6f) * factor);
+                    //Attempt to fix a weird bug where outlines disappear
+                    if (GameBase.RenderSystem.SuperSampleFactor > 1)
+                    {
+                        Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.000312f, 0.000552f, 2.4f, 0.5f));
+                    }
+                    else
+                    {
+                        Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
+                    }
                     break;
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
                     Parameters["g_vParam0_PS"]?.SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));
