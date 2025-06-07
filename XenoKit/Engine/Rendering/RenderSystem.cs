@@ -712,6 +712,10 @@ namespace XenoKit.Engine.Rendering
                     {
                         mesh.SetAsReflectionMesh(true);
                     }
+                    else if (entity is LodGroup lod)
+                    {
+                        lod.SetAsReflectionMesh(true);
+                    }
 
                     Reflections.Add(entity);
                 }

@@ -48,7 +48,7 @@ namespace XenoKit.Engine
 
         protected Xv2Stage _defaultStage;
         protected Xv2Stage _setStage;
-        public Xv2Stage CurrentStage { get; private set; }
+        public Xv2Stage CurrentStage { get; protected set; }
 
         //Engine Values:
         public virtual bool IsMainInstance => false;
@@ -112,6 +112,7 @@ namespace XenoKit.Engine
 
             SunLight.Update();
             LightSource.Update();
+            CurrentStage?.Update();
 
             //Entities
             for (int i = Entities.Count - 1; i >= 0; i--)

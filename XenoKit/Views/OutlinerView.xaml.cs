@@ -54,6 +54,12 @@ namespace XenoKit.Controls
         {
             Files.Instance.RemoveSelectedItem(listBox.SelectedItems.Cast<OutlinerItem>().ToList());
         }
+        
+        public RelayCommand SetStageCommand => new RelayCommand(SetStage, CanSetStage);
+        private void SetStage()
+        {
+            SetActiveStage();
+        }
 
 
         private bool CanRemove()
@@ -83,7 +89,7 @@ namespace XenoKit.Controls
         private bool CanSetStage()
         {
             if (files.SelectedItem == null) return false;
-            return files.SelectedItem.Type == OutlinerItem.OutlinerItemType.STAGE_MANUAL;
+            return files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Stage;
         }
 
         private bool IsActorSelected()
@@ -138,16 +144,21 @@ namespace XenoKit.Controls
             if (CanSetActor())
                 SetActorPrimary();
 
+            SetActiveStage();
+        }
+
+        private void SetActiveStage()
+        {
             if (CanSetStage())
             {
 
-                if (SceneManager.MainGameInstance.ActiveStage == files.SelectedItem.ManualFiles)
+                if (SceneManager.MainGameInstance.CurrentStage == files.SelectedItem.Stage)
                 {
                     SceneManager.MainGameInstance.SetActiveStage(null);
                 }
                 else
                 {
-                    SceneManager.MainGameInstance.SetActiveStage(files.SelectedItem.ManualFiles);
+                    SceneManager.MainGameInstance.SetActiveStage(files.SelectedItem.Stage);
                 }
             }
         }

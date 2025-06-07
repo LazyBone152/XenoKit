@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using XenoKit.Engine.Model;
 using XenoKit.Editor.Data;
 using Xv2CoreLib.BAC;
+using XenoKit.Engine.Stage;
 
 namespace XenoKit.Editor
 {
@@ -38,14 +39,14 @@ namespace XenoKit.Editor
             Skill,
             Moveset,
             CMN,
+            Stage,
             Inspector,
 
             //Manual Loads Only:
             ACB,
             EEPK,
             EAN,
-            CAM,
-            STAGE_MANUAL //NSK + EMB + EMM 
+            CAM
         }
 
         public string ID => GetUniqueID();
@@ -63,6 +64,7 @@ namespace XenoKit.Editor
         public Actor character { get; set; }
         public ManualFiles ManualFiles { get; set; }
         public CustomAvatar CustomAvatar { get; set; }
+        public Xv2Stage Stage { get; set; }
 
         //UI
         public string DisplayName
@@ -73,6 +75,7 @@ namespace XenoKit.Editor
                 if (Type == OutlinerItemType.CMN) return "Common";
                 if (IsManualLoaded) return ManualFiles.Name;
                 if (Type == OutlinerItemType.CaC) return $"{CustomAvatar.CaC.Name}";
+                if (Type == OutlinerItemType.Stage) return Stage.StageName;
                 return (Type == OutlinerItemType.Character) ? character.Name : move.Name;
             }
         }
@@ -248,33 +251,8 @@ namespace XenoKit.Editor
                     Type = OutlinerItemType.EEPK;
                     ManualFiles = ManualFiles.LoadEepk(path);
                     break;
-                case ".nsk":
-                    Type = OutlinerItemType.STAGE_MANUAL;
-                    ManualFiles = ManualFiles.LoadNsk(new[] { path } );
-                    break;
                 default:
                     throw new InvalidDataException($"OutlinerItem: The filetype of \"{path}\" is unsupported.");
-            }
-
-            IsManualLoaded = true;
-            SetSelectedItems();
-            Visibilities = new EditorVisibility(Type);
-        }
-
-        /// <summary>
-        /// Load a file manually (directly from disk).
-        /// </summary>
-        /// <param name="path">The path to the file.</param>
-        public OutlinerItem(string[] paths)
-        {
-            switch (Path.GetExtension(paths[0]).ToLower())
-            {
-                case ".nsk":
-                    Type = OutlinerItemType.STAGE_MANUAL;
-                    ManualFiles = ManualFiles.LoadNsk(paths);
-                    break;
-                default:
-                    throw new InvalidDataException($"OutlinerItem: The filetype of \"{paths[0]}\" is unsupported for multi-file drop.");
             }
 
             IsManualLoaded = true;
@@ -306,6 +284,13 @@ namespace XenoKit.Editor
         {
             CustomAvatar = new CustomAvatar(cacIndex, cac, this);
             Visibilities = new EditorVisibility(OutlinerItemType.CaC);
+        }
+
+        public OutlinerItem(Xv2Stage stage)
+        {
+            Stage = stage;
+            Type = OutlinerItemType.Stage;
+            Visibilities = new EditorVisibility(OutlinerItemType.Stage);
         }
 
         /// <summary>
@@ -395,6 +380,8 @@ namespace XenoKit.Editor
                     return $"SKILL_{move.CusEntry.ID1}";
                 case OutlinerItemType.CaC:
                     return $"CAC_{CustomAvatar.CaC.Name}";
+                case OutlinerItemType.Stage:
+                    return $"STAGE_{Stage.StageDefEntry.CODE}_{Stage.StageDefEntry.Index}";
             }
 
             return null;
@@ -531,9 +518,6 @@ namespace XenoKit.Editor
         //All moveset/skill related files:
         public Move Move { get; set; }
 
-        //Stage Files:
-        public List<StageModel> StageModels { get; set; }
-
 
         private ManualFiles(Xv2Character chara, string name)
         {
@@ -545,13 +529,6 @@ namespace XenoKit.Editor
         {
             Name = name;
             Move = new Move(move);
-        }
-
-        private ManualFiles(List<StageModel> stages, string name)
-        {
-            StageModels = stages;
-            Name = name;
-            Move = new Move(new Xv2MoveFiles());
         }
 
         #region Load
@@ -602,43 +579,6 @@ namespace XenoKit.Editor
             move.SeAcbFile.Add(file);
 
             return new ManualFiles(move, Path.GetFileName(path));
-        }
-        
-        public static ManualFiles LoadNsk(string[] paths)
-        {
-            List<StageModel> models = new List<StageModel>();
-            string name = "Unknown Stage";
-
-            foreach(var path in paths)
-            {
-                name = Path.GetFileNameWithoutExtension(path);
-
-                if(Path.GetExtension(path) == ".nsk")
-                {
-                    string embPath = string.Format("{0}/{1}.emb", Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path));
-                    string emmPath = string.Format("{0}/{1}.emm", Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path));
-
-                    if (!File.Exists(embPath))
-                    {
-                        Log.Add($"{embPath} not found. Skipping load of this nsk.", LogType.Warning);
-                        continue;
-                    }
-
-                    if (!File.Exists(emmPath))
-                    {
-                        Log.Add($"{emmPath} not found. Skipping load of this nsk.", LogType.Warning);
-                        continue;
-                    }
-
-                    byte[] nsk = File.ReadAllBytes(path);
-                    byte[] emb = File.ReadAllBytes(embPath);
-                    byte[] emm = File.ReadAllBytes(emmPath);
-
-                    models.Add(new StageModel(nsk, emm, emb, SceneManager.MainGameBase));
-                }
-            }
-
-            return new ManualFiles(models, name);
         }
         #endregion
 

@@ -7,6 +7,7 @@ using XenoKit.Engine.Shader.DXBC;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.SDS;
 using Xv2CoreLib.Resource.App;
+using XenoKit.Engine.Stage;
 
 namespace XenoKit.Engine.Shader
 {
@@ -63,7 +64,6 @@ namespace XenoKit.Engine.Shader
 
         private bool SkinningEnabled { get; set; }
         public int ActorSlot { get; set; }
-        private bool updateFog = false;
 
         private ShaderParameter[] SdsParameters;
 
@@ -157,6 +157,8 @@ namespace XenoKit.Engine.Shader
 
             material.DecompiledParameters.PropertyChanged += DecompiledParameters_PropertyChanged;
             material.PropertyChanged += Material_PropertyChanged;
+            Xv2Stage.CurrentSpmChanged += Xv2Stage_CurrentSpmChanged;
+            SettingsManager.SettingsSaved += SettingsManager_SettingsChanged;
         }
 
         protected Xv2ShaderEffect(EmmMaterial material, bool delayInit, GameBase gameBase) : base(gameBase.GraphicsDevice)
@@ -170,6 +172,8 @@ namespace XenoKit.Engine.Shader
 
             material.DecompiledParameters.PropertyChanged += DecompiledParameters_PropertyChanged;
             material.PropertyChanged += Material_PropertyChanged;
+            Xv2Stage.CurrentSpmChanged += Xv2Stage_CurrentSpmChanged;
+            SettingsManager.SettingsSaved += SettingsManager_SettingsChanged;
         }
 
         protected Xv2ShaderEffect(GameBase gameBase) : base(gameBase.GraphicsDevice)
@@ -250,6 +254,8 @@ namespace XenoKit.Engine.Shader
 
             //Set initial parameters from EMM
             SetParameters();
+            UpdateShadowMapValue();
+            UpdateSpmValues();
 
             //Set pass
             EffectTechnique[] techniques = new EffectTechnique[1];
@@ -938,27 +944,6 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
-            if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB] || ShaderType == ShaderType.Stage)
-            {
-                if (GameBase.CurrentStage.FogEnabled)
-                {
-                    Parameters["g_vFogMultiColor_PS"]?.SetValue(GameBase.CurrentStage.FogMultiColor);
-                    Parameters["g_vFogAddColor_PS"]?.SetValue(GameBase.CurrentStage.FogAddColor);
-                    Parameters["g_vFog_VS"]?.SetValue(GameBase.CurrentStage.Fog);
-                    Parameters["g_bFog_PS"]?.SetValue(GameBase.CurrentStage.FogEnabled);
-                    updateFog = true;
-                }
-                else if (updateFog)
-                {
-                    Parameters["g_bFog_PS"]?.SetValue(false);
-                    updateFog = false;
-                }
-            }
-
-            //Always set this
-            Parameters["g_vShadowMap_PS"]?.SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 0.00012f, 0.001f, 0.85f));
-
-
             //Testing
             //Parameters["g_bShadowPCF1_PS"]?.SetValue(true);
             //Parameters["g_bShadowPCF4_PS"]?.SetValue(true);
@@ -1332,6 +1317,39 @@ namespace XenoKit.Engine.Shader
             {
                 IsShaderProgramDirty = true;
             }
+        }
+
+        private void UpdateSpmValues()
+        {
+            if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB] || ShaderType == ShaderType.Stage)
+            {
+                if (GameBase.CurrentStage.FogEnabled)
+                {
+                    Parameters["g_vFogMultiColor_PS"]?.SetValue(GameBase.CurrentStage.FogMultiColor);
+                    Parameters["g_vFogAddColor_PS"]?.SetValue(GameBase.CurrentStage.FogAddColor);
+                    Parameters["g_vFog_VS"]?.SetValue(GameBase.CurrentStage.Fog);
+                    Parameters["g_bFog_PS"]?.SetValue(GameBase.CurrentStage.FogEnabled);
+                }
+                else
+                {
+                    Parameters["g_bFog_PS"]?.SetValue(false);
+                }
+            }
+        }
+
+        private void UpdateShadowMapValue()
+        {
+            Parameters["g_vShadowMap_PS"]?.SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 0.00012f, 0.001f, 0.85f));
+        }
+
+        private void Xv2Stage_CurrentSpmChanged(object sender, EventArgs e)
+        {
+            UpdateSpmValues();
+        }
+
+        private void SettingsManager_SettingsChanged(object sender, EventArgs e)
+        {
+            UpdateShadowMapValue();
         }
 
         public void SetShaderProgram(ShaderProgram shader)

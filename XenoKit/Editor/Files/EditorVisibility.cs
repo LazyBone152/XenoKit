@@ -8,11 +8,12 @@ namespace XenoKit.Editor
         private readonly OutlinerItemType type;
 
         //Types:
+        public Visibility IsStage { get { return (type == OutlinerItemType.Stage) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsSkill { get { return (type == OutlinerItemType.Skill) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsMoveset { get { return (type == OutlinerItemType.Moveset) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsCharacter { get { return (type == OutlinerItemType.Character || type == OutlinerItemType.CaC) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsCommon { get { return (type == OutlinerItemType.CMN) ? Visibility.Visible : Visibility.Collapsed; } }
-        public Visibility IsManual { get { return (type == OutlinerItemType.EAN || type == OutlinerItemType.CAM || type == OutlinerItemType.EEPK || type == OutlinerItemType.ACB || type == OutlinerItemType.STAGE_MANUAL) ? Visibility.Visible : Visibility.Collapsed; } }
+        public Visibility IsManual { get { return (type == OutlinerItemType.EAN || type == OutlinerItemType.CAM || type == OutlinerItemType.EEPK || type == OutlinerItemType.ACB) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility IsInspector => type == OutlinerItemType.Inspector ? Visibility.Visible : Visibility.Collapsed;
 
         public Visibility UseSecondSeperator => type == OutlinerItemType.Inspector ? Visibility.Collapsed : Visibility.Visible;

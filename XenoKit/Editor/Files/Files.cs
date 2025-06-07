@@ -28,6 +28,7 @@ using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.SAV;
 using Xv2CoreLib.Resource.UndoRedo;
 using Xv2CoreLib.SPM;
+using XenoKit.Engine.Stage;
 
 namespace XenoKit.Editor
 {
@@ -122,6 +123,7 @@ namespace XenoKit.Editor
                     xv2.Instance.loadCharacters = true;
                     xv2.Instance.loadSkills = true;
                     xv2.Instance.loadCmn = true;
+                    xv2.Instance.loadStage = true;
                     xv2.Instance.Init();
                 });
 
@@ -181,9 +183,9 @@ namespace XenoKit.Editor
 
                 foreach (OutlinerItem item in items.Where(x => x.CanDelete))
                 {
-                    if (SceneManager.MainGameInstance.ActiveStage == item.ManualFiles)
+                    if (item.Type == OutlinerItem.OutlinerItemType.Stage && SceneManager.MainGameInstance.CurrentStage == item.Stage)
                     {
-                        SceneManager.MainGameInstance.ActiveStage = null;
+                        SceneManager.MainGameInstance.SetActiveStage(null);
                     }
 
                     SceneManager.UnsetActor(item.character);
@@ -293,8 +295,7 @@ namespace XenoKit.Editor
                         ManualLoad(drop);
                         break;
                     case ".nsk":
-                        ManualLoad(paths);
-                        //Log.Add("NSK files can only be loaded in Viewer Mode.", LogType.Info);
+                        Log.Add("NSK files can only be loaded in Viewer Mode.", LogType.Info);
                         return;
                     case ".spm":
                         SceneManager.SetDefaultSpm(SPM_File.Load(drop));
@@ -312,11 +313,6 @@ namespace XenoKit.Editor
         public void ManualLoad(string filePath)
         {
             OutlinerItems.Add(new OutlinerItem(filePath));
-        }
-
-        public void ManualLoad(string[] filePaths)
-        {
-            OutlinerItems.Add(new OutlinerItem(filePaths));
         }
 
         public async void AsyncLoadSkill(CUS_File.SkillType skillType)
@@ -563,6 +559,55 @@ namespace XenoKit.Editor
             BAC.AddMissing(moveFiles.BacFile?.File);
         }
 
+        public async void AsyncLoadStage()
+        {
+            var stages = xv2.Instance.GetStageList();
+            EntitySelector stageSel = new EntitySelector(stages, "Stage");
+            stageSel.ShowDialog();
+
+            if (stageSel.SelectedItem != null)
+            {
+
+                //string code = xv2.Instance.StageDefFile.Stages[stageSel.SelectedItem.ID].CODE;
+                //Xv2Stage stage = new Xv2Stage(SceneManager.MainGameBase, code);
+                //AddOutlinerItem(new OutlinerItem(stage));
+                await AsyncLoadStage(stageSel.SelectedItem.ID);
+            }
+        }
+
+        public async Task<Xv2Stage> AsyncLoadStage(int stageIdx)
+        {
+            if (stageIdx >= xv2.Instance.StageDefFile.Stages.Count) return null;
+
+            string code = xv2.Instance.StageDefFile.Stages[stageIdx].CODE;
+            string stageName = xv2.Instance.GetStageName(code);
+
+            string message = $"Loading stage \"{stageName}\"";
+            var progressBarController = await window.ShowProgressAsync("Loading", message, false, DialogSettings.Default);
+            progressBarController.SetIndeterminate();
+
+            Xv2Stage stage = null;
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    stage = new Xv2Stage(SceneManager.MainGameBase, code);
+                    AddOutlinerItem(new OutlinerItem(stage));
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Add($"Load Error: {ex.Message}", LogType.Error);
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            }
+            finally
+            {
+                await progressBarController.CloseAsync();
+            }
+
+            return stage;
+        }
 
         public async Task AsyncLoadCac(int cacIndex, CaC cac)
         {

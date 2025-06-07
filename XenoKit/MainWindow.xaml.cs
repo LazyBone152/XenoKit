@@ -333,6 +333,12 @@ namespace XenoKit
             }
         }
 
+        public RelayCommand LoadStageCommand => new RelayCommand(LoadStage);
+        private void LoadStage()
+        {
+            Files.Instance.AsyncLoadStage();
+        }
+
         #endregion
 
         #region SaveCommands

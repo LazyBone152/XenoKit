@@ -14,10 +14,8 @@ using Xv2CoreLib.EMO;
 using Xv2CoreLib.EMD;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.NSK;
-using Xv2CoreLib.Resource.App;
 using EmmMaterial = Xv2CoreLib.EMM.EmmMaterial;
 using static Xv2CoreLib.EMD.EMD_TextureSamplerDef;
-using XenoKit.Editor;
 using Xv2CoreLib;
 using XenoKit.Engine.Objects;
 
@@ -93,25 +91,22 @@ namespace XenoKit.Engine.Model
             xv2Submesh.Indices = ArrayConvert.ConvertToIntArray(submesh.Faces);
 
             //Create vertex array
-            xv2Submesh.GpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
-            xv2Submesh.CpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
+            xv2Submesh.Vertices = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
 
             for (int i = 0; i < mesh.Vertices.Count; i++)
             {
-                xv2Submesh.CpuVertexes[i].Position = new Vector3(mesh.Vertices[i].PositionX, mesh.Vertices[i].PositionY, mesh.Vertices[i].PositionZ);
-                xv2Submesh.CpuVertexes[i].Normal = new Vector3(mesh.Vertices[i].NormalX, mesh.Vertices[i].NormalY, mesh.Vertices[i].NormalZ);
-                xv2Submesh.CpuVertexes[i].Tangent = new Vector3(mesh.Vertices[i].TangentX, mesh.Vertices[i].TangentY, mesh.Vertices[i].TangentZ);
-                xv2Submesh.CpuVertexes[i].TextureUV0 = new Vector2(mesh.Vertices[i].TextureU, mesh.Vertices[i].TextureV);
-                xv2Submesh.CpuVertexes[i].TextureUV1 = new Vector2(mesh.Vertices[i].Texture2U, mesh.Vertices[i].Texture2V);
-                xv2Submesh.CpuVertexes[i].Color_R = mesh.Vertices[i].ColorR;
-                xv2Submesh.CpuVertexes[i].Color_G = mesh.Vertices[i].ColorG;
-                xv2Submesh.CpuVertexes[i].Color_B = mesh.Vertices[i].ColorB;
-                xv2Submesh.CpuVertexes[i].Color_A = mesh.Vertices[i].ColorA;
-
-                //GpuVertexes (for rendering)
-                xv2Submesh.GpuVertexes[i] = xv2Submesh.CpuVertexes[i];
+                xv2Submesh.Vertices[i].Position = new Vector3(mesh.Vertices[i].PositionX, mesh.Vertices[i].PositionY, mesh.Vertices[i].PositionZ);
+                xv2Submesh.Vertices[i].Normal = new Vector3(mesh.Vertices[i].NormalX, mesh.Vertices[i].NormalY, mesh.Vertices[i].NormalZ);
+                xv2Submesh.Vertices[i].Tangent = new Vector3(mesh.Vertices[i].TangentX, mesh.Vertices[i].TangentY, mesh.Vertices[i].TangentZ);
+                xv2Submesh.Vertices[i].TextureUV0 = new Vector2(mesh.Vertices[i].TextureU, mesh.Vertices[i].TextureV);
+                xv2Submesh.Vertices[i].TextureUV1 = new Vector2(mesh.Vertices[i].Texture2U, mesh.Vertices[i].Texture2V);
+                xv2Submesh.Vertices[i].Color_R = mesh.Vertices[i].ColorR;
+                xv2Submesh.Vertices[i].Color_G = mesh.Vertices[i].ColorG;
+                xv2Submesh.Vertices[i].Color_B = mesh.Vertices[i].ColorB;
+                xv2Submesh.Vertices[i].Color_A = mesh.Vertices[i].ColorA;
             }
 
+            xv2Submesh.CreateBuffers();
             return xv2Submesh;
         }
 
@@ -198,36 +193,32 @@ namespace XenoKit.Engine.Model
                             }
 
                             //Create vertex array
-                            submesh.CpuVertexes = new VertexPositionNormalTextureBlend[emdSubmesh.VertexCount];
-                            submesh.GpuVertexes = new VertexPositionNormalTextureBlend[emdSubmesh.VertexCount];
+                            submesh.Vertices = new VertexPositionNormalTextureBlend[emdSubmesh.VertexCount];
 
                             for (int i = 0; i < emdSubmesh.VertexCount; i++)
                             {
-                                submesh.CpuVertexes[i].Position = new Vector3(emdSubmesh.Vertexes[i].PositionX, emdSubmesh.Vertexes[i].PositionY, emdSubmesh.Vertexes[i].PositionZ);
-                                submesh.CpuVertexes[i].Tangent = new Vector3(emdSubmesh.Vertexes[i].TangentX, emdSubmesh.Vertexes[i].TangentY, emdSubmesh.Vertexes[i].TangentZ);
-                                submesh.CpuVertexes[i].TextureUV0 = new Vector2(emdSubmesh.Vertexes[i].TextureU, emdSubmesh.Vertexes[i].TextureV);
-                                submesh.CpuVertexes[i].TextureUV1 = new Vector2(emdSubmesh.Vertexes[i].Texture2U, emdSubmesh.Vertexes[i].Texture2V);
-                                submesh.CpuVertexes[i].Color_R = emdSubmesh.Vertexes[i].ColorR;
-                                submesh.CpuVertexes[i].Color_G = emdSubmesh.Vertexes[i].ColorG;
-                                submesh.CpuVertexes[i].Color_B = emdSubmesh.Vertexes[i].ColorB;
-                                submesh.CpuVertexes[i].Color_A = emdSubmesh.Vertexes[i].ColorA;
+                                submesh.Vertices[i].Position = new Vector3(emdSubmesh.Vertexes[i].PositionX, emdSubmesh.Vertexes[i].PositionY, emdSubmesh.Vertexes[i].PositionZ);
+                                submesh.Vertices[i].Tangent = new Vector3(emdSubmesh.Vertexes[i].TangentX, emdSubmesh.Vertexes[i].TangentY, emdSubmesh.Vertexes[i].TangentZ);
+                                submesh.Vertices[i].TextureUV0 = new Vector2(emdSubmesh.Vertexes[i].TextureU, emdSubmesh.Vertexes[i].TextureV);
+                                submesh.Vertices[i].TextureUV1 = new Vector2(emdSubmesh.Vertexes[i].Texture2U, emdSubmesh.Vertexes[i].Texture2V);
+                                submesh.Vertices[i].Color_R = emdSubmesh.Vertexes[i].ColorR;
+                                submesh.Vertices[i].Color_G = emdSubmesh.Vertexes[i].ColorG;
+                                submesh.Vertices[i].Color_B = emdSubmesh.Vertexes[i].ColorB;
+                                submesh.Vertices[i].Color_A = emdSubmesh.Vertexes[i].ColorA;
 
                                 if (emdSubmesh.VertexFlags.HasFlag(VertexFlags.Normal))
                                 {
-                                    submesh.CpuVertexes[i].Normal = new Vector3(emdSubmesh.Vertexes[i].NormalX, emdSubmesh.Vertexes[i].NormalY, emdSubmesh.Vertexes[i].NormalZ);
+                                    submesh.Vertices[i].Normal = new Vector3(emdSubmesh.Vertexes[i].NormalX, emdSubmesh.Vertexes[i].NormalY, emdSubmesh.Vertexes[i].NormalZ);
                                 }
 
                                 if (emdSubmesh.VertexFlags.HasFlag(VertexFlags.BlendWeight))
                                 {
-                                    submesh.CpuVertexes[i].BlendIndex0 = emdSubmesh.Vertexes[i].BlendIndexes[0];
-                                    submesh.CpuVertexes[i].BlendIndex1 = emdSubmesh.Vertexes[i].BlendIndexes[1];
-                                    submesh.CpuVertexes[i].BlendIndex2 = emdSubmesh.Vertexes[i].BlendIndexes[2];
-                                    submesh.CpuVertexes[i].BlendIndex3 = emdSubmesh.Vertexes[i].BlendIndexes[3];
-                                    submesh.CpuVertexes[i].BlendWeights = new Vector3(emdSubmesh.Vertexes[i].BlendWeights[0], emdSubmesh.Vertexes[i].BlendWeights[1], emdSubmesh.Vertexes[i].BlendWeights[2]);
+                                    submesh.Vertices[i].BlendIndex0 = emdSubmesh.Vertexes[i].BlendIndexes[0];
+                                    submesh.Vertices[i].BlendIndex1 = emdSubmesh.Vertexes[i].BlendIndexes[1];
+                                    submesh.Vertices[i].BlendIndex2 = emdSubmesh.Vertexes[i].BlendIndexes[2];
+                                    submesh.Vertices[i].BlendIndex3 = emdSubmesh.Vertexes[i].BlendIndexes[3];
+                                    submesh.Vertices[i].BlendWeights = new Vector3(emdSubmesh.Vertexes[i].BlendWeights[0], emdSubmesh.Vertexes[i].BlendWeights[1], emdSubmesh.Vertexes[i].BlendWeights[2]);
                                 }
-
-                                //GpuVertexes (for rendering)
-                                submesh.GpuVertexes[i] = submesh.CpuVertexes[i];
                             }
 
                             submesh.InitSamplers(emdSubmesh.TextureSamplerDefs);
@@ -235,7 +226,7 @@ namespace XenoKit.Engine.Model
                             submesh.EnableSkinning = emdSubmesh.VertexFlags.HasFlag(VertexFlags.BlendWeight);
                             submesh.BoneNames = triangleList.Bones.ToArray();
 
-                            if (submesh.CpuVertexes.Length > 0)
+                            if (submesh.Vertices.Length > 0)
                             {
                                 mesh.Submeshes.Add(submesh);
                                 submeshIndex++;
@@ -256,6 +247,7 @@ namespace XenoKit.Engine.Model
                 SourceEmdFile.PropertyChanged += SourceFileChanged_Event;
             }
 
+            CreateBuffers();
         }
 
         private void LoadEmo(bool registerEvent = false)
@@ -285,32 +277,28 @@ namespace XenoKit.Engine.Model
                             xv2Submesh.Indices = ArrayConvert.ConvertToIntArray(submesh.Faces);
 
                             //Create vertex array
-                            xv2Submesh.GpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
-                            xv2Submesh.CpuVertexes = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
+                            xv2Submesh.Vertices = new VertexPositionNormalTextureBlend[mesh.Vertices.Count];
 
                             for (int i = 0; i < mesh.Vertices.Count; i++)
                             {
-                                xv2Submesh.CpuVertexes[i].Position = new Vector3(mesh.Vertices[i].PositionX, mesh.Vertices[i].PositionY, mesh.Vertices[i].PositionZ);
-                                xv2Submesh.CpuVertexes[i].Normal = new Vector3(mesh.Vertices[i].NormalX, mesh.Vertices[i].NormalY, mesh.Vertices[i].NormalZ);
-                                xv2Submesh.CpuVertexes[i].Tangent = new Vector3(mesh.Vertices[i].TangentX, mesh.Vertices[i].TangentY, mesh.Vertices[i].TangentZ);
-                                xv2Submesh.CpuVertexes[i].TextureUV0 = new Vector2(mesh.Vertices[i].TextureU, mesh.Vertices[i].TextureV);
-                                xv2Submesh.CpuVertexes[i].TextureUV1 = new Vector2(mesh.Vertices[i].Texture2U, mesh.Vertices[i].Texture2V);
-                                xv2Submesh.CpuVertexes[i].Color_R = mesh.Vertices[i].ColorR;
-                                xv2Submesh.CpuVertexes[i].Color_G = mesh.Vertices[i].ColorG;
-                                xv2Submesh.CpuVertexes[i].Color_B = mesh.Vertices[i].ColorB;
-                                xv2Submesh.CpuVertexes[i].Color_A = mesh.Vertices[i].ColorA;
+                                xv2Submesh.Vertices[i].Position = new Vector3(mesh.Vertices[i].PositionX, mesh.Vertices[i].PositionY, mesh.Vertices[i].PositionZ);
+                                xv2Submesh.Vertices[i].Normal = new Vector3(mesh.Vertices[i].NormalX, mesh.Vertices[i].NormalY, mesh.Vertices[i].NormalZ);
+                                xv2Submesh.Vertices[i].Tangent = new Vector3(mesh.Vertices[i].TangentX, mesh.Vertices[i].TangentY, mesh.Vertices[i].TangentZ);
+                                xv2Submesh.Vertices[i].TextureUV0 = new Vector2(mesh.Vertices[i].TextureU, mesh.Vertices[i].TextureV);
+                                xv2Submesh.Vertices[i].TextureUV1 = new Vector2(mesh.Vertices[i].Texture2U, mesh.Vertices[i].Texture2V);
+                                xv2Submesh.Vertices[i].Color_R = mesh.Vertices[i].ColorR;
+                                xv2Submesh.Vertices[i].Color_G = mesh.Vertices[i].ColorG;
+                                xv2Submesh.Vertices[i].Color_B = mesh.Vertices[i].ColorB;
+                                xv2Submesh.Vertices[i].Color_A = mesh.Vertices[i].ColorA;
 
                                 if (mesh.VertexFlags.HasFlag(VertexFlags.BlendWeight))
                                 {
-                                    xv2Submesh.CpuVertexes[i].BlendIndex0 = mesh.Vertices[i].BlendIndexes[0];
-                                    xv2Submesh.CpuVertexes[i].BlendIndex1 = mesh.Vertices[i].BlendIndexes[1];
-                                    xv2Submesh.CpuVertexes[i].BlendIndex2 = mesh.Vertices[i].BlendIndexes[2];
-                                    xv2Submesh.CpuVertexes[i].BlendIndex3 = mesh.Vertices[i].BlendIndexes[3];
-                                    xv2Submesh.CpuVertexes[i].BlendWeights = new Vector3(mesh.Vertices[i].BlendWeights[0], mesh.Vertices[i].BlendWeights[1], mesh.Vertices[i].BlendWeights[2]);
+                                    xv2Submesh.Vertices[i].BlendIndex0 = mesh.Vertices[i].BlendIndexes[0];
+                                    xv2Submesh.Vertices[i].BlendIndex1 = mesh.Vertices[i].BlendIndexes[1];
+                                    xv2Submesh.Vertices[i].BlendIndex2 = mesh.Vertices[i].BlendIndexes[2];
+                                    xv2Submesh.Vertices[i].BlendIndex3 = mesh.Vertices[i].BlendIndexes[3];
+                                    xv2Submesh.Vertices[i].BlendWeights = new Vector3(mesh.Vertices[i].BlendWeights[0], mesh.Vertices[i].BlendWeights[1], mesh.Vertices[i].BlendWeights[2]);
                                 }
-
-                                //GpuVertexes (for rendering)
-                                xv2Submesh.GpuVertexes[i] = xv2Submesh.CpuVertexes[i];
                             }
 
                             //Samplers
@@ -326,7 +314,7 @@ namespace XenoKit.Engine.Model
                                 xv2Submesh.BoneNames[i] = SourceEmoFile.Skeleton.Bones[submesh.Bones[i]].Name;
                             }
 
-                            if (xv2Submesh.CpuVertexes.Length > 0)
+                            if (xv2Submesh.Vertices.Length > 0)
                             {
                                 xv2Mesh.Submeshes.Add(xv2Submesh);
                                 submeshIndex++;
@@ -342,6 +330,7 @@ namespace XenoKit.Engine.Model
                 partIdx++;
             }
 
+            CreateBuffers();
         }
 
         private void SourceFileChanged_Event(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -458,18 +447,17 @@ namespace XenoKit.Engine.Model
                 {
                     foreach(Xv2Submesh submesh in mesh.Submeshes)
                     {
-                        for(int i = 0; i < submesh.CpuVertexes.Length; i++)
+                        for(int i = 0; i < submesh.Vertices.Length; i++)
                         {
-                            submesh.CpuVertexes[i].Normal = new Vector3(submesh.CpuVertexes[i].Normal.X, -submesh.CpuVertexes[i].Normal.Y, submesh.CpuVertexes[i].Normal.Z);
-                            submesh.CpuVertexes[i].Tangent = new Vector3(submesh.CpuVertexes[i].Tangent.X, -submesh.CpuVertexes[i].Tangent.Y, submesh.CpuVertexes[i].Tangent.Z);
-
-                            submesh.GpuVertexes[i] = submesh.CpuVertexes[i];
+                            submesh.Vertices[i].Normal = new Vector3(submesh.Vertices[i].Normal.X, -submesh.Vertices[i].Normal.Y, submesh.Vertices[i].Normal.Z);
+                            submesh.Vertices[i].Tangent = new Vector3(submesh.Vertices[i].Tangent.X, -submesh.Vertices[i].Tangent.Y, submesh.Vertices[i].Tangent.Z);
                         }
 
                     }
                 }
             }
 
+            CreateBuffers();
         }
 
         public List<Xv2Submesh> GetCompiledSubmeshes(IList<EMD_Submesh> sourceSubmeshes)
@@ -505,6 +493,19 @@ namespace XenoKit.Engine.Model
             return null;
         }
     
+        public void CreateBuffers()
+        {
+            foreach (Xv2Model model in Models)
+            {
+                foreach (Xv2Mesh mesh in model.Meshes)
+                {
+                    foreach (Xv2Submesh submesh in mesh.Submeshes)
+                    {
+                        submesh.CreateBuffers();
+                    }
+                }
+            }
+        }
     }
 
     public class Xv2Model : Entity
@@ -556,8 +557,9 @@ namespace XenoKit.Engine.Model
         public object SourceSubmesh { get; set; }
 
         //Vertices:
-        public VertexPositionNormalTextureBlend[] GpuVertexes { get; set; }
-        public VertexPositionNormalTextureBlend[] CpuVertexes { get; set; }
+        public VertexBuffer VertexBuffer { get; set; }
+        public IndexBuffer IndexBuffer { get; set; }
+        public VertexPositionNormalTextureBlend[] Vertices { get; set; }
         public int[] Indices { get; set; }
         public int[] UsedIndices { get; set; }
 
@@ -644,12 +646,12 @@ namespace XenoKit.Engine.Model
             foreach (SamplerInfo sampler in Samplers)
             {
                 GraphicsDevice.SamplerStates[sampler.samplerSlot] = sampler.state;
-                GraphicsDevice.VertexSamplerStates[sampler.samplerSlot] = sampler.state;
+                //GraphicsDevice.VertexSamplerStates[sampler.samplerSlot] = sampler.state;
 
                 //Set textures if index is valid.
                 if (sampler.parameter <= textures?.Length - 1 && sampler.parameter >= 0)
                 {
-                    GraphicsDevice.VertexTextures[sampler.textureSlot] = textures[sampler.parameter].Texture;
+                    //GraphicsDevice.VertexTextures[sampler.textureSlot] = textures[sampler.parameter].Texture;
                     GraphicsDevice.Textures[sampler.textureSlot] = textures[sampler.parameter].Texture;
                 }
             }
@@ -703,7 +705,11 @@ namespace XenoKit.Engine.Model
 
                 pass.Apply();
 
-                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, CpuVertexes, 0, GpuVertexes.Length, Indices, 0, Indices.Length / 3);
+                //GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, Vertices, 0, Vertices.Length, Indices, 0, Indices.Length / 3);
+                GraphicsDevice.SetVertexBuffer(VertexBuffer);
+                GraphicsDevice.Indices = IndexBuffer;
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, IndexBuffer.IndexCount / 3);
+
             }
 
             PrevWVP[actor] = material.WVP;
@@ -903,6 +909,21 @@ namespace XenoKit.Engine.Model
         #endregion
 
         #region Init
+        public void CreateBuffers()
+        {
+            if (VertexBuffer == null)
+            {
+                VertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionNormalTextureBlend), Vertices.Length, BufferUsage.WriteOnly);
+            }
+            VertexBuffer.SetData(Vertices);
+
+            if (IndexBuffer == null)
+            {
+                IndexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, Indices.Length, BufferUsage.WriteOnly);
+            }
+            IndexBuffer.SetData(Indices);
+        }
+
         public void InitSamplers(IList<EMD_TextureSamplerDef> samplerDefs)
         {
             Samplers = new SamplerInfo[samplerDefs.Count];

@@ -15,6 +15,7 @@ using XenoKit.Inspector;
 using XenoKit.Windows;
 using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.SPM;
+using XenoKit.Engine.Stage;
 
 namespace XenoKit.Engine
 {
@@ -124,15 +125,6 @@ namespace XenoKit.Engine
                 else
                 {
                     VfxManager.Update();
-                }
-
-                //Stage
-                if (ActiveStage != null)
-                {
-                    foreach (StageModel model in ActiveStage.StageModels)
-                    {
-                        model.Update();
-                    }
                 }
 
                 //Actors
@@ -278,21 +270,6 @@ namespace XenoKit.Engine
             return BacMatrixGizmo;
         }
 
-        public void SetActiveStage(ManualFiles stage)
-        {
-            if(ActiveStage != null)
-            {
-                RenderSystem.RemoveRenderEntity(ActiveStage.StageModels);
-            }
-
-            if(stage != null)
-            {
-                RenderSystem.AddRenderEntity(stage.StageModels);
-            }
-
-            ActiveStage = stage;
-        }
-
         public void EnableFullscreen()
         {
             IsFullScreen = true;
@@ -398,6 +375,23 @@ namespace XenoKit.Engine
         public void SetDefaultSpm(SPM_File spmFile)
         {
             _defaultStage?.SetSpmFile(spmFile);
+        }
+
+        public void SetActiveStage(Xv2Stage stage)
+        {
+            if (CurrentStage != null)
+            {
+                RenderSystem.RemoveRenderEntity(CurrentStage);
+                CurrentStage.UnsetActiveStage();
+            }
+
+            if (stage != null)
+            {
+                RenderSystem.AddRenderEntity(stage);
+            }
+
+            CurrentStage = stage != null ? stage : _defaultStage;
+            CurrentStage.SetActiveStage();
         }
 
         #region UiButtons

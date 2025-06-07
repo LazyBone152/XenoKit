@@ -37,19 +37,19 @@ namespace XenoKit.Engine.Vfx.Particle
             UpdateScale();
             UpdateColor();
 
-            for (int i = 0; i < EmgSubmesh.CpuVertexes.Length; i++)
+            for (int i = 0; i < EmgSubmesh.Vertices.Length; i++)
             {
-                EmgSubmesh.GpuVertexes[i].SetColor(PrimaryColor[2], PrimaryColor[1], PrimaryColor[0], PrimaryColor[3]); //Have to flip colors because they appear as BGRA in character vertex, which Xv2Submesh is using, but are RGBA for particles
+                EmgSubmesh.Vertices[i].SetColor(PrimaryColor[2], PrimaryColor[1], PrimaryColor[0], PrimaryColor[3]); //Have to flip colors because they appear as BGRA in character vertex, which Xv2Submesh is using, but are RGBA for particles
 
                 if (Node.NodeFlags.HasFlag(NodeFlags1.EnableScaleXY))
                 {
-                    EmgSubmesh.GpuVertexes[i].Position.X = EmgSubmesh.CpuVertexes[i].Position.X * ScaleBase;
-                    EmgSubmesh.GpuVertexes[i].Position.Y = EmgSubmesh.CpuVertexes[i].Position.Y * ScaleV;
-                    EmgSubmesh.GpuVertexes[i].Position.Z = EmgSubmesh.CpuVertexes[i].Position.Z * ScaleU;
+                    EmgSubmesh.Vertices[i].Position.X = EmgSubmesh.Vertices[i].Position.X * ScaleBase;
+                    EmgSubmesh.Vertices[i].Position.Y = EmgSubmesh.Vertices[i].Position.Y * ScaleV;
+                    EmgSubmesh.Vertices[i].Position.Z = EmgSubmesh.Vertices[i].Position.Z * ScaleU;
                 }
                 else
                 {
-                    EmgSubmesh.GpuVertexes[i].Position = EmgSubmesh.CpuVertexes[i].Position * ScaleBase;
+                    EmgSubmesh.Vertices[i].Position = EmgSubmesh.Vertices[i].Position * ScaleBase;
                 }
             }
         }
@@ -103,7 +103,7 @@ namespace XenoKit.Engine.Vfx.Particle
                 {
                     pass.Apply();
 
-                    GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, EmgSubmesh.GpuVertexes, 0, EmgSubmesh.GpuVertexes.Length, EmgSubmesh.Indices, 0, EmgSubmesh.Indices.Length / 3);
+                    GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, EmgSubmesh.Vertices, 0, EmgSubmesh.Vertices.Length, EmgSubmesh.Indices, 0, EmgSubmesh.Indices.Length / 3);
                 }
             }
 

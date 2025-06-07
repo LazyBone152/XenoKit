@@ -45,6 +45,7 @@
                         <MenuItem Header="Evasive Skill" Command="{Binding LoadEvasiveSkillCommand}"/>
                         <MenuItem Header="Blast Skill" Command="{Binding LoadBlastSkillCommand}"/>
                         <MenuItem Header="Awoken Skill" Command="{Binding LoadAwokenSkillCommand}"/>
+                        <MenuItem Header="Stage" Command="{Binding LoadStageCommand}"/>
                     </MenuItem>
                     <MenuItem Header="Load CaC" Command="{Binding LoadCacCommand}"/>
                     <Separator/>

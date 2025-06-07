@@ -515,10 +515,15 @@
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
     <Compile Include="Engine\Character\DamageManager.cs" />
     <Compile Include="Engine\Lighting\SunLight.cs" />
+    <Compile Include="Engine\Model\Lod.cs" />
+    <Compile Include="Engine\Model\LodGroup.cs" />
     <Compile Include="Engine\Objects\InfiniteWorldGrid.cs" />
     <Compile Include="Engine\Rendering\YBSPostFilterStep.cs" />
     <Compile Include="Engine\Rendering\YBSPostProcess.cs" />
     <Compile Include="Engine\Scripting\Simulation.cs" />
+    <Compile Include="Engine\Stage\StageEntity.cs" />
+    <Compile Include="Engine\Stage\StageObject.cs" />
+    <Compile Include="Engine\Stage\StageVisual.cs" />
     <Compile Include="Engine\Stage\Xv2Stage.cs" />
     <Compile Include="Engine\Textures\DdsParser.cs" />
     <Compile Include="Engine\Vertex\VertexPositionTexture5.cs" />

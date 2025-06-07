@@ -45,6 +45,7 @@
                                 </Style>
                             </StackPanel.Resources>
 
+                            <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsStage}" Kind="FocusField" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsManual}" Kind="Fish" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsSkill}" Kind="Karate" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
                             <iconPacks:PackIconMaterial Visibility="{Binding Visibilities.IsMoveset}" Kind="Walk" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -81,6 +82,7 @@
             </ListBox.ItemTemplate>
             <ListBox.ContextMenu>
                 <ContextMenu FontSize="12" FocusManager.IsFocusScope="False">
+                    <MenuItem Header="Set Active Stage" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsStage}" Command="{Binding SetStageCommand}"/>
                     <MenuItem Header="Set as Actor" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsCharacter}">
                         <MenuItem Header="Primary" Command="{Binding SetActorPrimaryCommand}"/>
                         <MenuItem Header="Victim" Command="{Binding SetActorTargetCommand}"/>
