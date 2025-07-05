@@ -73,15 +73,17 @@ namespace XenoKit.Editor
                 _selectedItem = value;
                 NotifyPropertyChanged(nameof(SelectedItem));
                 NotifyPropertyChanged(nameof(SelectedMove));
+                NotifyPropertyChanged(nameof(SelectedStage));
                 SelectedItemChanged?.Invoke(value, EventArgs.Empty);
             }
         }
         public Move SelectedMove
         {
-            get
-            {
-                return SelectedItem?.GetMove();
-            }
+            get => SelectedItem?.GetMove();
+        }
+        public Xv2Stage SelectedStage
+        {
+            get => SelectedItem?.Stage;
         }
 
         public string SaveContextMenuString
@@ -593,7 +595,9 @@ namespace XenoKit.Editor
                 await Task.Run(() =>
                 {
                     stage = new Xv2Stage(SceneManager.MainGameBase, code);
-                    AddOutlinerItem(new OutlinerItem(stage));
+
+                    if(stage.FmpFile != null && stage.SpmFile != null)
+                        AddOutlinerItem(new OutlinerItem(stage));
                 });
             }
             catch (Exception ex)

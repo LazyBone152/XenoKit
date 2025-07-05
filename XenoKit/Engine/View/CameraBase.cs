@@ -318,8 +318,8 @@ namespace XenoKit.Engine.View
         {
             //Projection Matrix
             float fieldOfViewRadians = (float)(Math.PI / 180 * CameraState.FieldOfView);
-            float nearClipPlane = 0.1f;
-            float farClipPlane = 5000;
+            float nearClipPlane = GameBase.CurrentStage.NearClip;
+            float farClipPlane = GameBase.CurrentStage.FarClip;
             float aspectRatio = GraphicsDevice.Viewport.Width / (float)GraphicsDevice.Viewport.Height;
 
             ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView(fieldOfViewRadians, aspectRatio, nearClipPlane, farClipPlane);

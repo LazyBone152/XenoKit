@@ -8,9 +8,12 @@ namespace XenoKit.Engine.Shapes
     public class Cube : Entity
     {
         //Vertex:
+        private VertexBuffer VertexBuffer;
+        private IndexBuffer IndexBuffer;
         private VertexPositionColorTexture[] Vertices { get; set; }
         private short[] Indices;
         private BasicEffect Material;
+        private RasterizerState rasterState;
 
         //Cube Parameters:
         public Vector3 Scale;
@@ -54,6 +57,8 @@ namespace XenoKit.Engine.Shapes
             Color = color;
             Scale = new Vector3(1f);
 
+            MinBounds = minBounds;
+            MaxBounds = maxBounds;
             SetPosition(position);
             ConstructCube(false);
             SetBounds(minBounds, maxBounds, size, true);
@@ -118,6 +123,37 @@ namespace XenoKit.Engine.Shapes
             Indices[33] = 3;
             Indices[34] = 4;
             Indices[35] = 5;
+
+            //CreateBuffers();
+
+            if (rasterState == null)
+            {
+                if (Wireframe)
+                {
+                    rasterState = new RasterizerState()
+                    {
+                        FillMode = FillMode.WireFrame,
+                        CullMode = CullMode.None
+                    };
+                }
+                else
+                {
+                    rasterState = RasterizerState.CullNone;
+                }
+            }
+        }
+
+        private void CreateBuffers()
+        {
+            return; //Causing device crashes
+            if (VertexBuffer == null)
+                VertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColorTexture), Vertices.Length, BufferUsage.WriteOnly);
+
+            if (IndexBuffer == null)
+                IndexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.SixteenBits, Indices.Length, BufferUsage.WriteOnly);
+
+            VertexBuffer.SetData(Vertices);
+            IndexBuffer.SetData(Indices);
         }
 
         private void CreateVertices()
@@ -151,6 +187,8 @@ namespace XenoKit.Engine.Shapes
             Vertices[5] = new VertexPositionColorTexture(btmRightBack, Color, textureBottomRight);
             Vertices[6] = new VertexPositionColorTexture(btmLeftFront, Color, textureBottomLeft);
             Vertices[7] = new VertexPositionColorTexture(btmRightFront, Color, textureBottomRight);
+
+            CreateBuffers();
         }
 
         public void SetPosition(Vector3 position)
@@ -185,8 +223,6 @@ namespace XenoKit.Engine.Shapes
                 MaxBounds = new Vector3(size);
             }
 
-
-            
             //Resize cube
             CreateVertices();
         }
@@ -246,103 +282,15 @@ namespace XenoKit.Engine.Shapes
             {
                 GraphicsDevice.BlendState = BlendState.Opaque;
                 GraphicsDevice.DepthStencilState = AlwaysVisible ? DepthStencilState.None : DepthStencilState.Default;
-
-                if (Wireframe)
-                {
-                    GraphicsDevice.RasterizerState = new RasterizerState()
-                    {
-                        FillMode = FillMode.WireFrame,
-                        CullMode = CullMode.None
-                    };
-                }
-                else
-                {
-                    GraphicsDevice.RasterizerState = RasterizerState.CullNone;
-                }
+                GraphicsDevice.RasterizerState = rasterState;
 
                 pass.Apply();
 
                 GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, Vertices, 0, Vertices.Length, Indices, 0, 12);
+                //GraphicsDevice.SetVertexBuffer(VertexBuffer);
+                //GraphicsDevice.Indices = IndexBuffer;
+                //GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, IndexBuffer.IndexCount / 3);
             }
         }
-
-        /*
-        Olganixs old cube construction code
-        private void ConstructCube()
-        {
-            _vertices = new VertexPositionColorTexture[36];
-            Indexes = new short[36];
-
-            for(int i = 0; i < 36; i++)                                     //todo remove index /clean texture uv, Or code with it and reduce the number of vertex, or you could have texture on.
-                Indexes[i] = (short)i;
-
-            // Calculate the position of the vertices on the top face.
-
-            Vector3 topLeftFront    = new Vector3(-0.5f, 0.5f, -0.5f) * Size;
-            Vector3 topLeftBack     = new Vector3(-0.5f, 0.5f, 0.5f) * Size;
-            Vector3 topRightFront   = new Vector3(0.5f, 0.5f, -0.5f) * Size;
-            Vector3 topRightBack    = new Vector3(0.5f, 0.5f, 0.5f) * Size;
-
-            // Calculate the position of the vertices on the bottom face.
-            Vector3 btmLeftFront    = new Vector3(-0.5f, -0.5f, -0.5f) * Size;
-            Vector3 btmLeftBack     = new Vector3(-0.5f, -0.5f, 0.5f) * Size;
-            Vector3 btmRightFront   = new Vector3(0.5f, -0.5f, -0.5f) * Size;
-            Vector3 btmRightBack    = new Vector3(0.5f, -0.5f, 0.5f) * Size;
-
-            // UV texture coordinates
-            Vector2 textureTopLeft      = new Vector2(1.0f * Size.X, 0.0f * Size.Y);
-            Vector2 textureTopRight     = new Vector2(0.0f * Size.X, 0.0f * Size.Y);
-            Vector2 textureBottomLeft   = new Vector2(1.0f * Size.X, 1.0f * Size.Y);
-            Vector2 textureBottomRight  = new Vector2(0.0f * Size.X, 1.0f * Size.Y);
-
-            // Add the vertices for the FRONT face.
-            _vertices[0] = new VertexPositionColorTexture(topLeftFront, color, textureTopLeft);
-            _vertices[1] = new VertexPositionColorTexture(btmLeftFront, color, textureBottomLeft);
-            _vertices[2] = new VertexPositionColorTexture(topRightFront, color, textureTopRight);
-            _vertices[3] = new VertexPositionColorTexture(btmLeftFront, color, textureBottomLeft);
-            _vertices[4] = new VertexPositionColorTexture(btmRightFront, color, textureBottomRight);
-            _vertices[5] = new VertexPositionColorTexture(topRightFront, color, textureTopRight);
-
-            // Add the vertices for the BACK face.
-            _vertices[6] = new VertexPositionColorTexture(topLeftBack, color, textureTopRight);
-            _vertices[7] = new VertexPositionColorTexture(topRightBack, color, textureTopLeft);
-            _vertices[8] = new VertexPositionColorTexture(btmLeftBack, color, textureBottomRight);
-            _vertices[9] = new VertexPositionColorTexture(btmLeftBack, color, textureBottomRight);
-            _vertices[10] = new VertexPositionColorTexture(topRightBack, color, textureTopLeft);
-            _vertices[11] = new VertexPositionColorTexture(btmRightBack, color, textureBottomLeft);
-
-            // Add the vertices for the TOP face.
-            _vertices[12] = new VertexPositionColorTexture(topLeftFront, color, textureBottomLeft);
-            _vertices[13] = new VertexPositionColorTexture(topRightBack, color, textureTopRight);
-            _vertices[14] = new VertexPositionColorTexture(topLeftBack, color, textureTopLeft);
-            _vertices[15] = new VertexPositionColorTexture(topLeftFront, color, textureBottomLeft);
-            _vertices[16] = new VertexPositionColorTexture(topRightFront, color, textureBottomRight);
-            _vertices[17] = new VertexPositionColorTexture(topRightBack, color, textureTopRight);
-
-            // Add the vertices for the BOTTOM face. 
-            _vertices[18] = new VertexPositionColorTexture(btmLeftFront, color, textureTopLeft);
-            _vertices[19] = new VertexPositionColorTexture(btmLeftBack, color, textureBottomLeft);
-            _vertices[20] = new VertexPositionColorTexture(btmRightBack, color, textureBottomRight);
-            _vertices[21] = new VertexPositionColorTexture(btmLeftFront, color, textureTopLeft);
-            _vertices[22] = new VertexPositionColorTexture(btmRightBack, color, textureBottomRight);
-            _vertices[23] = new VertexPositionColorTexture(btmRightFront, color, textureTopRight);
-
-            // Add the vertices for the LEFT face.
-            _vertices[24] = new VertexPositionColorTexture(topLeftFront, color, textureTopRight);
-            _vertices[25] = new VertexPositionColorTexture(btmLeftBack, color, textureBottomLeft);
-            _vertices[26] = new VertexPositionColorTexture(btmLeftFront, color, textureBottomRight);
-            _vertices[27] = new VertexPositionColorTexture(topLeftBack, color, textureTopLeft);
-            _vertices[28] = new VertexPositionColorTexture(btmLeftBack, color, textureBottomLeft);
-            _vertices[29] = new VertexPositionColorTexture(topLeftFront, color, textureTopRight);
-
-            // Add the vertices for the RIGHT face. 
-            _vertices[30] = new VertexPositionColorTexture(topRightFront, color, textureTopLeft);
-            _vertices[31] = new VertexPositionColorTexture(btmRightFront, color, textureBottomLeft);
-            _vertices[32] = new VertexPositionColorTexture(btmRightBack, color, textureBottomRight);
-            _vertices[33] = new VertexPositionColorTexture(topRightBack, color, textureTopRight);
-            _vertices[34] = new VertexPositionColorTexture(topRightFront, color, textureTopLeft);
-            _vertices[35] = new VertexPositionColorTexture(btmRightBack, color, textureBottomRight);
-        }
-        */
     }
 }

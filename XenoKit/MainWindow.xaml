@@ -178,6 +178,11 @@
                     <_controls:AnimationTabView x:Name="inspectorAnimView" HorizontalAlignment="Stretch" Margin="10,10,9.673,-0.018" VerticalAlignment="Stretch" Mode="Inspector"/>
                 </Grid>
             </Controls:MetroTabItem>
+
+            <Controls:MetroTabItem Header="Stage" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsStage}">
+               
+
+            </Controls:MetroTabItem>
         </TabControl>
 
         <Controls:MetroTabControl x:Name="sceneTab" Grid.Column="1" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.ColumnSpan="2" Margin="5.145,0, 0, 10" BorderBrush="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}" BorderThickness="1">

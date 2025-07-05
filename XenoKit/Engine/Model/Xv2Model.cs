@@ -404,7 +404,8 @@ namespace XenoKit.Engine.Model
                 {
                     foreach (Xv2Submesh submesh in mesh.Submeshes)
                     {
-                        Matrix transformedMatrix = animatedWorld * model.Transform * mesh.Transform * submesh.Transform;
+                        //Matrix transformedMatrix = animatedWorld * model.Transform * mesh.Transform * submesh.Transform;
+                        Matrix transformedMatrix = animatedWorld;
 
                         submesh.Draw(transformedMatrix, actor, materials, textures, dyts, dytIdx, skeleton);
                     }
@@ -425,7 +426,8 @@ namespace XenoKit.Engine.Model
                 {
                     foreach (Xv2Submesh submesh in mesh.Submeshes)
                     {
-                        Matrix transformedMatrix = animatedWorld * model.Transform * mesh.Transform * submesh.Transform;
+                        //Matrix transformedMatrix = animatedWorld * model.Transform * mesh.Transform * submesh.Transform;
+                        Matrix transformedMatrix = animatedWorld;
 
                         submesh.Draw(transformedMatrix, actor, material, skeleton);
                     }

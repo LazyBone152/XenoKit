@@ -32,7 +32,8 @@ namespace XenoKit.Engine
         System = 9,
         CAC = 10,
         Inspector = 11,
-        InspectorAnimation = 12
+        InspectorAnimation = 12,
+        Stage = 13
     }
 
     public enum BcsEditorTabs
@@ -300,6 +301,10 @@ namespace XenoKit.Engine
         public static bool FrustumUpdateEnabled = true;
         public static bool FrustumCullEnabled = true;
         public static bool BoundingBoxVisible = false;
+
+        //Stage
+        public static bool StageGeometryVisible = true;
+        public static bool CollisionMeshVisible = false;
 
         public static bool Loop => SettingsManager.settings.XenoKit_Loop;
         public static bool AutoPlay => SettingsManager.settings.XenoKit_AutoPlay;

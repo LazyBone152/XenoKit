@@ -33,6 +33,7 @@ namespace XenoKit.Engine.Shader
         public const int CB_PS_BOOL = 8;
 
         //Default materials to use when none is found:
+        private static EmmMaterial _defaultRedMaterial = null;
         private static Xv2ShaderEffect _defaultCharaMaterial = null;
         public static Xv2ShaderEffect DefaultCharacterMaterial
         {
@@ -254,8 +255,6 @@ namespace XenoKit.Engine.Shader
 
             //Set initial parameters from EMM
             SetParameters();
-            UpdateShadowMapValue();
-            UpdateSpmValues();
 
             //Set pass
             EffectTechnique[] techniques = new EffectTechnique[1];
@@ -665,7 +664,10 @@ namespace XenoKit.Engine.Shader
             //Set defeault shadow params
             Parameters["g_vShadowParam_PS"]?.SetValue(new Vector4(16, 32, 0, 0));
             Parameters["g_vShadowColor_PS"]?.SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1));
-            
+
+            UpdateShadowMapValue();
+            UpdateSpmValues();
+
             //Set parameter references that will be updated every frame (since doing it via string look up would be bad)
             g_mWVP_VS = Parameters["g_mWVP_VS"];
             g_mVP_VS = Parameters["g_mVP_VS"];
@@ -1270,7 +1272,7 @@ namespace XenoKit.Engine.Shader
         {
             RasterizerState state = new RasterizerState();
 
-            state.FillMode = GameBase.WireframeMode ? FillMode.WireFrame : FillMode.Solid;
+            state.FillMode = GameBase.WireframeMode || MatParam.ForceWireframeMode ? FillMode.WireFrame : FillMode.Solid;
             state.CullMode = MatParam.BackFace > 0 || MatParam.TwoSidedRender > 0 ? CullMode.None : CullMode.CullClockwiseFace;
 
             switch (ShaderType)
@@ -1285,12 +1287,18 @@ namespace XenoKit.Engine.Shader
 
         public static Xv2ShaderEffect CreateDefaultMaterial(ShaderType type, GameBase gameBase)
         {
-            EmmMaterial mat = new EmmMaterial();
-            mat.ShaderProgram = "TOON_UNIF_STAIN3_DFD";
-            mat.Name = "default";
-            mat.DecompileParameters();
+            if(_defaultRedMaterial == null)
+            {
+                _defaultRedMaterial = new EmmMaterial();
+                _defaultRedMaterial.ShaderProgram = "RED";
+                _defaultRedMaterial.Name = "default";
+                _defaultRedMaterial.DecompileParameters();
+                _defaultRedMaterial.DecompiledParameters.BackFace = 1;
+                _defaultRedMaterial.DecompiledParameters.ForceWireframeMode = true;
+            }
 
-            return new Xv2ShaderEffect(mat, type, gameBase);
+            return gameBase.CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(_defaultRedMaterial, gameBase, ShaderType.Chara);
+            //return new Xv2ShaderEffect(mat, type, gameBase);
         }
 
         //Auto-updating

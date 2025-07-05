@@ -1,13 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Timers;
-using System.Collections.Generic;
-using SpriteFontPlus;
-using XenoKit.Editor;
+﻿using System.Collections.Generic;
 using XenoKit.Engine.View;
-using XenoKit.Engine.Objects;
-using XenoKit.Engine.Gizmo;
-using XenoKit.Engine.Audio;
 using XenoKit.Engine.Text;
 using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Vfx;
@@ -15,11 +7,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Framework.WpfInterop;
 using MonoGame.Framework.WpfInterop.Input;
-using System.Threading.Tasks;
 using XenoKit.Engine.Pool;
 using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Shader;
-using Xv2CoreLib.Resource.App;
 using XenoKit.Engine.Scripting;
 using XenoKit.Engine.Stage;
 

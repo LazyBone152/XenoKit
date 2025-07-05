@@ -59,6 +59,7 @@ namespace XenoKit.Engine
 
             //Set game instace in SceneManager - this is required for most objects to function correctly
             SceneManager.MainGameInstance = this;
+            CollisionMesh.CreateResources(GraphicsDevice);
 
             //Now initialize objects
             AnimatorGizmo = new AnimatorGizmo(this);
@@ -364,6 +365,16 @@ namespace XenoKit.Engine
                 {
                     SetHotkeyCooldown();
                     SceneManager.BoundingBoxVisible = !SceneManager.BoundingBoxVisible;
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.P) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl))
+                {
+                    SetHotkeyCooldown();
+                    SceneManager.StageGeometryVisible = !SceneManager.StageGeometryVisible;
+                }
+                else if (Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.O) && Input.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl))
+                {
+                    SetHotkeyCooldown();
+                    SceneManager.CollisionMeshVisible = !SceneManager.CollisionMeshVisible;
                 }
 
 #endif

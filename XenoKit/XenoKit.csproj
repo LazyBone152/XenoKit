@@ -126,6 +126,9 @@
     <Reference Include="MahApps.Metro.IconPacks.Modern, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.11.0\lib\net47\MahApps.Metro.IconPacks.Modern.dll</HintPath>
     </Reference>
+    <Reference Include="MIConvexHull, Version=1.1.19.1018, Culture=neutral, PublicKeyToken=2644b6f8be52c998, processorArchitecture=MSIL">
+      <HintPath>..\packages\MIConvexHull.1.1.19.1019\lib\netstandard2.0\MIConvexHull.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
     </Reference>
@@ -515,17 +518,24 @@
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
     <Compile Include="Engine\Character\DamageManager.cs" />
     <Compile Include="Engine\Lighting\SunLight.cs" />
+    <Compile Include="Engine\Model\CollisionMesh.cs" />
+    <Compile Include="Engine\Model\CollsionMeshBatchDraw.cs" />
     <Compile Include="Engine\Model\Lod.cs" />
     <Compile Include="Engine\Model\LodGroup.cs" />
     <Compile Include="Engine\Objects\InfiniteWorldGrid.cs" />
     <Compile Include="Engine\Rendering\YBSPostFilterStep.cs" />
     <Compile Include="Engine\Rendering\YBSPostProcess.cs" />
     <Compile Include="Engine\Scripting\Simulation.cs" />
+    <Compile Include="Engine\Stage\StageCollider.cs" />
+    <Compile Include="Engine\Stage\StageColliderInstance.cs" />
+    <Compile Include="Engine\Stage\StageCollisionGroup.cs" />
+    <Compile Include="Engine\Stage\StageDrawableCollider.cs" />
     <Compile Include="Engine\Stage\StageEntity.cs" />
     <Compile Include="Engine\Stage\StageObject.cs" />
     <Compile Include="Engine\Stage\StageVisual.cs" />
     <Compile Include="Engine\Stage\Xv2Stage.cs" />
     <Compile Include="Engine\Textures\DdsParser.cs" />
+    <Compile Include="Engine\Vertex\ConvexVertex.cs" />
     <Compile Include="Engine\Vertex\VertexPositionTexture5.cs" />
     <Compile Include="Engine\View\CameraBase.cs" />
     <Compile Include="Inspector\InspectorEntity\EanInspectorEntity.cs" />
@@ -837,6 +847,9 @@
     </Compile>
     <Compile Include="Views\SimulationParameters\VictimParameters.xaml.cs">
       <DependentUpon>VictimParameters.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StageView.xaml.cs">
+      <DependentUpon>StageView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\TimeLines\BAC\BacTimeLine.xaml.cs">
       <DependentUpon>BacTimeLine.xaml</DependentUpon>
@@ -1327,6 +1340,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SimulationParameters\VictimParameters.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\StageView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

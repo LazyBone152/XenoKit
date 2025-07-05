@@ -2,12 +2,21 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Xv2CoreLib.EMD;
+using Xv2CoreLib.FMP;
 using Xv2CoreLib.Resource;
 
 namespace XenoKit.Engine
 {
     public static class Extensions
     {
+        public static Matrix ToMonoMatrix(this FMP_Matrix matrix)
+        {
+            return new Matrix(matrix.L0[0], matrix.L0[1], matrix.L0[2], 0f,
+                              matrix.L1[0], matrix.L1[1], matrix.L1[2], 0f,
+                              matrix.L2[0], matrix.L2[1], matrix.L2[2], 0f,
+                              matrix.L3[0], matrix.L3[1], matrix.L3[2], 1f);
+
+        }
         public static bool IsAproxEqual(this Vector3 a, Vector3 b)
         {
             return MathHelpers.FloatEquals(a.X, b.X) && MathHelpers.FloatEquals(a.Y, b.Y) && MathHelpers.FloatEquals(a.Z, b.Z);

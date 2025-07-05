@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SharpDX.Direct3D9;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
 using XenoKit.Engine.Textures;
@@ -30,6 +32,10 @@ namespace XenoKit.Engine.Stage
         public SPM_File SpmFile { get; set; }
         public SPM_Entry CurrentSpm => SpmFile.Entries[0];
 
+        //Stage Settings
+        public float NearClip => FmpFile != null ? FmpFile.SettingsA.NearDistance : 0.1f;
+        public float FarClip => FmpFile != null ? FmpFile.SettingsA.FarDistance : 5000f;
+
         //Fog
         public bool FogEnabled => LocalSettings.Instance.EnableFog;
         public Vector4 FogMultiColor { get; private set; }
@@ -42,6 +48,10 @@ namespace XenoKit.Engine.Stage
 
         //Objects
         public List<StageObject> Objects { get; private set; } = new List<StageObject>();
+        public List<StageCollisionGroup> CollisionGroups { get; private set; } = new List<StageCollisionGroup>();
+
+        //Collision mesh
+        //private CollisionMeshBatchDraw batchedCollisionMesh;
 
         public Xv2Stage(GameBase game) : base (game)
         {
@@ -80,18 +90,25 @@ namespace XenoKit.Engine.Stage
 
             UpdateStageLighting();
 
+            //Load collision
+            foreach(var collisionGroup in FmpFile.CollisionGroups)
+            {
+                CollisionGroups.Add(new StageCollisionGroup(collisionGroup, GameBase));
+            }
+
             //Load assets
             foreach (var _object in FmpFile.Objects)
             {
                 StageObject stageObj = new StageObject();
-                stageObj.Transform = FmpMatrixToMatrix(_object.Matrix);
+                stageObj.Object = _object;
+                stageObj.Transform = _object.Matrix.ToMonoMatrix();
 
                 if(_object.Entities != null)
                 {
                     foreach (var entity in _object.Entities)
                     {
                         StageEntity stageEntity = new StageEntity();
-                        stageEntity.Transform = FmpMatrixToMatrix(entity.Matrix);
+                        stageEntity.Transform = entity.Matrix.ToMonoMatrix();
 
                         if (entity.Visual != null)
                         {
@@ -122,17 +139,33 @@ namespace XenoKit.Engine.Stage
                     }
                 }
 
+                
+                if (_object.CollisionGroupInstance != null)
+                {
+                    StageCollisionGroup collisionGroup = CollisionGroups.FirstOrDefault(x => x.CollisionGroupIndex == _object.CollisionGroupInstance.CollisionGroupIndex);
+
+                    if(collisionGroup != null)
+                    {
+                        for (int i = 0; i < _object.CollisionGroupInstance.ColliderInstances.Count; i++)
+                        {
+                            stageObj.ColliderInstances.Add(new StageColliderInstance(_object.CollisionGroupInstance.ColliderInstances[i], collisionGroup.Colliders[i]));
+                        }
+                    }
+                }
+                
+
                 Objects.Add(stageObj);
             }
-        }
+            /*
+            //Create collision mesh
+            foreach(var obj in Objects)
+            {
+                obj.SetColliderMeshWorld();
+            }
 
-        private Matrix FmpMatrixToMatrix(FMP_Matrix matrix)
-        {
-            return new Matrix(matrix.L0[0], matrix.L0[1], matrix.L0[2], 0f,
-                              matrix.L1[0], matrix.L1[1], matrix.L1[2], 0f,
-                              matrix.L2[0], matrix.L2[1], matrix.L2[2], 0f,
-                              matrix.L3[0], matrix.L3[1], matrix.L3[2], 1f);
-
+            var collisionMeshes = GetAllCollisionMeshes();
+            batchedCollisionMesh = new CollisionMeshBatchDraw(GameBase, collisionMeshes);
+            */
         }
 
         public override void Draw()
@@ -141,6 +174,11 @@ namespace XenoKit.Engine.Stage
             {
                 obj.Draw();
             }
+
+            //if (SceneManager.CollisionMeshVisible)
+            //{
+            //    batchedCollisionMesh.Draw();
+            //}
         }
 
         public override void DrawPass(bool normalPass)
@@ -205,6 +243,18 @@ namespace XenoKit.Engine.Stage
             stage.UpdateStageLighting();
 
             return stage;
+        }
+    
+        private List<CollisionMesh> GetAllCollisionMeshes()
+        {
+            List<CollisionMesh> meshes = new List<CollisionMesh>();
+
+            foreach(var obj in Objects)
+            {
+                meshes.AddRange(obj.GetAllCollisionMeshes());
+            }
+
+            return meshes;
         }
     }
 }

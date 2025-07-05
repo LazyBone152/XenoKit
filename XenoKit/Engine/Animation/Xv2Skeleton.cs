@@ -152,7 +152,7 @@ namespace XenoKit.Engine.Animation
                 Bones[i].SkinningMatrix = Matrix.Identity;
                 Bones[i].AbsoluteAnimationMatrix = Bones[i].AbsoluteMatrix;
 
-                if (BoneIndexCache.ContainsKey(Bones[i].Name))
+                if (!BoneIndexCache.ContainsKey(Bones[i].Name))
                     BoneIndexCache.Add(Bones[i].Name, i);
             }
 
