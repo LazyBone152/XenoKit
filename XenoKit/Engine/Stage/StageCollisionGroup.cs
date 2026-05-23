@@ -9,7 +9,7 @@ namespace XenoKit.Engine.Stage
         public FMP_CollisionGroup CollisionGroup { get; private set; }
         public List<StageCollider> Colliders = new List<StageCollider>();
 
-        public int CollisionGroupIndex => CollisionGroup.Index;
+        public int CollisionGroupIndex => int.Parse(CollisionGroup.Index);
 
         public StageCollisionGroup(FMP_CollisionGroup collisionGroup)
         {

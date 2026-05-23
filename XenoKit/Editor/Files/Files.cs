@@ -96,6 +96,11 @@ namespace XenoKit.Editor
                     DynamicTab tab = TabManager.GetSelectedDynamicTab();
                     return tab.Context.CanSave() ? $"_Save File ({tab.Context.GetSaveContextFileName()})" : "Save File (N/A)";
                 }
+                else if (SceneManager.CurrentSceneState == EditorTabs.FPF)
+                {
+                    string fpfFileName = window?.fpfTabView?.GetSaveContextFileName();
+                    return fpfFileName == null ? "Save File (N/A)" : $"_Save File ({fpfFileName})";
+                }
                 else
                 {
                     var str = SelectedItem?.GetSaveContextFileName();
@@ -155,7 +160,7 @@ namespace XenoKit.Editor
                 await controller.CloseAsync();
 
                 //Go to viewer tab and select viewer mode
-                window.mainTabControl.SelectedIndex = (int)EditorTabs.Inspector;
+                window.mainTabControl.SelectedIndex = (int)MainEditorTabs.Inspector;
                 SelectedItem = OutlinerItems[0];
             }
         }
@@ -188,6 +193,10 @@ namespace XenoKit.Editor
             if (SceneManager.CurrentDynamicTab != DynamicTabs.None)
             {
                 TabManager.GetSelectedDynamicTab().Context.Save();
+            }
+            else if (SceneManager.CurrentSceneState == EditorTabs.FPF)
+            {
+                window?.fpfTabView?.SaveContextFile();
             }
             else
             {
@@ -244,7 +253,7 @@ namespace XenoKit.Editor
                         break;
                     case OutlinerItem.OutlinerItemType.Character:
                         int actorSlot = SceneManager.UnsetActor(_selectedItem.character);
-                        Actor actor = await AsyncLoadCharacter(_selectedItem.character.CharacterData.CmsEntry.ID, _selectedItem.character.PartSet.ID, _selectedItem.ReadOnly, index);
+                        Actor actor = await AsyncLoadCharacter(_selectedItem.character.CharacterData.CmsEntry.ID, _selectedItem.character.PartSet.ID, _selectedItem.ReadOnly, index, _selectedItem.OnlyLoadFromCPK);
 
                         //Set new actor as actor if the reloaded character was previously an actor
                         if(actorSlot != -1)
@@ -270,6 +279,10 @@ namespace XenoKit.Editor
             {
                 DynamicTab tab = TabManager.GetSelectedDynamicTab();
                 return tab.Context.CanSave();
+            }
+            else if (SceneManager.CurrentSceneState == EditorTabs.FPF)
+            {
+                return window?.fpfTabView?.CanSaveContextFile() == true;
             }
             else
             {
@@ -422,6 +435,7 @@ namespace XenoKit.Editor
         {
             var characters = xv2.Instance.GetCharacterList();
             EntitySelector charaSel = new EntitySelector(characters, "Character");
+            charaSel.SetBooleanParameter("Only Load From CPK", "Ignore loose files and load directly from CPK.");
             charaSel.ShowDialog();
 
             if (charaSel.SelectedItem != null)
@@ -432,12 +446,12 @@ namespace XenoKit.Editor
                 //if (partSel.SelectedPartSet != null)
                 //    await AsyncLoadCharacter(charaSel.SelectedItem.ID, partSel.SelectedPartSet.ID);
 
-                BCS_File bcsFile = xv2.Instance.GetBcsFile(charaSel.SelectedItem.ID);
-                _ = await AsyncLoadCharacter(charaSel.SelectedItem.ID, bcsFile.PartSets.Min(x => x.ID));
+                BCS_File bcsFile = xv2.Instance.GetBcsFile(charaSel.SelectedItem.ID, charaSel.BooleanParameter);
+                _ = await AsyncLoadCharacter(charaSel.SelectedItem.ID, bcsFile.PartSets.Min(x => x.ID), false, -1, charaSel.BooleanParameter);
             }
         }
 
-        public async Task<Actor> AsyncLoadCharacter(int id, int partSetId, bool readOnly = false, int replaceItemIndex = -1)
+        public async Task<Actor> AsyncLoadCharacter(int id, int partSetId, bool readOnly = false, int replaceItemIndex = -1, bool onlyLoadFromCpk = false)
         {
             string message = $"Loading character \"{Xenoverse2.Instance.GetCharacterName(id, xv2.Language.English)}\"";
             var progressBarController = await window.ShowProgressAsync("Loading", message, false, DialogSettings.Default);
@@ -455,7 +469,7 @@ namespace XenoKit.Editor
 
                 await Task.Run(() =>
                 {
-                    Xv2Character xv2Character = xv2.Instance.GetCharacter(id);
+                    Xv2Character xv2Character = xv2.Instance.GetCharacter(id, true, onlyLoadFromCpk);
 
                     chara = new Actor(xv2Character, partSetId);
 
@@ -477,9 +491,9 @@ namespace XenoKit.Editor
             return chara;
         }
 
-        public Actor LoadCharacter(int id, int partSetId, PartSet _partSet = null, bool readOnly = false)
+        public Actor LoadCharacter(int id, int partSetId, PartSet _partSet = null, bool readOnly = false, bool onlyLoadFromCpk = false)
         {
-            Xv2Character xv2Character = xv2.Instance.GetCharacter(id);
+            Xv2Character xv2Character = xv2.Instance.GetCharacter(id, true, onlyLoadFromCpk);
 
             Actor chara = new Actor(xv2Character, _partSet != null ? _partSet.ID : 0);
 

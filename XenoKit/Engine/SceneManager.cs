@@ -18,17 +18,18 @@ namespace XenoKit.Engine
         BCS = 0,
         Animation = 1,
         Camera = 2,
-        Action = 3, //bac
-        State = 4, //bcm
-        Projectile = 5,
-        Hitbox = 6,
-        Effect = 7,
-        Audio = 8,
-        System = 9,
-        CAC = 10,
-        Inspector = 11,
-        InspectorAnimation = 12,
-        Stage = 13,
+        FPF = 3,
+        Action = 4, //bac
+        State = 5, //bcm
+        Projectile = 6,
+        Hitbox = 7,
+        Effect = 8,
+        Audio = 9,
+        System = 10,
+        CAC = 11,
+        Inspector = 12,
+        InspectorAnimation = 13,
+        Stage = 14,
         DynamicTab
     }
 
@@ -73,7 +74,8 @@ namespace XenoKit.Engine
         System,
         CAC,
         Inspector,
-        InspectorAnimation
+        InspectorAnimation,
+        FPF
     }
 
     public enum DynamicTabs
@@ -179,6 +181,9 @@ namespace XenoKit.Engine
                         break;
                     case MainEditorTabs.Camera:
                         CurrentSceneState = EditorTabs.Camera;
+                        break;
+                    case MainEditorTabs.FPF:
+                        CurrentSceneState = EditorTabs.FPF;
                         break;
                     case MainEditorTabs.Effect:
                         IsOnEffectTab = true;
@@ -607,7 +612,7 @@ namespace XenoKit.Engine
                     Actors[0].ActionControl.Resume();
                 }
             }
-            else if (CurrentSceneState == EditorTabs.Animation)
+            else if (CurrentSceneState == EditorTabs.Animation || CurrentSceneState == EditorTabs.FPF)
             {
                 for (int i = 0; i < Actors.Length; i++)
                 {

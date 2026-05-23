@@ -518,6 +518,7 @@
     <Compile Include="Engine\Gizmo\EntityTransformGizmo.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
     <Compile Include="Engine\Character\DamageManager.cs" />
+    <Compile Include="Engine\FpfPosePreview.cs" />
     <Compile Include="Engine\Lighting\SunLight.cs" />
     <Compile Include="Engine\Model\CollisionMesh.cs" />
     <Compile Include="Engine\Model\CollsionMeshBatchDraw.cs" />
@@ -810,6 +811,9 @@
     </Compile>
     <Compile Include="Views\CameraTabView.xaml.cs">
       <DependentUpon>CameraTabView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\FpfTabView.xaml.cs">
+      <DependentUpon>FpfTabView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\AnimationTabView.xaml.cs">
       <DependentUpon>AnimationTabView.xaml</DependentUpon>
@@ -1304,6 +1308,10 @@
     <Page Include="Views\CameraTabView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\FpfTabView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\AnimationTabView.xaml">
       <SubType>Designer</SubType>

@@ -1,0 +1,219 @@
+<UserControl x:Class="XenoKit.Controls.FpfTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
+             mc:Ignorable="d"
+             d:DesignHeight="500"
+             d:DesignWidth="600"
+             Name="UserControl"
+             Loaded="UserControl_Loaded"
+             IsVisibleChanged="UserControl_IsVisibleChanged">
+    <Grid Controls:ControlsHelper.ContentCharacterCasing="Normal">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44"/>
+            <RowDefinition Height="1"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+            <Label Content="FPF File" VerticalContentAlignment="Center"/>
+            <ComboBox x:Name="fpfFileComboBox"
+                      Height="23"
+                      Width="220"
+                      Margin="2,0"
+                      DisplayMemberPath="DisplayName"
+                      SelectionChanged="FpfFileComboBox_SelectionChanged"/>
+            <Button Content="Stop" Width="70" Margin="8,0,0,0" Click="StopPreviewButton_Click"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" Margin="5,25">
+                <StackPanel VerticalAlignment="Center">
+                    <Button x:Name="previewButton"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                            Width="25"
+                            Height="25"
+                            Click="PreviewButton_Click">
+                        <iconPacks:PackIconMaterialLight Kind="Play"/>
+                    </Button>
+                    <TextBlock Text="Preview" HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+                <StackPanel VerticalAlignment="Center">
+                    <Button HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                            Width="25"
+                            Height="25"
+                            lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                        <iconPacks:PackIconMaterial Kind="ContentSave"/>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Bake Animation Frame" Click="BakeButton_Click"/>
+                                <MenuItem Header="Bake Current Figure Pose" Click="BakeCurrentFigurePoseMenuItem_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <TextBlock Text="Bake" HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+                <StackPanel VerticalAlignment="Center">
+                    <Button HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Style="{DynamicResource MahApps.Styles.Button.Circle}"
+                            Width="25"
+                            Height="25"
+                            lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                        <iconPacks:PackIconMaterial Kind="Tools" Width="13" Height="13"/>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Re-index FPF Skeleton" Click="ReindexFpfSkeletonMenuItem_Click"/>
+                                <MenuItem Header="Fix Deformation" Click="FixDeformationMenuItem_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <TextBlock Text="Tools" HorizontalAlignment="Center" FontSize="8"/>
+                </StackPanel>
+            </StackPanel>
+
+            <Grid Grid.Row="0" Grid.Column="1" Margin="5,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,4,8,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Figure X" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <Controls:NumericUpDown Grid.Column="1"
+                                            StringFormat="0.000###"
+                                            Interval="0.01"
+                                            HideUpDownButtons="True"
+                                            TrackMouseWheelWhenMouseOver="True"
+                                            Value="{Binding ElementName=UserControl, Path=FigurePositionX, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Grid.Column="2" Text="Y" VerticalAlignment="Center" Margin="8,0,4,0"/>
+                    <Controls:NumericUpDown Grid.Column="3"
+                                            StringFormat="0.000###"
+                                            Interval="0.01"
+                                            HideUpDownButtons="True"
+                                            TrackMouseWheelWhenMouseOver="True"
+                                            Value="{Binding ElementName=UserControl, Path=FigurePositionY, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Grid.Column="4" Text="Z" VerticalAlignment="Center" Margin="8,0,4,0"/>
+                    <Controls:NumericUpDown Grid.Column="5"
+                                            StringFormat="0.000###"
+                                            Interval="0.01"
+                                            HideUpDownButtons="True"
+                                            TrackMouseWheelWhenMouseOver="True"
+                                            Value="{Binding ElementName=UserControl, Path=FigurePositionZ, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+
+                <DataGrid Grid.Row="1"
+                          x:Name="poseListBox"
+                          SelectedItem="{Binding ElementName=UserControl, Path=SelectedPreviewPose}"
+                          ItemsSource="{Binding ElementName=UserControl, Path=PreviewPoses}"
+                          VerticalAlignment="Stretch"
+                          HorizontalAlignment="Stretch"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          IsReadOnly="True"
+                          SelectionChanged="PoseListBox_SelectionChanged"
+                          MouseDoubleClick="PoseListBox_MouseDoubleClick"
+                          Style="{DynamicResource MahApps.Styles.DataGrid.Azure}"
+                          Margin="0,0,0,6">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Width="50" Binding="{Binding ID}"/>
+                        <DataGridTextColumn Header="Figure Pose" Width="*" Binding="{Binding Name}"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu FontSize="12">
+                            <MenuItem Header="Preview Pose" Click="PreviewPoseMenuItem_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+            </Grid>
+
+            <Grid Grid.Row="0" Grid.Column="2" Margin="5,0,5,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Pose Source" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,6">
+                    <Button Content="Loose EAN" Width="95" Margin="0,0,6,0" Click="LoadLooseEanButton_Click"/>
+                    <Button Content="Character" Width="95" Margin="0,0,6,0" Click="LoadCharacterPoseButton_Click"/>
+                    <Button Content="Load from Skill" Width="115" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Super Skill" Tag="Super" Click="LoadSkillPoseMenuItem_Click"/>
+                                <MenuItem Header="Ultimate Skill" Tag="Ultimate" Click="LoadSkillPoseMenuItem_Click"/>
+                                <MenuItem Header="Evasive Skill" Tag="Evasive" Click="LoadSkillPoseMenuItem_Click"/>
+                                <MenuItem Header="Blast Skill" Tag="Blast" Click="LoadSkillPoseMenuItem_Click"/>
+                                <MenuItem Header="Awoken Skill" Tag="Awoken" Click="LoadSkillPoseMenuItem_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </StackPanel>
+
+                <DataGrid Grid.Row="2"
+                          x:Name="animationListBox"
+                          SelectedItem="{Binding ElementName=UserControl, Path=SelectedAnimationItem}"
+                          ItemsSource="{Binding ElementName=UserControl, Path=AnimationItems}"
+                          VerticalAlignment="Stretch"
+                          HorizontalAlignment="Stretch"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          IsReadOnly="True"
+                          SelectionChanged="AnimationListBox_SelectionChanged"
+                          MouseDoubleClick="AnimationListBox_MouseDoubleClick"
+                          Style="{DynamicResource MahApps.Styles.DataGrid.Azure}"
+                          Margin="0,0,0,6">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Width="50" Binding="{Binding ID}"/>
+                        <DataGridTextColumn Header="Duration" Width="70" Binding="{Binding Duration}"/>
+                        <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu FontSize="12">
+                            <MenuItem Header="Play Animation" Click="PlayAnimationMenuItem_Click"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+
+                <TextBlock x:Name="statusText"
+                           Grid.Row="3"
+                           Margin="0,10,0,0"
+                           TextWrapping="Wrap"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

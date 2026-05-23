@@ -605,6 +605,7 @@ namespace XenoKit.Engine
                     InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.PrevFrame();
                     break;
                 case EditorTabs.Animation:
+                case EditorTabs.FPF:
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].AnimationPlayer.PrevFrame();
                     break;
@@ -633,6 +634,7 @@ namespace XenoKit.Engine
                     InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.NextFrame();
                     break;
                 case EditorTabs.Animation:
+                case EditorTabs.FPF:
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].AnimationPlayer.NextFrame();
                     break;

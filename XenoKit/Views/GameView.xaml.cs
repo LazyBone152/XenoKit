@@ -49,6 +49,7 @@ namespace XenoKit.Controls
                     case EditorTabs.InspectorAnimation:
                         return (InspectorMode.Instance.ActiveSkinnedEntity != null) ? $"{InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryCurrentFrame}/{InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryDuration}" : "--/--";
                     case EditorTabs.Animation:
+                    case EditorTabs.FPF:
                         return (SceneManager.Actors[0] != null) ? $"{SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame}/{SceneManager.Actors[0].AnimationPlayer.PrimaryDuration}" : "--/--";
                     case EditorTabs.Camera:
                         return (monoGame.Camera.cameraInstance != null) ? $"{(int)MonoGame.Camera.cameraInstance.CurrentFrame}/{MonoGame.Camera.cameraInstance.CurrentAnimDuration}" : "--/--";
@@ -112,6 +113,7 @@ namespace XenoKit.Controls
                     case EditorTabs.InspectorAnimation:
                         return (InspectorMode.Instance.ActiveSkinnedEntity != null) ? (int)InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryDuration : 0;
                     case EditorTabs.Animation:
+                    case EditorTabs.FPF:
                         return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].AnimationPlayer.PrimaryDuration : 0;
                     case EditorTabs.Camera:
                         return (monoGame.Camera.cameraInstance != null) ? MonoGame.Camera.cameraInstance.CurrentAnimDuration - 1 : 0;
@@ -132,6 +134,7 @@ namespace XenoKit.Controls
                     case EditorTabs.InspectorAnimation:
                         return (InspectorMode.Instance.ActiveSkinnedEntity != null) ? (int)InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryCurrentFrame : 0;
                     case EditorTabs.Animation:
+                    case EditorTabs.FPF:
                         return (SceneManager.Actors[0] != null) ? (int)SceneManager.Actors[0].AnimationPlayer.PrimaryCurrentFrame : 0;
                     case EditorTabs.Camera:
                         return (monoGame.Camera.cameraInstance != null) ? (int)MonoGame.Camera.cameraInstance.CurrentFrame : 0;
@@ -156,6 +159,7 @@ namespace XenoKit.Controls
                             InspectorMode.Instance.ActiveSkinnedEntity.AnimationPlayer.PrimaryAnimation.CurrentFrame_Int = value;
                         break;
                     case EditorTabs.Animation:
+                    case EditorTabs.FPF:
                         if (SceneManager.Actors[0]?.AnimationPlayer?.PrimaryAnimation != null)
                             SceneManager.Actors[0].AnimationPlayer.PrimaryAnimation.CurrentFrame_Int = value;
                         break;

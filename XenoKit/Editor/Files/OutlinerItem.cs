@@ -266,7 +266,7 @@ namespace XenoKit.Editor
             SetSelectedItems();
         }
 
-        public OutlinerItem(Actor chara, bool readOnly, OutlinerItemType type) : this(readOnly, type, false)
+        public OutlinerItem(Actor chara, bool readOnly, OutlinerItemType type) : this(readOnly, type, chara?.CharacterData?.OnlyLoadFromCPK == true)
         {
             character = chara;
             SetSelectedItems();

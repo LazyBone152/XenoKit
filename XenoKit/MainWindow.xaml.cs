@@ -568,7 +568,7 @@ namespace XenoKit
                     {
                         //Go to inspector tab if not already there
                         Files.Instance.SelectedItem = Files.Instance.OutlinerItems[0];
-                        mainTabControl.SelectedIndex = (int)EditorTabs.Inspector;
+                        mainTabControl.SelectedIndex = (int)MainEditorTabs.Inspector;
                     }
                 }
                 else
