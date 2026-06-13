@@ -25,7 +25,7 @@
                 </Grid>
                 <CheckBox Content="Replace" IsChecked="{Binding ReplaceMode}" Margin="10,0" VerticalAlignment="Center"/>
             </StackPanel>
-            <Grid Margin="3,5,0,0" Width="250" HorizontalAlignment="Left">
+            <Grid x:Name="bacTypeGrid" Margin="3,5,0,0" Width="250" HorizontalAlignment="Left" Visibility="{Binding BacTypeVisibility}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>

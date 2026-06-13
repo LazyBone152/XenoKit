@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -12,6 +13,7 @@ using static Xv2CoreLib.Xenoverse2;
 using XenoKit.Editor;
 using Xv2CoreLib.Resource.UndoRedo;
 using GalaSoft.MvvmLight.CommandWpf;
+using Xv2CoreLib.BCM;
 
 namespace XenoKit.Windows
 {
@@ -34,7 +36,8 @@ namespace XenoKit.Windows
         
         public Dictionary<MoveFileTypes, string> FileTypes { get; private set; } = new Dictionary<MoveFileTypes, string>()
         {
-            { MoveFileTypes.BAC , "BAC" }
+            { MoveFileTypes.BAC , "BAC" },
+            { MoveFileTypes.BCM , "BCM" }
         };
 
         public Dictionary<Type, string> BacTypes { get; private set; } = new Dictionary<Type, string>()
@@ -98,7 +101,11 @@ namespace XenoKit.Windows
                     _selectedFileType = value;
                     NotifyPropertyChanged(nameof(SelectedFileType));
                     NotifyPropertyChanged(nameof(Values));
+                    NotifyPropertyChanged(nameof(BacTypeVisibility));
                     ResetState();
+
+                    if (Values.Count > 0)
+                        SelectedValue = Values[0];
                 }
             }
         }
@@ -135,7 +142,12 @@ namespace XenoKit.Windows
         {
             get
             {
-                //add different logic here when other file types are added
+                if (SelectedFileType == MoveFileTypes.BCM)
+                {
+                    _values = CreateBcmValues();
+                    return _values;
+                }
+
                 _values = Find.ParseAllProps(SelectedBacType);
 
                 //Remove all not-supported enums
@@ -172,6 +184,7 @@ namespace XenoKit.Windows
             }
         }
         public string ValueToolTip => CreateValueToolTipForEnum();
+        public Visibility BacTypeVisibility => SelectedFileType == MoveFileTypes.BAC ? Visibility.Visible : Visibility.Collapsed;
 
         public bool ReplaceMode
         {
@@ -261,6 +274,50 @@ namespace XenoKit.Windows
                     }
                 }
             }
+            else if (SelectedFileType == MoveFileTypes.BCM)
+            {
+                BCM_File file = Files.Instance.SelectedItem?.SelectedBcmFile?.File;
+                if (file == null)
+                {
+                    LogLocalMessage("No BCM file is selected.");
+                    return;
+                }
+
+                if (ReplaceMode)
+                {
+                    object valueToFind = null;
+                    object valueToReplace = null;
+
+                    ConvertToType(ValueToFind, SelectedValue.valueType, ref valueToFind);
+                    ConvertToType(ValueToReplace, SelectedValue.valueType, ref valueToReplace);
+
+                    List<IUndoRedo> undos = ReplaceBcmValue(file, SelectedValue.valueName, valueToFind, valueToReplace, out int numReplaced);
+                    if (undos.Count > 0)
+                        UndoManager.Instance.AddCompositeUndo(undos, "BCM Replace All");
+
+                    mainWindow.bcmTabView.RefreshAfterFindReplace(SelectedValue.valueName);
+                    LogLocalMessage($"Replaced {numReplaced} values.");
+                }
+                else
+                {
+                    object valueToFind = null;
+                    ConvertToType(ValueToFind, SelectedValue.valueType, ref valueToFind);
+
+                    BCM_Entry entry = FindBcmValue(file, SelectedValue.valueName, valueToFind, prevFoundItem as BCM_Entry, NotMode);
+                    prevFoundItem = entry;
+
+                    if (entry != null)
+                    {
+                        mainWindow.mainTabControl.SelectedItem = mainWindow.stateTab;
+                        mainWindow.bcmTabView.SelectEntry(entry);
+                        LogLocalMessage("Found a matching value.");
+                    }
+                    else
+                    {
+                        LogLocalMessage("Nothing found.");
+                    }
+                }
+            }
             else
             {
                 LogLocalMessage("Undefined file type!");
@@ -270,6 +327,13 @@ namespace XenoKit.Windows
             UpdateUIElements();
             UndoManager.Instance.ForceEventCall();
         }
+
+
+
+
+
+
+
 
         public RelayCommand ExitCommand => new RelayCommand(Exit);
         private void Exit()
@@ -298,74 +362,44 @@ namespace XenoKit.Windows
         {
             if (type == null) return false;
 
-            if (type.IsInt8())
+            value = value?.Trim() ?? string.Empty;
+
+            if (type.IsString())
             {
-                byte ret;
-                if (!byte.TryParse(value, out ret))
+                result = value;
+                return true;
+            }
+
+            if (type.IsBool())
+            {
+                if (value.ToLower() != "true" && value.ToLower() != "false")
                     return false;
 
-                result = ret;
+                result = value.ToLower() == "true";
+                return true;
             }
-            else if (type.IsUInt8())
-            {
-                sbyte ret;
-                if (!sbyte.TryParse(value, out ret))
-                    return false;
 
-                result = ret;
-            }
-            else if (type.IsInt16())
+            if (type.IsEnum())
             {
-                short ret;
-                if (!short.TryParse(value, out ret))
-                    return false;
+                try
+                {
+                    result = Enum.Parse(type, value, true);
+                    return true;
+                }
+                catch
+                {
+                    if (!TryParseInteger(value, out long enumNumber))
+                        return false;
 
-                result = ret;
+                    result = Enum.ToObject(type, enumNumber);
+                    return true;
+                }
             }
-            else if (type.IsUInt16())
-            {
-                ushort ret;
-                if (!ushort.TryParse(value, out ret))
-                    return false;
 
-                result = ret;
-            }
-            else if (type.IsInt32())
-            {
-                int ret;
-                if (!int.TryParse(value, out ret))
-                    return false;
-
-                result = ret;
-            }
-            else if (type.IsUInt32())
-            {
-                uint ret;
-                if (!uint.TryParse(value, out ret))
-                    return false;
-
-                result = ret;
-            }
-            else if (type.IsInt64())
-            {
-                long ret;
-                if (!long.TryParse(value, out ret))
-                    return false;
-
-                result = ret;
-            }
-            else if (type.IsInt64())
-            {
-                ulong ret;
-                if (!ulong.TryParse(value, out ret))
-                    return false;
-
-                result = ret;
-            }
-            else if (type.IsFloat())
+            if (type.IsFloat())
             {
                 float ret;
-                if (!float.TryParse(value, out ret))
+                if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out ret))
                     return false;
 
                 result = ret;
@@ -373,82 +407,81 @@ namespace XenoKit.Windows
             else if (type.IsDouble())
             {
                 double ret;
-                if (!double.TryParse(value, out ret))
+                if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out ret))
                     return false;
 
                 result = ret;
             }
-            else if (type.IsBool())
+            else if (type.IsInt8())
             {
-                if (value.ToLower() != "true" && value.ToLower() != "false")
+                if (!TryParseInteger(value, out long number) || number < byte.MinValue || number > byte.MaxValue)
                     return false;
 
-                result = (value.ToLower() == "true") ? true : false;
+                result = (byte)number;
             }
-            else if (type.IsString())
+            else if (type.IsUInt8())
             {
-                result = value;
+                if (!TryParseInteger(value, out long number) || number < sbyte.MinValue || number > sbyte.MaxValue)
+                    return false;
+
+                result = (sbyte)number;
             }
-            else if (type.IsEnum())
+            else if (type.IsInt16())
             {
-                object ret = null;
+                if (!TryParseInteger(value, out long number) || number < short.MinValue || number > short.MaxValue)
+                    return false;
 
-                if(type == typeof(BAC_Type0.EanTypeEnum))
-                {
-                    if (!ParseEnum<BAC_Type0.EanTypeEnum>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(BAC_Type10.EanTypeEnum))
-                {
-                    if (!ParseEnum<BAC_Type10.EanTypeEnum>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(BoneLinks))
-                {
-                    if (!ParseEnum<BoneLinks>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(AcbType))
-                {
-                    if (!ParseEnum<AcbType>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(BcsPartId))
-                {
-                    if (!ParseEnum<BcsPartId>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(AuraType))
-                {
-                    if (!ParseEnum<AuraType>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(TargetingAxis))
-                {
-                    if (!ParseEnum<TargetingAxis>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(BAC_Type8.EepkTypeEnum))
-                {
-                    if (!ParseEnum<BAC_Type8.EepkTypeEnum>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(BAC_Type20.HomingType))
-                {
-                    if (!ParseEnum<BAC_Type20.HomingType>(value, type, ref ret)) return false;
-                }
-                if (type == typeof(BAC_Type1.BoundingBoxTypeEnum))
-                {
-                    if (!ParseEnum<BAC_Type1.BoundingBoxTypeEnum>(value, type, ref ret)) return false;
-                }
+                result = (short)number;
+            }
+            else if (type.IsUInt16())
+            {
+                if (!TryParseInteger(value, out long number) || number < ushort.MinValue || number > ushort.MaxValue)
+                    return false;
 
-                result = ret;
+                result = (ushort)number;
+            }
+            else if (type.IsInt32())
+            {
+                if (!TryParseInteger(value, out long number) || number < int.MinValue || number > int.MaxValue)
+                    return false;
+
+                result = (int)number;
+            }
+            else if (type.IsUInt32())
+            {
+                if (!TryParseInteger(value, out long number) || number < uint.MinValue || number > uint.MaxValue)
+                    return false;
+
+                result = (uint)number;
+            }
+            else if (type.IsInt64())
+            {
+                if (!TryParseInteger(value, out long number))
+                    return false;
+
+                result = number;
+            }
+            else if (type == typeof(ulong))
+            {
+                if (!TryParseInteger(value, out long number) || number < 0)
+                    return false;
+
+                result = (ulong)number;
+            }
+            else
+            {
+                return false;
             }
 
             return true;
         }
 
-        private bool ParseEnum<T>(string value, Type type, ref object result) where T : struct, IConvertible
+        private static bool TryParseInteger(string value, out long result)
         {
-            T ret;
-            if (!Enum.TryParse(value, out ret))
-                return false;
+            if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                return long.TryParse(value.Substring(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out result);
 
-            result = ret;
-
-            return true;
+            return long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out result);
         }
 
         private string CreateValueToolTipForEnum()
