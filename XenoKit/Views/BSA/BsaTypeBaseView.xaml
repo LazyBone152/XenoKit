@@ -1,0 +1,98 @@
+<UserControl x:Class="XenoKit.Views.BSA.BsaTypeBaseView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             mc:Ignorable="d"
+             d:DesignHeight="220" d:DesignWidth="760">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <Style x:Key="BsaEditorField" TargetType="Grid">
+            <Setter Property="Width" Value="250"/>
+            <Setter Property="Margin" Value="3"/>
+        </Style>
+        <Style x:Key="BsaEditorLabel" TargetType="Label">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="4,0"/>
+        </Style>
+        <DataTemplate x:Key="BsaFieldTemplate">
+            <Grid Style="{StaticResource BsaEditorField}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Style="{StaticResource BsaEditorLabel}" Content="{Binding Name}"/>
+                <TextBox Grid.Column="1" Text="{Binding ValueText, UpdateSourceTrigger=LostFocus}">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEnum}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding EnumValues}" SelectedItem="{Binding SelectedEnumValue}">
+                    <ComboBox.Style>
+                        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEnum}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ComboBox.Style>
+                </ComboBox>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <Expander Header="Activation" IsExpanded="True" Margin="0,2,0,0">
+            <WrapPanel Margin="0,5">
+                <Grid Style="{StaticResource BsaEditorField}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Style="{StaticResource BsaEditorLabel}" Content="Start Time"/>
+                    <controls:NumericUpDown Grid.Column="1" Value="{Binding StartTime, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+                </Grid>
+                <Grid Style="{StaticResource BsaEditorField}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Style="{StaticResource BsaEditorLabel}" Content="Duration"/>
+                    <controls:NumericUpDown Grid.Column="1" Value="{Binding Duration, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+                </Grid>
+            </WrapPanel>
+        </Expander>
+
+        <Expander Header="{Binding Title}" IsExpanded="True" Margin="0,2,0,0"
+                  Visibility="{Binding HasPrimaryFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ItemsControl Margin="0,5" ItemsSource="{Binding PrimaryFields}" ItemTemplate="{StaticResource BsaFieldTemplate}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </Expander>
+
+        <Expander Header="Unknown" IsExpanded="True" Margin="0,2,0,0"
+                  Visibility="{Binding HasUnknownFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ItemsControl Margin="0,5" ItemsSource="{Binding UnknownFields}" ItemTemplate="{StaticResource BsaFieldTemplate}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </Expander>
+    </StackPanel>
+</UserControl>

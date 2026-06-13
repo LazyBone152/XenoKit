@@ -1,0 +1,257 @@
+<UserControl x:Class="XenoKit.Views.BsaTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
+             xmlns:editor="clr-namespace:XenoKit.Editor"
+             xmlns:bsaView="clr-namespace:XenoKit.Views.BSA"
+             Dialog:DialogParticipation.Register="{Binding}"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1060"
+             x:Name="UserControl">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <Style x:Key="BsaToolButton" TargetType="Button" BasedOn="{StaticResource MahApps.Styles.Button.Circle}">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <Style x:Key="BsaToolLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="8"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="BsaToolStack" TargetType="StackPanel">
+            <Setter Property="Margin" Value="7,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Controls:ControlsHelper.ContentCharacterCasing" Value="Normal"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent3}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="310*"/>
+            <RowDefinition Height="3"/>
+            <RowDefinition Height="230*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Height="44">
+            <Grid Margin="5"/>
+            <ComboBox SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBsaFile}"
+                      ItemsSource="{Binding BsaFiles}"
+                      DisplayMemberPath="DisplayName"
+                      Visibility="{Binding BsaFileSelectorVisibility}"
+                      Height="23"
+                      Width="220"
+                      SelectionChanged="BsaFileSelection_Changed"
+                      Margin="2,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.4*" MinWidth="170" MaxWidth="300"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="1.2*" MinWidth="420"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0">
+                <StackPanel Style="{StaticResource BsaToolStack}" ToolTip="Add projectile entry">
+                    <Button Style="{StaticResource BsaToolButton}" Command="{Binding AddEntryCommand}">
+                        <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                    </Button>
+                    <TextBlock Style="{StaticResource BsaToolLabel}" Text="Add"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource BsaToolStack}" ToolTip="Add projectile entry at a specific ID">
+                    <Button Style="{StaticResource BsaToolButton}" Command="{Binding AddEntryAtSpecificIdCommand}">
+                        <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                    </Button>
+                    <TextBlock Style="{StaticResource BsaToolLabel}" Text="Add..."/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource BsaToolStack}" ToolTip="Remove projectile entry">
+                    <Button Style="{StaticResource BsaToolButton}" Command="{Binding DeleteEntryCommand}">
+                        <iconPacks:PackIconMaterialLight Kind="Delete"/>
+                    </Button>
+                    <TextBlock Style="{StaticResource BsaToolLabel}" Text="Remove"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource BsaToolStack}" ToolTip="Projectile entry tools">
+                    <Button Style="{StaticResource BsaToolButton}" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                        <iconPacks:PackIconMaterial Kind="Wrench" Width="15" Height="15"/>
+                        <Button.ContextMenu>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Reindex" Command="{Binding ReindexCommand}"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <TextBlock Style="{StaticResource BsaToolLabel}" Text="Tools"/>
+                </StackPanel>
+            </StackPanel>
+
+            <DataGrid x:Name="entryGrid"
+                      Grid.Row="1"
+                      Grid.Column="0"
+                      ItemsSource="{Binding Entries}"
+                      SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                      PreviewMouseLeftButtonDown="EntryGrid_PreviewMouseLeftButtonDown"
+                      PreviewKeyDown="EntryGrid_PreviewKeyDown">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyEntryCommand}"/>
+                    <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteEntryCommand}"/>
+                    <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DuplicateEntryCommand}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteEntryCommand}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding SortID}" Width="55" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding UserDefinedName}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Life" Binding="{Binding I_22}" Width="60" IsReadOnly="True"/>
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Add" Command="{Binding AddEntryCommand}"/>
+                        <MenuItem Header="Add At Specific ID" Command="{Binding AddEntryAtSpecificIdCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Copy" Command="{Binding CopyEntryCommand}"/>
+                        <MenuItem Header="Paste" Command="{Binding PasteEntryCommand}"/>
+                        <MenuItem Header="Duplicate" Command="{Binding DuplicateEntryCommand}"/>
+                        <MenuItem Header="Delete" Command="{Binding DeleteEntryCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Reindex" Command="{Binding ReindexCommand}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+
+            <GridSplitter Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+
+            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left" Height="50" Margin="10,9,0,0">
+                <StackPanel Style="{StaticResource BsaToolStack}" ToolTip="Add projectile subtype">
+                    <Button Style="{StaticResource BsaToolButton}" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                        <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                        <Button.ContextMenu>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Entry Passing" Command="{Binding AddSubtypeCommand}" CommandParameter="0"/>
+                                <MenuItem Header="Movement" Command="{Binding AddSubtypeCommand}" CommandParameter="1"/>
+                                <MenuItem Header="Type2" Command="{Binding AddSubtypeCommand}" CommandParameter="2"/>
+                                <MenuItem Header="Hitbox" Command="{Binding AddSubtypeCommand}" CommandParameter="3"/>
+                                <MenuItem Header="Deflection" Command="{Binding AddSubtypeCommand}" CommandParameter="4"/>
+                                <MenuItem Header="Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="6"/>
+                                <MenuItem Header="Sound" Command="{Binding AddSubtypeCommand}" CommandParameter="7"/>
+                                <MenuItem Header="Screen Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="8"/>
+                                <MenuItem Header="Unknown 10" Command="{Binding AddSubtypeCommand}" CommandParameter="10"/>
+                                <MenuItem Header="Unknown 12" Command="{Binding AddSubtypeCommand}" CommandParameter="12"/>
+                                <MenuItem Header="Unknown 13" Command="{Binding AddSubtypeCommand}" CommandParameter="13"/>
+                                <MenuItem Header="Unknown 14" Command="{Binding AddSubtypeCommand}" CommandParameter="14"/>
+                                <Separator/>
+                                <MenuItem Header="Collision" Command="{Binding AddSubtypeCommand}" CommandParameter="Collision"/>
+                                <MenuItem Header="Expiration" Command="{Binding AddSubtypeCommand}" CommandParameter="Expiration"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <TextBlock Style="{StaticResource BsaToolLabel}" Text="New"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource BsaToolStack}" ToolTip="Remove projectile subtype">
+                    <Button Style="{StaticResource BsaToolButton}" Command="{Binding DeleteSubtypeCommand}">
+                        <iconPacks:PackIconMaterialLight Kind="Delete"/>
+                    </Button>
+                    <TextBlock Style="{StaticResource BsaToolLabel}" Text="Remove"/>
+                </StackPanel>
+            </StackPanel>
+
+            <DataGrid x:Name="subtypeGrid"
+                      Grid.Row="1"
+                      Grid.Column="2"
+                      ItemsSource="{Binding SubtypeRows}"
+                      SelectedItem="{Binding SelectedSubtypeRow, Mode=TwoWay}">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopySubtypeCommand}"/>
+                    <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteSubtypeCommand}"/>
+                    <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DuplicateSubtypeCommand}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteSubtypeCommand}"/>
+                    <KeyBinding Key="Up" Modifiers="Alt" Command="{Binding MoveSubtypeUpCommand}"/>
+                    <KeyBinding Key="Down" Modifiers="Alt" Command="{Binding MoveSubtypeDownCommand}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Start" Binding="{Binding StartTime}" Width="80" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="90" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding DisplayType}" Width="*" IsReadOnly="True"/>
+                </DataGrid.Columns>
+                <DataGrid.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Add">
+                            <MenuItem Header="Entry Passing" Command="{Binding AddSubtypeCommand}" CommandParameter="0"/>
+                            <MenuItem Header="Movement" Command="{Binding AddSubtypeCommand}" CommandParameter="1"/>
+                            <MenuItem Header="Type2" Command="{Binding AddSubtypeCommand}" CommandParameter="2"/>
+                            <MenuItem Header="Hitbox" Command="{Binding AddSubtypeCommand}" CommandParameter="3"/>
+                            <MenuItem Header="Deflection" Command="{Binding AddSubtypeCommand}" CommandParameter="4"/>
+                            <MenuItem Header="Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="6"/>
+                            <MenuItem Header="Sound" Command="{Binding AddSubtypeCommand}" CommandParameter="7"/>
+                            <MenuItem Header="Screen Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="8"/>
+                            <MenuItem Header="Unknown 10" Command="{Binding AddSubtypeCommand}" CommandParameter="10"/>
+                            <MenuItem Header="Unknown 12" Command="{Binding AddSubtypeCommand}" CommandParameter="12"/>
+                            <MenuItem Header="Unknown 13" Command="{Binding AddSubtypeCommand}" CommandParameter="13"/>
+                            <MenuItem Header="Unknown 14" Command="{Binding AddSubtypeCommand}" CommandParameter="14"/>
+                            <Separator/>
+                            <MenuItem Header="Collision" Command="{Binding AddSubtypeCommand}" CommandParameter="Collision"/>
+                            <MenuItem Header="Expiration" Command="{Binding AddSubtypeCommand}" CommandParameter="Expiration"/>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Copy" Command="{Binding CopySubtypeCommand}"/>
+                        <MenuItem Header="Paste" Command="{Binding PasteSubtypeCommand}"/>
+                        <MenuItem Header="Duplicate" Command="{Binding DuplicateSubtypeCommand}"/>
+                        <MenuItem Header="Delete" Command="{Binding DeleteSubtypeCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Move Up" Command="{Binding MoveSubtypeUpCommand}"/>
+                        <MenuItem Header="Move Down" Command="{Binding MoveSubtypeDownCommand}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+            </DataGrid>
+        </Grid>
+
+        <GridSplitter Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <bsaView:BsaEntryView ViewModel="{Binding DataContext.EntryViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaTypeBaseView ViewModel="{Binding DataContext.TypeBaseViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType0View ViewModel="{Binding DataContext.Type0ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType1View ViewModel="{Binding DataContext.Type1ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType2View ViewModel="{Binding DataContext.Type2ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType3View ViewModel="{Binding DataContext.Type3ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType4View ViewModel="{Binding DataContext.Type4ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType6View ViewModel="{Binding DataContext.Type6ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType7View ViewModel="{Binding DataContext.Type7ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType8View ViewModel="{Binding DataContext.Type8ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType10View ViewModel="{Binding DataContext.Type10ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType12View ViewModel="{Binding DataContext.Type12ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType13View ViewModel="{Binding DataContext.Type13ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaType14View ViewModel="{Binding DataContext.Type14ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaCollisionView ViewModel="{Binding DataContext.CollisionViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaExpirationView ViewModel="{Binding DataContext.ExpirationViewModel, ElementName=UserControl}"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

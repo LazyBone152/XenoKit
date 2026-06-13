@@ -1,0 +1,78 @@
+<UserControl x:Class="XenoKit.Views.BSA.BsaType6View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             mc:Ignorable="d"
+             d:DesignHeight="220" d:DesignWidth="760">
+    <UserControl.Resources>
+        <Style x:Key="BsaEditorField" TargetType="Grid">
+            <Setter Property="Width" Value="250"/>
+            <Setter Property="Margin" Value="3"/>
+        </Style>
+        <Style x:Key="BsaEditorLabel" TargetType="Label">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="4,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <Expander Header="Effect" IsExpanded="True" Margin="0,2,0,0">
+            <WrapPanel Margin="0,5">
+                <Grid Style="{StaticResource BsaEditorField}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Style="{StaticResource BsaEditorLabel}" Content="EEPK Type" ToolTip="This is the EEPK to use effects from."/>
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding EepkTypes}" SelectedItem="{Binding EepkType, UpdateSourceTrigger=Default}"/>
+                </Grid>
+                <Grid Style="{StaticResource BsaEditorField}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Style="{StaticResource BsaEditorLabel}" Content="Effect ID" ToolTip="ID of an effect in the specified EEPK file."/>
+                    <controls:NumericUpDown Grid.Column="1" Value="{Binding EffectID, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+                </Grid>
+                <Grid Style="{StaticResource BsaEditorField}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Style="{StaticResource BsaEditorLabel}" Content="Skill ID"/>
+                    <controls:NumericUpDown Grid.Column="1" Value="{Binding SkillID, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+                </Grid>
+                <Grid Style="{StaticResource BsaEditorField}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Style="{StaticResource BsaEditorLabel}" Content="Switch"/>
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding Switches}" SelectedItem="{Binding Switch, UpdateSourceTrigger=Default}"/>
+                </Grid>
+            </WrapPanel>
+        </Expander>
+        <Expander Header="Spawn Source" IsExpanded="True" Margin="0,2,0,0">
+            <Grid Margin="3,10,0,5" Width="510" HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="105"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="111.6"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="111.6"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="113"/>
+                </Grid.ColumnDefinitions>
+                <Label Style="{StaticResource BsaEditorLabel}" Content="Position" ToolTip="The position that the effect will spawn at relative to the projectile."/>
+                <Label Grid.Column="1" Style="{StaticResource BsaEditorLabel}" Content="X"/>
+                <controls:NumericUpDown Grid.Column="2" StringFormat="0.00" Interval="0.05" Value="{Binding PositionX, UpdateSourceTrigger=Default}"/>
+                <Label Grid.Column="3" Style="{StaticResource BsaEditorLabel}" Content="Y"/>
+                <controls:NumericUpDown Grid.Column="4" StringFormat="0.00" Interval="0.05" Value="{Binding PositionY, UpdateSourceTrigger=Default}"/>
+                <Label Grid.Column="5" Style="{StaticResource BsaEditorLabel}" Content="Z"/>
+                <controls:NumericUpDown Grid.Column="6" StringFormat="0.00" Interval="0.05" Value="{Binding PositionZ, UpdateSourceTrigger=Default}"/>
+            </Grid>
+        </Expander>
+    </StackPanel>
+</UserControl>

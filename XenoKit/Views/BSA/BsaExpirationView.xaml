@@ -1,0 +1,56 @@
+<UserControl x:Class="XenoKit.Views.BSA.BsaExpirationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             mc:Ignorable="d"
+             d:DesignHeight="220" d:DesignWidth="760">
+    <UserControl.Resources>
+        <Style x:Key="BsaEditorField" TargetType="Grid">
+            <Setter Property="Width" Value="250"/>
+            <Setter Property="Margin" Value="3"/>
+        </Style>
+        <Style x:Key="BsaEditorLabel" TargetType="Label">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="4,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Expander Header="Expiration" IsExpanded="True" Margin="0,2,0,0">
+        <WrapPanel Margin="0,5">
+            <Grid Style="{StaticResource BsaEditorField}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Style="{StaticResource BsaEditorLabel}" Content="I_00"/>
+                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_00, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+            </Grid>
+            <Grid Style="{StaticResource BsaEditorField}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Style="{StaticResource BsaEditorLabel}" Content="I_02"/>
+                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_02, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+            </Grid>
+            <Grid Style="{StaticResource BsaEditorField}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Style="{StaticResource BsaEditorLabel}" Content="I_04"/>
+                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_04, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+            </Grid>
+            <Grid Style="{StaticResource BsaEditorField}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Style="{StaticResource BsaEditorLabel}" Content="I_06"/>
+                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_06, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
+            </Grid>
+        </WrapPanel>
+    </Expander>
+</UserControl>
