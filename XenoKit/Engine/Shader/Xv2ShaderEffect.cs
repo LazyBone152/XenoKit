@@ -1457,6 +1457,18 @@ namespace XenoKit.Engine.Shader
                 //g_TexScroll0_VS.SetVector4(uvScroll);
             }
         }
+
+        public void SetTextureScrollOverrides(float[] texScrl0, float[] texScrl1)
+        {
+            if (texScrl0 != null && texScrl0.Length < 4)
+                throw new ArgumentException("Texture scroll override 0 must have 4 values.", nameof(texScrl0));
+
+            if (texScrl1 != null && texScrl1.Length < 4)
+                throw new ArgumentException("Texture scroll override 1 must have 4 values.", nameof(texScrl1));
+
+            TexScrl0 = texScrl0;
+            TexScrl1 = texScrl1;
+        }
     
         public void SetTextureTile(float[] texTile01, float[] texTile23)
         {

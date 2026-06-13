@@ -21,6 +21,7 @@ using XenoKit.Engine.Stage;
 using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Pool;
 using XenoKit.Engine.Scripting;
+using XenoKit.Engine.Scripting.BSA;
 using XenoKit.Engine.Textures;
 using Xv2CoreLib.Resource;
 
@@ -219,6 +220,9 @@ namespace XenoKit.Engine
                 }
                 else
                 {
+                    if (SceneManager.IsOnTab(EditorTabs.Projectile))
+                        BsaEffectPreviewController.Instance.Update();
+
                     VfxManager.Update();
                 }
 
@@ -350,6 +354,9 @@ namespace XenoKit.Engine
             {
                 VfxManager.Draw();
             }
+
+            if (SceneManager.IsOnTab(EditorTabs.Projectile))
+                BsaEffectPreviewController.Instance.Draw();
 
             //Draw MainRenderTarget onto screen
             GraphicsDevice.SetRenderTarget(AxisCorrectionRenderTarget.RenderTarget);
@@ -616,6 +623,9 @@ namespace XenoKit.Engine
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].ActionControl.SeekPrevFrame();
                     break;
+                case EditorTabs.Projectile:
+                    BsaEffectPreviewController.Instance.SeekPrevFrame();
+                    break;
             }
         }
 
@@ -646,6 +656,9 @@ namespace XenoKit.Engine
                     {
                         SceneManager.Actors[0].ActionControl.SeekNextFrame();
                     }
+                    break;
+                case EditorTabs.Projectile:
+                    BsaEffectPreviewController.Instance.SeekNextFrame();
                     break;
             }
         }

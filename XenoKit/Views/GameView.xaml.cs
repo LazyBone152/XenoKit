@@ -9,6 +9,7 @@ using System.Windows.Media;
 using XenoKit.Engine;
 using XenoKit.Engine.Gizmo;
 using XenoKit.Engine.Model;
+using XenoKit.Engine.Scripting.BSA;
 using XenoKit.Inspector;
 using XenoKit.Properties;
 using Xv2CoreLib.Resource.App;
@@ -55,6 +56,8 @@ namespace XenoKit.Controls
                         return (monoGame.Camera.cameraInstance != null) ? $"{(int)MonoGame.Camera.cameraInstance.CurrentFrame}/{MonoGame.Camera.cameraInstance.CurrentAnimDuration}" : "--/--";
                     case EditorTabs.Action:
                         return (SceneManager.Actors[0] != null) ? $"{SceneManager.Actors[0].ActionControl.BacPlayer.CurrentFrame}/{SceneManager.Actors[0].ActionControl.BacPlayer.CurrentDuration}" : "--/--";
+                    case EditorTabs.Projectile:
+                        return $"{BsaEffectPreviewController.Instance.CurrentFrame}/{BsaEffectPreviewController.Instance.Duration}";
                 }
                 return "--/--";
             }
@@ -119,6 +122,8 @@ namespace XenoKit.Controls
                         return (monoGame.Camera.cameraInstance != null) ? MonoGame.Camera.cameraInstance.CurrentAnimDuration - 1 : 0;
                     case EditorTabs.Action:
                         return (SceneManager.Actors[0] != null) ? SceneManager.Actors[0].ActionControl.BacPlayer.CurrentDuration : 0;
+                    case EditorTabs.Projectile:
+                        return BsaEffectPreviewController.Instance.Duration;
                     default:
                         return 0;
                 }
@@ -144,6 +149,8 @@ namespace XenoKit.Controls
                                 return DelayedSeekFrame != -1 ? DelayedSeekFrame : SceneManager.Actors[0].ActionControl.BacPlayer.CurrentFrame;
                             }
                         return 0;
+                    case EditorTabs.Projectile:
+                        return BsaEffectPreviewController.Instance.CurrentFrame;
                     default:
                         return 0;
                 }
@@ -172,6 +179,9 @@ namespace XenoKit.Controls
                         break;
                     case EditorTabs.Action:
                         DelayedSeekFrame = Viewport.Instance?.IsPlaying == true ? -1 : value;
+                        break;
+                    case EditorTabs.Projectile:
+                        BsaEffectPreviewController.Instance.Seek(value);
                         break;
                 }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
+using XenoKit.Engine.Scripting.BSA;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.Resource.App;
@@ -22,14 +23,13 @@ namespace XenoKit.Engine
         Action = 4, //bac
         State = 5, //bcm
         Projectile = 6,
-        Hitbox = 7,
-        Effect = 8,
-        Audio = 9,
-        System = 10,
-        CAC = 11,
-        Inspector = 12,
-        InspectorAnimation = 13,
-        Stage = 14,
+        Effect = 7,
+        Audio = 8,
+        System = 9,
+        CAC = 10,
+        Inspector = 11,
+        InspectorAnimation = 12,
+        Stage = 13,
         DynamicTab
     }
 
@@ -62,7 +62,6 @@ namespace XenoKit.Engine
         Action,
         State,
         Projectile,
-        Hitbox,
         Effect,
         Effect_PBIND,
         Effect_TBIND,
@@ -213,11 +212,9 @@ namespace XenoKit.Engine
                                 break;
                         }
                         break;
-                    case MainEditorTabs.Hitbox:
-                        CurrentSceneState = EditorTabs.Hitbox;
-                        break;
                     case MainEditorTabs.Projectile:
                         CurrentSceneState = EditorTabs.Projectile;
+                        ActorsEnable[0] = false;
                         break;
                     case MainEditorTabs.State:
                         CurrentSceneState = EditorTabs.State;
@@ -240,9 +237,16 @@ namespace XenoKit.Engine
 
             }
 
-            if (CurrentSceneState == EditorTabs.Action)
+            if (CurrentSceneState == EditorTabs.Action || CurrentSceneState == EditorTabs.Projectile)
             {
                 await AsyncEnsureActorIsSet(0);
+
+                if (CurrentSceneState == EditorTabs.Projectile && Actors[0] != null)
+                    Actors[0].IsVisible = false;
+            }
+            else if (Actors[0] != null)
+            {
+                Actors[0].IsVisible = true;
             }
 
             //Needed because for SOME reason the tab changed event gets fired randomly when no change actually occured...
@@ -654,6 +658,8 @@ namespace XenoKit.Engine
                 {
                     Viewport.Instance.VfxManager.StopEffects();
                 }
+
+                BsaEffectPreviewController.Instance.Stop();
 
             }
 

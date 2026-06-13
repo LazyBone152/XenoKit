@@ -32,11 +32,10 @@ namespace XenoKit.Engine.Textures
             if(texture == null)
             {
                 Log.Add($"Native loading failed for texture {embEntry.Name}, in {name}", LogType.Debug);
-                //Use fallback method if native loading failed. This method is very slow as it decodes the DDS on the CPU, makes a WriteableBitmap, and then converts that into a Texture2D
                 texture = ConvertToTexture2D_fallback(embEntry, name, graphicsDevice);
             }
 
-            return texture;
+            return texture ?? CreateErrorTexture(graphicsDevice, name);
         }
 
         private static Texture2D ConvertToTexture2D_Pfim(EmbEntry embEntry, string name, GraphicsDevice graphicsDevice, DDS_File dds)
@@ -98,9 +97,7 @@ namespace XenoKit.Engine.Textures
             if (graphicsDevice == null)
                 graphicsDevice = Viewport.Instance.GraphicsDevice;
 
-#if !DEBUG
             try
-#endif
             {
                 //If not a DDS file, then use fallback method to load format
                 if (!DDS_File.IsDds(embEntry.Data)) return null;
@@ -138,12 +135,11 @@ namespace XenoKit.Engine.Textures
 
                 return texture2D;
             }
-#if !DEBUG
-            catch
+            catch (Exception ex)
             {
+                Log.Add($"ConvertToTexture2D_Native failed on {embEntry.Name}, in {name}: {ex.Message}", LogType.Debug);
                 return null;
             }
-#endif
         }
 
         private static Texture2D ConvertToTexture2D_fallback(EmbEntry embEntry, string name = null, GraphicsDevice graphicsDevice = null)
@@ -151,23 +147,42 @@ namespace XenoKit.Engine.Textures
             if (graphicsDevice == null)
                 graphicsDevice = Viewport.Instance.GraphicsDevice;
 
-            Texture2D texture = new Texture2D(graphicsDevice, embEntry.Texture.PixelWidth, embEntry.Texture.PixelHeight);
-            byte[] data = embEntry.Texture.ToByteArray();
-
-            //Swap color positions
-            for(int i = 0; i < data.Length; i += 4)
+            try
             {
-                byte a = data[i];
-                byte r = data[i + 1];
-                byte g = data[i + 2];
-                byte b = data[i + 3];
-                data[i] = g;
-                data[i + 1] = r;
-                data[i + 2] = a;
-                data[i + 3] = b;
+                Texture2D texture = new Texture2D(graphicsDevice, embEntry.Texture.PixelWidth, embEntry.Texture.PixelHeight);
+                byte[] data = embEntry.Texture.ToByteArray();
+
+                //Swap color positions
+                for(int i = 0; i < data.Length; i += 4)
+                {
+                    byte a = data[i];
+                    byte r = data[i + 1];
+                    byte g = data[i + 2];
+                    byte b = data[i + 3];
+                    data[i] = g;
+                    data[i + 1] = r;
+                    data[i + 2] = a;
+                    data[i + 3] = b;
+                }
+
+                texture.SetData(data);
+
+                if (!string.IsNullOrWhiteSpace(name))
+                    texture.Name = name;
+
+                return texture;
             }
-            
-            texture.SetData(data);
+            catch (Exception ex)
+            {
+                Log.Add($"ConvertToTexture2D_fallback failed on {embEntry.Name}, in {name}: {ex.Message}", LogType.Debug);
+                return null;
+            }
+        }
+
+        private static Texture2D CreateErrorTexture(GraphicsDevice graphicsDevice, string name)
+        {
+            Texture2D texture = new Texture2D(graphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            texture.SetData(new[] { Microsoft.Xna.Framework.Color.Magenta });
 
             if (!string.IsNullOrWhiteSpace(name))
                 texture.Name = name;
