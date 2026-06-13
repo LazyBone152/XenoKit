@@ -1,4 +1,4 @@
-﻿using AutoUpdater;
+using AutoUpdater;
 using ControlzEx.Theming;
 using GalaSoft.MvvmLight.CommandWpf;
 using MahApps.Metro.Controls;
@@ -139,8 +139,8 @@ namespace XenoKit
                 effectTab_EepkComboBox.Visibility = Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN ? Visibility.Visible : Visibility.Collapsed;
 
                 //Set visibility of the bac file selection combobox on the bac tab. This should only appear for CMN and awoken skills.
-                bacControlView.bacFileSelector_StackPanel.Visibility = Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN || 
-                    (Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.Skill && Files.Instance.SelectedItem.move.SkillType == Xv2CoreLib.CUS.CUS_File.SkillType.Awoken) 
+                bacControlView.bacFileSelector_StackPanel.Visibility = Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.CMN ||
+                    (Files.Instance.SelectedItem.Type == OutlinerItem.OutlinerItemType.Skill && Files.Instance.SelectedItem.move.SkillType == Xv2CoreLib.CUS.CUS_File.SkillType.Awoken)
                     ? Visibility.Visible : Visibility.Collapsed;
             }
 
@@ -251,249 +251,6 @@ namespace XenoKit
 
         #endregion
 
-        #region LoadCommands
-        public RelayCommand LoadSuperSkillCommand => new RelayCommand(LoadSuperSkill);
-        private void LoadSuperSkill()
-        {
-            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Super);
-        }
-
-        public RelayCommand LoadUltimateSkillCommand => new RelayCommand(LoadUltimateSkill);
-        private void LoadUltimateSkill()
-        {
-            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Ultimate);
-        }
-
-        public RelayCommand LoadEvasiveSkillCommand => new RelayCommand(LoadEvasiveSkill);
-        private void LoadEvasiveSkill()
-        {
-            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Evasive);
-        }
-
-        public RelayCommand LoadBlastSkillCommand => new RelayCommand(LoadBlastSkill);
-        private void LoadBlastSkill()
-        {
-            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Blast);
-        }
-
-        public RelayCommand LoadAwokenSkillCommand => new RelayCommand(LoadAwokenSkill);
-        private void LoadAwokenSkill()
-        {
-            Files.Instance.AsyncLoadSkill(Xv2CoreLib.CUS.CUS_File.SkillType.Awoken);
-        }
-
-        public RelayCommand LoadMovesetCommand => new RelayCommand(LoadMoveset);
-        private void LoadMoveset()
-        {
-            Files.Instance.LoadMoveset();
-        }
-
-        public RelayCommand LoadCharacterCommand => new RelayCommand(LoadCharacter);
-        private void LoadCharacter()
-        {
-            Files.Instance.AsyncLoadCharacter();
-        }
-
-        public RelayCommand LoadCacCommand => new RelayCommand(LoadCac);
-        private async void LoadCac()
-        {
-            if (!File.Exists(SettingsManager.settings.SaveFile))
-            {
-                await this.ShowMessageAsync("No Save File", "A save file must be set in the settings to use this feature.", MessageDialogStyle.Affirmative, DialogSettings.Default);
-                return;
-            }
-
-            SAV_File savFile = SAV_File.Load(SettingsManager.settings.SaveFile, false);
-            List<Xv2Item> items = new List<Xv2Item>();
-
-            for(int i = 0; i < savFile.Characters.Count; i++)
-            {
-                if(!string.IsNullOrWhiteSpace(savFile.Characters[i].Name))
-                    items.Add(new Xv2Item(i, savFile.Characters[i].Name));
-            }
-
-            EntitySelector itemSelector = new EntitySelector(items, "CaC");
-            itemSelector.ShowDialog();
-
-            if(itemSelector.SelectedItem != null)
-            {
-                await Files.Instance.AsyncLoadCac(itemSelector.SelectedItem.ID, savFile.Characters[itemSelector.SelectedItem.ID]);
-            }
-        }
-
-        public RelayCommand LoadStageCommand => new RelayCommand(LoadStage);
-        private void LoadStage()
-        {
-            Files.Instance.AsyncLoadStage();
-        }
-
-        #endregion
-
-        #region SaveCommands
-        public RelayCommand SaveCurrentCommand => new RelayCommand(SaveCurrent, CanSaveCurrent);
-        private void SaveCurrent()
-        {
-            Files.Instance.SaveItem(Files.Instance.SelectedItem);
-        }
-
-        public RelayCommand SaveAllCommand => new RelayCommand(SaveAll, CanSaveAll);
-        private async void SaveAll()
-        {
-            var result = await this.ShowMessageAsync("Save All", "Save all files currently loaded in the outliner (except those marked as \"Read Only\"?", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
-
-            if (result == MessageDialogResult.Affirmative)
-                Files.Instance.SaveAll();
-        }
-
-        private bool CanSaveAll()
-        {
-            return Files.Instance.OutlinerItems.Any(x => !x.ReadOnly);
-        }
-
-        private bool CanSaveCurrent()
-        {
-            if (Files.Instance.SelectedItem != null)
-                return !Files.Instance.SelectedItem.ReadOnly;
-
-            return false;
-        }
-
-        #endregion
-
-        #region OtherCommands
-        public RelayCommand SettingsCommand => new RelayCommand(ShowSettingsWindow);
-        private void ShowSettingsWindow()
-        {
-            string originalGameDir = SettingsManager.Instance.Settings.GameDirectory;
-            int shadowMapRes = SettingsManager.Instance.Settings.XenoKit_ShadowMapRes;
-
-            SettingsWindow settings = new SettingsWindow(this);
-            settings.ShowDialog();
-            SettingsManager.Instance.SaveSettings();
-            LocalSettings.Save();
-            InitTheme();
-
-            //Reload game cpk stuff if directory was changed
-            if (SettingsManager.Instance.Settings.GameDirectory != originalGameDir && SettingsManager.Instance.Settings.ValidGameDir)
-            {
-                AsyncInit();
-            }
-
-            if(shadowMapRes != SettingsManager.settings.XenoKit_ShadowMapRes)
-            {
-                Viewport.Instance.CompiledObjectManager.ForceShaderUpdate();
-            }
-        }
-
-        public RelayCommand FindReplaceCommand => new RelayCommand(FindReplace);
-        private void FindReplace()
-        {
-            //Check if window is already open, and bring it into focus if it is.
-            foreach (var window in App.Current.Windows)
-            {
-                if (window is FindAndReplace)
-                {
-                    ((FindAndReplace)window).Focus();
-                    return;
-                }
-            }
-
-            //Open a new one
-            FindAndReplace find = new FindAndReplace(this);
-            find.Show();
-        }
-
-        public RelayCommand CheckForUpdatesCommand => new RelayCommand(CheckForUpdates);
-        private async void CheckForUpdates()
-        {
-            CheckForUpdate(true);
-        }
-
-        public RelayCommand GitHubCommand => new RelayCommand(GotoGitHub);
-        private void GotoGitHub()
-        {
-            Process.Start("https://github.com/LazyBone152/XenoKit");
-        }
-
-        private async void CheckForUpdate(bool userInitiated)
-        {
-            //Check for update
-            AppUpdate appUpdate = default;
-
-            await Task.Run(() =>
-            {
-                appUpdate = Update.CheckForUpdate(AutoUpdater.App.XenoKit);
-            });
-
-            await Task.Delay(1000);
-
-            if (Update.UpdateState == UpdateState.XmlDownloadFailed && userInitiated)
-            {
-                await this.ShowMessageAsync("Update Failed", "The AppUpdate XML file failed to download.", MessageDialogStyle.Affirmative, DialogSettings.Default);
-                return;
-            }
-
-            if (Update.UpdateState == UpdateState.XmlParseFailed && userInitiated)
-            {
-                await this.ShowMessageAsync("Update Failed", $"The AppUpdate XML file could not be parsed.\n\n{Update.FailedErrorMessage}", MessageDialogStyle.Affirmative, DialogSettings.Default);
-                return;
-            }
-
-            if (!appUpdate.ForceUpdate && !SettingsManager.settings.UpdateNotifications && !userInitiated)
-            {
-                return;
-            }
-
-            if (appUpdate.HasUpdate)
-            {
-                MetroDialogSettings dialogSettings = DialogSettings.ScrollDialog;
-                dialogSettings.FirstAuxiliaryButtonText = "Ignore";
-                dialogSettings.AffirmativeButtonText = "Update";
-                dialogSettings.NegativeButtonText = "Open in Browser";
-                dialogSettings.DefaultButtonFocus = MessageDialogResult.Affirmative;
-
-                MessageDialogResult messageResult = await this.ShowMessageAsync("Update Available", $"An update is available ({appUpdate.Version}). The application can automatically download and update itself (confirmation may be required), or you may also open the website in a browser and download the update manually. \n\nNote: All instances of the application will be closed and any unsaved work will be lost if Update is selected.\n\nChangelog:\n{appUpdate.Changelog}", MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary, dialogSettings);
-
-                if (messageResult == MessageDialogResult.Affirmative)
-                {
-                    var controller = await this.ShowProgressAsync("Update Available", "Downloading...", false, DialogSettings.Default);
-                    controller.SetIndeterminate();
-
-                    try
-                    {
-                        await Task.Run(() =>
-                        {
-                            Update.DownloadUpdate();
-                        });
-                    }
-                    finally
-                    {
-                        await controller.CloseAsync();
-                    }
-
-                    if (Update.UpdateState == UpdateState.DownloadSuccess)
-                    {
-                        Update.UpdateApplication();
-                    }
-                    else if (Update.UpdateState == UpdateState.DownloadFail)
-                    {
-                        await this.ShowMessageAsync("Download Failed", Update.FailedErrorMessage, MessageDialogStyle.Affirmative, DialogSettings.Default);
-                    }
-
-                }
-                else if(messageResult == MessageDialogResult.Negative)
-                {
-                    Process.Start("https://github.com/LazyBone152/XenoKit/releases");
-                }
-            }
-            else if (userInitiated)
-            {
-                await this.ShowMessageAsync("Update", $"No update is available.", MessageDialogStyle.Affirmative, DialogSettings.Default);
-            }
-        }
-
-        #endregion
-
         #region Exit
         public RelayCommand ExitCommand => new RelayCommand(Exit);
         private async void Exit()
@@ -512,29 +269,8 @@ namespace XenoKit
         }
         #endregion
 
-        private void MainTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            UpdateSelectedTab();
-            Files.Instance.SelectedItemOrTabChanged(sender, e);
-        }
 
-        private async void UpdateSelectedTab()
-        {
-            bool changed = await SceneManager.SetSceneState(mainTabControl.SelectedIndex, bcsTabControl.SelectedIndex, audioControl.audioTabControl.SelectedIndex, eepkEditor.tabControl.SelectedIndex);
 
-            //Auto play bac entry if nothing is active
-            if (SceneManager.CurrentSceneState == EditorTabs.Action)
-            {
-                bacControlView.AutoPlayBacEntry();
-            }
-
-            if (!changed) return;
-
-            if (SceneManager.CurrentSceneState == EditorTabs.Camera)
-            {
-                SceneManager.CameraSelectionChanged(cameraTabView.SelectedEanFile, cameraTabView.SelectedAnimation);
-            }
-        }
 
         private void EepkEditor_SelectedEffectTabChanged(object sender, EventArgs e)
         {
@@ -600,113 +336,11 @@ namespace XenoKit
         #region DEBUG MENU
         public Visibility DebugMenuVisible { get; set; } = Visibility.Hidden;
 
-        private void MenuItem_ReloadSystem_Click(object sender, RoutedEventArgs e)
-        {
-            Xenoverse2.Instance.RefreshSkills();
-            Xenoverse2.Instance.RefreshCharacters();
-        }
 
-        private void DebugMenu_ForceGC(object sender, RoutedEventArgs e)
-        {
-            Viewport.Instance.CompiledObjectManager.RemoveDeadObjects();
-            GC.Collect();
 
-            Log.Add("GC initiated", LogType.Debug);
-        }
 
-        private void DebugMenu_ReloadShaders_Click(object sender, RoutedEventArgs e)
-        {
-            Viewport.Instance.CompiledObjectManager.ForceShaderUpdate();
-        }
 
-        private void DebugMenu_DumpRenderTargets_Click(object sender, RoutedEventArgs e)
-        {
-            Viewport.Instance.RenderSystem.DumpRenderTargetsNextFrame = true;
-        }
 
-        private void DebugMenu_DumpShadowMap_Click(object sender, RoutedEventArgs e)
-        {
-            Viewport.Instance.RenderSystem.DumpShadowMapNextFrame = true;
-        }
-
-        private void DebugMenu_TestClick(object sender, RoutedEventArgs e)
-        {
-            int count = 250000000;
-
-            Stopwatch sw = Stopwatch.StartNew();
-
-            for(int i = 0; i < count; i++)
-            {
-                System.Numerics.Vector3 vector1 = new System.Numerics.Vector3(5f, -2f, 10f);
-                System.Numerics.Vector3 vector2 = new System.Numerics.Vector3(50f, 2f, 20f);
-                System.Numerics.Vector3 vector4 = new System.Numerics.Vector3(2, 2f, 2);
-                Vector3 vector3 = Vector3.Add(vector1, vector2);
-                Vector3 vector5 = Vector3.Multiply(vector3, vector4);
-
-                System.Numerics.Matrix4x4 mat = Matrix4x4.CreateTranslation(vector5);
-                var mat2 = Matrix4x4.CreateScale(new Vector3(1, 2, 4));
-                var mat3 = Matrix4x4.Multiply(mat, mat2);
-            }
-
-            sw.Stop();
-            TimeSpan standardElapsed = sw.Elapsed;
-            sw.Restart();
-
-            for (int i = 0; i < count; i++)
-            {
-                System.Numerics.Vector3 vector1 = new System.Numerics.Vector3(5f, -2f, 10f);
-                System.Numerics.Vector3 vector2 = new System.Numerics.Vector3(50f, 2f, 20f);
-                System.Numerics.Vector3 vector4 = new System.Numerics.Vector3(2, 2f, 2);
-                Vector3 vector3 = vector1 + vector2;
-                Vector3 vector5 = vector3 * vector4;
-
-                System.Numerics.Matrix4x4 mat = Matrix4x4.CreateTranslation(vector5);
-                var mat2 = Matrix4x4.CreateScale(new Vector3(1, 2, 4));
-                var mat3 = mat * mat2;
-            }
-
-            sw.Stop();
-            TimeSpan methodsElapsed = sw.Elapsed;
-            sw.Restart();
-
-            for (int i = 0; i < count; i++)
-            {
-                Microsoft.Xna.Framework.Vector3 vector1 = new Microsoft.Xna.Framework.Vector3(5f, -2f, 10f);
-                Microsoft.Xna.Framework.Vector3 vector2 = new Microsoft.Xna.Framework.Vector3(50f, 2f, 20f);
-                Microsoft.Xna.Framework.Vector3 vector4 = new Microsoft.Xna.Framework.Vector3(2, 2f, 2);
-                Microsoft.Xna.Framework.Vector3 vector3 = vector1 + vector2;
-                Microsoft.Xna.Framework.Vector3 vector5 = vector3 * vector4;
-
-                Microsoft.Xna.Framework.Matrix mat = Microsoft.Xna.Framework.Matrix.CreateTranslation(vector5);
-                var mat2 = Microsoft.Xna.Framework.Matrix.CreateScale(new Microsoft.Xna.Framework.Vector3(1, 2, 4));
-                var mat3 = mat * Microsoft.Xna.Framework.Matrix.CreateScale(new Microsoft.Xna.Framework.Vector3(1, 2, 4));
-            }
-
-            sw.Stop();
-            TimeSpan xnaElapsed = sw.Elapsed;
-            sw.Restart();
-
-            for (int i = 0; i < count; i++)
-            {
-                Microsoft.Xna.Framework.Vector3 vector1 = new Microsoft.Xna.Framework.Vector3(5f, -2f, 10f);
-                Microsoft.Xna.Framework.Vector3 vector2 = new Microsoft.Xna.Framework.Vector3(50f, 2f, 20f);
-                Microsoft.Xna.Framework.Vector3 vector4 = new Microsoft.Xna.Framework.Vector3(2, 2f, 2);
-                Microsoft.Xna.Framework.Vector3.Add(ref vector1, ref vector2, out Microsoft.Xna.Framework.Vector3 vector3);
-                Microsoft.Xna.Framework.Vector3.Multiply(ref vector3, ref vector4, out Microsoft.Xna.Framework.Vector3 vector5);
-
-                Microsoft.Xna.Framework.Matrix mat = Microsoft.Xna.Framework.Matrix.CreateTranslation(vector5);
-                var mat2 = Microsoft.Xna.Framework.Matrix.CreateScale(new Microsoft.Xna.Framework.Vector3(1, 2, 4));
-
-                Microsoft.Xna.Framework.Matrix.Multiply(ref mat, ref mat2, out Microsoft.Xna.Framework.Matrix mat3);
-            }
-
-            sw.Stop();
-            TimeSpan xnaMethodsElapsed = sw.Elapsed;
-
-            Log.Add($"SIMD: {System.Numerics.Vector.IsHardwareAccelerated}");
-            Log.Add($"Numerics = Standard: {standardElapsed}, Method: {methodsElapsed}");
-            Log.Add($"XNA = Standard: {xnaElapsed}, Method: {xnaMethodsElapsed}");
-        }
         #endregion
 
     }

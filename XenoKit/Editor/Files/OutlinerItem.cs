@@ -1,4 +1,4 @@
-﻿using MahApps.Metro.Controls;
+using MahApps.Metro.Controls;
 using System;
 using System.ComponentModel;
 using Xv2CoreLib;
@@ -13,11 +13,13 @@ using System.Collections.Generic;
 using XenoKit.Engine.Model;
 using XenoKit.Editor.Data;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.BCM;
+using Xv2CoreLib.BSA;
 using XenoKit.Engine.Stage;
 
 namespace XenoKit.Editor
 {
-    public class OutlinerItem : INotifyPropertyChanged
+    public partial class OutlinerItem : INotifyPropertyChanged
     {
         #region INotifyPropChanged
         public event PropertyChangedEventHandler PropertyChanged;
@@ -102,124 +104,8 @@ namespace XenoKit.Editor
         public bool CanUseSystemTab { get { return (GetMove().MoveType == Move.Type.Skill && !IsManualLoaded); } }
 
         #region SelectedItems
-        private Xv2File<BAC_File> _selectedBac = null;
-        private Xv2File<EffectContainerFile> _selectedEepk = null;
-        private Xv2File<EAN_File> _selectedEanFile = null;
-        private Xv2File<EAN_File> _selectedCamFile = null;
-        private Xv2File<ACB_Wrapper> _selectedSeAcbFile = null;
-        private Xv2File<ACB_Wrapper> _selectedVoxAcbFile = null;
-        private EAN_Animation _selectedAnimation = null;
-        private EAN_Animation _selectedCamera = null;
 
-        public Xv2File<BAC_File> SelectedBacFile
-        {
-            get { return _selectedBac; }
-            set
-            {
-                if (_selectedBac != value)
-                {
-                    _selectedBac = value;
-                    NotifyPropertyChanged(nameof(SelectedBacFile));
-                }
-            }
-        }
-        public Xv2File<EffectContainerFile> SelectedEepk
-        {
-            get
-            {
-                switch (Type)
-                {
-                    case OutlinerItemType.CMN:
-                        return _selectedEepk;
-                    case OutlinerItemType.Character:
-                        return character.Moveset?.Files?.EepkFile;
-                    default:
-                        return ManualFiles != null ? ManualFiles.Move.Files?.EepkFile : move?.Files?.EepkFile;
 
-                }
-            }
-            set
-            {
-                if (Type == OutlinerItemType.CMN && value != _selectedEepk)
-                {
-                    _selectedEepk = value;
-                    NotifyPropertyChanged(nameof(SelectedEepk));
-                }
-            }
-        }
-        public Xv2File<EAN_File> SelectedEanFile
-        {
-            get { return _selectedEanFile; }
-            set
-            {
-                if (_selectedEanFile != value)
-                {
-                    _selectedEanFile = value;
-                    NotifyPropertyChanged(nameof(SelectedEanFile));
-                }
-            }
-        }
-        public Xv2File<EAN_File> SelectedCamFile
-        {
-            get { return _selectedCamFile; }
-            set
-            {
-                if (_selectedCamFile != value)
-                {
-                    _selectedCamFile = value;
-                    NotifyPropertyChanged(nameof(SelectedCamFile));
-                }
-            }
-        }
-        public Xv2File<ACB_Wrapper> SelectedSeAcbFile
-        {
-            get { return _selectedSeAcbFile; }
-            set
-            {
-                if (_selectedSeAcbFile != value)
-                {
-                    _selectedSeAcbFile = value;
-                    NotifyPropertyChanged(nameof(SelectedSeAcbFile));
-                }
-            }
-        }
-        public Xv2File<ACB_Wrapper> SelectedVoxAcbFile
-        {
-            get { return _selectedVoxAcbFile; }
-            set
-            {
-                if (_selectedVoxAcbFile != value)
-                {
-                    _selectedVoxAcbFile = value;
-                    NotifyPropertyChanged(nameof(SelectedVoxAcbFile));
-                }
-            }
-        }
-        public EAN_Animation SelectedAnimation
-        {
-            get { return _selectedAnimation; }
-            set
-            {
-                if (_selectedAnimation != value)
-                {
-                    _selectedAnimation = value;
-                    NotifyPropertyChanged(nameof(SelectedAnimation));
-                }
-            }
-        }
-        public EAN_Animation SelectedCamera
-        {
-            get { return _selectedCamera; }
-            set
-            {
-                if (_selectedCamera != value)
-                {
-                    _selectedCamera = value;
-                    NotifyPropertyChanged(nameof(SelectedCamera));
-                }
-            }
-        }
-        
         #endregion
 
         /// <summary>
@@ -343,6 +229,8 @@ namespace XenoKit.Editor
         private void SetSelectedItems()
         {
             SelectedBacFile = (GetMove().Files.BacFiles.Count > 0) ? GetMove().Files.BacFiles[0] : null;
+            SelectedBsaFile = GetMove().Files.BsaFile;
+            SelectedBcmFile = GetMove().Files.BcmFile ?? GetMove().Files.AfterBcmFile;
             SelectedEanFile = (GetMove().Files.EanFile.Count > 0) ? GetMove().Files.EanFile[0] : null;
             SelectedCamFile = (GetMove().Files.CamEanFile.Count > 0) ? GetMove().Files.CamEanFile[0] : null;
             SelectedSeAcbFile = (GetMove().Files.SeAcbFile.Count > 0) ? GetMove().Files.SeAcbFile[0] : null;
@@ -423,6 +311,10 @@ namespace XenoKit.Editor
                     return SelectedVoxAcbFile != null ? Path.GetFileName(SelectedVoxAcbFile.Path) : null;
                 case EditorTabs.Action:
                     return SelectedBacFile != null ? Path.GetFileName(SelectedBacFile.Path) : null;
+                case EditorTabs.Projectile:
+                    return SelectedBsaFile != null ? Path.GetFileName(SelectedBsaFile.Path) : null;
+                case EditorTabs.State:
+                    return SelectedBcmFile != null ? Path.GetFileName(SelectedBcmFile.Path) : null;
                 default:
                     return null;
             }
@@ -487,6 +379,22 @@ namespace XenoKit.Editor
                         SelectedBacFile.File.Save(SelectedBacFile.Path);
                         CustomEntryNames.SaveNames(SelectedBacFile.RelativePath, SelectedBacFile.File);
                         pathSaved = SelectedBacFile.Path;
+                    }
+                    break;
+                case EditorTabs.Projectile:
+                    if (SelectedBsaFile?.Path != null)
+                    {
+                        SelectedBsaFile.File.SaveIBsaTypes();
+                        SelectedBsaFile.File.Save(SelectedBsaFile.Path);
+                        CustomEntryNames.SaveNames(SelectedBsaFile.RelativePath, SelectedBsaFile.File);
+                        pathSaved = SelectedBsaFile.Path;
+                    }
+                    break;
+                case EditorTabs.State:
+                    if (SelectedBcmFile?.Path != null)
+                    {
+                        SelectedBcmFile.File.Save(SelectedBcmFile.Path);
+                        pathSaved = SelectedBcmFile.Path;
                     }
                     break;
                 default:

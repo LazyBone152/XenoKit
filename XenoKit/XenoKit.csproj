@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -87,6 +87,7 @@
     </Reference>
     <Reference Include="ControlzEx, Version=4.0.0.0, Culture=neutral, PublicKeyToken=69f1c32f803d307e, processorArchitecture=MSIL">
       <HintPath>..\packages\ControlzEx.4.4.0\lib\net462\ControlzEx.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Costura, Version=5.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.5.7.0\lib\netstandard1.0\Costura.dll</HintPath>
@@ -120,24 +121,31 @@
     </Reference>
     <Reference Include="MahApps.Metro, Version=2.0.0.0, Culture=neutral, PublicKeyToken=51482d6f650b2b3f, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.2.4.10\lib\net47\MahApps.Metro.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.Core.6.0.0\lib\net47\MahApps.Metro.IconPacks.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Lucide, Version=6.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.Lucide.6.0.0\lib\net47\MahApps.Metro.IconPacks.Lucide.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Material, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.Material.4.11.0\lib\net47\MahApps.Metro.IconPacks.Material.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.MaterialDesign, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.MaterialDesign.4.11.0\lib\net47\MahApps.Metro.IconPacks.MaterialDesign.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.MaterialLight, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.MaterialLight.4.11.0\lib\net47\MahApps.Metro.IconPacks.MaterialLight.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Modern, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.Modern.4.11.0\lib\net47\MahApps.Metro.IconPacks.Modern.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MIConvexHull, Version=1.1.19.1018, Culture=neutral, PublicKeyToken=2644b6f8be52c998, processorArchitecture=MSIL">
       <HintPath>..\packages\MIConvexHull.1.1.19.1019\lib\netstandard2.0\MIConvexHull.dll</HintPath>
@@ -199,9 +207,6 @@
     <Reference Include="System.Design" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.3.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Diagnostics.Tracing, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Diagnostics.Tracing.4.3.0\lib\net462\System.Diagnostics.Tracing.dll</HintPath>
     </Reference>
     <Reference Include="System.Globalization.Calendars, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
@@ -593,6 +598,9 @@
     <Compile Include="Engine\Objects\DrawableBoundingBox.cs" />
     <Compile Include="Engine\Scripting\BAC\ActionControl.cs" />
     <Compile Include="Engine\Scripting\BAC\BacEntryInstance.cs" />
+    <Compile Include="Engine\Scripting\BSA\BsaEffectPreviewController.cs" />
+    <Compile Include="Engine\Scripting\BSA\BsaHitboxPreview.cs" />
+    <Compile Include="Engine\Scripting\BSA\ProjectileInstance.cs" />
     <Compile Include="Engine\Scripting\ScriptEntity.cs" />
     <Compile Include="Engine\Shader\Buffers.cs" />
     <Compile Include="Engine\Shader\DXBC\DxbcParser.cs" />
@@ -617,15 +625,25 @@
     <Compile Include="Engine\Vfx\Asset\VfxColorFade.cs" />
     <Compile Include="Engine\Vfx\Asset\VfxEmo.cs" />
     <Compile Include="Engine\Vfx\Asset\VfxLight.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleEmissionBase.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleEmissionData.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleEmitter.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleBillboard.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleConeExtrude.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleMesh.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleNodeBase.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticlePlane.cs" />
+    <Compile Include="Engine\Vfx\Particle\ParticleShapeDraw.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleRootNode.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleSystem.cs" />
     <Compile Include="Engine\Vfx\Particle\ParticleUV.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectPathPoint.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectRibbonPoint.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectShapeMesh.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectShapeMeshBuilder.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectShapePoint.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectShapeSegment.cs" />
     <Compile Include="Engine\Vfx\VfxEffect.cs" />
     <Compile Include="Engine\Vfx\VfxManager.cs" />
     <Compile Include="Engine\Vfx\VfxPreview.cs" />
@@ -670,6 +688,23 @@
     <Compile Include="ViewModel\BAC\BACType8ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACType9ViewModel.cs" />
     <Compile Include="ViewModel\BAC\BACTypeBaseViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaCollisionViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaEntryViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaExpirationViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaSubtypeRow.cs" />
+    <Compile Include="ViewModel\BSA\BsaType0ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType1ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType2ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType3ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType4ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType6ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType7ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType8ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType10ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType12ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType13ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaType14ViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaTypeBaseViewModel.cs" />
     <Compile Include="ViewModel\BCS\BcsBodyViewModel.cs" />
     <Compile Include="ViewModel\BCS\BcsColorSelectorViewModel.cs" />
     <Compile Include="ViewModel\BCS\BcsHeaderViewModel.cs" />
@@ -688,6 +723,72 @@
     </Compile>
     <Compile Include="Views\BacTab.xaml.cs">
       <DependentUpon>BacTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BcmTab.xaml.cs">
+      <DependentUpon>BcmTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCM\BcmBitGroupView.xaml.cs">
+      <DependentUpon>BcmBitGroupView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCM\BcmEntryEditor.xaml.cs">
+      <DependentUpon>BcmEntryEditor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCM\BcmOptionGroupView.xaml.cs">
+      <DependentUpon>BcmOptionGroupView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BCM\BcmTreeList.xaml.cs">
+      <DependentUpon>BcmTreeList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BsaTab.xaml.cs">
+      <DependentUpon>BsaTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaCollisionView.xaml.cs">
+      <DependentUpon>BsaCollisionView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaEntryView.xaml.cs">
+      <DependentUpon>BsaEntryView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaExpirationView.xaml.cs">
+      <DependentUpon>BsaExpirationView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType0View.xaml.cs">
+      <DependentUpon>BsaType0View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType1View.xaml.cs">
+      <DependentUpon>BsaType1View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType2View.xaml.cs">
+      <DependentUpon>BsaType2View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType3View.xaml.cs">
+      <DependentUpon>BsaType3View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType4View.xaml.cs">
+      <DependentUpon>BsaType4View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType6View.xaml.cs">
+      <DependentUpon>BsaType6View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType7View.xaml.cs">
+      <DependentUpon>BsaType7View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType8View.xaml.cs">
+      <DependentUpon>BsaType8View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType10View.xaml.cs">
+      <DependentUpon>BsaType10View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType12View.xaml.cs">
+      <DependentUpon>BsaType12View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType13View.xaml.cs">
+      <DependentUpon>BsaType13View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaType14View.xaml.cs">
+      <DependentUpon>BsaType14View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BSA\BsaTypeBaseView.xaml.cs">
+      <DependentUpon>BsaTypeBaseView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BAC\BacType0View.xaml.cs">
       <DependentUpon>BacType0View.xaml</DependentUpon>
@@ -906,6 +1007,46 @@
     </Compile>
     <Compile Include="Engine\Character\Actor.cs" />
     <Compile Include="Editor\Data\CopyItem.cs" />
+    <Compile Include="Editor\Undo\ListMoveUndo.cs" />
+    <Compile Include="Editor\Data\CopyItem.Bac.cs" />
+    <Compile Include="Editor\Data\CopyItem.Bsa.cs" />
+    <Compile Include="Editor\Data\CopyItem.Bdm.cs" />
+    <Compile Include="Editor\Data\CopyItem.Paste.cs" />
+    <Compile Include="Editor\Data\CopyItem.References.cs" />
+    <Compile Include="Editor\Data\CopyEntries.cs" />
+    <Compile Include="Editor\Data\ValueReference.cs" />
+    <Compile Include="Editor\Files\Files.Load.cs" />
+    <Compile Include="Editor\Files\Files.Save.cs" />
+    <Compile Include="Editor\Files\Files.Lookup.cs" />
+    <Compile Include="Editor\Files\Files.Outliner.cs" />
+    <Compile Include="Editor\Files\OutlinerItem.SelectedFiles.cs" />
+    <Compile Include="Engine\Rendering\RenderSystem.Draw.cs" />
+    <Compile Include="Engine\Rendering\RenderSystem.Entities.cs" />
+    <Compile Include="Engine\Rendering\RenderSystem.RenderTargets.cs" />
+    <Compile Include="Engine\Rendering\RenderSystem.Screenshot.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.Timing.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.Samples.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.Mesh.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.Transforms.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.Resources.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.Seek.cs" />
+    <Compile Include="Engine\Vfx\Asset\VfxTbind.State.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectShapeMeshBuilder.Ribbon.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectShapeMeshBuilder.TbindTrail.cs" />
+    <Compile Include="Engine\Vfx\Shape\EffectShapeMeshBuilder.Vertices.cs" />
+    <Compile Include="Views\BCM\BcmEntryEditor.Tabs.cs" />
+    <Compile Include="Views\BCM\BcmEntryEditor.Groups.cs" />
+    <Compile Include="Views\BCM\BcmEntryEditor.SpecialEditors.cs" />
+    <Compile Include="Views\BCM\BcmEntryEditor.Fields.cs" />
+    <Compile Include="Views\BCM\BcmEntryEditor.ValueTypes.cs" />
+    <Compile Include="Views\BsaTab.EntryCommands.cs" />
+    <Compile Include="Views\BsaTab.SubtypeCommands.cs" />
+    <Compile Include="Views\BsaTab.Selection.cs" />
+    <Compile Include="Views\BsaTab.Helpers.cs" />
+    <Compile Include="Windows\FindAndReplace.Bcm.cs" />
+    <Compile Include="MainWindow.TabLayout.cs" />
+    <Compile Include="MainWindow.Commands.cs" />
+    <Compile Include="MainWindow.MenuCommands.cs" />
     <Compile Include="Editor\Data\Move.cs" />
     <Compile Include="Windows\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
@@ -1142,6 +1283,94 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\BacTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BcmTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCM\BcmBitGroupView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCM\BcmEntryEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCM\BcmOptionGroupView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BCM\BcmTreeList.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BsaTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaCollisionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaEntryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaExpirationView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType0View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType1View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType2View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType3View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType4View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType6View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType7View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType8View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType10View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType12View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType13View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaType14View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\BSA\BsaTypeBaseView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

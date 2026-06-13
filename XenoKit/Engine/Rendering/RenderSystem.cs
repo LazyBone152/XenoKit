@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Rendering
 {
-    public class RenderSystem : RenderObject
+    public partial class RenderSystem : RenderObject
     {
         public readonly PostFilter PostFilter;
         public readonly YBSPostProcess YBS;
@@ -24,6 +24,11 @@ namespace XenoKit.Engine.Rendering
         private readonly List<RenderObject> Characters = new List<RenderObject>();
         private readonly List<RenderObject> Stages = new List<RenderObject>();
         private readonly List<RenderObject> Effects = new List<RenderObject>(); //PBIND, TBIND, EMO
+
+        private readonly List<RenderObject> ReflectionsToAdd = new List<RenderObject>();
+        private readonly List<RenderObject> CharasToAdd = new List<RenderObject>();
+        private readonly List<RenderObject> StagesToAdd = new List<RenderObject>();
+        private readonly List<RenderObject> EffectsToAdd = new List<RenderObject>();
 
         private readonly List<RenderObject> ReflectionsToRemove = new List<RenderObject>();
         private readonly List<RenderObject> CharasToRemove = new List<RenderObject>();
@@ -225,483 +230,29 @@ namespace XenoKit.Engine.Rendering
             RenderHeight = (int)RenderResolution[1];
         }
 
-        public override void Draw()
-        {
-            const int LOW_REZ_NONE = 0, LOW_REZ = 1, LOW_REZ_SMOKE = 2;
 
-            if (!DrawThisFrame) return;
-            MeshDrawCalls = 0;
 
-            //Clear the common depth buffer
-            GraphicsDevice.SetRenderTarget(RenderSystem.DepthBuffer.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
 
-            //Reflection Pass
-            IsReflectionPass = true;
-            Camera.SetReflectionView(true);
-            GraphicsDevice.SetRenderTarget(ReflectionRT.RenderTarget);
-            GraphicsDevice.Clear(ReflectionBackgroundColor);
-            DrawEntity(Reflections, -1); //Ignore LowRez param, since reflections are already rendering at 1/4 screen res
-            IsReflectionPass = false;
 
-            //Shadow Pass (Chara + Stage Enviroment)
-            IsShadowPass = true;
-            Camera.SetReflectionView(false);
-            GraphicsDevice.SetRenderTarget(ShadowPassRT0.RenderTarget);
-            GraphicsDevice.SetDepthBuffer(ShadowPassRT0.RenderTarget);
-            GraphicsDevice.Clear(Color.Red);
 
-            //ShadowMapRes == 16 means shadows are disabled
-            if (SettingsManager.settings.XenoKit_ShadowMapRes > 16)
-            {
-                if (SceneManager.UseRenderScene)
-                    RenderScene.DrawPass(false);
-                
-                DrawSimpleEntity(Characters, false);
-                DrawSimpleEntity(Stages, false);
-
-                if (DumpShadowMapNextFrame)
-                    DumpRenderTargets();
-            }
-            IsShadowPass = false;
-
-            //Normals Pass (Chara)
-            SetRenderTargets(NormalPassRT0.RenderTarget, NormalPassRT1.RenderTarget);
-            GraphicsDevice.Clear(NormalsBackgroundColor);
-            DrawSimpleEntity(Characters, true);
-
-            if (SceneManager.UseRenderScene)
-                RenderScene.DrawPass(true);
-
-            //Color Pass (Chara + Stage Enviroment)
-            SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            DrawEntity(Characters, LOW_REZ_NONE);
-
-            if (SceneManager.UseRenderScene)
-                DrawRenderScene(RenderPipelineStage.ModelMain);
-
-            //Create SamplerAlphaDepth
-            SetRenderTargets(SamplerAlphaDepth.RenderTarget);
-            GraphicsDevice.Clear(Color.Red);
-            GraphicsDevice.SetDepthAsTexture(DepthBuffer.RenderTarget, 0);
-            PostFilter.Apply(AGE_TEST_DEPTH_TO_PFXD);
-            GraphicsDevice.Textures[0] = null;
-
-            if (!ViewportInstance.IsBlackVoid)
-            {
-                //Some stage objects should be drawn AFTER SamplerAlphaDepth is created, while others are drawn before
-
-                SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
-                GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-                DrawEntity(Stages, LOW_REZ_NONE);
-            }
-
-            //Black Chara Outline Shader
-            if (SettingsManager.settings.XenoKit_UseOutlinePostEffect)
-            {
-                SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
-                GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-                SetTexture(NormalPassRT0.RenderTarget);
-                PostFilter.Apply(AGE_TEST_EDGELINE_MRT);
-            }
-
-            //Stage Outline, NewColorPassRT
-            GraphicsDevice.SetRenderTarget(NextColorPassRT0.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            SetTexture(ColorPassRT0.RenderTarget);
-            PostFilter.SetTextureCoordinates(0.0002f, 0.00035f);
-            PostFilter.Apply(BIRD_BG_EDGELINE_RGB_HF);
-
-            //Initial Effect Pass
-            SetRenderTargets(NextColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
-            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            _particleCount = ParticleBatcher.NumTotalBatched;
-            DrawEntity(Effects, LOW_REZ_NONE);
-            DrawParticleBatcher(LOW_REZ_NONE);
-
-            if (SceneManager.UseRenderScene)
-                DrawRenderScene(RenderPipelineStage.EffectInitial);
-
-            //LowRez Pass
-            SetRenderTargets(LowRezRT0.RenderTarget, LowRezRT1.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            UseDepthToDepth();
-            DrawEntity(Effects, LOW_REZ);
-            DrawParticleBatcher(LOW_REZ);
-            DrawEntity(Effects, LOW_REZ_SMOKE); //LowRezSmoke pass is broken... effects dont render. So for now, render them in LowRez pass until its fixed
-            DrawParticleBatcher(LOW_REZ_SMOKE);
-
-            //LowRezSmoke Pass
-            SetRenderTargets(LowRezSmokeRT0.RenderTarget, LowRezSmokeRT1.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            UseDepthToDepth();
-            UseDepthToDepth(); //Very weird bug... without TWO of these all rendered effects dont show on this RT? If the initial call on LowRez is removed, only 1 is needed, but that breaks that pass
-
-            //DrawEntityList(Effects, LOW_REZ_SMOKE);
-
-            //Render EdgeLine (BPE Outline Test)
-            //SetTextures(NormalPassRT1.RenderTarget, TestOutlineTexture);
-            //PostFilter.Apply(EDGELINE_VFX);
-
-            //Apply blur filter to LowRezSmoke
-            SetRenderTargets(LowRezSmokeRT0_New.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            SetTexture(LowRezSmokeRT0.RenderTarget);
-            PostFilter.SetTextureCoordinates(1f / (CurrentRT_Width * 2), 1f / (CurrentRT_Height * 2));
-            PostFilter.Apply(NineConeFilter);
-
-            //Merge onto main RT
-            SetRenderTargets(NextColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);
-            GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-            SetTextures(LowRezRT0.RenderTarget, LowRezSmokeRT0_New.RenderTarget, LowRezRT1.RenderTarget, LowRezSmokeRT1.RenderTarget);
-            PostFilter.SetDefaultTexCord2();
-            PostFilter.Apply(AGE_MERGE_AddLowRez_AddMrt);
-
-            //YBS post process effects (just glare for now)
-            RenderTargetWrapper result;
-
-            if (ShaderManager.IsExtShadersLoaded)
-            {
-                YBS.Draw();
-                result = YBS.GetRenderTarget();
-            }
-            else
-            {
-                result = NextColorPassRT0;
-            }
-
-            //Create final RenderTarget
-            SetRenderTargets(FinalRenderTarget.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-
-            DisplayRenderTarget(result.RenderTarget, false);
-            //DisplayRenderTarget(ReflectionRT.RenderTarget, true);
-
-            //Process screenshots at this stage, before merging the RT with the rest of the scene
-            if (ScreenshotRequested)
-            {
-                ProcessScreenshot(FinalRenderTarget);
-            }
-
-#if DEBUG
-            if (DumpRenderTargetsNextFrame)
-            {
-                DumpRenderTargets();
-            }
-#endif
-
-            ActiveParticleCount = _particleCount;
-        }
-
-        private void UseDepthToDepth()
-        {
-            GraphicsDevice.SetDepthAsTexture(DepthBuffer.RenderTarget, 0);
-            PostFilter.Apply(DepthToDepth);
-            GraphicsDevice.Textures[0] = null;
-        }
-
-        public void SetTexture(Texture texture, int textureSlot = 0)
-        {
-            if (textureSlot > 8)
-                throw new ArgumentOutOfRangeException("RenderSystem.SetTexture: textureSlot value passed into the method was 8 or greater, which is not allowed!");
-
-            GraphicsDevice.Textures[textureSlot] = texture;
-        }
-
-        public void SetTextures(params Texture[] textures)
-        {
-            for(int i = 0; i < textures.Length; i++)
-            {
-                SetTexture(textures[i], i);
-            }
-        }
-
-        public void SetRenderTargets(params RenderTargetBinding[] renderTargets)
-        {
-            if(renderTargets[0].RenderTarget is RenderTarget2D rt)
-            {
-                CurrentRT_Width = rt.Width;
-                CurrentRT_Height = rt.Height;
-            }
-
-            GraphicsDevice.SetRenderTargets(renderTargets);
-        }
-
-        public void CreateSmallScene(RenderTarget2D finalScene)
-        {
-            SetRenderTargets(SmallSceneRT.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            DisplayRenderTarget(finalScene, false, SmallSceneRT.ResolutionScale);
-
-            SetRenderTargets(finalScene);
-        }
 
         #region Screenshot
         /// <summary>
         /// Requests a screenshot to be saved during the renderering of the next frame.
         /// </summary>
-        public void RequestScreenshot(ScreenshotType screenshotType)
-        {
-            if (!ShaderManager.IsExtShadersLoaded)
-            {
-                return;
-            }
-            ScreenshotRequested = true;
-            ScreenshotType = screenshotType;
-        }
 
-        private void ProcessScreenshot(RenderTargetWrapper renderTarget)
-        {
-            ScreenshotRequested = false;
 
-            string name = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            string ext = LocalSettings.Instance.ScreenshotFormat.ToString().ToLower();
-            string path = SettingsManager.Instance.GetAbsPathInAppFolder($"Screenshots/{name}.{ext}");
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-
-            switch (ScreenshotType)
-            {
-                case ScreenshotType.TransparentBackground:
-                    ProcessScreenshot(renderTarget, path, Color.Transparent);
-                    break;
-                case ScreenshotType.CustomBackgroundColor:
-                    ProcessScreenshot(renderTarget, path, Viewport.ScreenshotBackgroundColor);
-                    break;
-            }
-
-            Log.Add($"Screenshot saved in the XenoKit/Screenshots folder!");
-
-        }
-
-        private void ProcessScreenshot(RenderTargetWrapper renderTarget, string path, Color clearColor)
-        {
-            //Copying it to a seperate RT before saving allows changing of the background color
-            SetRenderTargets(ScreenshotRT.RenderTarget);
-            GraphicsDevice.Clear(clearColor);
-            DisplayRenderTarget(renderTarget.RenderTarget);
-
-            //Apply axis correction
-            SetRenderTargets(ColorPassRT0.RenderTarget);
-            SetTextures(ScreenshotRT.RenderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            YBS.ApplyAxisCorrection();
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                if(LocalSettings.Instance.ScreenshotFormat == ScreenshotFormat.PNG)
-                {
-                    ColorPassRT0.RenderTarget.SaveAsPng(ms, ScreenshotRT.Width, ScreenshotRT.Height);
-                }
-                else
-                {
-                    ColorPassRT0.RenderTarget.SaveAsJpeg(ms, ScreenshotRT.Width, ScreenshotRT.Height);
-                }
-                File.WriteAllBytes(path, ms.ToArray());
-            }
-        }
         #endregion
 
         #region Update
 
-        private void DrawSimpleEntity(List<RenderObject> entities, bool normalPass)
-        {
-            foreach (RenderObject entity in entities)
-            {
-                if (entity.DrawThisFrame)
-                {
-                    if (entity.EngineObjectType != EngineObjectTypeEnum.Actor && normalPass) continue; //skip if stage and its a normal pass (stages only have a shadow pass here)
-                    entity.DrawPass(normalPass);
-                }
-            }
-        }
 
-        private void DrawEntity(List<RenderObject> entities, int lowRezMode)
-        {
-            if (SceneManager.UseRenderScene) return;
-            int particleCount = 0;
 
-            //OPAQUE PASS
-            CurrentDrawPass = Rendering.DrawPass.Opaque;
 
-            foreach (RenderObject entity in entities)
-            {
-                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
-                if (entity.DrawThisFrame)
-                {
-                    entity.Draw();
 
-                    if (entity.EngineObjectType == EngineObjectTypeEnum.VFX)
-                        particleCount++;
-                }
-            }
 
-            //ALPHA BLEND PASS
-            CurrentDrawPass = Rendering.DrawPass.AlphaBlend;
 
-            //foreach (Entity entity in entities.OrderByDescending(x => System.Numerics.Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
-            foreach (RenderObject entity in entities)
-            {
-                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
-
-                if (entity.DrawThisFrame)
-                {
-                    entity.Draw();
-                }
-            }
-
-            //ADDITIVE PASS
-            CurrentDrawPass = Rendering.DrawPass.Additive;
-
-            foreach (RenderObject entity in entities)
-            {
-                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
-
-                if (entity.DrawThisFrame)
-                {
-                    entity.Draw();
-                }
-            }
-
-            //SUBTRACTIVE PASS
-            CurrentDrawPass = Rendering.DrawPass.Subtractive;
-
-            foreach (RenderObject entity in entities)
-            {
-                if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
-
-                if (entity.DrawThisFrame)
-                {
-                    entity.Draw();
-                    entity.DrawThisFrame = false;
-                }
-            }
-
-            _particleCount += particleCount;
-        }
-
-        private void DrawRenderScene(RenderPipelineStage stage)
-        {
-            if (RenderScene == null || RenderScene.RenderPipelineStage != stage) return;
-
-            CurrentDrawPass = Rendering.DrawPass.Opaque;
-            RenderScene.Draw();
-
-            CurrentDrawPass = Rendering.DrawPass.AlphaBlend;
-            RenderScene.Draw();
-
-            CurrentDrawPass = Rendering.DrawPass.Additive;
-            RenderScene.Draw();
-
-            CurrentDrawPass = Rendering.DrawPass.Subtractive;
-            RenderScene.Draw();
-        }
-
-        private void DrawParticleBatcher(int lowRezMode)
-        {
-            CurrentDrawPass = Rendering.DrawPass.Opaque;
-            ParticleBatcher.Draw(lowRezMode);
-
-            CurrentDrawPass = Rendering.DrawPass.AlphaBlend;
-            ParticleBatcher.Draw(lowRezMode);
-
-            CurrentDrawPass = Rendering.DrawPass.Additive;
-            ParticleBatcher.Draw(lowRezMode);
-
-            CurrentDrawPass = Rendering.DrawPass.Subtractive;
-            ParticleBatcher.Draw(lowRezMode);
-        }
-
-        public override void Update()
-        {
-            SetRenderResolution();
-
-            if (RecreateRenderTargetsNextFrames > 0)
-            {
-                DelayedUpdate();
-                RecreateRenderTargetsNextFrames -= 1;
-            }
-
-            EntityListUpdate(Characters, CharasToRemove);
-            EntityListUpdate(Stages, StagesToRemove);
-            EntityListUpdate(Effects, EffectsToRemove);
-            EntityListUpdate(Reflections, ReflectionsToRemove);
-
-            if (SceneManager.UseRenderScene)
-                RenderScene.Update();
-
-            ParticleBatcher.Update();
-        }
-
-        public override void DelayedUpdate()
-        {
-            DrawThisFrame = false;
-            PostFilter.DelayedUpdate();
-
-            //Dispose of previous RTs. (Apparantly this should be done on the next frame of when it was last used, so this goes before the render target update, instead of at the end of this method)
-            if (_toBeDisposed.Count > 0)
-            {
-                foreach (RenderTarget2D rt in _toBeDisposed)
-                {
-                    if (!rt.IsDisposed)
-                        rt.Dispose();
-                }
-
-                _toBeDisposed.Clear();
-            }
-
-            bool resolutionChanged = false;
-
-            //Update RTs if the ViewPort size has changed.
-            foreach (RenderTargetWrapper rt in registeredRenderTargets)
-            {
-                if (rt.ShouldUpdate() && ViewportIsFocused)
-                {
-                    resolutionChanged = true;
-                    
-                    if (rt.RenderTarget != null)
-                        _toBeDisposed.Add(rt.RenderTarget);
-
-                    rt.UpdateRenderTarget();
-                }
-            }
-
-            if (resolutionChanged)
-            {
-                SuperSampleFactor = ViewportInstance.IsFullScreen ? 1f : SettingsManager.settings.XenoKit_SuperSamplingFactor;
-            }
-
-            DrawThisFrame = true;
-        }
-
-        public void SlowUpdate()
-        {
-            ParticleBatcher.SlowUpdate();
-        }
-
-        private void EntityListUpdate(List<RenderObject> entities, List<RenderObject> entitiesToRemove)
-        {
-            if (entitiesToRemove.Count > 0)
-            {
-                foreach (RenderObject entity in entitiesToRemove)
-                {
-                    entities.Remove(entity);
-                }
-
-                entitiesToRemove.Clear();
-            }
-
-            for (int i = entities.Count - 1; i >= 0; i--)
-            {
-                if (entities[i].IsDestroyed)
-                {
-                    entities.RemoveAt(i);
-                }
-            }
-        }
 
         #endregion
 
@@ -753,209 +304,35 @@ namespace XenoKit.Engine.Rendering
         /// <summary>
         /// Register a <see cref="RenderTargetWrapper"/> with this <see cref="RenderSystem"/> instance. Registered RenderTargets will be automatically updated when the viewport changes size.
         /// </summary>
-        public void RegisterRenderTarget(RenderTargetWrapper renderTarget)
-        {
-            registeredRenderTargets.Add(renderTarget);
-        }
-        
-        public RenderTarget2D GetFinalRenderTarget()
-        {
-            return FinalRenderTarget.RenderTarget;
-        }
+
         #endregion
 
         #region AddRemoveEntity
 
-        public void AddReflectionRenderEntity(RenderObject entity)
-        {
-            if (entity == null) return;
 
-            if(entity.EngineObjectType == EngineObjectTypeEnum.Stage)
-            {
-                if (!Reflections.Contains(entity))
-                {
-                    if (entity is MeshInspectorEntity mesh)
-                    {
-                        mesh.SetAsReflectionMesh(true);
-                    }
-                    else if (entity is LodGroup lod)
-                    {
-                        lod.SetAsReflectionMesh(true);
-                    }
 
-                    Reflections.Add(entity);
-                }
-            }
-        }
 
-        public void RemoveReflectionRenderEntity(RenderObject entity)
-        {
-            if (entity == null) return;
 
-            if (entity.EngineObjectType == EngineObjectTypeEnum.Stage)
-            {
-                if (Reflections.Contains(entity))
-                {
-                    if (entity is MeshInspectorEntity mesh)
-                    {
-                        mesh.SetAsReflectionMesh(false);
-                    }
 
-                    ReflectionsToRemove.Add(entity);
-                }
-            }
-        }
 
-        public void RemoveAllReflectionRenderEntity()
-        {
-            ReflectionsToRemove.AddRange(Reflections);
-        }
 
-        public void AddRenderEntity(RenderObject entity)
-        {
-            if (entity == null) return;
 
-            switch (entity.EngineObjectType)
-            {
-                case EngineObjectTypeEnum.Actor:
-                    if(!Characters.Contains(entity))
-                        Characters.Add(entity);
-                    break;
-                case EngineObjectTypeEnum.Stage:
-                    if (!Stages.Contains(entity))
-                        Stages.Add(entity);
-                    break;
-                case EngineObjectTypeEnum.VFX:
-                case EngineObjectTypeEnum.Model: //Currently Xv2Submesh is only used in this case for an EMO. If that ever changes, this will also need to be changed
-                    if (!Effects.Contains(entity))
-                        Effects.Add(entity);
-                    break;
-                default:
-                    Log.Add($"RenderSystem: Cannot add EntityType {entity.EngineObjectType}!", LogType.Debug);
-                    break;
-            }
-        }
 
-        public void RemoveRenderEntity(RenderObject entity)
-        {
-            switch (entity.EngineObjectType)
-            {
-                case EngineObjectTypeEnum.Actor:
-                    CharasToRemove.Add(entity);
-                    break;
-                case EngineObjectTypeEnum.Stage:
-                    StagesToRemove.Add(entity);
-                    break;
-                case EngineObjectTypeEnum.VFX:
-                case EngineObjectTypeEnum.Model: //Currently Xv2Submesh is only used in this case for an EMO. If that ever changes, this will also need to be changed
-                    EffectsToRemove.Add(entity);
-                    break;
-                default:
-                    Log.Add($"RenderSystem: Cannot remove EntityType {entity.EngineObjectType}!", LogType.Debug);
-                    break;
-            }
-        }
-
-        public void AddRenderEntity<T>(IEnumerable<T> entities) where T : RenderObject
-        {
-            foreach (T entity in entities)
-            {
-                AddRenderEntity(entity);
-            }
-        }
-
-        public void RemoveRenderEntity<T>(IEnumerable<T> entities) where T : RenderObject
-        {
-            foreach(T entity in entities)
-            {
-                RemoveRenderEntity(entity);
-            }
-        }
-        
-        public void MoveRenderEntityToFront(RenderObject entity)
-        {
-            if (Characters.Contains(entity))
-            {
-                Characters.Remove(entity);
-                Characters.Add(entity);
-            }
-            else if (Stages.Contains(entity))
-            {
-                Stages.Remove(entity);
-                Stages.Add(entity);
-            }
-            else if (Effects.Contains(entity))
-            {
-                Effects.Remove(entity);
-                Effects.Add(entity);
-            }
-        }
-        
-        public void SetRenderScene(RenderScene scene)
-        {
-            RenderScene = scene;
-        }
         #endregion
 
-        public RenderTargetWrapper GetShaderRT()
-        {
-            return ShadowPassRT0;
-        }
 
-        public RenderTargetWrapper GetNormalRT()
-        {
-            return NormalPassRT0;
-        }
 
-        public RenderTargetWrapper GetSamplerAlphaDepthRT()
-        {
-            return SamplerAlphaDepth;
-        }
 
-        public RenderTargetWrapper GetReflectionRT()
-        {
-            return ReflectionRT;
-        }
 
-        public RenderTargetWrapper GetSmallSceneRT()
-        {
-            return SmallSceneRT;
-        }
 
         public RenderTargetWrapper GetColorPassRT0()
         {
             return ColorPassRT0;
         }
 
-        public bool CheckDrawPass(Xv2ShaderEffect material)
-        {
-            if (material.MatParam.AlphaBlend == 0 && CurrentDrawPass == Rendering.DrawPass.Opaque) return true;
-            if (material.MatParam.AlphaBlend == 0 && CurrentDrawPass != Rendering.DrawPass.Opaque) return false;
-            
-            //Handle AlphaSortMask; alphaBlend objects shouldn't be sorted with this flag
-            //todo: move to a seperate pass?
-            if (material.MatParam.AlphaBlend == 1 && material.MatParam.AlphaBlendType == 0 && material.MatParam.AlphaSortMask == 1 && CurrentDrawPass == Rendering.DrawPass.Opaque) return true;
-            if (material.MatParam.AlphaBlend == 1 && material.MatParam.AlphaBlendType == 0 && material.MatParam.AlphaSortMask == 1 && CurrentDrawPass != Rendering.DrawPass.Opaque) return false;
-
-            if (material.MatParam.AlphaBlendType == 0 && CurrentDrawPass == Rendering.DrawPass.AlphaBlend) return true;
-            if (material.MatParam.AlphaBlendType == 1 && CurrentDrawPass == Rendering.DrawPass.Additive) return true;
-            if (material.MatParam.AlphaBlendType == 2 && CurrentDrawPass == Rendering.DrawPass.Subtractive) return true;
-
-            return false;
-        }
     }
 
-    public enum ScreenshotType
-    {
-        TransparentBackground,
-        CustomBackgroundColor
-    }
 
-    public enum ScreenshotFormat
-    {
-        PNG,
-        JPG
-    }
 
     public enum DrawPass
     {
@@ -965,8 +342,8 @@ namespace XenoKit.Engine.Rendering
         Subtractive
     }
 
-    public enum RenderPipelineStage 
-    { 
+    public enum RenderPipelineStage
+    {
         Shadow, //Characters / Stage models with shadow shader
         Normal, //Characters with normal shader
         ModelMain, //Characters / Stage models
