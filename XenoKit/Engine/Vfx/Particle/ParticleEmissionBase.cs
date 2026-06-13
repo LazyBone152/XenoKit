@@ -168,6 +168,26 @@ namespace XenoKit.Engine.Vfx.Particle
             //Can be fixed with an additional check against RotZero being zero, then removing the rotation from the matrix multiplication, but not sure if worth it
 
         }
+
+        public Matrix4x4 GetParticleRotationAxisWorld(bool isRotPerSecond)
+        {
+            return GetRotationAxisWorld(isRotPerSecond);
+        }
+
+        public Matrix4x4 GetParticleAttachmentBone()
+        {
+            return GetAttachmentBone();
+        }
+
+        public float GetParticleRotationAmount()
+        {
+            return RotationAmount;
+        }
+
+        public bool GetParticleRandomDirection()
+        {
+            return RandomDirection;
+        }
     
         protected bool FrustumIntersects(Matrix4x4 world, BoundingBox boundingBox)
         {

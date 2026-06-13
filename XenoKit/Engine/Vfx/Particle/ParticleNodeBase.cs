@@ -59,6 +59,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public NodeState State { get; protected set; }
         public float CurrentFrame { get; private set; }
         public float CurrentTimeFactor { get; private set; }
+        protected EffectPart SourceEffectPart => EffectPart;
 
         //Children Nodes
         public List<ParticleNodeBase> Nodes = new List<ParticleNodeBase>();
@@ -413,6 +414,18 @@ namespace XenoKit.Engine.Vfx.Particle
                         else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Mesh)
                         {
                             newNode = ObjectPoolManager.GetParticleMesh(ref emitTransform, ref velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
+                            ViewportInstance.RenderSystem.AddRenderEntity(newNode);
+                        }
+                        else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.ShapeDraw)
+                        {
+                            newNode = new ParticleShapeDraw();
+                            newNode.Initialize(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
+                            ViewportInstance.RenderSystem.AddRenderEntity(newNode);
+                        }
+                        else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.ConeExtrude)
+                        {
+                            newNode = new ParticleConeExtrude();
+                            newNode.Initialize(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
                             ViewportInstance.RenderSystem.AddRenderEntity(newNode);
                         }
                         else

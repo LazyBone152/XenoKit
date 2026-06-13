@@ -23,7 +23,7 @@ namespace XenoKit.Engine.Vfx.Particle
 
         private bool IsDirty { get; set; }
 
-        public ParticleSystem(Matrix4x4 startWorld, Actor actor, EffectPart effectPart, EMP_File empFile, VfxEffect effect) : base(startWorld, effectPart, actor)
+        public ParticleSystem(Matrix4x4 startWorld, Actor actor, EffectPart effectPart, EMP_File empFile, VfxEffect effect, bool spawnedByProjectile = false) : base(startWorld, effectPart, actor, spawnedByProjectile)
         {
             Effect = new WeakReference(effect);
             EmpFile = empFile;
