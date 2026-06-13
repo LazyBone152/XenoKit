@@ -62,7 +62,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private Matrix4x4 AttachmentBone = Matrix4x4.Identity;
 
-        public VfxEmo(Matrix4x4 startWorld, Xv2CoreLib.EffectContainer.Asset asset, EffectPart effectPart, Actor actor) : base(startWorld, effectPart, actor)
+        public VfxEmo(Matrix4x4 startWorld, Xv2CoreLib.EffectContainer.Asset asset, EffectPart effectPart, Actor actor, bool spawnedByProjectile = false) : base(startWorld, effectPart, actor, spawnedByProjectile)
         {
             Asset = asset;
             InitializeFiles();

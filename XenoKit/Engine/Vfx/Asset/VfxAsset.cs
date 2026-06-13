@@ -17,6 +17,7 @@ namespace XenoKit.Engine.Vfx.Asset
         public bool IsTerminating { get; protected set; }
         protected readonly EffectPart EffectPart;
         protected readonly Actor Actor;
+        protected readonly bool SpawnedByProjectile;
 
         protected virtual bool FinishAnimationBeforeTerminating => false;
         private int BoneIdx = -1;
@@ -30,10 +31,11 @@ namespace XenoKit.Engine.Vfx.Asset
         private AssetType AssetType;
         public bool AssetTypeChanged { get; private set; }
 
-        public VfxAsset(Matrix4x4 startWorld, EffectPart effectPart, Actor actor)
+        public VfxAsset(Matrix4x4 startWorld, EffectPart effectPart, Actor actor, bool spawnedByProjectile = false)
         {
             EffectPart = effectPart;
             Actor = actor;
+            SpawnedByProjectile = spawnedByProjectile;
             AssetType = EffectPart.AssetType;
             BacSpawnSource = startWorld;
 
@@ -60,7 +62,7 @@ namespace XenoKit.Engine.Vfx.Asset
             }
 
             //Set Transform to selected bone if on bone attachment, else use the StartingTransform (from BAC)
-            if (EffectPart.AttachementType == EffectPart.Attachment.Bone)
+            if (EffectPart.AttachementType == EffectPart.Attachment.Bone && !UsesExternalSpawn())
             {
                 Transform = BoneIdx != -1 && Actor != null ? Actor.GetAbsoluteBoneMatrix(BoneIdx) : Matrix4x4.Identity;
             }
@@ -117,6 +119,21 @@ namespace XenoKit.Engine.Vfx.Asset
             EffectPart.PropertyChanged -= EffectPart_PropertyChanged;
         }
 
+        public void SetExternalTransform(Matrix4x4 transform)
+        {
+            BacSpawnSource = transform;
+            OnExternalTransformChanged();
+        }
+
+        protected Matrix4x4 GetExternalSpawnTransform()
+        {
+            return BacSpawnSource;
+        }
+
+        protected virtual void OnExternalTransformChanged()
+        {
+        }
+
         public override void Update()
         {
             if (!HasStarted)
@@ -136,7 +153,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
             DrawThisFrame = true;
 
-            if(Actor != null && BoneIdx != -1 && EffectPart.AttachementType == EffectPart.Attachment.Bone)
+            if(Actor != null && BoneIdx != -1 && EffectPart.AttachementType == EffectPart.Attachment.Bone && !UsesExternalSpawn())
             {
                 //TODO: implement BoneDirection
 
@@ -158,9 +175,24 @@ namespace XenoKit.Engine.Vfx.Asset
                     Transform = Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ)) * InitialPosition * InitialRotation;
                 }
             }
-            else if(EffectPart.AttachementType == EffectPart.Attachment.External)
+            else if(UsesExternalSpawn())
             {
-                Transform = BacSpawnSource;
+                Matrix4x4 offset = Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
+                Matrix4x4 spawnPosition = Matrix4x4.CreateTranslation(BacSpawnSource.Translation);
+                Matrix4x4 spawnRotation = BacSpawnSource * MathHelpers.Invert(spawnPosition);
+
+                if (EffectPart.PositionUpdate && EffectPart.RotateUpdate)
+                {
+                    Transform = BacSpawnSource * offset;
+                }
+                else if (EffectPart.PositionUpdate)
+                {
+                    Transform = InitialRotation * spawnPosition * offset;
+                }
+                else if (EffectPart.RotateUpdate)
+                {
+                    Transform = spawnRotation * InitialPosition * offset;
+                }
             }
 
             //Near and Far fade distance
@@ -176,6 +208,13 @@ namespace XenoKit.Engine.Vfx.Asset
 
             if (!SettingsManager.Instance.Settings.XenoKit_VfxSimulation)
                 DrawThisFrame = false;
+        }
+
+        protected bool UsesExternalSpawn()
+        {
+            return EffectPart.AttachementType == EffectPart.Attachment.External ||
+                   (EffectPart.AttachementType == EffectPart.Attachment.Bone && string.Equals(EffectPart.ESK, "TRS", StringComparison.OrdinalIgnoreCase)) ||
+                   (SpawnedByProjectile && string.IsNullOrWhiteSpace(EffectPart.ESK));
         }
 
         public virtual void Simulate()
