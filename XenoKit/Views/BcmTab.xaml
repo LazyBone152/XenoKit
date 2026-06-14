@@ -37,7 +37,7 @@
 
         <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,8">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="State file" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock Text="File" VerticalAlignment="Center" Margin="0,0,8,0"/>
                 <ComboBox SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBcmFile}"
                           ItemsSource="{Binding BcmFiles}"
                           DisplayMemberPath="DisplayName"

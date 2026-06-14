@@ -67,6 +67,10 @@
                       Width="220"
                       SelectionChanged="BsaFileSelection_Changed"
                       Margin="2,0"/>
+            <TextBlock Text="{Binding SelectedBsaFileName}"
+                       Visibility="{Binding BsaFileTextVisibility}"
+                       VerticalAlignment="Center"
+                       Margin="2,0,14,0"/>
         </StackPanel>
 
         <Grid Grid.Row="1">
@@ -115,7 +119,7 @@
             <DataGrid x:Name="entryGrid"
                       Grid.Row="1"
                       Grid.Column="0"
-                      ItemsSource="{Binding Entries}"
+                      ItemsSource="{Binding ViewBsaEntries}"
                       SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
                       PreviewMouseLeftButtonDown="EntryGrid_PreviewMouseLeftButtonDown"
                       PreviewKeyDown="EntryGrid_PreviewKeyDown">

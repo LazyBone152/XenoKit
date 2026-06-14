@@ -21,6 +21,7 @@ namespace XenoKit.Engine.Scripting.BSA
         private readonly Actor actor;
         private readonly Actor attachActor;
         private readonly Move move;
+        private readonly BSA_File bsaFile;
         private readonly BSA_Entry bsaEntry;
         private readonly BacEntryInstance bacInstance;
         private readonly BAC_Type9 projectileType;
@@ -51,16 +52,16 @@ namespace XenoKit.Engine.Scripting.BSA
         public float CurrentFrame => currentFrame;
 
         public ProjectileInstance(BacEntryInstance bacInstance, BAC_Type9 projectileType, BSA_Entry bsaEntry)
-            : this(bacInstance, null, bacInstance?.User, GetSpawnActor(bacInstance, projectileType), bacInstance?.SkillMove, bsaEntry, projectileType, CreateSpawnTransform(bacInstance, projectileType), 0, true)
+            : this(bacInstance, null, bacInstance?.User, GetSpawnActor(bacInstance, projectileType), bacInstance?.SkillMove, null, bsaEntry, projectileType, CreateSpawnTransform(bacInstance, projectileType), 0, true)
         {
         }
 
-        public static ProjectileInstance CreatePreview(Actor actor, Move move, BSA_Entry bsaEntry, Matrix4x4 spawnTransform)
+        public static ProjectileInstance CreatePreview(Actor actor, Move move, BSA_Entry bsaEntry, BSA_File bsaFile, Matrix4x4 spawnTransform)
         {
-            return new ProjectileInstance(null, null, actor, actor, move, bsaEntry, null, spawnTransform, 0, false);
+            return new ProjectileInstance(null, null, actor, actor, move, bsaFile, bsaEntry, null, spawnTransform, 0, false);
         }
 
-        private ProjectileInstance(BacEntryInstance bacInstance, ProjectileInstance parent, Actor actor, Actor attachActor, Move move, BSA_Entry bsaEntry, BAC_Type9 projectileType, Matrix4x4 spawnTransform, int passDepth, bool allowBacConditionPassEntries)
+        private ProjectileInstance(BacEntryInstance bacInstance, ProjectileInstance parent, Actor actor, Actor attachActor, Move move, BSA_File bsaFile, BSA_Entry bsaEntry, BAC_Type9 projectileType, Matrix4x4 spawnTransform, int passDepth, bool allowBacConditionPassEntries)
         {
             this.bacInstance = bacInstance;
             this.projectileType = projectileType;
@@ -68,6 +69,7 @@ namespace XenoKit.Engine.Scripting.BSA
             this.actor = actor;
             this.attachActor = attachActor;
             this.move = move;
+            this.bsaFile = bsaFile;
             this.bsaEntry = bsaEntry;
             this.passDepth = passDepth;
             this.allowBacConditionPassEntries = allowBacConditionPassEntries;
@@ -102,7 +104,10 @@ namespace XenoKit.Engine.Scripting.BSA
             }
 
             RefreshWorldTransform();
-            currentLocalMovementFrameDelta = GetLocalMovementSweepDelta(currentFrame);
+
+            if (frameStep <= 0f)
+                currentLocalMovementFrameDelta = SimdVector3.Zero;
+
             PlayDueEffects(previousFrame, currentFrame);
             PlayDueBacConditionPassEntries(previousFrame, currentFrame);
 
@@ -286,6 +291,7 @@ namespace XenoKit.Engine.Scripting.BSA
                 {
                     float frameStep = nextFrame - frame;
                     movement.StartIfNeeded();
+                    AddHitboxSweepDelta(movement, frameStep);
                     ApplyMovement(movement, frameStep);
                 }
 
@@ -293,29 +299,11 @@ namespace XenoKit.Engine.Scripting.BSA
             }
         }
 
-        private SimdVector3 GetLocalMovementSweepDelta(float targetFrame)
+        private void AddHitboxSweepDelta(MovementState movement, float frameStep)
         {
-            List<MovementState> replayMovements = movements.Select(x => x.Clone()).ToList();
-            SimdVector3 movementDelta = SimdVector3.Zero;
-            float frame = 0f;
-
-            while (frame < targetFrame)
-            {
-                float nextFrame = GetNextMovementBoundary(replayMovements, frame, targetFrame);
-                MovementState movement = replayMovements.LastOrDefault(x => x.IsActive(frame));
-
-                if (movement != null)
-                {
-                    float frameStep = nextFrame - frame;
-                    movement.StartIfNeeded();
-                    movementDelta += movement.HitboxVelocity * (frameStep / 60f);
-                    movement.AdvanceHitboxVelocity(frameStep);
-                }
-
-                frame = nextFrame;
-            }
-
-            return movementDelta;
+            movement.StartIfNeeded();
+            currentLocalMovementFrameDelta += movement.HitboxVelocity * (frameStep / 60f);
+            movement.AdvanceHitboxVelocity(frameStep);
         }
 
         private float GetNextMovementBoundary(float frame, float targetFrame)
@@ -624,7 +612,7 @@ namespace XenoKit.Engine.Scripting.BSA
                 return;
 
             entry.InitializeIBsaTypes();
-            childProjectiles.Add(new ProjectileInstance(bacInstance, this, actor, attachActor, move, entry, null, transform, passDepth + 1, allowBacConditionPassEntries));
+            childProjectiles.Add(new ProjectileInstance(bacInstance, this, actor, attachActor, move, bsaFile, entry, null, transform, passDepth + 1, allowBacConditionPassEntries));
         }
 
         private bool TryGetPassEntry(ushort entryId, out BSA_Entry entry)
@@ -635,8 +623,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
         private IEnumerable<BSA_Entry> GetBsaEntries()
         {
-            return move?.Files?.BsaFile?.File?.BSA_Entries ??
-                   Files.Instance.SelectedItem?.SelectedBsaFile?.File?.BSA_Entries;
+            return bsaFile?.BSA_Entries ?? move?.Files?.BsaFile?.File?.BSA_Entries;
         }
 
         private enum BsaPassReason

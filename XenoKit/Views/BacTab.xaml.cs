@@ -39,6 +39,28 @@ namespace XenoKit.Controls
         public static event EventHandler BacTypeSelectionChanged;
         public Files files => Files.Instance;
 
+        public IList<Xv2File<BAC_File>> BacFiles
+        {
+            get
+            {
+                List<Xv2File<BAC_File>> bacFiles = new List<Xv2File<BAC_File>>();
+                IList<Xv2File<BAC_File>> sourceFiles = files.SelectedMove?.Files?.BacFiles;
+
+                if (sourceFiles == null)
+                    return bacFiles;
+
+                for (int i = 0; i < sourceFiles.Count; i++)
+                {
+                    Xv2File<BAC_File> file = sourceFiles[i];
+
+                    if (i == 0 || HasPath(file))
+                        bacFiles.Add(file);
+                }
+
+                return bacFiles;
+            }
+        }
+
         private BAC_Entry _selectedBacEntry = null;
         public BAC_Entry SelectedBacEntry
         {
@@ -760,6 +782,8 @@ namespace XenoKit.Controls
 
         private void UpdateSelectedBacFile()
         {
+            SelectCurrentMoveBacFile();
+            NotifyPropertyChanged(nameof(BacFiles));
             NotifyPropertyChanged(nameof(BacTypeListVisbility));
             NotifyPropertyChanged(nameof(files));
             NotifyPropertyChanged(nameof(MaximumBacID));
@@ -774,6 +798,22 @@ namespace XenoKit.Controls
                 
                 cmnOverrideMenu.Visibility = IsMovesetBac ? Visibility.Visible : Visibility.Collapsed;
             }
+        }
+
+        private void SelectCurrentMoveBacFile()
+        {
+            if (files.SelectedItem == null)
+                return;
+
+            IList<Xv2File<BAC_File>> bacFiles = BacFiles;
+
+            if (files.SelectedItem.SelectedBacFile == null || !bacFiles.Contains(files.SelectedItem.SelectedBacFile))
+                files.SelectedItem.SelectedBacFile = bacFiles.FirstOrDefault();
+        }
+
+        private static bool HasPath<T>(Xv2File<T> file) where T : class
+        {
+            return !string.IsNullOrWhiteSpace(file?.Path);
         }
 
         private void UpdateViewModels()

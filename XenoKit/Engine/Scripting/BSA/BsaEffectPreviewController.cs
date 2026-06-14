@@ -14,9 +14,11 @@ namespace XenoKit.Engine.Scripting.BSA
     {
         private ProjectileInstance projectile;
         private BSA_Entry entry;
+        private BSA_File bsaFile;
         private Move move;
         private int duration;
         private bool isActive;
+        private int playRequestId;
 
         public int CurrentFrame => projectile != null ? (int)Math.Floor(projectile.CurrentFrame) : 0;
         public int Duration => duration;
@@ -27,11 +29,12 @@ namespace XenoKit.Engine.Scripting.BSA
         {
         }
 
-        public async void Play(BSA_Entry bsaEntry, Move selectedMove)
+        public async void Play(BSA_Entry bsaEntry, Move selectedMove, BSA_File selectedBsaFile)
         {
             Stop();
+            int requestId = ++playRequestId;
 
-            if (bsaEntry == null || selectedMove == null)
+            if (bsaEntry == null || selectedMove == null || selectedBsaFile?.BSA_Entries?.Contains(bsaEntry) != true)
                 return;
 
             if (!SettingsManager.Instance.Settings.XenoKit_VfxSimulation && !SettingsManager.Instance.Settings.XenoKit_HitboxSimulation)
@@ -39,22 +42,29 @@ namespace XenoKit.Engine.Scripting.BSA
 
             await SceneManager.AsyncEnsureActorIsSet(0);
 
-            if (!SceneManager.IsOnTab(EditorTabs.Projectile) || SceneManager.Actors[0] == null)
+            if (requestId != playRequestId ||
+                !SceneManager.IsOnTab(EditorTabs.Projectile) ||
+                SceneManager.Actors[0] == null ||
+                !ReferenceEquals(Files.Instance.SelectedItem?.SelectedBsaFile?.File, selectedBsaFile) ||
+                selectedBsaFile.BSA_Entries?.Contains(bsaEntry) != true)
                 return;
 
             entry = bsaEntry;
+            bsaFile = selectedBsaFile;
             move = selectedMove;
             duration = GetPreviewDuration(entry);
-            projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, Matrix4x4.Identity);
+            projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, bsaFile, Matrix4x4.Identity);
             isActive = true;
         }
 
         public void Stop()
         {
+            playRequestId++;
             isActive = false;
             projectile?.Dispose();
             projectile = null;
             entry = null;
+            bsaFile = null;
             move = null;
             duration = 0;
             Viewport.Instance?.VfxManager.StopEffects();
@@ -65,7 +75,7 @@ namespace XenoKit.Engine.Scripting.BSA
             if (!isActive)
                 return;
 
-            if (entry == null || move == null || !SceneManager.IsOnTab(EditorTabs.Projectile))
+            if (entry == null || bsaFile == null || move == null || !SceneManager.IsOnTab(EditorTabs.Projectile))
             {
                 Stop();
                 return;
@@ -83,7 +93,7 @@ namespace XenoKit.Engine.Scripting.BSA
             {
                 Viewport.Instance?.VfxManager.StopEffects();
                 projectile?.Dispose();
-                projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, Matrix4x4.Identity);
+                projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, bsaFile, Matrix4x4.Identity);
             }
         }
 
@@ -111,7 +121,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
         public void Seek(int frame)
         {
-            if (!isActive || entry == null || move == null || SceneManager.Actors[0] == null)
+            if (!isActive || entry == null || bsaFile == null || move == null || SceneManager.Actors[0] == null)
                 return;
 
             int targetFrame = Math.Max(0, Math.Min(frame, duration));
@@ -126,7 +136,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
             Viewport.Instance?.VfxManager.StopEffects();
             projectile?.Dispose();
-            projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, Matrix4x4.Identity);
+            projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, bsaFile, Matrix4x4.Identity);
 
             for (int replayFrame = 0; replayFrame < targetFrame; replayFrame++)
                 AdvanceOneFrame();

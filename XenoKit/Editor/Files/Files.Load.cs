@@ -107,7 +107,7 @@ namespace XenoKit.Editor
 
                         if (move != null)
                         {
-                            AddOutlinerItem(new OutlinerItem(move, false, OutlinerItem.OutlinerItemType.Skill, onlyCpk), replaceItemIndex);
+                            AddOutlinerItem(new OutlinerItem(move, false, OutlinerItem.OutlinerItemType.Skill, onlyCpk), replaceItemIndex, true);
                         }
                     }
                 });

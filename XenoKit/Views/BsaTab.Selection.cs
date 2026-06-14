@@ -119,8 +119,16 @@ namespace XenoKit.Views
 
         private void PlaySelectedEntryPreview()
         {
-            if (SelectedEntry == null || !SceneManager.IsOnTab(EditorTabs.Projectile)) return;
-            BsaEffectPreviewController.Instance.Play(SelectedEntry, files.SelectedMove);
+            BSA_Entry entry = SelectedEntry;
+            BSA_File file = GetSelectedFile();
+
+            if (entry == null || file == null || !SceneManager.IsOnTab(EditorTabs.Projectile))
+                return;
+
+            if (file.BSA_Entries?.Contains(entry) != true)
+                return;
+
+            BsaEffectPreviewController.Instance.Play(entry, files.SelectedMove, file);
         }
 
         private void EntryGrid_PreviewKeyDown(object sender, KeyEventArgs e)

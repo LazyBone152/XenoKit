@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using XenoKit.Editor;
@@ -40,7 +41,7 @@ namespace XenoKit.Views
 
         private BSA_File GetSelectedFile()
         {
-            return files.SelectedMove?.Files?.BsaFile?.File;
+            return files.SelectedItem?.SelectedBsaFile?.File;
         }
 
         private void SelectCurrentMoveBsaFile()
@@ -48,15 +49,55 @@ namespace XenoKit.Views
             if (files.SelectedItem == null)
                 return;
 
-            files.SelectedItem.SelectedBsaFile = files.SelectedMove?.Files?.BsaFile;
+            IList<Xv2File<BSA_File>> bsaFiles = BsaFiles;
+
+            if (files.SelectedItem.SelectedBsaFile == null || !bsaFiles.Contains(files.SelectedItem.SelectedBsaFile))
+            {
+                files.SelectedItem.SelectedBsaFile = bsaFiles.FirstOrDefault();
+            }
         }
 
         private void RefreshSelectedMoveBsaFile()
         {
             SelectCurrentMoveBsaFile();
+            SelectedSubtypeRow = null;
             SelectedEntry = null;
             BsaEffectPreviewController.Instance.Stop();
+            CreateEntryList();
             NotifyAll();
+            RefreshGrids();
+        }
+
+        private void RefreshSelectedBsaFile()
+        {
+            SelectedSubtypeRow = null;
+            SelectedEntry = null;
+            BsaEffectPreviewController.Instance.Stop();
+            CreateEntryList();
+            NotifyAll();
+            RefreshGrids();
+        }
+
+        private void CreateEntryList()
+        {
+            BSA_File file = GetSelectedFile();
+
+            if (file?.BSA_Entries != null)
+            {
+                ViewBsaEntries = new ListCollectionView(file.BSA_Entries);
+                ViewBsaEntries.SortDescriptions.Add(new SortDescription(nameof(BSA_Entry.SortID), ListSortDirection.Ascending));
+            }
+            else
+            {
+                ViewBsaEntries = null;
+            }
+        }
+
+        private void RefreshEntryList()
+        {
+            ViewBsaEntries?.Refresh();
+            NotifyPropertyChanged(nameof(Entries));
+            NotifyPropertyChanged(nameof(ViewBsaEntries));
             RefreshGrids();
         }
 
@@ -167,6 +208,7 @@ namespace XenoKit.Views
             NotifyPropertyChanged(nameof(BsaFileTextVisibility));
             NotifyPropertyChanged(nameof(SelectedBsaFileName));
             NotifyPropertyChanged(nameof(Entries));
+            NotifyPropertyChanged(nameof(ViewBsaEntries));
             NotifyPropertyChanged(nameof(SelectedEntry));
             NotifyPropertyChanged(nameof(SubtypeRows));
             UpdateViewModels();

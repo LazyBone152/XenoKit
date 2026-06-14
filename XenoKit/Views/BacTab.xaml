@@ -23,7 +23,7 @@
         
         <StackPanel x:Name="bacFileSelector_StackPanel" Orientation="Horizontal" Height="44">
             <Grid Margin="5"/>
-            <ComboBox x:Name="bacFileComboBox" SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBacFile}" ItemsSource="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.BacFiles.Binding}" SelectionChanged="BacFileSelection_ComboBox_SelectionChanged" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
+            <ComboBox x:Name="bacFileComboBox" SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBacFile}" ItemsSource="{Binding BacFiles}" SelectionChanged="BacFileSelection_ComboBox_SelectionChanged" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
 
         </StackPanel>
 

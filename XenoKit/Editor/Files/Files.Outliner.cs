@@ -164,14 +164,18 @@ namespace XenoKit.Editor
             return _selectedItem.Type == OutlinerItem.OutlinerItemType.Skill || _selectedItem.Type == OutlinerItem.OutlinerItemType.Character;
         }
 
-        private async void AddOutlinerItem(OutlinerItem item, int replaceItemIndex = -1)
+        private async void AddOutlinerItem(OutlinerItem item, int replaceItemIndex = -1, bool selectItem = false)
         {
             if(replaceItemIndex != -1)
             {
                 OutlinerItems[replaceItemIndex] = item;
+                SelectOutlinerItem(item);
             }
             else
             {
+                bool itemAdded = false;
+                bool replacedExistingItem = false;
+
                 lock(OutlinerItems)
                 {
                     OutlinerItem existingItem = OutlinerItems.FirstOrDefault(x => x.ID == item.ID && !x.IsManualLoaded);
@@ -184,17 +188,38 @@ namespace XenoKit.Editor
                             OutlinerItems[OutlinerItems.IndexOf(existingItem)] = item;
 
                             Log.Add($"Replaced the moveset {existingItem.DisplayName} with the character {item.DisplayName}.");
+                            itemAdded = true;
+                            replacedExistingItem = true;
+                        }
+                        else
+                        {
+                            //Show an error message to the user and quit
+                            MessageBox.Show($"This {item.DisplayType.ToLower()} is already loaded.", "Already Exists", MessageBoxButton.OK, MessageBoxImage.Error);
                             return;
                         }
-
-                        //Show an error message to the user and quit
-                        MessageBox.Show($"This {item.DisplayType.ToLower()} is already loaded.", "Already Exists", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
                     }
 
-                    OutlinerItems.Add(item);
+                    if (!replacedExistingItem)
+                    {
+                        OutlinerItems.Add(item);
+                        itemAdded = true;
+                    }
                 }
+
+                if (selectItem && itemAdded)
+                    SelectOutlinerItem(item);
             }
+        }
+
+        private void SelectOutlinerItem(OutlinerItem item)
+        {
+            if (System.Windows.Application.Current?.Dispatcher?.CheckAccess() != false)
+            {
+                SelectedItem = item;
+                return;
+            }
+
+            System.Windows.Application.Current.Dispatcher.Invoke(() => SelectedItem = item);
         }
 
     }

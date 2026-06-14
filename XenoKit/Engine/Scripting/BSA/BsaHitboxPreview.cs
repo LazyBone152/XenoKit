@@ -14,15 +14,15 @@ namespace XenoKit.Engine.Scripting.BSA
         private readonly BSA_Type3 hitbox;
         private readonly Func<Matrix4x4> getWorldMatrix;
         private readonly Func<int> getFrame;
-        private readonly Func<SimdVector3> getMovementFrameDelta;
+        private readonly Func<SimdVector3> getFrameSweepDelta;
         private readonly Cube boundingBox;
 
-        public BsaHitboxPreview(BSA_Type3 hitbox, Func<Matrix4x4> getWorldMatrix, Func<int> getFrame, Func<SimdVector3> getMovementFrameDelta)
+        public BsaHitboxPreview(BSA_Type3 hitbox, Func<Matrix4x4> getWorldMatrix, Func<int> getFrame, Func<SimdVector3> getFrameSweepDelta)
         {
             this.hitbox = hitbox;
             this.getWorldMatrix = getWorldMatrix;
             this.getFrame = getFrame;
-            this.getMovementFrameDelta = getMovementFrameDelta;
+            this.getFrameSweepDelta = getFrameSweepDelta;
             boundingBox = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Blue, true);
 
             UpdateHitbox();
@@ -69,7 +69,7 @@ namespace XenoKit.Engine.Scripting.BSA
             Vector3 adjustedMax = rawMax;
 
             if (hitbox.I_04 == 1)
-                GrowMaxBoundsWithMovement(ref adjustedMax, getMovementFrameDelta?.Invoke() ?? SimdVector3.Zero);
+                GrowMaxBoundsWithMovement(ref adjustedMax, getFrameSweepDelta?.Invoke() ?? SimdVector3.Zero);
 
             Vector3 finalMin = Vector3.Min(rawMin, adjustedMax) - size;
             Vector3 finalMax = Vector3.Max(rawMin, adjustedMax) + size;

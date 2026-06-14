@@ -47,6 +47,7 @@ namespace XenoKit.Views
             entry.InitializeIBsaTypes();
             file.AddEntry(entry);
             UndoManager.Instance.AddUndo(new UndoableListAdd<BSA_Entry>(file.BSA_Entries, entry, "BSA Entry Add"));
+            RefreshEntryList();
             SelectEntry(entry);
         }
 
@@ -69,6 +70,7 @@ namespace XenoKit.Views
             newEntry.InitializeIBsaTypes();
             file.AddEntry(selector.Parameter, newEntry);
             UndoManager.Instance.AddUndo(new UndoableListAdd<BSA_Entry>(file.BSA_Entries, newEntry, "BSA Entry Add"));
+            RefreshEntryList();
             SelectEntry(newEntry);
         }
 
@@ -80,6 +82,7 @@ namespace XenoKit.Views
             BSA_Entry entry = SelectedEntry.Copy();
             file.AddEntry(entry);
             UndoManager.Instance.AddUndo(new UndoableListAdd<BSA_Entry>(file.BSA_Entries, entry, "BSA Entry Duplicate"));
+            RefreshEntryList();
             SelectEntry(entry);
         }
 
@@ -100,6 +103,7 @@ namespace XenoKit.Views
                 file.AddEntry(entry.SortID, entry);
 
             UndoManager.Instance.AddUndo(new UndoableListAdd<BSA_Entry>(file.BSA_Entries, entry, "BSA Entry Paste"));
+            RefreshEntryList();
             SelectEntry(entry);
         }
 
@@ -112,7 +116,7 @@ namespace XenoKit.Views
             UndoManager.Instance.AddUndo(new UndoableListRemove<BSA_Entry>(file.BSA_Entries, removedEntry, "BSA Entry Delete"));
             file.BSA_Entries.Remove(removedEntry);
             SelectedEntry = null;
-            RefreshGrids();
+            RefreshEntryList();
         }
 
         private async void ReindexEntries()
@@ -143,8 +147,7 @@ namespace XenoKit.Views
             }
 
             if (undos.Count > 0) UndoManager.Instance.AddCompositeUndo(undos, "BSA Reindex");
-            RefreshGrids();
-            NotifyPropertyChanged(nameof(Entries));
+            RefreshEntryList();
         }
 
     }
