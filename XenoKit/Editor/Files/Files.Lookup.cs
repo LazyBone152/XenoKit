@@ -15,6 +15,7 @@ using Xv2CoreLib.BDM;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.CUS;
 using Xv2CoreLib.EAN;
+using Xv2CoreLib.ERS;
 using Xv2CoreLib.EffectContainer;
 using xv2 = Xv2CoreLib.Xenoverse2;
 using file = Xv2CoreLib.FileManager;
@@ -214,27 +215,89 @@ namespace XenoKit.Editor
 
         public EffectContainerFile GetStageEepkFile(BAC_Type8.EepkTypeEnum eepkType, bool logErrors)
         {
-            string stageCode = Viewport.Instance?.CurrentStage?.StageDefEntry?.CODE;
-            List<string> paths = new List<string>();
+            if (!TryGetStageErsTableId(eepkType, out int tableId))
+            {
+                if (logErrors)
+                    Log.Add($"Files.GetStageEepkFile: EEPK type \"{eepkType}\" is not a stage EEPK type.", LogType.Warning);
+                return null;
+            }
 
-            if (!string.IsNullOrWhiteSpace(stageCode))
+            var stage = Viewport.Instance?.CurrentStage?.StageDefEntry;
+
+            if (stage == null)
             {
                 if (eepkType == BAC_Type8.EepkTypeEnum.StageBG)
-                    paths.Add($"vfx/bg/{stageCode}/BG_{stageCode}.eepk");
-                else
-                    paths.Add($"vfx/stage/{stageCode}/{stageCode}.eepk");
+                    return GetCachedStageEepk("vfx/bg/LND/BG_LND.eepk", logErrors);
+
+                if (logErrors)
+                    Log.Add($"Files.GetStageEepkFile: No current stage is loaded. EEPK Type = {eepkType}, ERS Table = {tableId}.", LogType.Warning);
+                return null;
             }
 
-            if (eepkType == BAC_Type8.EepkTypeEnum.StageBG)
-                paths.Add("vfx/bg/LND/BG_LND.eepk");
-
-            foreach (string path in paths)
+            if (string.IsNullOrWhiteSpace(stage.CODE))
             {
-                EffectContainerFile eepk = GetCachedStageEepk(path, logErrors);
-                if (eepk != null) return eepk;
+                if (logErrors)
+                    Log.Add($"Files.GetStageEepkFile: Current stage has no stage code. Stage Index = {stage.Index}, EEPK Type = {eepkType}, ERS Table = {tableId}.", LogType.Warning);
+                return null;
             }
 
-            return null;
+            ERS_File ersFile = xv2.Instance.ErsFile;
+
+            if (ersFile == null)
+            {
+                if (logErrors)
+                    Log.Add($"Files.GetStageEepkFile: vfx_spec.ers is not loaded. Stage = {stage.CODE}, Stage Index = {stage.Index}, EEPK Type = {eepkType}, ERS Table = {tableId}.", LogType.Warning);
+                return null;
+            }
+
+            List<ERS_MainTableEntry> subEntries = ersFile.GetSubentryList(tableId);
+
+            if (subEntries == null)
+            {
+                if (logErrors)
+                    Log.Add($"Files.GetStageEepkFile: vfx_spec.ers table {tableId} was not found. Stage = {stage.CODE}, Stage Index = {stage.Index}, EEPK Type = {eepkType}.", LogType.Warning);
+                return null;
+            }
+
+            ERS_MainTableEntry entry = subEntries.FirstOrDefault(x => string.Equals(x.Str_04, stage.CODE, StringComparison.OrdinalIgnoreCase));
+
+            if (entry == null)
+            {
+                if (logErrors)
+                    Log.Add($"Files.GetStageEepkFile: No vfx_spec.ers entry was found for stage \"{stage.CODE}\". Stage Index = {stage.Index}, EEPK Type = {eepkType}, ERS Table = {tableId}.", LogType.Warning);
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(entry.FILE_PATH))
+            {
+                if (logErrors)
+                    Log.Add($"Files.GetStageEepkFile: vfx_spec.ers entry for stage \"{stage.CODE}\" has no file path. Stage Index = {stage.Index}, EEPK Type = {eepkType}, ERS Table = {tableId}, ERS Entry = {entry.ID}.", LogType.Warning);
+                return null;
+            }
+
+            string path = GetStageEepkPath(entry.FILE_PATH);
+            return GetCachedStageEepk(path, logErrors);
+        }
+
+        private static bool TryGetStageErsTableId(BAC_Type8.EepkTypeEnum eepkType, out int tableId)
+        {
+            switch (eepkType)
+            {
+                case BAC_Type8.EepkTypeEnum.StageBG:
+                    tableId = 1;
+                    return true;
+                case BAC_Type8.EepkTypeEnum.Stage:
+                    tableId = 11;
+                    return true;
+                default:
+                    tableId = -1;
+                    return false;
+            }
+        }
+
+        private static string GetStageEepkPath(string ersFilePath)
+        {
+            return $"vfx/{ersFilePath.Replace('\\', '/').TrimStart('/')}";
         }
 
         private EffectContainerFile GetCachedStageEepk(string path, bool logErrors)
