@@ -183,7 +183,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
                 if (EffectPart.PositionUpdate && EffectPart.RotateUpdate)
                 {
-                    Transform = BacSpawnSource * offset;
+                    Transform = offset * BacSpawnSource;
                 }
                 else if (EffectPart.PositionUpdate)
                 {

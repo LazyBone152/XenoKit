@@ -7,6 +7,7 @@ using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.Vfx;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.BSA;
+using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.App;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector3 = System.Numerics.Vector3;
@@ -28,8 +29,9 @@ namespace XenoKit.Engine.Scripting.BSA
         private readonly ProjectileInstance parent;
         private readonly bool allowBacConditionPassEntries;
         private readonly Matrix4x4 initialTransform;
-        private readonly bool followsLiveAttachTransform;
+        private readonly bool canFollowAttachTransform;
         private readonly Matrix4x4 initialMotionTransform;
+        private readonly Matrix4x4 initialUserDirectionAttachRotation;
         private readonly List<MovementState> movements;
         private readonly HashSet<BSA_Type6> playedEffects = new HashSet<BSA_Type6>();
         private readonly HashSet<BSA_Type0> playedPassEntries = new HashSet<BSA_Type0>();
@@ -45,7 +47,7 @@ namespace XenoKit.Engine.Scripting.BSA
         private float currentFrame;
         private Matrix4x4 transform;
         private Matrix4x4 motionTransform;
-        private SimdVector3 currentLocalMovementFrameDelta;
+        private bool isAttachedToSource;
 
         public bool IsFinished => currentFrame >= endFrame && childProjectiles.Count == 0;
         public Matrix4x4 Transform => transform;
@@ -73,7 +75,9 @@ namespace XenoKit.Engine.Scripting.BSA
             this.bsaEntry = bsaEntry;
             this.passDepth = passDepth;
             this.allowBacConditionPassEntries = allowBacConditionPassEntries;
-            followsLiveAttachTransform = projectileType != null && projectileType.SpawnOrientation == SpawnOrientationDefault;
+            canFollowAttachTransform = ShouldFollowLiveAttachTransform(projectileType);
+            isAttachedToSource = canFollowAttachTransform;
+            initialUserDirectionAttachRotation = GetUserDirectionAttachRotation(attachActor, projectileType);
             movements = bsaEntry.IBsaTypes?
                 .OfType<BSA_Type1>()
                 .OrderBy(x => x.StartTime)
@@ -85,11 +89,11 @@ namespace XenoKit.Engine.Scripting.BSA
                     x,
                     () => GetHitboxDrawTransform(x),
                     () => (int)Math.Floor(currentFrame),
-                    () => GetHitboxSweepDelta(x)))
+                    () => GetHitboxMovementDelta(x)))
                 .ToList() ?? new List<BsaHitboxPreview>();
-            motionTransform = followsLiveAttachTransform ? CreateProjectileLocalTransform(projectileType) : spawnTransform;
+            motionTransform = canFollowAttachTransform ? CreateProjectileLocalTransform(projectileType) : spawnTransform;
             initialMotionTransform = motionTransform;
-            transform = followsLiveAttachTransform ? CreateWorldTransformFromMotion(motionTransform) : spawnTransform;
+            transform = canFollowAttachTransform ? CreateWorldTransformFromMotion(motionTransform) : spawnTransform;
             initialTransform = transform;
             expiryFrame = Math.Max((int)bsaEntry.I_22, 1);
             endFrame = GetEndFrame();
@@ -108,9 +112,6 @@ namespace XenoKit.Engine.Scripting.BSA
             }
 
             RefreshWorldTransform();
-
-            if (frameStep <= 0f)
-                currentLocalMovementFrameDelta = SimdVector3.Zero;
 
             PlayDueEffects(previousFrame, currentFrame);
             PlayDueBacConditionPassEntries(previousFrame, currentFrame);
@@ -207,8 +208,8 @@ namespace XenoKit.Engine.Scripting.BSA
         internal static Matrix4x4 CreateProjectileLocalTransform(BAC_Type9 projectileType)
         {
             Matrix4x4 rotation = Matrix4x4.CreateFromYawPitchRoll(
-                MathHelper.ToRadians(projectileType.RotationX),
                 MathHelper.ToRadians(projectileType.RotationY),
+                MathHelper.ToRadians(projectileType.RotationX),
                 MathHelper.ToRadians(projectileType.RotationZ));
             Matrix4x4 position = Matrix4x4.CreateTranslation(new SimdVector3(projectileType.PositionX, projectileType.PositionY, projectileType.PositionZ));
 
@@ -224,6 +225,13 @@ namespace XenoKit.Engine.Scripting.BSA
                 Log.Add($"Unsupported BSA projectile spawn orientation {projectileType.SpawnOrientation}. Using default orientation.", LogType.Warning);
 
             return attachTransform;
+        }
+
+        private static bool ShouldFollowLiveAttachTransform(BAC_Type9 projectileType)
+        {
+            return projectileType != null &&
+                   (projectileType.SpawnOrientation == SpawnOrientationDefault ||
+                    projectileType.SpawnOrientation == SpawnOrientationUserDirectionValue);
         }
 
         private static Matrix4x4 GetProjectileAttachTransform(Actor spawnActor, BAC_Type9 projectileType)
@@ -266,7 +274,54 @@ namespace XenoKit.Engine.Scripting.BSA
                 return Matrix4x4.Identity;
 
             Matrix4x4 attachTransform = GetProjectileAttachTransform(attachActor, projectileType);
+
+            if (projectileType.SpawnOrientation == SpawnOrientationUserDirectionValue)
+                return GetCurrentUserDirectionParentTransform(attachTransform);
+
             return CreateProjectileParentTransform(attachActor, projectileType, attachTransform);
+        }
+
+        private Matrix4x4 GetCurrentUserDirectionParentTransform(Matrix4x4 attachTransform)
+        {
+            if (attachActor == null)
+                return attachTransform;
+
+            Matrix4x4 currentAttachRotation = GetUserDirectionAttachRotation(attachActor, attachTransform);
+            Matrix4x4 attachRotationDelta = GetRotationDelta(initialUserDirectionAttachRotation, currentAttachRotation);
+            Matrix4x4 parentTransform = attachRotationDelta * GetRotationOnly(attachActor.Transform);
+            parentTransform.Translation = attachTransform.Translation;
+            return parentTransform;
+        }
+
+        private static Matrix4x4 GetUserDirectionAttachRotation(Actor actor, BAC_Type9 projectileType)
+        {
+            if (actor == null || projectileType == null)
+                return Matrix4x4.Identity;
+
+            Matrix4x4 attachTransform = GetProjectileAttachTransform(actor, projectileType);
+            return GetUserDirectionAttachRotation(actor, attachTransform);
+        }
+
+        private static Matrix4x4 GetUserDirectionAttachRotation(Actor actor, Matrix4x4 attachTransform)
+        {
+            if (actor == null)
+                return Matrix4x4.Identity;
+
+            Matrix4x4 attachRotation = GetRotationOnly(attachTransform);
+            Matrix4x4 actorRotation = GetRotationOnly(actor.Transform);
+
+            if (Matrix4x4.Invert(actorRotation, out Matrix4x4 inverseActorRotation))
+                return attachRotation * inverseActorRotation;
+
+            return attachRotation;
+        }
+
+        private static Matrix4x4 GetRotationDelta(Matrix4x4 startRotation, Matrix4x4 currentRotation)
+        {
+            if (Matrix4x4.Invert(startRotation, out Matrix4x4 inverseStartRotation))
+                return inverseStartRotation * currentRotation;
+
+            return Matrix4x4.Identity;
         }
 
         private Matrix4x4 CreateWorldTransformFromMotion(Matrix4x4 localMotionTransform)
@@ -276,7 +331,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
         private void RefreshWorldTransform()
         {
-            if (followsLiveAttachTransform)
+            if (isAttachedToSource)
                 transform = CreateWorldTransformFromMotion(motionTransform);
         }
 
@@ -284,7 +339,6 @@ namespace XenoKit.Engine.Scripting.BSA
         {
             // BSA movement entries are state changes. Duration is ignored because the latest started movement row stays active until another one starts.
             float frame = startFrame;
-            currentLocalMovementFrameDelta = SimdVector3.Zero;
 
             while (frame < targetFrame)
             {
@@ -295,7 +349,10 @@ namespace XenoKit.Engine.Scripting.BSA
                 {
                     float frameStep = nextFrame - frame;
                     movement.StartIfNeeded();
-                    AddHitboxSweepDelta(movement, frameStep);
+
+                    if (isAttachedToSource && ShouldDetachFromAttach(movement))
+                        DetachFromSource();
+
                     ApplyMovement(movement, frameStep);
                 }
 
@@ -303,14 +360,18 @@ namespace XenoKit.Engine.Scripting.BSA
             }
         }
 
-        private void AddHitboxSweepDelta(MovementState movement, float frameStep)
+        private void DetachFromSource()
         {
-            movement.StartIfNeeded();
-            currentLocalMovementFrameDelta += movement.HitboxVelocity * (frameStep / 60f);
-            movement.AdvanceHitboxVelocity(frameStep);
+            transform = CreateWorldTransformFromMotion(motionTransform);
+            isAttachedToSource = false;
         }
 
-        private SimdVector3 GetHitboxSweepDelta(BSA_Type3 hitbox)
+        private static bool ShouldDetachFromAttach(MovementState movement)
+        {
+            return movement != null && movement.HasMovement;
+        }
+
+        private SimdVector3 GetHitboxMovementDelta(BSA_Type3 hitbox)
         {
             if (hitbox == null || currentFrame <= hitbox.StartTime)
                 return SimdVector3.Zero;
@@ -324,7 +385,7 @@ namespace XenoKit.Engine.Scripting.BSA
             if (endFrame <= startFrame)
                 return SimdVector3.Zero;
 
-            return GetLocalMovementSweepDelta(startFrame, endFrame);
+            return GetLocalMovementDelta(startFrame, endFrame);
         }
 
         private Matrix4x4 GetHitboxDrawTransform(BSA_Type3 hitbox)
@@ -342,7 +403,7 @@ namespace XenoKit.Engine.Scripting.BSA
                    hitbox.I_04 != 0;
         }
 
-        private SimdVector3 GetLocalMovementSweepDelta(float startFrame, float endFrame)
+        private SimdVector3 GetLocalMovementDelta(float startFrame, float endFrame)
         {
             List<MovementState> replayMovements = movements.Select(x => x.Clone()).ToList();
             SimdVector3 movementDelta = SimdVector3.Zero;
@@ -364,10 +425,10 @@ namespace XenoKit.Engine.Scripting.BSA
                         float sweepStep = nextFrame - sweepStart;
 
                         if (sweepStep > 0f)
-                            movementDelta += movement.HitboxVelocity * (sweepStep / 60f);
+                            movementDelta += movement.Velocity * (sweepStep / 60f);
                     }
 
-                    movement.AdvanceHitboxVelocity(frameStep);
+                    movement.AdvanceVelocity(frameStep);
                 }
 
                 frame = nextFrame;
@@ -399,7 +460,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
         private void ApplyMovement(MovementState movement, float frameStep)
         {
-            if (followsLiveAttachTransform)
+            if (isAttachedToSource)
             {
                 Matrix4x4 parentTransform = GetCurrentProjectileParentTransform();
                 ApplyMovementToFollowedTransform(ref motionTransform, parentTransform, movement, frameStep);
@@ -448,13 +509,32 @@ namespace XenoKit.Engine.Scripting.BSA
 
         private Matrix4x4 GetProjectileTransformAtFrame(float frame)
         {
-            if (followsLiveAttachTransform)
+            frame = Math.Max(0f, frame);
+
+            if (!canFollowAttachTransform)
+                return MoveTransform(initialTransform, 0f, frame);
+
+            float detachFrame = GetFirstMovementFrame(frame);
+
+            if (detachFrame < 0f)
             {
-                Matrix4x4 localMotion = MoveMotionTransform(initialMotionTransform, 0f, Math.Max(0f, frame));
+                Matrix4x4 localMotion = MoveMotionTransform(initialMotionTransform, 0f, frame);
                 return CreateWorldTransformFromMotion(localMotion);
             }
 
-            return MoveTransform(initialTransform, 0f, Math.Max(0f, frame));
+            Matrix4x4 detachMotion = MoveMotionTransform(initialMotionTransform, 0f, detachFrame);
+            Matrix4x4 detachTransform = CreateWorldTransformFromMotion(detachMotion);
+            return MoveTransform(detachTransform, detachFrame, frame);
+        }
+
+        private float GetFirstMovementFrame(float maxFrame)
+        {
+            MovementState movement = movements
+                .Where(x => !x.IsIgnoredBySimulation && x.HasMovement && x.StartTime <= maxFrame)
+                .OrderBy(x => x.StartTime)
+                .FirstOrDefault();
+
+            return movement?.StartTime ?? -1f;
         }
 
         private Matrix4x4 MoveTransform(Matrix4x4 startTransform, float startFrame, float targetFrame)
@@ -734,28 +814,32 @@ namespace XenoKit.Engine.Scripting.BSA
         {
             private readonly BSA_Type1 movement;
             private readonly SimdVector3 startVelocity;
-            private readonly SimdVector3 startHitboxVelocity;
-            private readonly SimdVector3 hitboxAcceleration;
             private bool hasStarted;
             private const int IgnoredOption1Unknown2Flag = 0x00000002;
             private const int FreeMovementFlag = 0x00200000;
 
             public SimdVector3 Velocity { get; set; }
-            public SimdVector3 HitboxVelocity { get; private set; }
             public SimdVector3 Acceleration { get; }
             public int RawMotionFlags => movement.I_00;
             public int SimulationMotionFlags => GetSimulationMotionFlags(RawMotionFlags);
             public bool IsIgnoredBySimulation => (RawMotionFlags & IgnoredOption1Unknown2Flag) == IgnoredOption1Unknown2Flag;
             public bool UseWorldSpaceVelocity => (SimulationMotionFlags & FreeMovementFlag) == FreeMovementFlag;
+            public bool HasMovement
+            {
+                get
+                {
+                    return !MathHelpers.FloatEquals(movement.F_04, 0f) ||
+                           !MathHelpers.FloatEquals(movement.F_08, 0f) ||
+                           !MathHelpers.FloatEquals(movement.F_12, 0f);
+                }
+            }
             public ushort StartTime => movement.StartTime;
 
             public MovementState(BSA_Type1 movement)
             {
                 this.movement = movement;
                 startVelocity = new SimdVector3(movement.F_08, movement.F_12, -movement.F_04);
-                startHitboxVelocity = new SimdVector3(movement.F_08, movement.F_12, movement.F_04);
                 Acceleration = new SimdVector3(movement.F_24, movement.F_28, -movement.F_20);
-                hitboxAcceleration = new SimdVector3(movement.F_24, movement.F_28, movement.F_20);
             }
 
             private static int GetSimulationMotionFlags(int flags)
@@ -780,13 +864,12 @@ namespace XenoKit.Engine.Scripting.BSA
                     return;
 
                 Velocity = startVelocity;
-                HitboxVelocity = startHitboxVelocity;
                 hasStarted = true;
             }
 
-            public void AdvanceHitboxVelocity(float frameStep)
+            public void AdvanceVelocity(float frameStep)
             {
-                HitboxVelocity += hitboxAcceleration * (frameStep / 60f);
+                Velocity += Acceleration * (frameStep / 60f);
             }
 
             public MovementState Clone()

@@ -15,15 +15,15 @@ namespace XenoKit.Engine.Scripting.BSA
         private readonly BSA_Type3 hitbox;
         private readonly Func<Matrix4x4> getDrawMatrix;
         private readonly Func<int> getFrame;
-        private readonly Func<SimdVector3> getStartRelativeSweepDelta;
+        private readonly Func<SimdVector3> getStartRelativeMovementDelta;
         private readonly Cube boundingBox;
 
-        public BsaHitboxPreview(BSA_Type3 hitbox, Func<Matrix4x4> getDrawMatrix, Func<int> getFrame, Func<SimdVector3> getStartRelativeSweepDelta)
+        public BsaHitboxPreview(BSA_Type3 hitbox, Func<Matrix4x4> getDrawMatrix, Func<int> getFrame, Func<SimdVector3> getStartRelativeMovementDelta)
         {
             this.hitbox = hitbox;
             this.getDrawMatrix = getDrawMatrix;
             this.getFrame = getFrame;
-            this.getStartRelativeSweepDelta = getStartRelativeSweepDelta;
+            this.getStartRelativeMovementDelta = getStartRelativeMovementDelta;
             boundingBox = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Blue, true);
 
             UpdateHitbox();
@@ -53,31 +53,33 @@ namespace XenoKit.Engine.Scripting.BSA
 
             bool useDefinedBounds = GetBoundsType() != BAC_Type1.BoundingBoxTypeEnum.Uniform;
             bool growBounds = UsesGrowBounds();
-            SimdVector3 startRelativeSweepDelta = growBounds
-                ? getStartRelativeSweepDelta?.Invoke() ?? SimdVector3.Zero
+            SimdVector3 startRelativeMovementDelta = growBounds
+                ? getStartRelativeMovementDelta?.Invoke() ?? SimdVector3.Zero
                 : SimdVector3.Zero;
 
             if (useDefinedBounds)
-                SetMinMaxBounds(startRelativeSweepDelta, growBounds);
+                SetMinMaxBounds(startRelativeMovementDelta, growBounds);
             else
                 boundingBox.SetBounds(Vector3.Zero, Vector3.Zero, hitbox.F_20 / 2f, false);
 
             boundingBox.SetPosition(new Vector3(hitbox.F_08, hitbox.F_12, hitbox.F_16));
         }
 
-        private void SetMinMaxBounds(SimdVector3 startRelativeSweepDelta, bool growBounds)
+        private void SetMinMaxBounds(SimdVector3 startRelativeMovementDelta, bool growBounds)
         {
             Vector3 rawMin = new Vector3(hitbox.F_36, hitbox.F_40, hitbox.F_44);
             Vector3 rawMax = new Vector3(hitbox.F_24, hitbox.F_28, hitbox.F_32);
             Vector3 size = new Vector3(hitbox.F_20 / 2f);
 
-            Vector3 sweptMin = rawMin;
+            Vector3 movementDelta = growBounds
+                ? ToXnaVector(startRelativeMovementDelta)
+                : Vector3.Zero;
 
-            if (growBounds)
-                sweptMin -= ToXnaVector(startRelativeSweepDelta);
+            Vector3 movedMin = rawMin + movementDelta;
+            Vector3 movedMax = rawMax + movementDelta;
 
-            Vector3 finalMin = Vector3.Min(Vector3.Min(rawMin, rawMax), sweptMin) - size;
-            Vector3 finalMax = Vector3.Max(Vector3.Max(rawMin, rawMax), sweptMin) + size;
+            Vector3 finalMin = Vector3.Min(Vector3.Min(rawMin, rawMax), Vector3.Min(movedMin, movedMax)) - size;
+            Vector3 finalMax = Vector3.Max(Vector3.Max(rawMin, rawMax), Vector3.Max(movedMin, movedMax)) + size;
             boundingBox.SetBounds(finalMin, finalMax, 0f, true);
         }
 
