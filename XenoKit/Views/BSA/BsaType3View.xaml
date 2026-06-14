@@ -33,6 +33,18 @@
                     <Label Style="{StaticResource BsaEditorLabel}" Content="Size" ToolTip="Minimum size of the hitbox on all axes."/>
                     <controls:NumericUpDown Grid.Column="1" StringFormat="0.00#####" Interval="0.05" Minimum="0.05" Maximum="100" Value="{Binding Size, UpdateSourceTrigger=Default}"/>
                 </Grid>
+                <Grid Margin="3,5,0,0" Width="250" IsEnabled="{Binding BoundsEnabled}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Style="{StaticResource BsaEditorLabel}"
+                           Content="Grow Max Bounds"
+                           ToolTip="When enabled, the preview extends max bounds by the projectile movement sweep."/>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding Switches}"
+                              SelectedItem="{Binding GrowMaxBounds, UpdateSourceTrigger=Default}"/>
+                </Grid>
             </WrapPanel>
             <Grid Margin="3,5,0,0" Width="500">
                 <Grid.ColumnDefinitions>

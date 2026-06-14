@@ -14,6 +14,7 @@ namespace XenoKit.ViewModel.BSA
         private static readonly IReadOnlyCollection<string> TypedFields = new[]
         {
             nameof(BSA_Type3.I_00),
+            nameof(BSA_Type3.I_04),
             nameof(BSA_Type3.F_08),
             nameof(BSA_Type3.F_12),
             nameof(BSA_Type3.F_16),
@@ -49,6 +50,7 @@ namespace XenoKit.ViewModel.BSA
         protected override IReadOnlyDictionary<string, string> KnownFieldNames => FieldNames;
 
         public Array BoundingBoxTypes => Enum.GetValues(typeof(BAC_Type1.BoundingBoxTypeEnum));
+        public Array Switches => Enum.GetValues(typeof(Switch));
 
         public BAC_Type1.BoundingBoxTypeEnum BoundingBoxType
         {
@@ -64,6 +66,17 @@ namespace XenoKit.ViewModel.BSA
         }
 
         public bool BoundsEnabled => BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform;
+
+        public Switch GrowMaxBounds
+        {
+            get => hitbox.I_04 == 0 ? Switch.Off : Switch.On;
+            set
+            {
+                ushort newValue = value == Switch.On ? (ushort)1 : (ushort)0;
+                SetHitboxValue(nameof(hitbox.I_04), hitbox.I_04, newValue, "BSA Hitbox Grow Max Bounds");
+                RaisePropertyChanged(nameof(GrowMaxBounds));
+            }
+        }
 
         public string MatrixFlagsText
         {

@@ -81,7 +81,11 @@ namespace XenoKit.Engine.Scripting.BSA
                 .ToList() ?? new List<MovementState>();
             hitboxPreviews = bsaEntry.IBsaTypes?
                 .OfType<BSA_Type3>()
-                .Select(x => new BsaHitboxPreview(x, () => transform, () => (int)Math.Floor(currentFrame), () => currentLocalMovementFrameDelta))
+                .Select(x => new BsaHitboxPreview(
+                    x,
+                    () => GetHitboxDrawTransform(x),
+                    () => (int)Math.Floor(currentFrame),
+                    () => GetHitboxSweepDelta(x)))
                 .ToList() ?? new List<BsaHitboxPreview>();
             motionTransform = followsLiveAttachTransform ? CreateProjectileLocalTransform(projectileType) : spawnTransform;
             initialMotionTransform = motionTransform;
@@ -304,6 +308,72 @@ namespace XenoKit.Engine.Scripting.BSA
             movement.StartIfNeeded();
             currentLocalMovementFrameDelta += movement.HitboxVelocity * (frameStep / 60f);
             movement.AdvanceHitboxVelocity(frameStep);
+        }
+
+        private SimdVector3 GetHitboxSweepDelta(BSA_Type3 hitbox)
+        {
+            if (hitbox == null || currentFrame <= hitbox.StartTime)
+                return SimdVector3.Zero;
+
+            float startFrame = hitbox.StartTime;
+            float endFrame = currentFrame;
+
+            if (hitbox.Duration > 0)
+                endFrame = Math.Min(endFrame, hitbox.StartTime + hitbox.Duration);
+
+            if (endFrame <= startFrame)
+                return SimdVector3.Zero;
+
+            return GetLocalMovementSweepDelta(startFrame, endFrame);
+        }
+
+        private Matrix4x4 GetHitboxDrawTransform(BSA_Type3 hitbox)
+        {
+            if (UsesGrowBounds(hitbox))
+                return GetProjectileTransformAtFrame(hitbox.StartTime);
+
+            return transform;
+        }
+
+        private static bool UsesGrowBounds(BSA_Type3 hitbox)
+        {
+            return hitbox != null &&
+                   (BAC_Type1.BoundingBoxTypeEnum)(hitbox.I_00 & 0x000F) == BAC_Type1.BoundingBoxTypeEnum.MinMax &&
+                   hitbox.I_04 != 0;
+        }
+
+        private SimdVector3 GetLocalMovementSweepDelta(float startFrame, float endFrame)
+        {
+            List<MovementState> replayMovements = movements.Select(x => x.Clone()).ToList();
+            SimdVector3 movementDelta = SimdVector3.Zero;
+            float frame = 0f;
+
+            while (frame < endFrame)
+            {
+                float nextFrame = GetNextMovementBoundary(replayMovements, frame, endFrame);
+                MovementState movement = replayMovements.LastOrDefault(x => x.IsActive(frame));
+
+                if (movement != null)
+                {
+                    float frameStep = nextFrame - frame;
+                    movement.StartIfNeeded();
+
+                    if (nextFrame > startFrame)
+                    {
+                        float sweepStart = Math.Max(frame, startFrame);
+                        float sweepStep = nextFrame - sweepStart;
+
+                        if (sweepStep > 0f)
+                            movementDelta += movement.HitboxVelocity * (sweepStep / 60f);
+                    }
+
+                    movement.AdvanceHitboxVelocity(frameStep);
+                }
+
+                frame = nextFrame;
+            }
+
+            return movementDelta;
         }
 
         private float GetNextMovementBoundary(float frame, float targetFrame)
