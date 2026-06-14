@@ -78,7 +78,7 @@ namespace XenoKit.Engine.Vfx.Shape
             Bounds = new BoundingBox(Vector3.Zero, Vector3.Zero);
         }
 
-        public void Draw(RenderObject owner, Xv2ShaderEffect material, SamplerInfo[] samplers, Xv2Texture[] textures)
+        public void Draw(RenderObject owner, Xv2ShaderEffect material, SamplerInfo[] samplers, Xv2Texture[] textures, bool glareOutputAllowed = true)
         {
             if (!HasVertices || material == null || owner == null)
                 return;
@@ -102,6 +102,7 @@ namespace XenoKit.Engine.Vfx.Shape
 
             foreach (EffectPass pass in drawMaterial.CurrentTechnique.Passes)
             {
+                drawMaterial.SetGlareOutputAllowed(glareOutputAllowed);
                 pass.Apply();
 
                 if (drawIndices != null)

@@ -320,7 +320,7 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             if (DrawThisFrame && Model != null)
             {
-                Model.Draw(Matrix4x4.CreateScale(Scale) * AttachmentBone, 0, Materials, Textures, null, 0, Skeleton);
+                Model.Draw(Matrix4x4.CreateScale(Scale) * AttachmentBone, 0, Materials, Textures, null, 0, Skeleton, null, !EffectPart.NoGlare);
             }
         }
 

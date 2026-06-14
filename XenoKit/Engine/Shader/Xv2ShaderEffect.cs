@@ -114,11 +114,14 @@ namespace XenoKit.Engine.Shader
         private static Vector4 HC_Param12 = new Vector4(-0.55689f, 0.79556f, -0.23867f, 1.00f);
         private static Vector4 HC_Param13 = new Vector4(8.00f, 0.40f, 0.00f, 0.00f);
         private static Vector4 HC_UserFlag1 = new Vector4(7936f, 0, 0.00f, 0.00f);
+        private static readonly Vector4 DefaultBackgroundGlareTone = new Vector4(0.5f, 0.5f, 0.5f, 3.75f);
+        private static readonly Vector4 DefaultEffectGlareTone = new Vector4(0.9f, 0.9f, 0.9f, 0.95f);
 
         //Updating
         public bool IsShaderProgramDirty { get; set; }
         public bool IsDirty { get; set; }
         private bool UseWV, UseWVP;
+        private bool glareOutputAllowed = true;
 
         //Color Fade
         private float[] ECF_Multi = null;
@@ -549,7 +552,7 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_vShadowColor_PS"].SetValue(new Vector4(0.5f, 0.5f, 0.5f, 0));
                 Parameters["g_vEdge_PS"].SetValue(MatParam.NoEdge > 0 ? Vector4.Zero : Vector4.One);
                 Parameters["g_vGlare_PS"].SetValue(Vector4.Zero);
-                Parameters["g_vTone_PS"].SetValue(new Vector4(0.01f, 0.01f, 0.01f, 0.173f));
+                Parameters["g_vTone_PS"].SetValue(ShaderType == ShaderType.Stage ? DefaultBackgroundGlareTone : DefaultEffectGlareTone);
                 Parameters["g_vScale_PS"].SetValue(new Vector4(1.00f, 0.00f, 0.50f, 0.50f));
 
                 //Values from BFten
@@ -839,6 +842,11 @@ namespace XenoKit.Engine.Shader
             }
         }
 
+        public void SetGlareOutputAllowed(bool allowed)
+        {
+            glareOutputAllowed = allowed;
+        }
+
         /// <summary>
         /// Update parameters just before render.
         /// </summary>
@@ -880,6 +888,9 @@ namespace XenoKit.Engine.Shader
             {
                 ApplyParameter(parameter);
             }
+
+            Parameters["g_bOutputGlareMRT_PS"]?.SetValue(glareOutputAllowed && MatParam.Glare == 1);
+            glareOutputAllowed = true;
 
             if (ShaderType == ShaderType.Chara && ActorSlot != -1)
             {
@@ -1325,12 +1336,21 @@ namespace XenoKit.Engine.Shader
         {
             if (shaderProgram.UsePixelShaderBuffer[PS_STAGE_CB] || ShaderType == ShaderType.Stage)
             {
-                if (Viewport.Instance.CurrentStage.FogEnabled)
+                Xv2Stage currentStage = Viewport.Instance.CurrentStage;
+                Vector4 tone = ShaderType == ShaderType.Stage
+                    ? currentStage?.BackgroundGlareTone ?? DefaultBackgroundGlareTone
+                    : currentStage?.EffectGlareTone ?? DefaultEffectGlareTone;
+
+                Parameters["g_vGlare_PS"]?.SetValue(Vector4.Zero);
+                Parameters["g_vTone_PS"]?.SetValue(tone);
+                Parameters["g_vEdge_PS"]?.SetValue(MatParam.NoEdge > 0 ? Vector4.Zero : (currentStage?.EdgeColor ?? Vector4.One));
+
+                if (currentStage != null && currentStage.FogEnabled)
                 {
-                    Parameters["g_vFogMultiColor_PS"]?.SetValue(Viewport.Instance.CurrentStage.FogMultiColor);
-                    Parameters["g_vFogAddColor_PS"]?.SetValue(Viewport.Instance.CurrentStage.FogAddColor);
-                    Parameters["g_vFog_VS"]?.SetValue(Viewport.Instance.CurrentStage.Fog);
-                    Parameters["g_bFog_PS"]?.SetValue(Viewport.Instance.CurrentStage.FogEnabled);
+                    Parameters["g_vFogMultiColor_PS"]?.SetValue(currentStage.FogMultiColor);
+                    Parameters["g_vFogAddColor_PS"]?.SetValue(currentStage.FogAddColor);
+                    Parameters["g_vFog_VS"]?.SetValue(currentStage.Fog);
+                    Parameters["g_bFog_PS"]?.SetValue(currentStage.FogEnabled);
                 }
                 else
                 {

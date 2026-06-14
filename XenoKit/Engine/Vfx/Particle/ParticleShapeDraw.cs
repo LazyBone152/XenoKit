@@ -65,7 +65,7 @@ namespace XenoKit.Engine.Vfx.Particle
             if (!Viewport.Instance.DrawThisFrame)
                 return;
 
-            mesh.Draw(this, EmissionData.Material, EmissionData.Samplers, EmissionData.Textures);
+            mesh.Draw(this, EmissionData.Material, EmissionData.Samplers, EmissionData.Textures, !SourceEffectPart.NoGlare);
         }
 
         private ShapeDrawStripMode GetShapeDrawStripMode()

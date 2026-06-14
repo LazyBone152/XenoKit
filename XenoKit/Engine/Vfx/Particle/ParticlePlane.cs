@@ -17,7 +17,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public override void Initialize(Matrix4x4 emitPoint, SimdVector3 velocity, ParticleSystem system, ParticleNode node, EffectPart effectPart, object effect)
         {
             base.Initialize(emitPoint, velocity, system, node, effectPart, effect);
-            Batch = RenderSystem.ParticleBatcher.GetBatch(node);
+            Batch = RenderSystem.ParticleBatcher.GetBatch(node, effectPart.NoGlare);
         }
 
         public override void Release()
@@ -136,7 +136,7 @@ namespace XenoKit.Engine.Vfx.Particle
             {
                 if (Batch.IsDestroyed)
                 {
-                    Batch = RenderSystem.ParticleBatcher.GetBatch(Node);
+                    Batch = RenderSystem.ParticleBatcher.GetBatch(Node, SourceEffectPart.NoGlare);
                 }
 
                 Batch.AddToBatch(CreateBatchItem());

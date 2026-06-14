@@ -60,16 +60,16 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        public ParticleBatch GetBatch(ParticleNode particleNode)
+        public ParticleBatch GetBatch(ParticleNode particleNode, bool noGlare)
         {
             for(int i = 0; i < _batches.Count; i++)
             {
-                if (_batches[i].ParticleNode == particleNode)
+                if (_batches[i].ParticleNode == particleNode && _batches[i].NoGlare == noGlare)
                     return _batches[i];
             }
 
             //Create batch and return it
-            ParticleBatch batch = new ParticleBatch(CompiledObjectManager.GetCompiledObject<ParticleEmissionData>(particleNode), particleNode);
+            ParticleBatch batch = new ParticleBatch(CompiledObjectManager.GetCompiledObject<ParticleEmissionData>(particleNode), particleNode, noGlare);
             _batches.Add(batch);
             return batch;
         }

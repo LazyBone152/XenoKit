@@ -83,7 +83,7 @@ namespace XenoKit.Engine.Vfx.Asset
                         null,
                         state.TextureScrollActive[1] ? state.TextureScroll[1] : null);
 
-                state.Mesh.Draw(this, state.Material, state.Samplers, state.Textures);
+                state.Mesh.Draw(this, state.Material, state.Samplers, state.Textures, !EffectPart.NoGlare);
             }
         }
 

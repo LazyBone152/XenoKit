@@ -24,6 +24,7 @@ namespace XenoKit.Engine.Rendering
 
         public readonly ParticleNode ParticleNode;
         public readonly ParticleEmissionData EmissionData;
+        public readonly bool NoGlare;
 
         public int NumBatch { get; private set; }
         public int MaxBatchSinceLastSlowUpdate => _maxBatchNumSinceLastSlowUpdate;
@@ -39,10 +40,11 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        public ParticleBatch(ParticleEmissionData emissionData, ParticleNode particleNode)
+        public ParticleBatch(ParticleEmissionData emissionData, ParticleNode particleNode, bool noGlare)
         {
             EmissionData = emissionData;
             ParticleNode = particleNode;
+            NoGlare = noGlare;
             BatchItems = new ParticleBatchItem[MinBatchItemCount];
             Vertices = new VertexPositionTextureColor[MinBatchItemCount * 6];
         }
@@ -140,6 +142,7 @@ namespace XenoKit.Engine.Rendering
             //Shader passes and vertex drawing
             foreach (EffectPass pass in EmissionData.Material.CurrentTechnique.Passes)
             {
+                EmissionData.Material.SetGlareOutputAllowed(!NoGlare);
                 pass.Apply();
 
                 GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, Vertices, 0, batchIndex * 2);
