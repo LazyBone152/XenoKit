@@ -486,6 +486,7 @@ namespace XenoKit.Controls
             audioCheckBox.Visibility = Visibility.Collapsed;
             bonesCheckBox.Visibility = Visibility.Collapsed;
             hitboxCheckBox.Visibility = Visibility.Collapsed;
+            projectileCheckBox.Visibility = Visibility.Collapsed;
             effectCheckBox.Visibility = Visibility.Collapsed;
 
             if (SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Camera))
@@ -503,6 +504,7 @@ namespace XenoKit.Controls
                 bacLoopCheckBox.Visibility = Visibility.Visible;
                 audioCheckBox.Visibility = Visibility.Visible;
                 hitboxCheckBox.Visibility = Visibility.Visible;
+                projectileCheckBox.Visibility = Visibility.Visible;
             }
 
             if (SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Effect))
