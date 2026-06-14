@@ -1134,13 +1134,14 @@ namespace XenoKit.Engine.Shader
                     //Blend 1
                     blendState.CopyState(0, 1);
 
+                    blendState[0].AlphaSourceBlend = Blend.Zero;
+                    blendState[0].AlphaDestinationBlend = Blend.One;
+                    blendState[1].AlphaSourceBlend = Blend.Zero;
+                    blendState[1].AlphaDestinationBlend = Blend.One;
+
                     if(Material.DecompiledParameters.LowRez == 1 || Material.DecompiledParameters.LowRezSmoke == 1)
                     {
                         blendState[1].ColorWriteChannels = ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue;
-
-                        //Re-enable these once LowRez is implemented in the renderer
-                        blendState[0].AlphaSourceBlend = Blend.Zero;
-                        blendState[1].AlphaSourceBlend = Blend.Zero;
                     }
                     break;
                 case 2: //Subtractive
