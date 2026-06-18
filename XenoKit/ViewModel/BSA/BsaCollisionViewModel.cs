@@ -8,6 +8,7 @@ namespace XenoKit.ViewModel.BSA
     public class BsaCollisionViewModel : ObservableObject, IDisposable
     {
         private readonly BSA_Collision collision;
+        public event EventHandler CollisionChanged;
 
         public EepkType EepkType
         {
@@ -24,7 +25,11 @@ namespace XenoKit.ViewModel.BSA
         public uint EffectID
         {
             get => collision.EffectID;
-            set => SetValue(nameof(collision.EffectID), collision.EffectID, value, "BSA Collision Effect ID");
+            set
+            {
+                if (value > ushort.MaxValue) value = ushort.MaxValue;
+                SetValue(nameof(collision.EffectID), collision.EffectID, (ushort)value, "BSA Collision Effect ID");
+            }
         }
 
         public int I_08
@@ -65,6 +70,7 @@ namespace XenoKit.ViewModel.BSA
         private void UndoManager_UndoOrRedoCalled(object sender, EventArgs e)
         {
             RaisePropertyChanged(string.Empty);
+            CollisionChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void SetValue<T>(string propertyName, T oldValue, T newValue, string undoName)
@@ -74,6 +80,7 @@ namespace XenoKit.ViewModel.BSA
             UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(propertyName, collision, oldValue, newValue, undoName));
             collision.GetType().GetProperty(propertyName).SetValue(collision, newValue, null);
             RaisePropertyChanged(string.Empty);
+            CollisionChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

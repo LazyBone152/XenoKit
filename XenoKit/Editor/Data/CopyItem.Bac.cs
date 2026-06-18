@@ -135,17 +135,19 @@ namespace XenoKit.Editor
 
             if(bacEntryToReplace != null)
             {
-                undos.Add(new UndoableProperty<BAC_Entry>(nameof(BAC_Entry.IBacTypes), bacEntryToReplace, bacEntryToReplace.IBacTypes, bacEntries[0].IBacTypes));
-                bacEntryToReplace.IBacTypes = bacEntries[0].IBacTypes;
+                var bacEntry = bacEntries[0].Copy();
+                undos.Add(new UndoableProperty<BAC_Entry>(nameof(BAC_Entry.IBacTypes), bacEntryToReplace, bacEntryToReplace.IBacTypes, bacEntry.IBacTypes));
+                bacEntryToReplace.IBacTypes = bacEntry.IBacTypes;
             }
             else
             {
                 foreach (var bacEntry in bacEntries)
                 {
-                    int oldId = bacEntry.SortID;
-                    int newId = Files.Instance.SelectedItem.SelectedBacFile.File.AddEntry(bacEntry);
+                    var bacEntryCopy = bacEntry.Copy();
+                    int oldId = bacEntryCopy.SortID;
+                    int newId = Files.Instance.SelectedItem.SelectedBacFile.File.AddEntry(bacEntryCopy);
                     ReplaceIdReference(ValueReference.InstanceRefType.Bac, oldId, newId);
-                    undos.Add(new UndoableListAdd<BAC_Entry>(Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries, bacEntry));
+                    undos.Add(new UndoableListAdd<BAC_Entry>(Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries, bacEntryCopy));
                 }
             }
 

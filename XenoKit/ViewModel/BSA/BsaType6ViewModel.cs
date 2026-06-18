@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Xv2CoreLib.BSA;
-using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.ViewModel.BSA
 {
@@ -27,59 +26,48 @@ namespace XenoKit.ViewModel.BSA
         public EepkType EepkType
         {
             get => effect.EepkType;
-            set => SetEffectValue(nameof(effect.EepkType), effect.EepkType, value, "BSA Effect EEPK Type");
+            set => SetBsaValue(nameof(effect.EepkType), effect.EepkType, value, "BSA Effect EEPK Type");
         }
 
         public ushort SkillID
         {
             get => effect.SkillID;
-            set => SetEffectValue(nameof(effect.SkillID), effect.SkillID, value, "BSA Effect Skill ID");
+            set => SetBsaValue(nameof(effect.SkillID), effect.SkillID, value, "BSA Effect Skill ID");
         }
 
         public ushort EffectID
         {
             get => effect.EffectID;
-            set => SetEffectValue(nameof(effect.EffectID), effect.EffectID, value, "BSA Effect ID");
+            set => SetBsaValue(nameof(effect.EffectID), effect.EffectID, value, "BSA Effect ID");
         }
 
         public Switch Switch
         {
             get => effect.I_08;
-            set => SetEffectValue(nameof(effect.I_08), effect.I_08, value, "BSA Effect Switch");
+            set => SetBsaValue(nameof(effect.I_08), effect.I_08, value, "BSA Effect Switch");
         }
 
         public float PositionX
         {
             get => effect.F_12;
-            set => SetEffectValue(nameof(effect.F_12), effect.F_12, value, "BSA Effect Position X");
+            set => SetBsaValue(nameof(effect.F_12), effect.F_12, value, "BSA Effect Position X");
         }
 
         public float PositionY
         {
             get => effect.F_16;
-            set => SetEffectValue(nameof(effect.F_16), effect.F_16, value, "BSA Effect Position Y");
+            set => SetBsaValue(nameof(effect.F_16), effect.F_16, value, "BSA Effect Position Y");
         }
 
         public float PositionZ
         {
             get => effect.F_20;
-            set => SetEffectValue(nameof(effect.F_20), effect.F_20, value, "BSA Effect Position Z");
+            set => SetBsaValue(nameof(effect.F_20), effect.F_20, value, "BSA Effect Position Z");
         }
 
         public BsaType6ViewModel(BSA_Type6 type) : base(type)
         {
             effect = type;
-        }
-
-        private void SetEffectValue<T>(string propertyName, T oldValue, T newValue, string undoName)
-        {
-            if (Equals(oldValue, newValue))
-                return;
-
-            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(propertyName, effect, oldValue, newValue, undoName));
-            effect.GetType().GetProperty(propertyName).SetValue(effect, newValue, null);
-            RaisePropertyChanged(string.Empty);
-            NotifyTypeChanged();
         }
     }
 }

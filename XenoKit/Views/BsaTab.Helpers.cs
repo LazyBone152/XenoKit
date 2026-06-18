@@ -101,6 +101,12 @@ namespace XenoKit.Views
             RefreshGrids();
         }
 
+        private void DisposeSubtypeRows()
+        {
+            foreach (BsaSubtypeRow row in SubtypeRows)
+                row.Dispose();
+        }
+
         private bool IsBsaFileLoaded()
         {
             return GetSelectedFile() != null;
@@ -218,6 +224,8 @@ namespace XenoKit.Views
         {
             NotifyPropertyChanged(nameof(EntryViewModel));
             NotifyPropertyChanged(nameof(TypeBaseViewModel));
+            NotifyPropertyChanged(nameof(TypeActivationViewModel));
+            NotifyPropertyChanged(nameof(TypeUnknownViewModel));
             NotifyPropertyChanged(nameof(Type0ViewModel));
             NotifyPropertyChanged(nameof(Type1ViewModel));
             NotifyPropertyChanged(nameof(Type2ViewModel));

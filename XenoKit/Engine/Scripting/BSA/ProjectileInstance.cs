@@ -17,6 +17,7 @@ namespace XenoKit.Engine.Scripting.BSA
     public class ProjectileInstance : IDisposable
     {
         private const byte SpawnOrientationDefault = 0;
+        private const byte SpawnOrientationUserDirection1 = 1;
         internal const byte SpawnOrientationUserDirectionValue = 3;
 
         private readonly Actor actor;
@@ -27,6 +28,7 @@ namespace XenoKit.Engine.Scripting.BSA
         private readonly BacEntryInstance bacInstance;
         private readonly BAC_Type9 projectileType;
         private readonly ProjectileInstance parent;
+        private readonly BsaPassReason spawnReason;
         private readonly bool allowBacConditionPassEntries;
         private readonly Matrix4x4 initialTransform;
         private readonly bool canFollowAttachTransform;
@@ -48,22 +50,25 @@ namespace XenoKit.Engine.Scripting.BSA
         private Matrix4x4 transform;
         private Matrix4x4 motionTransform;
         private bool isAttachedToSource;
+        private bool hasDetachedFromSource;
+        private float detachFrame;
+        private Matrix4x4 detachWorldTransform;
 
         public bool IsFinished => currentFrame >= endFrame && childProjectiles.Count == 0;
         public Matrix4x4 Transform => transform;
         public float CurrentFrame => currentFrame;
 
         public ProjectileInstance(BacEntryInstance bacInstance, BAC_Type9 projectileType, BSA_Entry bsaEntry)
-            : this(bacInstance, null, bacInstance?.User, GetSpawnActor(bacInstance, projectileType), bacInstance?.SkillMove, null, bsaEntry, projectileType, CreateSpawnTransform(bacInstance, projectileType), 0, true)
+            : this(bacInstance, null, bacInstance?.User, GetSpawnActor(bacInstance, projectileType), bacInstance?.SkillMove, null, bsaEntry, projectileType, CreateSpawnTransform(bacInstance, projectileType), 0, true, BsaPassReason.Root)
         {
         }
 
         public static ProjectileInstance CreatePreview(Actor actor, Move move, BSA_Entry bsaEntry, BSA_File bsaFile, Matrix4x4 spawnTransform)
         {
-            return new ProjectileInstance(null, null, actor, actor, move, bsaFile, bsaEntry, null, spawnTransform, 0, false);
+            return new ProjectileInstance(null, null, actor, actor, move, bsaFile, bsaEntry, null, spawnTransform, 0, false, BsaPassReason.Root);
         }
 
-        private ProjectileInstance(BacEntryInstance bacInstance, ProjectileInstance parent, Actor actor, Actor attachActor, Move move, BSA_File bsaFile, BSA_Entry bsaEntry, BAC_Type9 projectileType, Matrix4x4 spawnTransform, int passDepth, bool allowBacConditionPassEntries)
+        private ProjectileInstance(BacEntryInstance bacInstance, ProjectileInstance parent, Actor actor, Actor attachActor, Move move, BSA_File bsaFile, BSA_Entry bsaEntry, BAC_Type9 projectileType, Matrix4x4 spawnTransform, int passDepth, bool allowBacConditionPassEntries, BsaPassReason spawnReason)
         {
             this.bacInstance = bacInstance;
             this.projectileType = projectileType;
@@ -74,6 +79,7 @@ namespace XenoKit.Engine.Scripting.BSA
             this.bsaFile = bsaFile;
             this.bsaEntry = bsaEntry;
             this.passDepth = passDepth;
+            this.spawnReason = spawnReason;
             this.allowBacConditionPassEntries = allowBacConditionPassEntries;
             canFollowAttachTransform = ShouldFollowLiveAttachTransform(projectileType);
             isAttachedToSource = canFollowAttachTransform;
@@ -91,7 +97,7 @@ namespace XenoKit.Engine.Scripting.BSA
                     () => (int)Math.Floor(currentFrame),
                     () => GetHitboxMovementDelta(x)))
                 .ToList() ?? new List<BsaHitboxPreview>();
-            motionTransform = canFollowAttachTransform ? CreateProjectileLocalTransform(projectileType) : spawnTransform;
+            motionTransform = canFollowAttachTransform ? CreateProjectileLocalTransform(projectileType, attachActor, GetProjectileAttachTransform(attachActor, projectileType)) : spawnTransform;
             initialMotionTransform = motionTransform;
             transform = canFollowAttachTransform ? CreateWorldTransformFromMotion(motionTransform) : spawnTransform;
             initialTransform = transform;
@@ -202,23 +208,64 @@ namespace XenoKit.Engine.Scripting.BSA
         {
             Matrix4x4 attachTransform = GetProjectileAttachTransform(spawnActor, projectileType);
             Matrix4x4 parentTransform = CreateProjectileParentTransform(spawnActor, projectileType, attachTransform);
-            return CreateProjectileLocalTransform(projectileType) * parentTransform;
+            return CreateProjectileLocalTransform(projectileType, spawnActor, attachTransform) * parentTransform;
         }
 
-        internal static Matrix4x4 CreateProjectileLocalTransform(BAC_Type9 projectileType)
+        internal static Matrix4x4 CreateProjectileLocalTransform(BAC_Type9 projectileType, Actor spawnActor, Matrix4x4 attachTransform)
         {
-            Matrix4x4 rotation = Matrix4x4.CreateFromYawPitchRoll(
-                MathHelper.ToRadians(projectileType.RotationY),
-                MathHelper.ToRadians(projectileType.RotationX),
-                MathHelper.ToRadians(projectileType.RotationZ));
+            Matrix4x4 rotation = CreateProjectileRotation(projectileType, spawnActor, attachTransform);
             Matrix4x4 position = Matrix4x4.CreateTranslation(new SimdVector3(projectileType.PositionX, projectileType.PositionY, projectileType.PositionZ));
 
             return rotation * position;
         }
 
+        internal static Matrix4x4 CreateProjectileRotation(BAC_Type9 projectileType)
+        {
+            return CreateProjectileRotation(projectileType, null, Matrix4x4.Identity);
+        }
+
+        private static Matrix4x4 CreateProjectileRotation(BAC_Type9 projectileType, Actor spawnActor, Matrix4x4 attachTransform)
+        {
+            if (projectileType == null)
+                return Matrix4x4.Identity;
+
+            if (IsUserDirection1SpawnOrientation(projectileType))
+                return Matrix4x4.Identity;
+
+            if (IsUserDirection3SpawnOrientation(projectileType))
+                return CreateUserDirection3Rotation(projectileType, spawnActor, attachTransform);
+
+            Matrix4x4 nonYRotation = Matrix4x4.CreateFromYawPitchRoll(
+                MathHelper.ToRadians(projectileType.RotationX),
+                0f,
+                MathHelper.ToRadians(projectileType.RotationZ));
+            Matrix4x4 yRotation = Matrix4x4.CreateRotationZ(MathHelper.ToRadians(-projectileType.RotationY));
+
+            return nonYRotation * yRotation;
+        }
+
+        private static Matrix4x4 CreateUserDirection3Rotation(BAC_Type9 projectileType, Actor spawnActor, Matrix4x4 attachTransform)
+        {
+            Matrix4x4 localRotation = Matrix4x4.CreateFromYawPitchRoll(
+                MathHelper.ToRadians(projectileType.RotationY),
+                MathHelper.ToRadians(projectileType.RotationX),
+                MathHelper.ToRadians(projectileType.RotationZ));
+
+            if (!HasProjectileRotation(projectileType) || spawnActor == null)
+                return localRotation;
+
+            Matrix4x4 attachRelative = GetUserDirectionAttachRotation(spawnActor, attachTransform);
+
+            if (Matrix4x4.Invert(attachRelative, out Matrix4x4 inverseAttachRelative))
+                return attachRelative * localRotation * inverseAttachRelative;
+
+            Log.Add("Could not apply BAC Type 9 User Direction 3 attach-bone rotation because the attach rotation matrix could not be inverted.", LogType.Warning);
+            return Matrix4x4.Identity;
+        }
+
         internal static Matrix4x4 CreateProjectileParentTransform(Actor spawnActor, BAC_Type9 projectileType, Matrix4x4 attachTransform)
         {
-            if (projectileType.SpawnOrientation == SpawnOrientationUserDirectionValue)
+            if (IsUserDirectionSpawnOrientation(projectileType))
                 return GetUserDirectionParentTransform(spawnActor, attachTransform);
 
             if (projectileType.SpawnOrientation != SpawnOrientationDefault)
@@ -230,8 +277,38 @@ namespace XenoKit.Engine.Scripting.BSA
         private static bool ShouldFollowLiveAttachTransform(BAC_Type9 projectileType)
         {
             return projectileType != null &&
-                   (projectileType.SpawnOrientation == SpawnOrientationDefault ||
-                    projectileType.SpawnOrientation == SpawnOrientationUserDirectionValue);
+                   (IsDefaultSpawnOrientation(projectileType) ||
+                    IsUserDirectionSpawnOrientation(projectileType));
+        }
+
+        private static bool IsDefaultSpawnOrientation(BAC_Type9 projectileType)
+        {
+            return projectileType != null && projectileType.SpawnOrientation == SpawnOrientationDefault;
+        }
+
+        private static bool IsUserDirectionSpawnOrientation(BAC_Type9 projectileType)
+        {
+            return IsUserDirection1SpawnOrientation(projectileType) ||
+                   IsUserDirection3SpawnOrientation(projectileType);
+        }
+
+        private static bool IsUserDirection1SpawnOrientation(BAC_Type9 projectileType)
+        {
+            return projectileType != null &&
+                   projectileType.SpawnOrientation == SpawnOrientationUserDirection1;
+        }
+
+        private static bool IsUserDirection3SpawnOrientation(BAC_Type9 projectileType)
+        {
+            return projectileType != null &&
+                   projectileType.SpawnOrientation == SpawnOrientationUserDirectionValue;
+        }
+
+        private static bool HasProjectileRotation(BAC_Type9 projectileType)
+        {
+            return !MathHelpers.FloatEquals(projectileType.RotationX, 0f) ||
+                   !MathHelpers.FloatEquals(projectileType.RotationY, 0f) ||
+                   !MathHelpers.FloatEquals(projectileType.RotationZ, 0f);
         }
 
         private static Matrix4x4 GetProjectileAttachTransform(Actor spawnActor, BAC_Type9 projectileType)
@@ -275,7 +352,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
             Matrix4x4 attachTransform = GetProjectileAttachTransform(attachActor, projectileType);
 
-            if (projectileType.SpawnOrientation == SpawnOrientationUserDirectionValue)
+            if (IsUserDirectionSpawnOrientation(projectileType))
                 return GetCurrentUserDirectionParentTransform(attachTransform);
 
             return CreateProjectileParentTransform(attachActor, projectileType, attachTransform);
@@ -351,7 +428,7 @@ namespace XenoKit.Engine.Scripting.BSA
                     movement.StartIfNeeded();
 
                     if (isAttachedToSource && ShouldDetachFromAttach(movement))
-                        DetachFromSource();
+                        DetachFromSource(frame);
 
                     ApplyMovement(movement, frameStep);
                 }
@@ -360,9 +437,12 @@ namespace XenoKit.Engine.Scripting.BSA
             }
         }
 
-        private void DetachFromSource()
+        private void DetachFromSource(float frame)
         {
-            transform = CreateWorldTransformFromMotion(motionTransform);
+            detachWorldTransform = CreateWorldTransformFromMotion(motionTransform);
+            detachFrame = frame;
+            hasDetachedFromSource = true;
+            transform = detachWorldTransform;
             isAttachedToSource = false;
         }
 
@@ -514,17 +594,20 @@ namespace XenoKit.Engine.Scripting.BSA
             if (!canFollowAttachTransform)
                 return MoveTransform(initialTransform, 0f, frame);
 
-            float detachFrame = GetFirstMovementFrame(frame);
+            if (hasDetachedFromSource && frame >= detachFrame)
+                return MoveTransform(detachWorldTransform, detachFrame, frame);
 
-            if (detachFrame < 0f)
+            float firstMovementFrame = GetFirstMovementFrame(frame);
+
+            if (firstMovementFrame < 0f)
             {
                 Matrix4x4 localMotion = MoveMotionTransform(initialMotionTransform, 0f, frame);
                 return CreateWorldTransformFromMotion(localMotion);
             }
 
-            Matrix4x4 detachMotion = MoveMotionTransform(initialMotionTransform, 0f, detachFrame);
+            Matrix4x4 detachMotion = MoveMotionTransform(initialMotionTransform, 0f, firstMovementFrame);
             Matrix4x4 detachTransform = CreateWorldTransformFromMotion(detachMotion);
-            return MoveTransform(detachTransform, detachFrame, frame);
+            return MoveTransform(detachTransform, firstMovementFrame, frame);
         }
 
         private float GetFirstMovementFrame(float maxFrame)
@@ -579,11 +662,11 @@ namespace XenoKit.Engine.Scripting.BSA
 
         private int GetEndFrame()
         {
-            int lastFrame = expiryFrame;
+            int lastFrame = ShouldUseEntryLifetimeForEndFrame() ? expiryFrame : 1;
 
             foreach (IBsaType type in bsaEntry.IBsaTypes ?? Enumerable.Empty<IBsaType>())
             {
-                if (type is BSA_Type1)
+                if (!ShouldCountTypeForEndFrame(type))
                     continue;
 
                 if (type.Duration == 0)
@@ -592,7 +675,23 @@ namespace XenoKit.Engine.Scripting.BSA
                 lastFrame = Math.Max(lastFrame, (int)type.StartTime + type.Duration);
             }
 
-            return lastFrame;
+            return lastFrame <= 1 ? expiryFrame : lastFrame;
+        }
+
+        private bool ShouldUseEntryLifetimeForEndFrame()
+        {
+            return parent == null || spawnReason != BsaPassReason.SystemPass;
+        }
+
+        private bool ShouldCountTypeForEndFrame(IBsaType type)
+        {
+            if (type is BSA_Type1)
+                return false;
+
+            if (ShouldUseEntryLifetimeForEndFrame())
+                return true;
+
+            return type is BSA_Type3 || type is BSA_Type6;
         }
 
         private void PlayDueEffects(float previousFrame, float targetFrame)
@@ -762,7 +861,7 @@ namespace XenoKit.Engine.Scripting.BSA
                 return;
 
             entry.InitializeIBsaTypes();
-            childProjectiles.Add(new ProjectileInstance(bacInstance, this, actor, attachActor, move, bsaFile, entry, null, transform, passDepth + 1, allowBacConditionPassEntries));
+            childProjectiles.Add(new ProjectileInstance(bacInstance, this, actor, attachActor, move, bsaFile, entry, null, transform, passDepth + 1, allowBacConditionPassEntries, reason));
         }
 
         private bool TryGetPassEntry(ushort entryId, out BSA_Entry entry)
@@ -778,6 +877,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
         private enum BsaPassReason
         {
+            Root,
             Expires,
             ImpactProjectile,
             ImpactEnemy,

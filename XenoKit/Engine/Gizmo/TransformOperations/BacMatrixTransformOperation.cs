@@ -1,8 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using XenoKit.Engine.Scripting.BSA;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.Resource.UndoRedo;
+using SimdMatrix = System.Numerics.Matrix4x4;
 
 namespace XenoKit.Engine.Gizmo.TransformOperations
 {
@@ -68,7 +70,7 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
             Matrix local = Matrix.Identity;
 
             //local *= Matrix.CreateScale(new Vector3(bacMatrix.ScaleX, bacMatrix.ScaleY, bacMatrix.ScaleZ));
-            local *= Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(bacMatrix.RotationX), MathHelper.ToRadians(bacMatrix.RotationY), MathHelper.ToRadians(bacMatrix.RotationZ));
+            local *= GetRotationMatrix(bacMatrix);
             local *= Matrix.CreateTranslation(new Vector3(bacMatrix.PositionX, bacMatrix.PositionY, bacMatrix.PositionZ));
 
             return local;
@@ -86,7 +88,7 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
 
         public override Matrix GetRotationMatrix()
         {
-            return Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(bacMatrix.RotationX), MathHelper.ToRadians(bacMatrix.RotationY), MathHelper.ToRadians(bacMatrix.RotationZ));
+            return GetRotationMatrix(bacMatrix);
         }
 
         public override Vector3 GetRotationAngles()
@@ -113,6 +115,26 @@ namespace XenoKit.Engine.Gizmo.TransformOperations
             bacMatrix.RotationX = newRot.X;
             bacMatrix.RotationY = newRot.Y;
             bacMatrix.RotationZ = newRot.Z;
+        }
+
+        private static Matrix GetRotationMatrix(IBacTypeMatrix bacMatrix)
+        {
+            if (bacMatrix is BAC_Type9 projectileType)
+                return ToXnaMatrix(ProjectileInstance.CreateProjectileRotation(projectileType));
+
+            return Matrix.CreateFromYawPitchRoll(
+                MathHelper.ToRadians(bacMatrix.RotationX),
+                MathHelper.ToRadians(bacMatrix.RotationY),
+                MathHelper.ToRadians(bacMatrix.RotationZ));
+        }
+
+        private static Matrix ToXnaMatrix(SimdMatrix matrix)
+        {
+            return new Matrix(
+                matrix.M11, matrix.M12, matrix.M13, matrix.M14,
+                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
+                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
+                matrix.M41, matrix.M42, matrix.M43, matrix.M44);
         }
 
     }

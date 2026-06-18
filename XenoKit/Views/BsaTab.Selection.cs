@@ -27,6 +27,7 @@ namespace XenoKit.Views
         private void RebuildSubtypeRows()
         {
             object selectedSource = SelectedSubtypeRow?.Source;
+            DisposeSubtypeRows();
             SubtypeRows.Clear();
 
             if (SelectedEntry == null)
@@ -82,20 +83,51 @@ namespace XenoKit.Views
 
         private void SetEntryViewModel(BsaEntryViewModel viewModel)
         {
+            if (EntryViewModel != null)
+                EntryViewModel.EntryChanged -= EntryViewModel_EntryChanged;
+
             EntryViewModel?.Dispose();
             EntryViewModel = viewModel;
+
+            if (EntryViewModel != null)
+                EntryViewModel.EntryChanged += EntryViewModel_EntryChanged;
         }
 
         private void SetTypeViewModel(BsaTypeBaseViewModel viewModel)
         {
             if (TypeViewModel != null)
                 TypeViewModel.TypeChanged -= TypeViewModel_TypeChanged;
+            if (TypeActivationViewModel != null)
+                TypeActivationViewModel.TypeChanged -= TypeViewModel_TypeChanged;
+            if (TypeUnknownViewModel != null)
+                TypeUnknownViewModel.TypeChanged -= TypeViewModel_TypeChanged;
 
             TypeViewModel?.Dispose();
+            TypeActivationViewModel?.Dispose();
+            TypeUnknownViewModel?.Dispose();
             TypeViewModel = viewModel;
+            TypeActivationViewModel = CreateSectionViewModel(viewModel?.SourceType, true, false, false);
+            TypeUnknownViewModel = CreateSectionViewModel(viewModel?.SourceType, false, false, true);
 
             if (TypeViewModel != null)
                 TypeViewModel.TypeChanged += TypeViewModel_TypeChanged;
+            if (TypeActivationViewModel != null)
+                TypeActivationViewModel.TypeChanged += TypeViewModel_TypeChanged;
+            if (TypeUnknownViewModel != null)
+                TypeUnknownViewModel.TypeChanged += TypeViewModel_TypeChanged;
+        }
+
+        private static BsaTypeBaseViewModel CreateSectionViewModel(IBsaType type, bool showActivation, bool showPrimaryFields, bool showUnknownFields)
+        {
+            if (type == null)
+                return null;
+
+            BsaTypeBaseViewModel viewModel = BsaTypeBaseViewModel.Create(type);
+            viewModel.ShowActivation = showActivation;
+            viewModel.ShowPrimaryFields = showPrimaryFields;
+            viewModel.ShowUnknownFields = showUnknownFields;
+            viewModel.RaiseSectionVisibilityProperties();
+            return viewModel;
         }
 
         private void TypeViewModel_TypeChanged(object sender, EventArgs e)
@@ -105,10 +137,28 @@ namespace XenoKit.Views
             PlaySelectedEntryPreview();
         }
 
+        private void EntryViewModel_EntryChanged(object sender, EventArgs e)
+        {
+            RefreshEntryList();
+            PlaySelectedEntryPreview();
+        }
+
         private void SetCollisionViewModel(BsaCollisionViewModel viewModel)
         {
+            if (CollisionViewModel != null)
+                CollisionViewModel.CollisionChanged -= CollisionViewModel_CollisionChanged;
+
             CollisionViewModel?.Dispose();
             CollisionViewModel = viewModel;
+
+            if (CollisionViewModel != null)
+                CollisionViewModel.CollisionChanged += CollisionViewModel_CollisionChanged;
+        }
+
+        private void CollisionViewModel_CollisionChanged(object sender, EventArgs e)
+        {
+            SelectedSubtypeRow?.RefreshTiming();
+            subtypeGrid?.Items.Refresh();
         }
 
         private void SetExpirationViewModel(BsaExpirationViewModel viewModel)

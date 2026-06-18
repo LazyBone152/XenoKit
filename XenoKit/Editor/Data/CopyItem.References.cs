@@ -75,8 +75,9 @@ namespace XenoKit.Editor
 
                 if (projectile != null && !Secondary.BsaEntries.Any(x => (ushort)x.SortID == bsaId))
                 {
-                    Secondary.BsaEntries.Add(projectile);
-                    CopyBsaEntryReferences(projectile, move);
+                    var projectileCopy = projectile.Copy();
+                    Secondary.BsaEntries.Add(projectileCopy);
+                    CopyBsaEntryReferences(projectileCopy, move);
                 }
 
                 return projectile != null;
@@ -92,8 +93,9 @@ namespace XenoKit.Editor
 
                 if (projectile != null && !Secondary.BsaEntries.Any(x => (ushort)x.SortID == bsaId))
                 {
-                    Secondary.BsaEntries.Add(projectile);
-                    CopyBsaEntryReferences(projectile, move);
+                    var projectileCopy = projectile.Copy();
+                    Secondary.BsaEntries.Add(projectileCopy);
+                    CopyBsaEntryReferences(projectileCopy, move);
                 }
 
                 return projectile != null;

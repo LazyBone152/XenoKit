@@ -16,13 +16,18 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Padding" Value="4,0"/>
         </Style>
+        <Style x:Key="BsaEditorTextLabel" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
+        </Style>
         <DataTemplate x:Key="BsaFieldTemplate">
             <Grid Style="{StaticResource BsaEditorField}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="{Binding Name}"/>
+                <TextBlock Style="{StaticResource BsaEditorTextLabel}" Text="{Binding Name}"/>
                 <TextBox Grid.Column="1" Text="{Binding ValueText, UpdateSourceTrigger=LostFocus}">
                     <TextBox.Style>
                         <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
@@ -52,7 +57,8 @@
     </UserControl.Resources>
 
     <StackPanel>
-        <Expander Header="Activation" IsExpanded="True" Margin="0,2,0,0">
+        <Expander Header="Activation" IsExpanded="True" Margin="0,2,0,0"
+                  Visibility="{Binding CanShowActivation, Converter={StaticResource BooleanToVisibilityConverter}}">
             <WrapPanel Margin="0,5">
                 <Grid Style="{StaticResource BsaEditorField}">
                     <Grid.ColumnDefinitions>
@@ -74,7 +80,7 @@
         </Expander>
 
         <Expander Header="{Binding Title}" IsExpanded="True" Margin="0,2,0,0"
-                  Visibility="{Binding HasPrimaryFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+                  Visibility="{Binding CanShowPrimaryFields, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ItemsControl Margin="0,5" ItemsSource="{Binding PrimaryFields}" ItemTemplate="{StaticResource BsaFieldTemplate}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -85,7 +91,7 @@
         </Expander>
 
         <Expander Header="Unknown" IsExpanded="True" Margin="0,2,0,0"
-                  Visibility="{Binding HasUnknownFields, Converter={StaticResource BooleanToVisibilityConverter}}">
+                  Visibility="{Binding CanShowUnknownFields, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ItemsControl Margin="0,5" ItemsSource="{Binding UnknownFields}" ItemTemplate="{StaticResource BsaFieldTemplate}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

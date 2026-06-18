@@ -17,6 +17,7 @@ using XenoKit.Engine.Scripting.BSA;
 using XenoKit.ViewModel.BSA;
 using XenoKit.Windows;
 using Xv2CoreLib;
+using Xv2CoreLib.BAC;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.Resource.UndoRedo;
 
@@ -34,7 +35,7 @@ namespace XenoKit.Views
 
         public RelayCommand PasteEntryCommand => new RelayCommand(PasteEntry, CanPasteEntry);
 
-        public RelayCommand DeleteEntryCommand => new RelayCommand(DeleteEntry, () => SelectedEntry != null);
+        public RelayCommand DeleteEntryCommand => new RelayCommand(DeleteEntry, () => SelectedEntries.Count > 0);
 
         public RelayCommand ReindexCommand => new RelayCommand(ReindexEntries, IsBsaFileLoaded);
 
@@ -110,12 +111,29 @@ namespace XenoKit.Views
         private void DeleteEntry()
         {
             BSA_File file = GetSelectedFile();
-            if (file == null || SelectedEntry == null) return;
+            if (file?.BSA_Entries == null) return;
 
-            BSA_Entry removedEntry = SelectedEntry;
-            UndoManager.Instance.AddUndo(new UndoableListRemove<BSA_Entry>(file.BSA_Entries, removedEntry, "BSA Entry Delete"));
-            file.BSA_Entries.Remove(removedEntry);
+            List<BSA_Entry> entries = SelectedEntries
+                .Where(entry => file.BSA_Entries.Contains(entry))
+                .Distinct()
+                .OrderByDescending(entry => file.BSA_Entries.IndexOf(entry))
+                .ToList();
+
+            if (entries.Count == 0)
+                return;
+
+            List<IUndoRedo> undos = new List<IUndoRedo>();
+            foreach (BSA_Entry entry in entries)
+            {
+                int index = file.BSA_Entries.IndexOf(entry);
+                undos.Add(new UndoableListRemove<BSA_Entry>(file.BSA_Entries, entry, index, "BSA Entry Delete"));
+                file.BSA_Entries.RemoveAt(index);
+            }
+
+            UndoManager.Instance.AddCompositeUndo(undos, entries.Count > 1 ? "BSA Entries Delete" : "BSA Entry Delete");
             SelectedEntry = null;
+            SelectedSubtypeRow = null;
+            RebuildSubtypeRows();
             RefreshEntryList();
         }
 
@@ -134,10 +152,13 @@ namespace XenoKit.Views
             if (result != MessageDialogResult.Affirmative) return;
 
             List<IUndoRedo> undos = new List<IUndoRedo>();
+            Dictionary<int, int> idMap = new Dictionary<int, int>();
+            List<BSA_Entry> sortedEntries = file.BSA_Entries.OrderBy(entry => entry.SortID).ToList();
             int id = 0;
-            foreach (BSA_Entry entry in file.BSA_Entries.OrderBy(entry => entry.SortID).ToList())
+            foreach (BSA_Entry entry in sortedEntries)
             {
                 int oldId = entry.SortID;
+                idMap[oldId] = id;
                 if (oldId != id)
                 {
                     undos.Add(new UndoablePropertyGeneric(nameof(BSA_Entry.SortID), entry, oldId, id, "BSA Entry ID"));
@@ -146,8 +167,101 @@ namespace XenoKit.Views
                 id++;
             }
 
+            foreach (BSA_Entry entry in file.BSA_Entries)
+            {
+                RemapEntryReference(undos, entry, nameof(BSA_Entry.Expires), entry.Expires, idMap);
+                RemapEntryReference(undos, entry, nameof(BSA_Entry.ImpactProjectile), entry.ImpactProjectile, idMap);
+                RemapEntryReference(undos, entry, nameof(BSA_Entry.ImpactEnemy), entry.ImpactEnemy, idMap);
+                RemapEntryReference(undos, entry, nameof(BSA_Entry.ImpactGround), entry.ImpactGround, idMap);
+
+                if (entry.IBsaTypes == null)
+                    entry.InitializeIBsaTypes();
+
+                foreach (BSA_Type0 passEntry in entry.IBsaTypes.OfType<BSA_Type0>())
+                    RemapPassEntryReference(undos, passEntry, idMap);
+            }
+
+            RemapBacProjectileReferences(undos, idMap);
+
             if (undos.Count > 0) UndoManager.Instance.AddCompositeUndo(undos, "BSA Reindex");
             RefreshEntryList();
+            RebuildSubtypeRows();
+            PlaySelectedEntryPreview();
+        }
+
+        private static void RemapEntryReference(List<IUndoRedo> undos, BSA_Entry entry, string propertyName, ushort oldValue, Dictionary<int, int> idMap)
+        {
+            if (oldValue == ushort.MaxValue || !idMap.TryGetValue(oldValue, out int mappedId))
+                return;
+
+            ushort newValue = (ushort)mappedId;
+            if (oldValue == newValue)
+                return;
+
+            undos.Add(new UndoablePropertyGeneric(propertyName, entry, oldValue, newValue, "BSA Entry Reference"));
+            entry.GetType().GetProperty(propertyName).SetValue(entry, newValue, null);
+        }
+
+        private static void RemapPassEntryReference(List<IUndoRedo> undos, BSA_Type0 passEntry, Dictionary<int, int> idMap)
+        {
+            ushort oldValue = passEntry.BSA_EntryID;
+            if (oldValue == ushort.MaxValue || !idMap.TryGetValue(oldValue, out int mappedId))
+                return;
+
+            ushort newValue = (ushort)mappedId;
+            if (oldValue == newValue)
+                return;
+
+            undos.Add(new UndoablePropertyGeneric(nameof(BSA_Type0.BSA_EntryID), passEntry, oldValue, newValue, "BSA Pass Entry Reference"));
+            passEntry.BSA_EntryID = newValue;
+            passEntry.RefreshType();
+        }
+
+        private void RemapBacProjectileReferences(List<IUndoRedo> undos, Dictionary<int, int> idMap)
+        {
+            if (!ReferenceEquals(files.SelectedMove?.Files?.BsaFile, files.SelectedItem?.SelectedBsaFile))
+                return;
+
+            foreach (Xv2File<BAC_File> bacFile in files.SelectedMove?.Files?.BacFiles ?? Enumerable.Empty<Xv2File<BAC_File>>())
+            {
+                foreach (BAC_Entry bacEntry in bacFile.File?.BacEntries ?? Enumerable.Empty<BAC_Entry>())
+                {
+                    if (bacEntry.IBacTypes == null)
+                        bacEntry.InitializeIBacTypes();
+
+                    foreach (BAC_Type9 projectile in bacEntry.IBacTypes.OfType<BAC_Type9>())
+                        RemapBacProjectileReference(undos, projectile, idMap);
+                }
+            }
+        }
+
+        private static void RemapBacProjectileReference(List<IUndoRedo> undos, BAC_Type9 projectile, Dictionary<int, int> idMap)
+        {
+            if (!IsSkillBsaReference(projectile) || !idMap.TryGetValue(projectile.EntryID, out int mappedId))
+                return;
+
+            if (projectile.EntryID == mappedId)
+                return;
+
+            undos.Add(new UndoablePropertyGeneric(nameof(BAC_Type9.EntryID), projectile, projectile.EntryID, mappedId, "BAC Projectile BSA Entry Reference"));
+            projectile.EntryID = mappedId;
+            projectile.RefreshType();
+        }
+
+        private static bool IsSkillBsaReference(BAC_Type9 projectile)
+        {
+            switch (projectile.BsaType)
+            {
+                case BAC_Type9.BsaTypeEnum.AwokenSkill:
+                case BAC_Type9.BsaTypeEnum.SuperSkill:
+                case BAC_Type9.BsaTypeEnum.UltimateSkill:
+                case BAC_Type9.BsaTypeEnum.EvasiveSkill:
+                case BAC_Type9.BsaTypeEnum.KiBlastSkill:
+                case BAC_Type9.BsaTypeEnum.NEW_AwokenSkill:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
     }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.BSA;
-using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.ViewModel.BSA
 {
@@ -73,7 +72,7 @@ namespace XenoKit.ViewModel.BSA
             set
             {
                 ushort newValue = value == Switch.On ? (ushort)1 : (ushort)0;
-                SetHitboxValue(nameof(hitbox.I_04), hitbox.I_04, newValue, "BSA Hitbox Grow Max Bounds");
+                SetBsaValue(nameof(hitbox.I_04), hitbox.I_04, newValue, "BSA Hitbox Grow Max Bounds");
                 RaisePropertyChanged(nameof(GrowMaxBounds));
             }
         }
@@ -99,61 +98,79 @@ namespace XenoKit.ViewModel.BSA
         public float PositionX
         {
             get => hitbox.F_08;
-            set => SetHitboxValue(nameof(hitbox.F_08), hitbox.F_08, value, "BSA Hitbox Position X");
+            set => SetBsaValue(nameof(hitbox.F_08), hitbox.F_08, value, "BSA Hitbox Position X");
         }
 
         public float PositionY
         {
             get => hitbox.F_12;
-            set => SetHitboxValue(nameof(hitbox.F_12), hitbox.F_12, value, "BSA Hitbox Position Y");
+            set => SetBsaValue(nameof(hitbox.F_12), hitbox.F_12, value, "BSA Hitbox Position Y");
         }
 
         public float PositionZ
         {
             get => hitbox.F_16;
-            set => SetHitboxValue(nameof(hitbox.F_16), hitbox.F_16, value, "BSA Hitbox Position Z");
+            set => SetBsaValue(nameof(hitbox.F_16), hitbox.F_16, value, "BSA Hitbox Position Z");
         }
 
         public float Size
         {
             get => hitbox.F_20;
-            set => SetHitboxValue(nameof(hitbox.F_20), hitbox.F_20, value, "BSA Hitbox Scale");
+            set => SetBsaValue(nameof(hitbox.F_20), hitbox.F_20, value, "BSA Hitbox Scale");
         }
 
         public float MaxX
         {
             get => hitbox.F_24;
-            set => SetHitboxValue(nameof(hitbox.F_24), hitbox.F_24, value, "BSA Hitbox Max X");
+            set => SetBsaValue(nameof(hitbox.F_24), hitbox.F_24, value, "BSA Hitbox Max X");
         }
 
         public float MaxY
         {
             get => hitbox.F_28;
-            set => SetHitboxValue(nameof(hitbox.F_28), hitbox.F_28, value, "BSA Hitbox Max Y");
+            set => SetBsaValue(nameof(hitbox.F_28), hitbox.F_28, value, "BSA Hitbox Max Y");
         }
 
         public float MaxZ
         {
             get => hitbox.F_32;
-            set => SetHitboxValue(nameof(hitbox.F_32), hitbox.F_32, value, "BSA Hitbox Max Z");
+            set => SetBsaValue(nameof(hitbox.F_32), hitbox.F_32, value, "BSA Hitbox Max Z");
         }
 
         public float MinX
         {
             get => hitbox.F_36;
-            set => SetHitboxValue(nameof(hitbox.F_36), hitbox.F_36, value, "BSA Hitbox Min X");
+            set => SetBsaValue(nameof(hitbox.F_36), hitbox.F_36, value, "BSA Hitbox Min X");
         }
 
         public float MinY
         {
             get => hitbox.F_40;
-            set => SetHitboxValue(nameof(hitbox.F_40), hitbox.F_40, value, "BSA Hitbox Min Y");
+            set => SetBsaValue(nameof(hitbox.F_40), hitbox.F_40, value, "BSA Hitbox Min Y");
         }
 
         public float MinZ
         {
             get => hitbox.F_44;
-            set => SetHitboxValue(nameof(hitbox.F_44), hitbox.F_44, value, "BSA Hitbox Min Z");
+            set => SetBsaValue(nameof(hitbox.F_44), hitbox.F_44, value, "BSA Hitbox Min Z");
+        }
+
+        public ushort FirstHit
+        {
+            get => hitbox.FirstHit;
+            set => SetBsaValue(nameof(hitbox.FirstHit), hitbox.FirstHit, value, "BSA Hitbox BDM First Hit ID");
+        }
+
+        public ushort MultipleHits
+        {
+            get => hitbox.MultipleHits;
+            set => SetBsaValue(nameof(hitbox.MultipleHits), hitbox.MultipleHits, value, "BSA Hitbox BDM Multiple Hits ID");
+        }
+
+        public ushort LastHit
+        {
+            get => hitbox.LastHit;
+            set => SetBsaValue(nameof(hitbox.LastHit), hitbox.LastHit, value, "BSA Hitbox BDM Last Hit ID");
         }
 
         public BsaType3ViewModel(BSA_Type3 type) : base(type)
@@ -166,20 +183,7 @@ namespace XenoKit.ViewModel.BSA
             if (hitbox.I_00 == newFlags)
                 return;
 
-            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(nameof(hitbox.I_00), hitbox, hitbox.I_00, newFlags, undoName));
-            hitbox.I_00 = newFlags;
-            NotifyTypeChanged();
-        }
-
-        private void SetHitboxValue<T>(string propertyName, T oldValue, T newValue, string undoName)
-        {
-            if (Equals(oldValue, newValue))
-                return;
-
-            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(propertyName, hitbox, oldValue, newValue, undoName));
-            hitbox.GetType().GetProperty(propertyName).SetValue(hitbox, newValue, null);
-            RaisePropertyChanged(string.Empty);
-            NotifyTypeChanged();
+            SetBsaValue(nameof(hitbox.I_00), hitbox.I_00, newFlags, undoName);
         }
 
         private static bool TryParseUshort(string value, out ushort result)

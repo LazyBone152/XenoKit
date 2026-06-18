@@ -44,7 +44,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Label Style="{StaticResource BsaEditorLabel}" Content="Effect ID"/>
-                    <controls:NumericUpDown Grid.Column="1" Value="{Binding EffectID, UpdateSourceTrigger=Default}" Minimum="0" Maximum="4294967295" HideUpDownButtons="True"/>
+                    <controls:NumericUpDown Grid.Column="1" Value="{Binding EffectID, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
                 </Grid>
             </WrapPanel>
         </Expander>

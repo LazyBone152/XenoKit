@@ -71,8 +71,9 @@ namespace XenoKit.Editor
 
             if (entry != null && !Secondary.BsaEntries.Any(x => (ushort)x.SortID == bsaType.BSA_EntryID))
             {
-                Secondary.BsaEntries.Add(entry);
-                CopyBsaEntryReferences(entry, move);
+                var entryCopy = entry.Copy();
+                Secondary.BsaEntries.Add(entryCopy);
+                CopyBsaEntryReferences(entryCopy, move);
             }
 
             if(entry != null)
@@ -116,10 +117,11 @@ namespace XenoKit.Editor
 
             foreach (var bsaEntry in bsaEntries)
             {
-                int oldId = bsaEntry.SortID;
-                int newId = move.Files.BsaFile.File.AddEntry(bsaEntry);
+                var pastedEntry = bsaEntry.Copy();
+                int oldId = pastedEntry.SortID;
+                int newId = move.Files.BsaFile.File.AddEntry(pastedEntry);
                 ReplaceIdReference(ValueReference.InstanceRefType.Bsa, oldId, newId);
-                undos.Add(new UndoableListAdd<BSA_Entry>(move.Files.BsaFile.File.BSA_Entries, bsaEntry));
+                undos.Add(new UndoableListAdd<BSA_Entry>(move.Files.BsaFile.File.BSA_Entries, pastedEntry));
             }
 
             return undos;

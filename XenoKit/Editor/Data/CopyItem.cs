@@ -65,7 +65,7 @@ namespace XenoKit.Editor
             }
 
             //Add bac entry to Primary
-            Primary.BacEntries.AddRange(bacEntries);
+            Primary.BacEntries.AddRange(bacEntries.Select(x => x.Copy()));
 
             RemoveDuplicates();
         }
@@ -79,7 +79,7 @@ namespace XenoKit.Editor
             MoveGuid = move.MoveGuid;
 
             BAC_Entry temp = new BAC_Entry();
-            temp.IBacTypes = new AsyncObservableCollection<IBacType>(bacTypes);
+            temp.IBacTypes = new AsyncObservableCollection<IBacType>(bacTypes.Select(x => (IBacType)x.Copy()));
 
             //Copy references into Secondary
             foreach (var bacEntry in bacTypes)
@@ -102,9 +102,12 @@ namespace XenoKit.Editor
             MoveGuid = move.MoveGuid;
 
             foreach (BSA_Entry bsaEntry in bsaEntries)
-                CopyBsaEntryReferences(bsaEntry, move);
+            {
+                var bsaEntryCopy = bsaEntry.Copy();
+                CopyBsaEntryReferences(bsaEntryCopy, move);
+                Primary.BsaEntries.Add(bsaEntryCopy);
+            }
 
-            Primary.BsaEntries.AddRange(bsaEntries);
             RemoveDuplicates();
         }
 
@@ -117,7 +120,7 @@ namespace XenoKit.Editor
             MoveGuid = move.MoveGuid;
 
             BSA_Entry temp = new BSA_Entry();
-            temp.IBsaTypes = new AsyncObservableCollection<IBsaType>(bsaTypes);
+            temp.IBsaTypes = new AsyncObservableCollection<IBsaType>(bsaTypes.Select(x => (IBsaType)x.Copy()));
 
             CopyBsaEntryReferences(temp, move);
             Primary.BsaEntries.Add(temp);

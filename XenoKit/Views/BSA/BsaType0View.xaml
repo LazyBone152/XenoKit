@@ -43,30 +43,6 @@
                 <Label Style="{StaticResource BsaEditorLabel}" Content="BAC Condition"/>
                 <controls:NumericUpDown Grid.Column="1" StringFormat="0.00#####" Interval="0.05" Value="{Binding BacCondition, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
             </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="I_00"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_00, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-            </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="I_06"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_06, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-            </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="F_12"/>
-                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00#####" Interval="0.05" Value="{Binding F_12, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-            </Grid>
         </WrapPanel>
     </Expander>
 </UserControl>

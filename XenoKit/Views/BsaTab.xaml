@@ -40,7 +40,6 @@
             <Setter Property="CanUserAddRows" Value="False"/>
             <Setter Property="CanUserDeleteRows" Value="False"/>
             <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
             <Setter Property="Margin" Value="5"/>
             <Setter Property="Controls:ControlsHelper.ContentCharacterCasing" Value="Normal"/>
             <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent3}"/>
@@ -121,6 +120,8 @@
                       Grid.Column="0"
                       ItemsSource="{Binding ViewBsaEntries}"
                       SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+                      SelectionMode="Extended"
+                      SelectionUnit="FullRow"
                       PreviewMouseLeftButtonDown="EntryGrid_PreviewMouseLeftButtonDown"
                       PreviewKeyDown="EntryGrid_PreviewKeyDown">
                 <DataGrid.InputBindings>
@@ -130,9 +131,8 @@
                     <KeyBinding Key="Delete" Command="{Binding DeleteEntryCommand}"/>
                 </DataGrid.InputBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding SortID}" Width="55" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding UserDefinedName}" Width="*" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Life" Binding="{Binding I_22}" Width="60" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="ID" Binding="{Binding SortID}" Width="80" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Life" Binding="{Binding I_22}" Width="80" IsReadOnly="True"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -240,7 +240,7 @@
         <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <bsaView:BsaEntryView ViewModel="{Binding DataContext.EntryViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaTypeBaseView ViewModel="{Binding DataContext.TypeBaseViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaTypeBaseView ViewModel="{Binding DataContext.TypeActivationViewModel, ElementName=UserControl}"/>
                 <bsaView:BsaType0View ViewModel="{Binding DataContext.Type0ViewModel, ElementName=UserControl}"/>
                 <bsaView:BsaType1View ViewModel="{Binding DataContext.Type1ViewModel, ElementName=UserControl}"/>
                 <bsaView:BsaType2View ViewModel="{Binding DataContext.Type2ViewModel, ElementName=UserControl}"/>
@@ -253,6 +253,7 @@
                 <bsaView:BsaType12View ViewModel="{Binding DataContext.Type12ViewModel, ElementName=UserControl}"/>
                 <bsaView:BsaType13View ViewModel="{Binding DataContext.Type13ViewModel, ElementName=UserControl}"/>
                 <bsaView:BsaType14View ViewModel="{Binding DataContext.Type14ViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaTypeBaseView ViewModel="{Binding DataContext.TypeUnknownViewModel, ElementName=UserControl}"/>
                 <bsaView:BsaCollisionView ViewModel="{Binding DataContext.CollisionViewModel, ElementName=UserControl}"/>
                 <bsaView:BsaExpirationView ViewModel="{Binding DataContext.ExpirationViewModel, ElementName=UserControl}"/>
             </StackPanel>

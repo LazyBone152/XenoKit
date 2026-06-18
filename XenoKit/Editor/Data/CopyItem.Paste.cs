@@ -31,10 +31,11 @@ namespace XenoKit.Editor
 
             foreach(var bacEntry in Primary.BacEntries[0].IBacTypes)
             {
+                var bacType = (IBacType)bacEntry.Copy();
                 if(ResetTimeLineLayers)
-                    bacEntry.Layer = -1;
+                    bacType.Layer = -1;
 
-                undos.Add(mainEntry.AddEntry(bacEntry));
+                undos.Add(mainEntry.AddEntry(bacType));
                 //mainEntry.IBacTypes.Add(bacEntry);
                 //undos.Add(new UndoableListAdd<IBacType>(mainEntry.IBacTypes, bacEntry));
             }

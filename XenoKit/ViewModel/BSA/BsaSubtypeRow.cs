@@ -10,7 +10,7 @@ namespace XenoKit.ViewModel.BSA
         Expiration
     }
 
-    public class BsaSubtypeRow : INotifyPropertyChanged
+    public class BsaSubtypeRow : INotifyPropertyChanged, System.IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -18,7 +18,7 @@ namespace XenoKit.ViewModel.BSA
         public object Source { get; }
         public string StartTime => Source is IBsaType type ? type.StartTime.ToString() : string.Empty;
         public string Duration => Source is IBsaType type ? type.Duration.ToString() : string.Empty;
-        public string DisplayType => Source is IBsaType type ? BsaTypeNames.GetName(type) : kindDisplayType;
+        public string DisplayType => GetDisplayType();
         public string DisplayName => displayName ?? DisplayType;
         public bool CanMove => Kind == BsaSubtypeKind.TimedType;
         public bool CanCopy => true;
@@ -30,13 +30,14 @@ namespace XenoKit.ViewModel.BSA
         {
             Kind = BsaSubtypeKind.TimedType;
             Source = type;
+            type.PropertyChanged += Type_PropertyChanged;
         }
 
         public BsaSubtypeRow(BSA_Collision collision, int index)
         {
             Kind = BsaSubtypeKind.Collision;
             Source = collision;
-            kindDisplayType = "Collision";
+            kindDisplayType = GetCollisionDisplayType(collision);
             displayName = $"Collision {index}";
         }
 
@@ -55,53 +56,38 @@ namespace XenoKit.ViewModel.BSA
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayType)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
         }
-    }
 
-    public static class BsaTypeNames
-    {
-        public static string GetName(object value)
+        public void Dispose()
         {
-            if (value == null) return string.Empty;
+            if (Source is IBsaType type)
+                type.PropertyChanged -= Type_PropertyChanged;
+        }
 
-            int typeId = GetTypeId(value);
-
-            switch (typeId)
+        private void Type_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IBsaType.StartTime) ||
+                e.PropertyName == nameof(IBsaType.Duration) ||
+                e.PropertyName == nameof(IBsaType.Type) ||
+                string.IsNullOrEmpty(e.PropertyName))
             {
-                case 0:
-                    return "Entry Passing";
-                case 1:
-                    return "Movement";
-                case 2:
-                    return "Type2";
-                case 3:
-                    return "Hitbox";
-                case 4:
-                    return "Deflection";
-                case 6:
-                    return "Effect";
-                case 7:
-                    return "Sound";
-                case 8:
-                    return "Screen Effect";
-                case 10:
-                    return "Unknown 10";
-                case 12:
-                    return "Unknown 12";
-                case 13:
-                    return "Unknown 13";
-                case 14:
-                    return "Unknown 14";
-                default:
-                    return typeId >= 0 ? "Unknown" : value.GetType().Name;
+                RefreshTiming();
             }
         }
 
-        public static int GetTypeId(object value)
+        private string GetDisplayType()
         {
-            string name = value.GetType().Name;
-            const string prefix = "BSA_Type";
-            if (!name.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase)) return -1;
-            return int.TryParse(name.Substring(prefix.Length), out int typeId) ? typeId : -1;
+            if (Source is IBsaType type)
+                return type.Type;
+
+            if (Source is BSA_Collision collision)
+                return GetCollisionDisplayType(collision);
+
+            return kindDisplayType;
+        }
+
+        private static string GetCollisionDisplayType(BSA_Collision collision)
+        {
+            return $"Collision ({collision.EepkType}, {collision.SkillID}, {collision.EffectID})";
         }
     }
 }

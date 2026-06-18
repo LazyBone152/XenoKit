@@ -16,6 +16,7 @@ namespace XenoKit.ViewModel.BSA
     {
         private readonly object source;
         private readonly PropertyInfo property;
+        private readonly Action valueChanged;
 
         public string Name { get; }
         public bool IsEnum => property.PropertyType.IsEnum;
@@ -49,11 +50,12 @@ namespace XenoKit.ViewModel.BSA
             }
         }
 
-        public BsaFieldViewModel(object source, PropertyInfo property, string name)
+        public BsaFieldViewModel(object source, PropertyInfo property, string name, Action valueChanged)
         {
             this.source = source;
             this.property = property;
             Name = name;
+            this.valueChanged = valueChanged;
         }
 
         public void Refresh()
@@ -69,6 +71,7 @@ namespace XenoKit.ViewModel.BSA
 
             UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(property.Name, source, oldValue, value, $"BSA {Name}"));
             property.SetValue(source, value, null);
+            valueChanged?.Invoke();
             Refresh();
         }
 
@@ -143,11 +146,18 @@ namespace XenoKit.ViewModel.BSA
     {
         protected readonly IBsaType type;
 
-        public string Title => BsaTypeNames.GetName(type);
+        public IBsaType SourceType => type;
+        public string Title => type.TypeName;
         public ObservableCollection<BsaFieldViewModel> PrimaryFields { get; }
         public ObservableCollection<BsaFieldViewModel> UnknownFields { get; }
         public bool HasPrimaryFields => PrimaryFields.Count > 0;
         public bool HasUnknownFields => UnknownFields.Count > 0;
+        public bool ShowActivation { get; set; } = true;
+        public bool ShowPrimaryFields { get; set; } = true;
+        public bool ShowUnknownFields { get; set; } = true;
+        public bool CanShowActivation => ShowActivation;
+        public bool CanShowPrimaryFields => ShowPrimaryFields && HasPrimaryFields;
+        public bool CanShowUnknownFields => ShowUnknownFields && HasUnknownFields;
         public bool IsMovement => type is BSA_Type1;
         public bool IsHitbox => type is BSA_Type3;
         public bool IsEffect => type is BSA_Type6;
@@ -160,13 +170,13 @@ namespace XenoKit.ViewModel.BSA
         public ushort StartTime
         {
             get => type.StartTime;
-            set => SetValue(nameof(type.StartTime), type.StartTime, value, "BSA Start Time");
+            set => SetBsaValue(nameof(type.StartTime), type.StartTime, value, "BSA Start Time");
         }
 
         public ushort Duration
         {
             get => type.Duration;
-            set => SetValue(nameof(type.Duration), type.Duration, value, "BSA Duration");
+            set => SetBsaValue(nameof(type.Duration), type.Duration, value, "BSA Duration");
         }
 
         protected BsaTypeBaseViewModel(IBsaType type)
@@ -222,19 +232,43 @@ namespace XenoKit.ViewModel.BSA
 
         private void UndoManager_UndoOrRedoCalled(object sender, EventArgs e)
         {
+            type.RefreshType();
             RaisePropertyChanged(string.Empty);
+            RaisePropertyChanged(nameof(Title));
+            RaiseSectionVisibilityProperties();
             foreach (BsaFieldViewModel field in PrimaryFields.Concat(UnknownFields))
                 field.Refresh();
+            NotifyTypeChanged();
         }
 
-        private void SetValue<T>(string propertyName, T oldValue, T newValue, string undoName)
+        protected void SetBsaValue<T>(string propertyName, T oldValue, T newValue, string undoName)
         {
             if (Equals(oldValue, newValue)) return;
 
             UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(propertyName, type, oldValue, newValue, undoName));
             type.GetType().GetProperty(propertyName).SetValue(type, newValue, null);
+            type.RefreshType();
             RaisePropertyChanged(propertyName);
+            RaisePropertyChanged(string.Empty);
+            RaisePropertyChanged(nameof(Title));
+            RaiseSectionVisibilityProperties();
             NotifyTypeChanged();
+        }
+
+        private void FieldValueChanged()
+        {
+            type.RefreshType();
+            RaisePropertyChanged(string.Empty);
+            RaisePropertyChanged(nameof(Title));
+            RaiseSectionVisibilityProperties();
+            NotifyTypeChanged();
+        }
+
+        public void RaiseSectionVisibilityProperties()
+        {
+            RaisePropertyChanged(nameof(CanShowActivation));
+            RaisePropertyChanged(nameof(CanShowPrimaryFields));
+            RaisePropertyChanged(nameof(CanShowUnknownFields));
         }
 
         private IEnumerable<BsaFieldViewModel> CreateRows(bool primary)
@@ -244,7 +278,7 @@ namespace XenoKit.ViewModel.BSA
                 .Where(CanShowProperty)
                 .Where(property => !TypedFieldNames.Contains(property.Name))
                 .Where(property => primary == PrimaryFieldNames.Contains(property.Name))
-                .Select(property => new BsaFieldViewModel(type, property, GetFieldName(property.Name)));
+                .Select(property => new BsaFieldViewModel(type, property, GetFieldName(property.Name), FieldValueChanged));
         }
 
         private static bool CanShowProperty(PropertyInfo property)

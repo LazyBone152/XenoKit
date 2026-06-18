@@ -8,6 +8,7 @@ namespace XenoKit.ViewModel.BSA
     public class BsaEntryViewModel : ObservableObject, IDisposable
     {
         private readonly BSA_Entry entry;
+        public event EventHandler EntryChanged;
 
         public string UserDefinedName
         {
@@ -128,6 +129,7 @@ namespace XenoKit.ViewModel.BSA
             UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(propertyName, entry, oldValue, newValue, undoName));
             entry.GetType().GetProperty(propertyName).SetValue(entry, newValue, null);
             RaisePropertyChanged(string.Empty);
+            EntryChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private int GetI40(int index)
@@ -148,6 +150,7 @@ namespace XenoKit.ViewModel.BSA
             UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(nameof(entry.I_40), entry, oldValue, newValue, "BSA I_40"));
             entry.I_40 = newValue;
             RaisePropertyChanged(string.Empty);
+            EntryChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void EnsureI40()

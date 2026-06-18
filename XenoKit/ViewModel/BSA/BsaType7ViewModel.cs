@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Xv2CoreLib.BSA;
 
@@ -5,22 +6,30 @@ namespace XenoKit.ViewModel.BSA
 {
     public class BsaType7ViewModel : BsaTypeBaseViewModel
     {
-        private static readonly IReadOnlyCollection<string> PrimaryFieldNamesList = new[]
+        private readonly BSA_Type7 sound;
+        private static readonly IReadOnlyCollection<string> TypedFields = new[]
         {
             nameof(BSA_Type7.AcbType),
             nameof(BSA_Type7.CueId)
         };
-        private static readonly IReadOnlyDictionary<string, string> FieldNames = new Dictionary<string, string>
-        {
-            { nameof(BSA_Type7.AcbType), "ACB Type" },
-            { nameof(BSA_Type7.CueId), "Cue ID" }
-        };
+        protected override IReadOnlyCollection<string> TypedFieldNames => TypedFields;
+        public Array AcbTypes => Enum.GetValues(typeof(AcbType));
 
-        protected override IReadOnlyCollection<string> PrimaryFieldNames => PrimaryFieldNamesList;
-        protected override IReadOnlyDictionary<string, string> KnownFieldNames => FieldNames;
+        public AcbType AcbType
+        {
+            get => sound.AcbType;
+            set => SetBsaValue(nameof(sound.AcbType), sound.AcbType, value, "BSA Sound ACB Type");
+        }
+
+        public ushort CueId
+        {
+            get => sound.CueId;
+            set => SetBsaValue(nameof(sound.CueId), sound.CueId, value, "BSA Sound Cue ID");
+        }
 
         public BsaType7ViewModel(BSA_Type7 type) : base(type)
         {
+            sound = type;
         }
     }
 }

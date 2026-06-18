@@ -34,7 +34,7 @@ namespace XenoKit.ViewModel.BSA
             get => movement.I_00;
             set
             {
-                SetMovementValue(nameof(movement.I_00), movement.I_00, value, "BSA Motion Flags");
+                SetBsaValue(nameof(movement.I_00), movement.I_00, value, "BSA Motion Flags");
                 RaisePropertyChanged(nameof(MotionFlagsHex));
                 RefreshMotionFlags();
             }
@@ -43,61 +43,61 @@ namespace XenoKit.ViewModel.BSA
         public float SpeedX
         {
             get => movement.F_08;
-            set => SetMovementValue(nameof(movement.F_08), movement.F_08, value, "BSA Speed X");
+            set => SetBsaValue(nameof(movement.F_08), movement.F_08, value, "BSA Speed X");
         }
 
         public float SpeedY
         {
             get => movement.F_12;
-            set => SetMovementValue(nameof(movement.F_12), movement.F_12, value, "BSA Speed Y");
+            set => SetBsaValue(nameof(movement.F_12), movement.F_12, value, "BSA Speed Y");
         }
 
         public float SpeedZ
         {
             get => movement.F_04;
-            set => SetMovementValue(nameof(movement.F_04), movement.F_04, value, "BSA Speed Z");
+            set => SetBsaValue(nameof(movement.F_04), movement.F_04, value, "BSA Speed Z");
         }
 
         public float AccelerationX
         {
             get => movement.F_24;
-            set => SetMovementValue(nameof(movement.F_24), movement.F_24, value, "BSA Acceleration X");
+            set => SetBsaValue(nameof(movement.F_24), movement.F_24, value, "BSA Acceleration X");
         }
 
         public float AccelerationY
         {
             get => movement.F_28;
-            set => SetMovementValue(nameof(movement.F_28), movement.F_28, value, "BSA Acceleration Y");
+            set => SetBsaValue(nameof(movement.F_28), movement.F_28, value, "BSA Acceleration Y");
         }
 
         public float AccelerationZ
         {
             get => movement.F_20;
-            set => SetMovementValue(nameof(movement.F_20), movement.F_20, value, "BSA Acceleration Z");
+            set => SetBsaValue(nameof(movement.F_20), movement.F_20, value, "BSA Acceleration Z");
         }
 
         public float FalloffStrength
         {
             get => movement.F_32;
-            set => SetMovementValue(nameof(movement.F_32), movement.F_32, value, "BSA Falloff Strength");
+            set => SetBsaValue(nameof(movement.F_32), movement.F_32, value, "BSA Falloff Strength");
         }
 
         public float SpreadX
         {
             get => movement.F_36;
-            set => SetMovementValue(nameof(movement.F_36), movement.F_36, value, "BSA Spread X");
+            set => SetBsaValue(nameof(movement.F_36), movement.F_36, value, "BSA Spread X");
         }
 
         public float SpreadY
         {
             get => movement.F_40;
-            set => SetMovementValue(nameof(movement.F_40), movement.F_40, value, "BSA Spread Y");
+            set => SetBsaValue(nameof(movement.F_40), movement.F_40, value, "BSA Spread Y");
         }
 
         public float SpreadZ
         {
             get => movement.F_44;
-            set => SetMovementValue(nameof(movement.F_44), movement.F_44, value, "BSA Spread Z");
+            set => SetBsaValue(nameof(movement.F_44), movement.F_44, value, "BSA Spread Z");
         }
 
         public BsaType1ViewModel(BSA_Type1 type) : base(type)
@@ -161,16 +161,6 @@ namespace XenoKit.ViewModel.BSA
             }
         }
 
-        private void SetMovementValue<T>(string propertyName, T oldValue, T newValue, string undoName)
-        {
-            if (Equals(oldValue, newValue))
-                return;
-
-            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(propertyName, movement, oldValue, newValue, undoName));
-            movement.GetType().GetProperty(propertyName).SetValue(movement, newValue, null);
-            RaisePropertyChanged(string.Empty);
-            NotifyTypeChanged();
-        }
     }
 
     public class BsaMotionFlagGroupViewModel

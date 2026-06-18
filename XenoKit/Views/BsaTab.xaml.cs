@@ -36,6 +36,8 @@ namespace XenoKit.Views
         private BsaSubtypeRow selectedSubtypeRow;
         private BsaEntryViewModel entryViewModel;
         private BsaTypeBaseViewModel typeViewModel;
+        private BsaTypeBaseViewModel typeActivationViewModel;
+        private BsaTypeBaseViewModel typeUnknownViewModel;
         private BsaCollisionViewModel collisionViewModel;
         private BsaExpirationViewModel expirationViewModel;
         private ListCollectionView viewBsaEntries;
@@ -55,6 +57,7 @@ namespace XenoKit.Views
         }
 
         public IList Entries => GetSelectedFile()?.BSA_Entries;
+        private IList<BSA_Entry> SelectedEntries => entryGrid?.SelectedItems.Cast<BSA_Entry>().ToList() ?? new List<BSA_Entry>();
         public Visibility BsaFileSelectorVisibility => BsaFiles.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         public Visibility BsaFileTextVisibility => BsaFiles.Count <= 1 ? Visibility.Visible : Visibility.Collapsed;
         public string SelectedBsaFileName => files.SelectedItem?.SelectedBsaFile?.DisplayName ?? string.Empty;
@@ -137,6 +140,26 @@ namespace XenoKit.Views
             }
         }
 
+        public BsaTypeBaseViewModel TypeActivationViewModel
+        {
+            get => typeActivationViewModel;
+            private set
+            {
+                typeActivationViewModel = value;
+                NotifyPropertyChanged(nameof(TypeActivationViewModel));
+            }
+        }
+
+        public BsaTypeBaseViewModel TypeUnknownViewModel
+        {
+            get => typeUnknownViewModel;
+            private set
+            {
+                typeUnknownViewModel = value;
+                NotifyPropertyChanged(nameof(TypeUnknownViewModel));
+            }
+        }
+
         public BsaCollisionViewModel CollisionViewModel
         {
             get => collisionViewModel;
@@ -192,8 +215,9 @@ namespace XenoKit.Views
             SetTypeViewModel(null);
             SetCollisionViewModel(null);
             SetExpirationViewModel(null);
-            EntryViewModel?.Dispose();
-            EntryViewModel = null;
+            SetEntryViewModel(null);
+            DisposeSubtypeRows();
+            SubtypeRows.Clear();
         }
 
         private void SubscribeToEvents()
