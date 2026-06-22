@@ -100,12 +100,16 @@
                     <bcmViews:BcmTreeList.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Add Child" Command="{Binding AddChildCommand}"/>
+                            <MenuItem Header="Insert Child First" Command="{Binding InsertChildCommand}"/>
                             <MenuItem Header="Add Sibling" Command="{Binding AddSiblingCommand}"/>
+                            <MenuItem Header="Insert Sibling Before" Command="{Binding InsertSiblingCommand}"/>
                             <Separator/>
                             <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGestureText="Ctrl+X"/>
                             <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
                             <MenuItem Header="Paste as Child" Command="{Binding PasteAsChildCommand}"/>
+                            <MenuItem Header="Paste as Child First" Command="{Binding PasteAsFirstChildCommand}"/>
                             <MenuItem Header="Paste as Sibling" Command="{Binding PasteAsSiblingCommand}" InputGestureText="Ctrl+V"/>
+                            <MenuItem Header="Paste as Sibling Before" Command="{Binding PasteBeforeSiblingCommand}"/>
                             <Separator/>
                             <MenuItem Header="Duplicate" Command="{Binding DuplicateCommand}"/>
                             <MenuItem Header="Delete" Command="{Binding DeleteCommand}"/>

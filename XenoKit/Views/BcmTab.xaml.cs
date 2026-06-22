@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,6 +23,7 @@ namespace XenoKit.Views
         public Files files => Files.Instance;
 
         private BCM_Entry selectedEntry;
+        private bool isUndoRedoHooked;
 
         public IList<Xv2File<BCM_File>> BcmFiles
         {
@@ -71,13 +73,27 @@ namespace XenoKit.Views
             InputBindings.Add(new KeyBinding(CutCommand, new KeyGesture(Key.X, ModifierKeys.Control)));
             InputBindings.Add(new KeyBinding(DeleteCommand, new KeyGesture(Key.Delete)));
             files.PropertyChanged += Files_PropertyChanged;
-            UndoManager.Instance.UndoOrRedoCalled += UndoManager_UndoOrRedoCalled;
+            Loaded += BcmTab_Loaded;
             Unloaded += BcmTab_Unloaded;
+        }
+
+        private void BcmTab_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!isUndoRedoHooked)
+            {
+                UndoManager.Instance.UndoOrRedoCalled += UndoManager_UndoOrRedoCalled;
+                isUndoRedoHooked = true;
+            }
+
+            RefreshAfterUndoRedo();
         }
 
         private void BcmTab_Unloaded(object sender, RoutedEventArgs e)
         {
+            if (!isUndoRedoHooked) return;
+
             UndoManager.Instance.UndoOrRedoCalled -= UndoManager_UndoOrRedoCalled;
+            isUndoRedoHooked = false;
         }
 
         private void UndoManager_UndoOrRedoCalled(object sender, UndoEventRaisedEventArgs e)
@@ -158,10 +174,7 @@ namespace XenoKit.Views
             if (file == null) return;
 
             BCM_Entry entry = CreateEntry(file);
-            file.BCMEntries.Add(entry);
-            UndoManager.Instance.AddUndo(new UndoableListAdd<BCM_Entry>(file.BCMEntries, entry, "BCM Entry Add"));
-            SelectedEntry = entry;
-            RefreshTree();
+            AddEntryToList(file, file.BCMEntries, entry, file.BCMEntries.Count, "BCM Entry Add");
         }
 
         public RelayCommand AddChildCommand => new RelayCommand(AddChild, () => SelectedEntry != null);
@@ -172,10 +185,18 @@ namespace XenoKit.Views
 
             if (SelectedEntry.BCMEntries == null) SelectedEntry.BCMEntries = new List<BCM_Entry>();
             BCM_Entry entry = CreateEntry(file);
-            SelectedEntry.BCMEntries.Add(entry);
-            UndoManager.Instance.AddUndo(new UndoableListAdd<BCM_Entry>(SelectedEntry.BCMEntries, entry, "BCM Child Add"));
-            SelectedEntry = entry;
-            RefreshTree();
+            AddEntryToList(file, SelectedEntry.BCMEntries, entry, SelectedEntry.BCMEntries.Count, "BCM Child Add");
+        }
+
+        public RelayCommand InsertChildCommand => new RelayCommand(InsertChild, () => SelectedEntry != null);
+        private void InsertChild()
+        {
+            BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
+            if (file == null || SelectedEntry == null) return;
+
+            if (SelectedEntry.BCMEntries == null) SelectedEntry.BCMEntries = new List<BCM_Entry>();
+            BCM_Entry entry = CreateEntry(file);
+            AddEntryToList(file, SelectedEntry.BCMEntries, entry, 0, "BCM Child Insert");
         }
 
         public RelayCommand AddSiblingCommand => new RelayCommand(AddSibling, CanEditSelectedEntry);
@@ -187,10 +208,19 @@ namespace XenoKit.Views
 
             BCM_Entry entry = CreateEntry(file);
             int index = list.IndexOf(SelectedEntry) + 1;
-            list.Insert(index, entry);
-            UndoManager.Instance.AddUndo(new UndoableListAdd<BCM_Entry>(list, entry, "BCM Sibling Add"));
-            SelectedEntry = entry;
-            RefreshTree();
+            AddEntryToList(file, list, entry, index, "BCM Sibling Add");
+        }
+
+        public RelayCommand InsertSiblingCommand => new RelayCommand(InsertSibling, CanEditSelectedEntry);
+        private void InsertSibling()
+        {
+            BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
+            IList<BCM_Entry> list = FindOwnerList(file?.BCMEntries, SelectedEntry);
+            if (file == null || list == null) return;
+
+            BCM_Entry entry = CreateEntry(file);
+            int index = list.IndexOf(SelectedEntry);
+            AddEntryToList(file, list, entry, index, "BCM Sibling Insert");
         }
 
         public RelayCommand DuplicateCommand => new RelayCommand(DuplicateEntry, CanEditSelectedEntry);
@@ -200,13 +230,9 @@ namespace XenoKit.Views
             IList<BCM_Entry> list = FindOwnerList(file?.BCMEntries, SelectedEntry);
             if (file == null || list == null) return;
 
-            BCM_Entry clone = SelectedEntry.Clone();
-            AssignNewIndexes(file, clone);
+            BCM_Entry clone = CloneEntryTree(SelectedEntry);
             int index = list.IndexOf(SelectedEntry) + 1;
-            list.Insert(index, clone);
-            UndoManager.Instance.AddUndo(new UndoableListAdd<BCM_Entry>(list, clone, "BCM Duplicate"));
-            SelectedEntry = clone;
-            RefreshTree();
+            AddEntryToList(file, list, clone, index, "BCM Duplicate");
         }
 
         public RelayCommand CopyCommand => new RelayCommand(CopyEntry, HasSelectedEntries);
@@ -216,7 +242,7 @@ namespace XenoKit.Views
             if (entries.Count == 0) return;
 
             DataObject data = new DataObject();
-            data.SetData(ClipboardConstants.BcmSubtrees_CopyItems, entries.Select(entry => entry.Clone()).ToList());
+            data.SetData(ClipboardConstants.BcmSubtrees_CopyItems, entries.Select(CloneEntryTree).ToList());
             Clipboard.SetDataObject(data);
         }
 
@@ -230,6 +256,8 @@ namespace XenoKit.Views
         public RelayCommand PasteCommand => PasteAsSiblingCommand;
         public RelayCommand PasteAsSiblingCommand => new RelayCommand(PasteAsSibling, CanPasteAsSibling);
         public RelayCommand PasteAsChildCommand => new RelayCommand(PasteAsChild, CanPasteAsChild);
+        public RelayCommand PasteBeforeSiblingCommand => new RelayCommand(PasteBeforeSibling, CanPasteBeforeSibling);
+        public RelayCommand PasteAsFirstChildCommand => new RelayCommand(PasteAsFirstChild, CanPasteAsFirstChild);
 
         private void PasteAsSibling()
         {
@@ -241,16 +269,7 @@ namespace XenoKit.Views
             if (list == null) list = file.BCMEntries;
 
             int index = SelectedEntry != null ? list.IndexOf(SelectedEntry) + 1 : list.Count;
-            List<IUndoRedo> undos = new List<IUndoRedo>();
-            foreach (BCM_Entry clone in clones)
-            {
-                list.Insert(index++, clone);
-                undos.Add(new UndoableListAdd<BCM_Entry>(list, clone, "BCM Paste"));
-            }
-
-            UndoManager.Instance.AddCompositeUndo(undos, "BCM Paste");
-            SelectedEntry = clones.LastOrDefault();
-            RefreshTree();
+            PasteEntriesToList(file, list, clones, index, "BCM Paste");
         }
 
         private void PasteAsChild()
@@ -266,16 +285,34 @@ namespace XenoKit.Views
                 list = SelectedEntry.BCMEntries;
             }
 
-            List<IUndoRedo> undos = new List<IUndoRedo>();
-            foreach (BCM_Entry clone in clones)
+            PasteEntriesToList(file, list, clones, list.Count, "BCM Paste");
+        }
+
+        private void PasteBeforeSibling()
+        {
+            BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
+            List<BCM_Entry> clones = GetClipboardEntries(file);
+            IList<BCM_Entry> list = FindOwnerList(file?.BCMEntries, SelectedEntry);
+            if (file == null || clones.Count == 0 || list == null) return;
+
+            int index = list.IndexOf(SelectedEntry);
+            PasteEntriesToList(file, list, clones, index, "BCM Paste");
+        }
+
+        private void PasteAsFirstChild()
+        {
+            BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
+            List<BCM_Entry> clones = GetClipboardEntries(file);
+            if (file == null || clones.Count == 0) return;
+
+            IList<BCM_Entry> list = SelectedEntry != null ? SelectedEntry.BCMEntries : file.BCMEntries;
+            if (SelectedEntry != null && SelectedEntry.BCMEntries == null)
             {
-                list.Add(clone);
-                undos.Add(new UndoableListAdd<BCM_Entry>(list, clone, "BCM Paste"));
+                SelectedEntry.BCMEntries = new List<BCM_Entry>();
+                list = SelectedEntry.BCMEntries;
             }
 
-            UndoManager.Instance.AddCompositeUndo(undos, "BCM Paste");
-            SelectedEntry = clones.LastOrDefault();
-            RefreshTree();
+            PasteEntriesToList(file, list, clones, 0, "BCM Paste");
         }
 
         private bool CanPasteAsSibling()
@@ -288,21 +325,49 @@ namespace XenoKit.Views
             return files.SelectedItem?.SelectedBcmFile?.File != null && Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
         }
 
+        private bool CanPasteBeforeSibling()
+        {
+            return CanEditSelectedEntry() && Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
+        }
+
+        private bool CanPasteAsFirstChild()
+        {
+            return files.SelectedItem?.SelectedBcmFile?.File != null && Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
+        }
+
         private List<BCM_Entry> GetClipboardEntries(BCM_File file)
         {
             if (file == null || !Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems)) return new List<BCM_Entry>();
 
             List<BCM_Entry> clones = ((List<BCM_Entry>)Clipboard.GetData(ClipboardConstants.BcmSubtrees_CopyItems))?
-                .Select(entry => entry.Clone())
+                .Select(CloneEntryTree)
                 .ToList() ?? new List<BCM_Entry>();
 
-            foreach (BCM_Entry clone in clones)
-            {
-                if (HasIndexCollision(file, clone) || clones.Where(entry => !ReferenceEquals(entry, clone)).SelectMany(entry => Flatten(new[] { entry })).Any(entry => entry.Index == clone.Index))
-                    AssignNewIndexes(file, clone);
-            }
-
             return clones;
+        }
+
+        private BCM_Entry CloneEntryTree(BCM_Entry entry)
+        {
+            if (entry == null) return null;
+
+            BCM_Entry clone = entry.Clone();
+            clone.InsertAt = entry.InsertAt;
+            clone.LoopAsChild = entry.LoopAsChild;
+            clone.LoopAsSibling = entry.LoopAsSibling;
+            clone.BCMEntries = entry.BCMEntries?
+                .Select(CloneEntryTree)
+                .Where(child => child != null)
+                .ToList() ?? new List<BCM_Entry>();
+
+            return clone;
+        }
+
+        private List<BCM_Entry> CloneEntryTreeList(IEnumerable<BCM_Entry> entries)
+        {
+            return entries?
+                .Select(CloneEntryTree)
+                .Where(entry => entry != null)
+                .ToList() ?? new List<BCM_Entry>();
         }
 
         public RelayCommand DeleteCommand => new RelayCommand(DeleteEntry, HasSelectedEntries);
@@ -330,6 +395,7 @@ namespace XenoKit.Views
                 .OrderByDescending(info => info.OwnerList.IndexOf(info.Entry))
                 .ToList();
 
+            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
             List<IUndoRedo> undos = new List<IUndoRedo>();
             foreach (DeleteEntryInfo info in deleteInfos)
             {
@@ -339,7 +405,7 @@ namespace XenoKit.Views
             }
 
             if (undos.Count > 0)
-                UndoManager.Instance.AddCompositeUndo(undos, entries.Count > 1 ? "BCM Entries Delete" : "BCM Entry Delete");
+                AddCompositeUndoWithReindex(file, undos, oldValues, entries.Count > 1 ? "BCM Entries Delete" : "BCM Entry Delete");
 
             SelectedEntry = null;
             RefreshTree();
@@ -398,10 +464,63 @@ namespace XenoKit.Views
             if (result != MessageDialogResult.Affirmative)
                 return;
 
-            List<ReindexSnapshot> oldValues = Flatten(file.BCMEntries)
+            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
+            List<IUndoRedo> undos = ReindexWithUndo(file, oldValues);
+
+            if (undos.Count > 0)
+                UndoManager.Instance.AddCompositeUndo(undos, "BCM Reindex");
+
+            RefreshTree();
+        }
+
+        public RelayCommand CompressCommand => new RelayCommand(Compress, IsBcmFileLoaded);
+        private async void Compress()
+        {
+            BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
+            if (file == null) return;
+
+            List<BCM_Entry> oldEntries = CloneEntryTreeList(file.BCMEntries);
+            int removedCount;
+
+            try
+            {
+                removedCount = file.CompressLoops();
+            }
+            catch (InvalidDataException ex)
+            {
+                await DialogCoordinator.Instance.ShowMessageAsync(this, "BCM Compression", ex.Message, MessageDialogStyle.Affirmative, DialogSettings.Default);
+                return;
+            }
+
+            if (removedCount == 0)
+            {
+                await DialogCoordinator.Instance.ShowMessageAsync(this, "BCM Compression", "No repeated BCM child loops were found.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                return;
+            }
+
+            List<BCM_Entry> newEntries = CloneEntryTreeList(file.BCMEntries);
+            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(nameof(BCM_File.BCMEntries), file, oldEntries, newEntries, "BCM Compress Loops"));
+
+            SelectedEntry = null;
+            RefreshTree();
+
+            await DialogCoordinator.Instance.ShowMessageAsync(this, "BCM Compression", $"Compressed BCM loops. Removed {removedCount} repeated entries.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+        }
+
+        private bool IsBcmFileLoaded()
+        {
+            return files.SelectedItem?.SelectedBcmFile?.File != null;
+        }
+
+        private List<ReindexSnapshot> GetReindexSnapshots(BCM_File file)
+        {
+            return Flatten(file?.BCMEntries)
                 .Select(entry => new ReindexSnapshot(entry, entry.Index, entry.LoopAsChild, entry.LoopAsSibling))
                 .ToList();
+        }
 
+        private List<IUndoRedo> ReindexWithUndo(BCM_File file, List<ReindexSnapshot> oldValues)
+        {
             ReindexFile(file);
 
             List<IUndoRedo> undos = new List<IUndoRedo>();
@@ -412,16 +531,60 @@ namespace XenoKit.Views
                 AddChangedPropertyUndo(undos, oldValue.Entry, nameof(BCM_Entry.LoopAsSibling), oldValue.LoopAsSibling, oldValue.Entry.LoopAsSibling);
             }
 
-            if (undos.Count > 0)
-                UndoManager.Instance.AddCompositeUndo(undos, "BCM Reindex");
+            return undos;
+        }
 
+        private void AddCompositeUndoWithReindex(BCM_File file, List<IUndoRedo> structuralUndos, List<ReindexSnapshot> oldValues, string message)
+        {
+            List<IUndoRedo> undos = structuralUndos ?? new List<IUndoRedo>();
+            undos.AddRange(ReindexWithUndo(file, oldValues));
+
+            if (undos.Count > 0)
+                UndoManager.Instance.AddCompositeUndo(undos, message);
+        }
+
+        private void AddEntryToList(BCM_File file, IList<BCM_Entry> list, BCM_Entry entry, int index, string message)
+        {
+            if (file == null || list == null || entry == null) return;
+
+            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
+            int insertIndex = ClampListIndex(list, index);
+            list.Insert(insertIndex, entry);
+
+            List<IUndoRedo> undos = new List<IUndoRedo>
+            {
+                new UndoableListAdd<BCM_Entry>(list, entry, message)
+            };
+
+            AddCompositeUndoWithReindex(file, undos, oldValues, message);
+            SelectedEntry = entry;
             RefreshTree();
         }
 
-        public RelayCommand CompressCommand => new RelayCommand(Compress, () => false);
-        private async void Compress()
+        private void PasteEntriesToList(BCM_File file, IList<BCM_Entry> list, List<BCM_Entry> clones, int index, string message)
         {
-            await DialogCoordinator.Instance.ShowMessageAsync(this, "BCM Compression", "BCM compression is not available in the current Xv2CoreLib API.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+            if (file == null || list == null || clones == null || clones.Count == 0) return;
+
+            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
+            int insertIndex = ClampListIndex(list, index);
+            List<IUndoRedo> undos = new List<IUndoRedo>();
+
+            foreach (BCM_Entry clone in clones)
+            {
+                list.Insert(insertIndex++, clone);
+                undos.Add(new UndoableListAdd<BCM_Entry>(list, clone, message));
+            }
+
+            AddCompositeUndoWithReindex(file, undos, oldValues, message);
+            SelectedEntry = clones.LastOrDefault();
+            RefreshTree();
+        }
+
+        private int ClampListIndex(IList<BCM_Entry> list, int index)
+        {
+            if (index < 0) return 0;
+            if (index > list.Count) return list.Count;
+            return index;
         }
 
         private void ReindexFile(BCM_File file)
@@ -466,21 +629,6 @@ namespace XenoKit.Views
             int next = 0;
             while (used.Contains(next)) next++;
             return next;
-        }
-
-        private void AssignNewIndexes(BCM_File file, BCM_Entry entry)
-        {
-            entry.Index = GetNextIndex(file).ToString();
-            if (entry.BCMEntries == null) return;
-
-            foreach (BCM_Entry child in entry.BCMEntries)
-                AssignNewIndexes(file, child);
-        }
-
-        private bool HasIndexCollision(BCM_File file, BCM_Entry entry)
-        {
-            HashSet<string> usedIndexes = new HashSet<string>(Flatten(file.BCMEntries).Select(x => x.Index));
-            return Flatten(new[] { entry }).Any(x => usedIndexes.Contains(x.Index));
         }
 
         private IEnumerable<BCM_Entry> Flatten(IEnumerable<BCM_Entry> entries)
