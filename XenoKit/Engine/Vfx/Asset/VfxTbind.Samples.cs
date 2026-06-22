@@ -310,7 +310,6 @@ namespace XenoKit.Engine.Vfx.Asset
             for (int i = 0; i < visibleSegments.Count; i++)
             {
                 visibleSegments[i].U = i / maxIndex;
-                visibleSegments[i].NormalizedTrailPosition = i / maxIndex;
             }
         }
 

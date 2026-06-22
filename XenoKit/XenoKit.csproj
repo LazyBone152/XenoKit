@@ -647,6 +647,7 @@
     <Compile Include="Engine\Vfx\VfxEffect.cs" />
     <Compile Include="Engine\Vfx\VfxManager.cs" />
     <Compile Include="Engine\Vfx\VfxPreview.cs" />
+    <Compile Include="Engine\Vfx\VfxRotation.cs" />
     <Compile Include="Engine\View\CameraAnimationInstance.cs" />
     <Compile Include="Helper\Find.cs" />
     <Compile Include="Helper\ViewHelpers.cs" />

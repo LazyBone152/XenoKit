@@ -65,6 +65,115 @@ namespace XenoKit.Engine.Vfx.Shape
             return 4;
         }
 
+        private static List<EffectShapeSegment> BuildPathProfileRows(IList<EffectShapeSegment> samples, int pathProfileCount, int maxRenderSections, List<EffectShapeSegment> scratch)
+        {
+            if (samples.Count < 2 || pathProfileCount <= 1)
+                return ApplyRenderBudget(samples, maxRenderSections, scratch);
+
+            float firstPosition = Math.Min(samples[0].NormalizedTrailPosition, samples[samples.Count - 1].NormalizedTrailPosition);
+            float lastPosition = Math.Max(samples[0].NormalizedTrailPosition, samples[samples.Count - 1].NormalizedTrailPosition);
+            List<float> rowPositions = new List<float>(samples.Count + pathProfileCount);
+
+            for (int i = 0; i < samples.Count; i++)
+                AddPathProfileRowPosition(rowPositions, samples[i].NormalizedTrailPosition);
+
+            for (int i = 0; i < pathProfileCount; i++)
+            {
+                float pathPosition = i / (float)(pathProfileCount - 1);
+
+                if (pathPosition >= firstPosition - 0.0001f && pathPosition <= lastPosition + 0.0001f)
+                    AddPathProfileRowPosition(rowPositions, pathPosition);
+            }
+
+            rowPositions.Sort();
+
+            scratch.Clear();
+
+            if (scratch.Capacity < rowPositions.Count)
+                scratch.Capacity = rowPositions.Count;
+
+            float previousPosition = -1f;
+
+            for (int i = 0; i < rowPositions.Count; i++)
+            {
+                float rowPosition = MathHelper.Clamp(rowPositions[i], 0f, 1f);
+
+                if (i > 0 && Math.Abs(rowPosition - previousPosition) <= 0.0001f)
+                    continue;
+
+                scratch.Add(InterpolateTrailSampleAtPosition(samples, rowPosition));
+                previousPosition = rowPosition;
+            }
+
+            CapInPlace(scratch, maxRenderSections);
+            return scratch;
+        }
+
+        private static void AddPathProfileRowPosition(List<float> rowPositions, float position)
+        {
+            rowPositions.Add(MathHelper.Clamp(position, 0f, 1f));
+        }
+
+        private static EffectShapeSegment InterpolateTrailSampleAtPosition(IList<EffectShapeSegment> samples, float normalizedPosition)
+        {
+            float clampedPosition = MathHelper.Clamp(normalizedPosition, 0f, 1f);
+
+            if (clampedPosition <= samples[0].NormalizedTrailPosition)
+                return CreatePathProfileRow(samples[0], clampedPosition);
+
+            int lastIndex = samples.Count - 1;
+
+            if (clampedPosition >= samples[lastIndex].NormalizedTrailPosition)
+                return CreatePathProfileRow(samples[lastIndex], clampedPosition);
+
+            for (int i = 0; i < lastIndex; i++)
+            {
+                EffectShapeSegment current = samples[i];
+                EffectShapeSegment next = samples[i + 1];
+                float currentPosition = current.NormalizedTrailPosition;
+                float nextPosition = next.NormalizedTrailPosition;
+
+                if (clampedPosition < currentPosition || clampedPosition > nextPosition)
+                    continue;
+
+                if (Math.Abs(nextPosition - currentPosition) <= 0.0001f)
+                    return CreatePathProfileRow(current, clampedPosition);
+
+                EffectShapeSegment previous = samples[Math.Max(0, i - 1)];
+                EffectShapeSegment after = samples[Math.Min(lastIndex, i + 2)];
+                float factor = (clampedPosition - currentPosition) / (nextPosition - currentPosition);
+                return CreatePathProfileRow(InterpolateTrailSample(previous, current, next, after, factor), clampedPosition);
+            }
+
+            return CreatePathProfileRow(samples[lastIndex], clampedPosition);
+        }
+
+        private static EffectShapeSegment CreatePathProfileRow(EffectShapeSegment sample, float normalizedPosition)
+        {
+            return new EffectShapeSegment
+            {
+                Transform = sample.Transform,
+                Age = sample.Age,
+                CreatedFrame = sample.CreatedFrame,
+                ExpireFrame = sample.ExpireFrame,
+                Life = sample.Life,
+                Scale = sample.Scale,
+                U = normalizedPosition,
+                V = sample.V,
+                UvBaseU = sample.UvBaseU,
+                UvBaseV = sample.UvBaseV,
+                NormalizedTrailPosition = normalizedPosition,
+                DistanceFromTail = sample.DistanceFromTail,
+                DistanceFromHead = sample.DistanceFromHead,
+                TrailLength = sample.TrailLength,
+                AlphaScale = sample.AlphaScale,
+                IsBootstrapSeed = sample.IsBootstrapSeed,
+                IsRenderOnlyHead = sample.IsRenderOnlyHead,
+                PrimaryColor = sample.PrimaryColor,
+                SecondaryColor = sample.SecondaryColor
+            };
+        }
+
         private static List<EffectShapeSegment> ApplyRenderBudget(IList<EffectShapeSegment> samples, int maxRenderSections, List<EffectShapeSegment> scratch)
         {
             int maxSamples = Math.Max(2, maxRenderSections + 1);
@@ -225,6 +334,32 @@ namespace XenoKit.Engine.Vfx.Shape
             };
         }
 
+        private static EffectShapeSegment ApplyPathScale(EffectShapeSegment segment, float normalizedPosition, float pathScale)
+        {
+            return new EffectShapeSegment
+            {
+                Transform = segment.Transform,
+                Age = segment.Age,
+                CreatedFrame = segment.CreatedFrame,
+                ExpireFrame = segment.ExpireFrame,
+                Life = segment.Life,
+                Scale = pathScale,
+                U = segment.U,
+                V = segment.V,
+                UvBaseU = segment.UvBaseU,
+                UvBaseV = segment.UvBaseV,
+                NormalizedTrailPosition = normalizedPosition,
+                DistanceFromTail = segment.DistanceFromTail,
+                DistanceFromHead = segment.DistanceFromHead,
+                TrailLength = segment.TrailLength,
+                AlphaScale = segment.AlphaScale,
+                IsBootstrapSeed = segment.IsBootstrapSeed,
+                IsRenderOnlyHead = segment.IsRenderOnlyHead,
+                PrimaryColor = segment.PrimaryColor,
+                SecondaryColor = segment.SecondaryColor
+            };
+        }
+
         private static EffectPathPoint[] GetPathPoints(IList<EffectPathPoint> pathProfile, IList<float> pathPositions)
         {
             EffectPathPoint[] pathPoints = new EffectPathPoint[pathPositions.Count];
@@ -333,6 +468,14 @@ namespace XenoKit.Engine.Vfx.Shape
                 return rowFrame.Center + (rowFrame.WidthAxis * point.X * scale);
 
             return rowFrame.Center + (rowFrame.WidthAxis * point.X * scale) + (rowFrame.HeightAxis * point.Y * scale);
+        }
+
+        private static SimdVector3 GetPathWidthPoint(EffectShapePoint point, float scale, EffectPathPoint path, Matrix4x4 transform)
+        {
+            SimdVector3 basePoint = SimdVector3.Transform(new SimdVector3(0f, point.Y * scale, 0f), transform);
+            SimdVector3 offsetPoint = SimdVector3.Transform(new SimdVector3(path.Offset2, (point.Y * scale) + path.Offset, 0f), transform);
+            float factor = MathHelper.Clamp(point.X + 0.5f, 0f, 1f);
+            return SimdVector3.Lerp(basePoint, offsetPoint, factor);
         }
 
         private static SimdVector3 NormalizeOrFallback(SimdVector3 value, SimdVector3 fallback)

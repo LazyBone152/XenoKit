@@ -20,6 +20,7 @@ namespace XenoKit.Engine.Vfx.Asset
         protected readonly bool SpawnedByProjectile;
 
         protected virtual bool FinishAnimationBeforeTerminating => false;
+        protected SimdVector3 BoneDirectionSourceAxis = SimdVector3.UnitY;
         private int BoneIdx = -1;
         public float Scale { get; protected set; } = -1f;
         private Matrix4x4 BacSpawnSource;
@@ -61,10 +62,24 @@ namespace XenoKit.Engine.Vfx.Asset
                 BoneIdx = Actor.Skeleton.GetBoneIndex(EffectPart.ESK, true);
             }
 
+            //Apply CurrentRotation, if enabled
+            if (EffectPart.EnableRotationValues)
+            {
+                float rotX = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationX_Min, EffectPart.RotationX_Max));
+                float rotY = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationY_Min, EffectPart.RotationY_Max));
+                float rotZ = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationZ_Min, EffectPart.RotationZ_Max));
+
+                CurrentRotation = VfxRotation.Create(rotX, rotY, rotZ);
+            }
+            else
+            {
+                CurrentRotation = Matrix4x4.Identity;
+            }
+
             //Set Transform to selected bone if on bone attachment, else use the StartingTransform (from BAC)
             if (EffectPart.AttachementType == EffectPart.Attachment.Bone && !UsesExternalSpawn())
             {
-                Transform = BoneIdx != -1 && Actor != null ? Actor.GetAbsoluteBoneMatrix(BoneIdx) : Matrix4x4.Identity;
+                Transform = BoneIdx != -1 && Actor != null ? GetBoneAttachTransform() : Matrix4x4.Identity;
             }
             else
             {
@@ -76,21 +91,7 @@ namespace XenoKit.Engine.Vfx.Asset
             InitialRotation = Transform * InitialPosition.Invert();
 
             //Apply Initial Position XYZ offsets
-            Transform *= Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
-
-            //Apply CurrentRotation, if enabled
-            if (EffectPart.EnableRotationValues)
-            {
-                float rotX = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationX_Min, EffectPart.RotationX_Max));
-                float rotY = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationY_Min, EffectPart.RotationY_Max));
-                float rotZ = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationZ_Min, EffectPart.RotationZ_Max));
-
-                CurrentRotation = Matrix4x4.CreateFromYawPitchRoll(rotX, rotY, rotZ);
-            }
-            else
-            {
-                CurrentRotation = Matrix4x4.Identity;
-            }
+            Transform = Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ)) * Transform;
 
             Scale = Xv2CoreLib.Random.Range(EffectPart.ScaleMin, EffectPart.ScaleMax);
 
@@ -155,24 +156,27 @@ namespace XenoKit.Engine.Vfx.Asset
 
             if(Actor != null && BoneIdx != -1 && EffectPart.AttachementType == EffectPart.Attachment.Bone && !UsesExternalSpawn())
             {
-                //TODO: implement BoneDirection
+                Matrix4x4 attachTransform = GetBoneAttachTransform();
+                Matrix4x4 offset = Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
+                Matrix4x4 attachPosition = Matrix4x4.CreateTranslation(attachTransform.Translation);
+                Matrix4x4 attachRotation = attachTransform * MathHelpers.Invert(attachPosition);
 
                 if (EffectPart.PositionUpdate && EffectPart.RotateUpdate)
                 {
-                    Transform = Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ)) * Actor.GetAbsoluteBoneMatrix(BoneIdx);
+                    Transform = offset * attachTransform;
                 }
                 else if (EffectPart.PositionUpdate)
                 {
-                    Transform = InitialRotation * Matrix4x4.CreateTranslation(Actor.GetAbsoluteBoneMatrix(BoneIdx).Translation) * Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
+                    Transform = InitialRotation * attachPosition * offset;
                 }
                 else if (EffectPart.RotateUpdate)
                 {
-                    Transform = Actor.GetAbsoluteBoneMatrix(BoneIdx) * MathHelpers.Invert(Matrix4x4.CreateTranslation(Actor.GetAbsoluteBoneMatrix(BoneIdx).Translation)) * InitialPosition * Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ));
+                    Transform = attachRotation * InitialPosition * offset;
                 }
                 else
                 {
                     //Use starting position and rotation
-                    Transform = Matrix4x4.CreateTranslation(new SimdVector3(EffectPart.PositionX, EffectPart.PositionY, EffectPart.PositionZ)) * InitialPosition * InitialRotation;
+                    Transform = offset * InitialRotation * InitialPosition;
                 }
             }
             else if(UsesExternalSpawn())
@@ -215,6 +219,103 @@ namespace XenoKit.Engine.Vfx.Asset
             return EffectPart.AttachementType == EffectPart.Attachment.External ||
                    (EffectPart.AttachementType == EffectPart.Attachment.Bone && string.Equals(EffectPart.ESK, "TRS", StringComparison.OrdinalIgnoreCase)) ||
                    (SpawnedByProjectile && string.IsNullOrWhiteSpace(EffectPart.ESK));
+        }
+
+        private Matrix4x4 GetBoneAttachTransform()
+        {
+            Matrix4x4 attachTransform = Actor.GetAbsoluteBoneMatrix(BoneIdx);
+
+            if (!EffectPart.UseBoneDirection)
+                return attachTransform;
+
+            int targetBoneIndex = GetBoneDirectionTargetIndex();
+
+            if (targetBoneIndex == -1)
+                return attachTransform;
+
+            return CreateBoneDirectionTransform(attachTransform, Actor.GetAbsoluteBoneMatrix(targetBoneIndex), GetBoneDirectionSourceAxis());
+        }
+
+        private SimdVector3 GetBoneDirectionSourceAxis()
+        {
+            SimdVector3 sourceAxis = BoneDirectionSourceAxis;
+
+            if (sourceAxis.LengthSquared() < 0.000001f)
+                sourceAxis = SimdVector3.UnitY;
+
+            sourceAxis = SimdVector3.Normalize(sourceAxis);
+            sourceAxis = SimdVector3.TransformNormal(sourceAxis, CurrentRotation);
+
+            if (sourceAxis.LengthSquared() < 0.000001f)
+                return SimdVector3.UnitY;
+
+            return SimdVector3.Normalize(sourceAxis);
+        }
+
+        private int GetBoneDirectionTargetIndex()
+        {
+            string targetBoneName = null;
+
+            switch (EffectPart.ESK)
+            {
+                case string boneName when string.Equals(boneName, "b_R_Arm2", StringComparison.OrdinalIgnoreCase):
+                    targetBoneName = "b_R_Hand";
+                    break;
+                case string boneName when string.Equals(boneName, "b_L_Arm2", StringComparison.OrdinalIgnoreCase):
+                    targetBoneName = "b_L_Hand";
+                    break;
+                case string boneName when string.Equals(boneName, "b_R_Leg2", StringComparison.OrdinalIgnoreCase):
+                    targetBoneName = "b_R_Foot";
+                    break;
+                case string boneName when string.Equals(boneName, "b_L_Leg2", StringComparison.OrdinalIgnoreCase):
+                    targetBoneName = "b_L_Foot";
+                    break;
+            }
+
+            int targetBoneIndex = !string.IsNullOrWhiteSpace(targetBoneName)
+                ? Actor.Skeleton.GetBoneIndex(targetBoneName, true)
+                : -1;
+
+            if (targetBoneIndex != -1)
+                return targetBoneIndex;
+
+            for (int i = 0; i < Actor.Skeleton.Bones.Length; i++)
+            {
+                if (Actor.Skeleton.Bones[i].ParentIndex == BoneIdx)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private static Matrix4x4 CreateBoneDirectionTransform(Matrix4x4 startBone, Matrix4x4 endBone, SimdVector3 sourceAxis)
+        {
+            SimdVector3 start = startBone.Translation;
+            SimdVector3 direction = endBone.Translation - start;
+
+            if (direction.LengthSquared() < 0.000001f)
+                return startBone;
+
+            Matrix4x4 startPosition = Matrix4x4.CreateTranslation(start);
+            Matrix4x4 startRotation = startBone * MathHelpers.Invert(startPosition);
+
+            SimdVector3 targetY = SimdVector3.Normalize(direction);
+            SimdVector3 currentDirection = SimdVector3.Normalize(SimdVector3.TransformNormal(sourceAxis, startRotation));
+            float dot = MathHelper.Clamp(SimdVector3.Dot(currentDirection, targetY), -1f, 1f);
+
+            if (dot > 0.9999f)
+                return startRotation * startPosition;
+
+            SimdVector3 axis = SimdVector3.Cross(currentDirection, targetY);
+
+            if (axis.LengthSquared() < 0.000001f)
+                axis = SimdVector3.Cross(currentDirection, SimdVector3.UnitX);
+
+            if (axis.LengthSquared() < 0.000001f)
+                axis = SimdVector3.Cross(currentDirection, SimdVector3.UnitZ);
+
+            Matrix4x4 aimRotation = Matrix4x4.CreateFromAxisAngle(SimdVector3.Normalize(axis), (float)System.Math.Acos(dot));
+            return startRotation * aimRotation * startPosition;
         }
 
         public virtual void Simulate()

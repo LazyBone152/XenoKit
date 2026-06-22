@@ -34,6 +34,7 @@ namespace XenoKit.Engine.Rendering
             get
             {
                 if (EmissionData?.Material == null) return 0;
+                if (ParticleEmissionBase.UsesSubtractiveMaterial(EmissionData.Material)) return 0;
                 if (EmissionData.Material.MatParam.LowRez == 1) return 1;
                 if (EmissionData.Material.MatParam.LowRezSmoke == 1) return 2;
                 return 0;

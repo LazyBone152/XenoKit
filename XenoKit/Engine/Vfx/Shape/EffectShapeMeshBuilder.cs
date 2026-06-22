@@ -146,23 +146,27 @@ namespace XenoKit.Engine.Vfx.Shape
             return new EffectShapeMeshData(vertices.ToArray(), null, PrimitiveType.TriangleStrip, Math.Max(0, vertices.Count - 2));
         }
 
-        internal static EffectShapeMeshData BuildTbindTrailMesh(IList<EffectShapePoint> shape, IList<EffectShapeSegment> samples, IList<EffectPathPoint> pathProfile, float retractionProgress, int maxRenderSections, bool autoOrientation, SimdVector3 cameraViewForward, float uvScrollU, float uvScrollV, float uvStepU, float uvStepV, List<EffectShapeSegment> profiledScratch, List<EffectShapeSegment> meshScratch)
+        internal static EffectShapeMeshData BuildTbindTrailMesh(IList<EffectShapePoint> shape, IList<EffectShapeSegment> samples, IList<EffectPathPoint> pathProfile, float retractionProgress, int maxRenderSections, bool autoOrientation, bool usePathOffsetAsWidth, SimdVector3 cameraViewForward, float uvScrollU, float uvScrollV, float uvStepU, float uvStepV, List<EffectShapeSegment> profiledScratch, List<EffectShapeSegment> meshScratch)
         {
             if (shape == null || shape.Count < 2 || samples == null || samples.Count < 2)
                 return CreateEmptyTbindMesh();
 
-            List<EffectShapeSegment> cappedSamples = ApplyRenderBudget(samples, maxRenderSections, profiledScratch);
+            List<EffectShapeSegment> baseRows = pathProfile != null && pathProfile.Count > 1
+                ? BuildPathProfileRows(samples, pathProfile.Count, maxRenderSections, profiledScratch)
+                : ApplyRenderBudget(samples, maxRenderSections, profiledScratch);
             List<EffectShapeSegment> profiledSamples = meshScratch;
-            float[] pathPositions = GetEffectivePathPositions(cappedSamples, retractionProgress);
-            float[] pathScales = GetPathScales(cappedSamples, pathProfile, pathPositions);
+            float[] pathPositions = GetEffectivePathPositions(baseRows, retractionProgress);
+            float[] pathScales = GetPathScales(baseRows, pathProfile, pathPositions);
             EffectPathPoint[] pathPoints = GetPathPoints(pathProfile, pathPositions);
 
             profiledSamples.Clear();
 
-            for (int i = 0; i < cappedSamples.Count; i++)
+            for (int i = 0; i < baseRows.Count; i++)
             {
-                EffectShapeSegment sample = cappedSamples[i];
-                profiledSamples.Add(ApplyInterpolatedPathProfile(sample, pathPoints[i], pathPositions[i], pathScales[i]));
+                EffectShapeSegment sample = baseRows[i];
+                profiledSamples.Add(usePathOffsetAsWidth
+                    ? ApplyPathScale(sample, pathPositions[i], pathScales[i])
+                    : ApplyInterpolatedPathProfile(sample, pathPoints[i], pathPositions[i], pathScales[i]));
             }
 
             SetTrailDistances(profiledSamples);
@@ -187,7 +191,12 @@ namespace XenoKit.Engine.Vfx.Shape
                     Vector2 uv = GetTbindGridUv(profiledSamples[0], row, rowIndex, rowCount, columnIndex, columnCount, uvScrollU, uvScrollV, uvStepU, uvStepV);
                     Color color = GetTbindColumnColor(row, columnIndex, columnCount);
 
-                    if (autoOrientation)
+                    if (usePathOffsetAsWidth && columnCount == 2)
+                    {
+                        SimdVector3 point = GetPathWidthPoint(shape[columnIndex], row.Scale, pathPoints[rowIndex], row.Transform);
+                        vertices[vertexIndex] = CreateWorldVertex(point, color, uv.X, uv.Y);
+                    }
+                    else if (autoOrientation)
                     {
                         SimdVector3 point = GetAutoOrientedPoint(shape[columnIndex], row.Scale, columnIndex, columnCount, rowFrames[rowIndex]);
                         vertices[vertexIndex] = CreateWorldVertex(point, color, uv.X, uv.Y);

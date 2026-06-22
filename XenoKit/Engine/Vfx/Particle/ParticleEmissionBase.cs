@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using XenoKit.Editor;
+using XenoKit.Engine.Shader;
 using Xv2CoreLib;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EMP_NEW;
@@ -42,6 +43,7 @@ namespace XenoKit.Engine.Vfx.Particle
             get
             {
                 if (EmissionData?.Material == null) return 0;
+                if (UsesSubtractiveMaterial(EmissionData.Material)) return 0;
                 if (EmissionData.Material.MatParam.LowRez == 1) return 1;
                 if (EmissionData.Material.MatParam.LowRezSmoke == 1) return 2;
                 return 0;
@@ -139,6 +141,13 @@ namespace XenoKit.Engine.Vfx.Particle
             }
         }
 
+        internal static bool UsesSubtractiveMaterial(Xv2ShaderEffect material)
+        {
+            return material?.MatParam != null &&
+                   material.MatParam.AlphaBlend == 1 &&
+                   material.MatParam.AlphaBlendType == 2;
+        }
+
         protected Matrix4x4 GetRotationAxisWorld(bool isRotPerSecond)
         {
             Matrix4x4 attachBone = GetAttachmentBone();
@@ -154,7 +163,7 @@ namespace XenoKit.Engine.Vfx.Particle
             if ((Node.NodeFlags2 & NodeFlags2.RandomUpVector) == NodeFlags2.RandomUpVector)
             {
                 rotAxis = new SimdVector3(RandomRotX + Node.EmissionNode.RotationAxis.X, RandomRotY + Node.EmissionNode.RotationAxis.Y, RandomRotZ + Node.EmissionNode.RotationAxis.Z) * rotAmount;
-                return Matrix4x4.CreateFromYawPitchRoll(rotAxis.X, rotAxis.Y, rotAxis.Z) * Rotation * world;
+                return VfxRotation.Create(rotAxis.X, rotAxis.Y, rotAxis.Z) * Rotation * world;
             }
             else
             {

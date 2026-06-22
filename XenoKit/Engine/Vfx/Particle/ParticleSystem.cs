@@ -1,8 +1,10 @@
 ﻿using System;
+using Microsoft.Xna.Framework;
 using Xv2CoreLib.EMP_NEW;
 using Xv2CoreLib.EEPK;
 using XenoKit.Engine.Vfx.Asset;
 using Matrix4x4 = System.Numerics.Matrix4x4;
+using SimdVector3 = System.Numerics.Vector3;
 
 namespace XenoKit.Engine.Vfx.Particle
 {
@@ -28,6 +30,8 @@ namespace XenoKit.Engine.Vfx.Particle
             Effect = new WeakReference(effect);
             EmpFile = empFile;
             EmpFile.PropertyChanged += EmpFile_PropertyChanged;
+            BoneDirectionSourceAxis = GetEmpRootVelocityAxis(EmpFile);
+            Initialize();
             InitializeParticleSystem();
         }
 
@@ -41,6 +45,38 @@ namespace XenoKit.Engine.Vfx.Particle
             AttachmentBone = GetAdjustedTransform();
             RootNode = new ParticleRootNode(EmpFile, this, EffectPart);
             RootNode.Play();
+        }
+
+        private static SimdVector3 GetEmpRootVelocityAxis(EMP_File empFile)
+        {
+            if (empFile?.ParticleNodes == null || empFile.ParticleNodes.Count == 0)
+                return SimdVector3.UnitY;
+
+            SimdVector3 axisSum = SimdVector3.Zero;
+
+            foreach (ParticleNode node in empFile.ParticleNodes)
+            {
+                if (node.NodeType != ParticleNodeType.Emitter)
+                    continue;
+
+                Matrix4x4 rotation = VfxRotation.Create(
+                    MathHelper.ToRadians(node.Rotation.Constant.X),
+                    MathHelper.ToRadians(node.Rotation.Constant.Y),
+                    MathHelper.ToRadians(node.Rotation.Constant.Z));
+
+                SimdVector3 axis = SimdVector3.TransformNormal(SimdVector3.UnitY, rotation);
+
+                if (axis.LengthSquared() < 0.000001f)
+                    continue;
+
+                float weight = Math.Max(1, (int)node.Burst);
+                axisSum += SimdVector3.Normalize(axis) * weight;
+            }
+
+            if (axisSum.LengthSquared() < 0.000001f)
+                return SimdVector3.UnitY;
+
+            return SimdVector3.Normalize(axisSum);
         }
 
         /// <summary>
@@ -129,6 +165,8 @@ namespace XenoKit.Engine.Vfx.Particle
         {
             IsDirty = false;
             RootNode.ReleaseAll();
+            BoneDirectionSourceAxis = GetEmpRootVelocityAxis(EmpFile);
+            Initialize();
             InitializeParticleSystem();
         }
 

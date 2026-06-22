@@ -28,8 +28,9 @@ namespace XenoKit.Engine.Vfx.Asset
 
                 int renderSectionLimit = state.IsRetracting ? MaxRetractingRenderSections : MaxActiveRenderSections;
                 bool autoOrientation = node.Flags.HasFlag(ETR_Node.ExtrudeFlags.AutoOrientation);
+                bool usePathOffsetAsWidth = node.ExtrudeShapePoints.Count == 0 && node.ExtrudePaths.Count > 1;
                 SimdVector3 cameraViewForward = GetCameraViewForward();
-                EffectShapeMeshData meshData = EffectShapeMeshBuilder.BuildTbindTrailMesh(shape, visibleSegments, GetPathProfile(node), retractionProgress, renderSectionLimit, autoOrientation, cameraViewForward, uvScrollU, uvScrollV, uvStepU, uvStepV, state.ProfiledSegmentsScratch, state.CurvedSegmentsScratch);
+                EffectShapeMeshData meshData = EffectShapeMeshBuilder.BuildTbindTrailMesh(shape, visibleSegments, GetPathProfile(node), retractionProgress, renderSectionLimit, autoOrientation, usePathOffsetAsWidth, cameraViewForward, uvScrollU, uvScrollV, uvStepU, uvStepV, state.ProfiledSegmentsScratch, state.CurvedSegmentsScratch);
                 state.Mesh.SetMeshData(meshData);
                 state.MeshBuildKey = meshBuildKey;
             }
@@ -79,6 +80,7 @@ namespace XenoKit.Engine.Vfx.Asset
                 primaryColorKey,
                 secondaryColorKey,
                 shape?.Count ?? 0,
+                node.ExtrudeShapePoints.Count == 0 && node.ExtrudePaths.Count > 1,
                 autoOrientation,
                 cameraKey);
         }
