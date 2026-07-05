@@ -16,52 +16,55 @@ namespace XenoKit.Views.BCM
             PropertyInfo property = GetProperty(propertyName);
             if (property == null) return;
 
+            BCM_Entry entry = SelectedEntry;
             Grid row = CreateEditorRow(labelText);
 
             TextBox textBox = new TextBox
             {
                 MinWidth = 100,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                Text = FormatValue(property.GetValue(SelectedEntry, null), valueMode)
+                Text = FormatValue(property.GetValue(entry, null), valueMode)
             };
             textBox.ToolTip = labelText;
-            textBox.LostFocus += (sender, args) => ApplyEditorValue(textBox, property, valueMode);
+            textBox.LostFocus += (sender, args) => ApplyEditorValue(textBox, entry, property, valueMode);
             if (commitOnTextChanged)
-                textBox.TextChanged += (sender, args) => ApplyEditorValue(textBox, property, valueMode, false);
+                textBox.TextChanged += (sender, args) => ApplyEditorValue(textBox, entry, property, valueMode, false);
             textBox.KeyDown += (sender, args) =>
             {
                 if (args.Key == Key.Enter)
                 {
-                    ApplyEditorValue(textBox, property, valueMode);
+                    ApplyEditorValue(textBox, entry, property, valueMode);
                     args.Handled = true;
                 }
             };
+
+            pendingCommits.Add(() => ApplyEditorValue(textBox, entry, property, valueMode, false));
 
             Grid.SetColumn(textBox, 1);
             row.Children.Add(textBox);
             panel.Children.Add(row);
         }
 
-        private void ApplyEditorValue(TextBox textBox, PropertyInfo property, EditorValueMode valueMode, bool updateText = true)
+        private void ApplyEditorValue(TextBox textBox, BCM_Entry entry, PropertyInfo property, EditorValueMode valueMode, bool updateText = true)
         {
             if (TryConvertText(textBox.Text, property.PropertyType, valueMode, out object value))
             {
-                SetProperty(property, value);
+                SetProperty(entry, property, value);
                 if (updateText)
-                    textBox.Text = FormatValue(property.GetValue(SelectedEntry, null), valueMode);
+                    textBox.Text = FormatValue(property.GetValue(entry, null), valueMode);
                 return;
             }
 
-            textBox.Text = FormatValue(property.GetValue(SelectedEntry, null), valueMode);
+            textBox.Text = FormatValue(property.GetValue(entry, null), valueMode);
         }
 
-        private void SetProperty(PropertyInfo property, object value)
+        private void SetProperty(BCM_Entry entry, PropertyInfo property, object value)
         {
-            object oldValue = property.GetValue(SelectedEntry, null);
+            object oldValue = property.GetValue(entry, null);
             if (Equals(oldValue, value)) return;
 
-            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(property.Name, SelectedEntry, oldValue, value, property.Name));
-            property.SetValue(SelectedEntry, value, null);
+            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(property.Name, entry, oldValue, value, property.Name));
+            property.SetValue(entry, value, null);
             EntryEdited?.Invoke(this, EventArgs.Empty);
         }
 

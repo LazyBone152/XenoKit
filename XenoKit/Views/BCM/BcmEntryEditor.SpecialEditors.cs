@@ -20,7 +20,8 @@ namespace XenoKit.Views.BCM
             PropertyInfo property = GetProperty(nameof(BCM_Entry.OpponentSizeConditions));
             if (property == null) return;
 
-            uint currentValue = ToUInt32(property.GetValue(SelectedEntry, null));
+            BCM_Entry entry = SelectedEntry;
+            uint currentValue = ToUInt32(property.GetValue(entry, null));
             uint currentSize = currentValue & OpponentSizeFamilyMask;
             uint currentUnknown = currentValue & OpponentSizeUnknownMask;
             BcmValueOption[] sizeOptions =
@@ -52,11 +53,11 @@ namespace XenoKit.Views.BCM
                 unknownOptions[unknownOptions.Length - 1] = new BcmValueOption($"Unknown (0x{currentUnknown:X})", currentUnknown);
             }
 
-            AddOpponentSizeCombo(panel, "Opponent Size", sizeOptions, currentSize, OpponentSizeFamilyMask, "Requirements based on character CMS size entries.");
-            AddOpponentSizeCombo(panel, "Size Unknown", unknownOptions, currentUnknown, OpponentSizeUnknownMask, "Low unknown bits for opponent size conditions.");
+            AddOpponentSizeCombo(panel, entry, "Opponent Size", sizeOptions, currentSize, OpponentSizeFamilyMask, "Requirements based on character CMS size entries.");
+            AddOpponentSizeCombo(panel, entry, "Size Unknown", unknownOptions, currentUnknown, OpponentSizeUnknownMask, "Low unknown bits for opponent size conditions.");
         }
 
-        private void AddOpponentSizeCombo(Panel panel, string label, BcmValueOption[] options, uint selectedValue, uint mask, string toolTip)
+        private void AddOpponentSizeCombo(Panel panel, BCM_Entry entry, string label, BcmValueOption[] options, uint selectedValue, uint mask, string toolTip)
         {
             Grid row = CreateEditorRow(label);
             ComboBox comboBox = new ComboBox
@@ -72,7 +73,7 @@ namespace XenoKit.Views.BCM
             comboBox.SelectionChanged += (sender, args) =>
             {
                 if (comboBox.SelectedValue is uint comboValue)
-                    SetOpponentSizeBits(mask, comboValue);
+                    SetOpponentSizeBits(entry, mask, comboValue);
             };
 
             Grid.SetColumn(comboBox, 1);
@@ -91,14 +92,14 @@ namespace XenoKit.Views.BCM
             return false;
         }
 
-        private void SetOpponentSizeBits(uint mask, uint value)
+        private void SetOpponentSizeBits(BCM_Entry entry, uint mask, uint value)
         {
             PropertyInfo property = GetProperty(nameof(BCM_Entry.OpponentSizeConditions));
             if (property == null) return;
 
-            uint currentValue = ToUInt32(property.GetValue(SelectedEntry, null));
+            uint currentValue = ToUInt32(property.GetValue(entry, null));
             uint newValue = (currentValue & ~mask) | (value & mask);
-            SetProperty(property, newValue);
+            SetProperty(entry, property, newValue);
         }
 
         private void AddReceiverLinkEditor(Panel panel)
@@ -106,7 +107,8 @@ namespace XenoKit.Views.BCM
             PropertyInfo property = GetProperty(nameof(BCM_Entry.ReceiverLinkID));
             if (property == null) return;
 
-            uint currentValue = ToUInt32(property.GetValue(SelectedEntry, null));
+            BCM_Entry entry = SelectedEntry;
+            uint currentValue = ToUInt32(property.GetValue(entry, null));
             BcmValueOption[] options =
             {
                 new BcmValueOption("None (0x0)", 0x0),
@@ -150,7 +152,7 @@ namespace XenoKit.Views.BCM
             comboBox.SelectionChanged += (sender, args) =>
             {
                 if (comboBox.SelectedValue is uint selectedValue)
-                    SetProperty(property, selectedValue);
+                    SetProperty(entry, property, selectedValue);
             };
 
             Grid.SetColumn(comboBox, 1);
@@ -163,8 +165,9 @@ namespace XenoKit.Views.BCM
             PropertyInfo property = GetProperty(propertyName);
             if (property == null) return;
 
+            BCM_Entry entry = SelectedEntry;
             // The shown value starts from the real tree link. A loop override is only written when the user changes it.
-            string loopIndex = property.GetValue(SelectedEntry, null) as string;
+            string loopIndex = property.GetValue(entry, null) as string;
             string fallbackIndex = NormalizeLinkIndex(structuralIndex);
             string displayValue = NormalizeLinkIndex(loopIndex);
             if (displayValue == "0")
@@ -179,33 +182,35 @@ namespace XenoKit.Views.BCM
                 Text = displayValue,
                 ToolTip = labelText
             };
-            textBox.LostFocus += (sender, args) => ApplyLinkValue(textBox, property, fallbackIndex);
-            textBox.TextChanged += (sender, args) => ApplyLinkValue(textBox, property, fallbackIndex, false);
+            textBox.LostFocus += (sender, args) => ApplyLinkValue(textBox, entry, property, fallbackIndex);
+            textBox.TextChanged += (sender, args) => ApplyLinkValue(textBox, entry, property, fallbackIndex, false);
             textBox.KeyDown += (sender, args) =>
             {
                 if (args.Key == Key.Enter)
                 {
-                    ApplyLinkValue(textBox, property, fallbackIndex);
+                    ApplyLinkValue(textBox, entry, property, fallbackIndex);
                     args.Handled = true;
                 }
             };
+
+            pendingCommits.Add(() => ApplyLinkValue(textBox, entry, property, fallbackIndex, false));
 
             Grid.SetColumn(textBox, 1);
             row.Children.Add(textBox);
             panel.Children.Add(row);
         }
 
-        private void ApplyLinkValue(TextBox textBox, PropertyInfo property, string structuralIndex, bool updateText = true)
+        private void ApplyLinkValue(TextBox textBox, BCM_Entry entry, PropertyInfo property, string structuralIndex, bool updateText = true)
         {
             string value = NormalizeLinkIndex(textBox.Text);
             string fallbackIndex = NormalizeLinkIndex(structuralIndex);
             string loopValue = value == fallbackIndex ? null : value;
-            object oldValue = property.GetValue(SelectedEntry, null);
+            object oldValue = property.GetValue(entry, null);
 
             if (Equals(oldValue, loopValue)) return;
 
-            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(property.Name, SelectedEntry, oldValue, loopValue, property.Name));
-            property.SetValue(SelectedEntry, loopValue, null);
+            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(property.Name, entry, oldValue, loopValue, property.Name));
+            property.SetValue(entry, loopValue, null);
             EntryEdited?.Invoke(this, EventArgs.Empty);
 
             if (updateText)
@@ -220,6 +225,7 @@ namespace XenoKit.Views.BCM
 
         private void AddUpgradeLevelEditor(Panel panel)
         {
+            BCM_Entry entry = SelectedEntry;
             Grid row = new Grid
             {
                 Margin = new Thickness(0, 0, 0, 9),
@@ -244,39 +250,42 @@ namespace XenoKit.Views.BCM
             {
                 MinWidth = 100,
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                Text = GetOpponentSizeUpgradeLevel().ToString(CultureInfo.InvariantCulture),
+                Text = GetOpponentSizeUpgradeLevel(entry).ToString(CultureInfo.InvariantCulture),
                 ToolTip = "Level 0 = 0x0, Level 4 = 0x4000000"
             };
-            textBox.LostFocus += (sender, args) => ApplyUpgradeLevel(textBox);
+            textBox.LostFocus += (sender, args) => ApplyUpgradeLevel(textBox, entry);
             textBox.KeyDown += (sender, args) =>
             {
                 if (args.Key == Key.Enter)
                 {
-                    ApplyUpgradeLevel(textBox);
+                    ApplyUpgradeLevel(textBox, entry);
                     args.Handled = true;
                 }
             };
+
+            pendingCommits.Add(() => ApplyUpgradeLevel(textBox, entry, false));
 
             Grid.SetColumn(textBox, 1);
             row.Children.Add(textBox);
             panel.Children.Add(row);
         }
 
-        private void ApplyUpgradeLevel(TextBox textBox)
+        private void ApplyUpgradeLevel(TextBox textBox, BCM_Entry entry, bool updateText = true)
         {
             if (!uint.TryParse(textBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out uint level))
             {
-                textBox.Text = GetOpponentSizeUpgradeLevel().ToString(CultureInfo.InvariantCulture);
+                textBox.Text = GetOpponentSizeUpgradeLevel(entry).ToString(CultureInfo.InvariantCulture);
                 return;
             }
 
-            SetOpponentSizeBits(OpponentSizeUpgradeMask, (level << 24) & OpponentSizeUpgradeMask);
-            textBox.Text = level.ToString(CultureInfo.InvariantCulture);
+            SetOpponentSizeBits(entry, OpponentSizeUpgradeMask, (level << 24) & OpponentSizeUpgradeMask);
+            if (updateText)
+                textBox.Text = level.ToString(CultureInfo.InvariantCulture);
         }
 
-        private uint GetOpponentSizeUpgradeLevel()
+        private uint GetOpponentSizeUpgradeLevel(BCM_Entry entry)
         {
-            return (SelectedEntry.OpponentSizeConditions & OpponentSizeUpgradeMask) >> 24;
+            return (entry.OpponentSizeConditions & OpponentSizeUpgradeMask) >> 24;
         }
 
     }

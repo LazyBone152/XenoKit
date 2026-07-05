@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Windows;
@@ -12,6 +13,11 @@ namespace XenoKit.Views.BCM
     public partial class BcmEntryEditor : UserControl
     {
         public event EventHandler EntryEdited;
+
+        // Textbox fields commit on LostFocus. Switching entry rebuilds the editor and tears those
+        // textboxes down before they commit, so any in-progress edit is flushed here against the
+        // entry it was built for before the panels are cleared.
+        private readonly List<Action> pendingCommits = new List<Action>();
 
         public static readonly DependencyProperty SelectedEntryProperty = DependencyProperty.Register(
             nameof(SelectedEntry), typeof(BCM_Entry), typeof(BcmEntryEditor), new PropertyMetadata(null, EntryPropertyChanged));
@@ -62,6 +68,8 @@ namespace XenoKit.Views.BCM
 
         private void BuildEditor()
         {
+            FlushPendingCommits();
+
             inputsPanel.Children.Clear();
             activatorPanel.Children.Clear();
             bacPanel.Children.Clear();
@@ -79,6 +87,16 @@ namespace XenoKit.Views.BCM
             BuildBacTab();
             BuildMiscTab();
             BuildUnknownTab();
+        }
+
+        private void FlushPendingCommits()
+        {
+            if (pendingCommits.Count == 0) return;
+
+            List<Action> commits = new List<Action>(pendingCommits);
+            pendingCommits.Clear();
+            foreach (Action commit in commits)
+                commit();
         }
 
 

@@ -16,15 +16,16 @@ namespace XenoKit.Views.BCM
             PropertyInfo property = GetProperty(propertyName);
             if (property == null) return;
 
+            BCM_Entry entry = SelectedEntry;
             BcmBitGroupView view = new BcmBitGroupView
             {
                 Title = title,
-                Value = ToUInt32(property.GetValue(SelectedEntry, null))
+                Value = ToUInt32(property.GetValue(entry, null))
             };
             view.SetGroups(groups);
             view.ValueChanged += (sender, args) =>
             {
-                SetProperty(property, FromUInt32(property.PropertyType, view.Value));
+                SetProperty(entry, property, FromUInt32(property.PropertyType, view.Value));
                 if (property.Name == nameof(BCM_Entry.I_00))
                     BuildEditor();
             };
@@ -36,15 +37,16 @@ namespace XenoKit.Views.BCM
             PropertyInfo property = GetProperty(propertyName);
             if (property == null) return;
 
+            BCM_Entry entry = SelectedEntry;
             BcmOptionGroupView view = new BcmOptionGroupView
             {
                 Title = title,
-                Value = ToUInt32(property.GetValue(SelectedEntry, null))
+                Value = ToUInt32(property.GetValue(entry, null))
             };
             view.SetGroups(groups);
             view.ValueChanged += (sender, args) =>
             {
-                SetProperty(property, FromUInt32(property.PropertyType, view.Value));
+                SetProperty(entry, property, FromUInt32(property.PropertyType, view.Value));
                 if (property.Name == nameof(BCM_Entry.I_00))
                     BuildEditor();
             };
