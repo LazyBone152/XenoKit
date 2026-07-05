@@ -1587,7 +1587,7 @@ namespace XenoKit.Engine.Model
                         var bcsColor = colors.GetColor(c);
                         Xv2CoreLib.HslColor.HslColor color = new Xv2CoreLib.HslColor.RgbColor(bcsColor).ToHsl();
 
-                        var pixelRgb = dyt.EmbEntry.Texture.GetPixel(width, height + dytLine);
+                        var pixelRgb = dyt.EmbEntry.Texture.GetPixel(width, height);
                         Xv2CoreLib.HslColor.HslColor pixelColor = new Xv2CoreLib.HslColor.RgbColor(pixelRgb.R, pixelRgb.G, pixelRgb.B).ToHsl();
                         pixelColor.SetHue(color.Hue);
                         pixelColor.Saturation = color.Saturation;
@@ -1601,10 +1601,10 @@ namespace XenoKit.Engine.Model
                         byte g = (byte)((newPixelRgb.G_int * bcsColor.A) + (pixelRgb.G * originalFactor));
                         byte b = (byte)((newPixelRgb.B_int * bcsColor.A) + (pixelRgb.B * originalFactor));
 
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 2, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 3, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + 1, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + 2, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + 3, pixelRgb.A, r, g, b);
 
                         //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
                         //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
