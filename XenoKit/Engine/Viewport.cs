@@ -358,6 +358,11 @@ namespace XenoKit.Engine
             if (SceneManager.IsOnTab(EditorTabs.Projectile))
                 BsaEffectPreviewController.Instance.Draw();
 
+            if (RenderSystem.HasPendingScreenshot())
+            {
+                RenderSystem.ProcessPendingScreenshot(RenderSystem.GetFinalRenderTarget(), MainRenderTarget.RenderTarget);
+            }
+
             //Draw MainRenderTarget onto screen
             GraphicsDevice.SetRenderTarget(AxisCorrectionRenderTarget.RenderTarget);
             GraphicsDevice.Clear(IsBlackVoid || !_isDefaultStageActive ? Color.Black : Viewport.ViewportBackgroundColor);

@@ -170,12 +170,6 @@ namespace XenoKit.Engine.Rendering
             DisplayRenderTarget(result.RenderTarget, false);
             //DisplayRenderTarget(ReflectionRT.RenderTarget, true);
 
-            //Process screenshots at this stage, before merging the RT with the rest of the scene
-            if (ScreenshotRequested)
-            {
-                ProcessScreenshot(FinalRenderTarget);
-            }
-
 #if DEBUG
             if (DumpRenderTargetsNextFrame)
             {

@@ -264,11 +264,11 @@ namespace XenoKit.Engine.Rendering
             PostFilter.Apply(AddTex);
         }
 
-        public void DisplayRenderTarget(RenderTarget2D renderTarget, bool scaleToViewport = false, float scale = 1f)
+        public void DisplayRenderTarget(RenderTarget2D renderTarget, bool scaleToViewport = false, float scale = 1f, BlendState blendState = null)
         {
             Rectangle destination = scaleToViewport ? new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height) : new Rectangle(0, 0, (int)(renderTarget.Width * scale), (int)(renderTarget.Height * scale));
 
-            SpriteBatch.Begin(depthStencilState: DepthStencilState.DepthRead, blendState: BlendState.AlphaBlend);
+            SpriteBatch.Begin(depthStencilState: DepthStencilState.DepthRead, blendState: blendState ?? BlendState.AlphaBlend);
             SpriteBatch.Draw(renderTarget, destination, Color.White);
             SpriteBatch.End();
         }
