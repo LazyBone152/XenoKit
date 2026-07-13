@@ -1,7 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using XenoKit.Editor;
 using XenoKit.Engine;
 using XenoKit.Engine.Shader;
+using XenoKit.Engine.Shader.DXBC;
 using XenoKit.Engine.Textures;
 using XenoKit.Engine.Vertex;
 
@@ -25,6 +30,11 @@ namespace XenoKit.Engine.Vfx.Shape
 
     public class EffectShapeMesh
     {
+        // A file-defined material can reference a shader whose vertex inputs don't match VertexPositionTextureColor.
+        // D3D then fails to build the input layout and throws when the mesh is drawn. Materials that fail once are
+        // tracked here and skipped, so one bad material can't take down the render loop.
+        private static readonly HashSet<Xv2ShaderEffect> incompatibleMaterials = new HashSet<Xv2ShaderEffect>();
+
         private VertexPositionTextureColor[] vertices = new VertexPositionTextureColor[0];
         private ushort[] indices;
         private short[] drawIndices;
@@ -88,6 +98,9 @@ namespace XenoKit.Engine.Vfx.Shape
             if (drawMaterial == null || !owner.RenderSystem.CheckDrawPass(drawMaterial))
                 return;
 
+            if (incompatibleMaterials.Contains(drawMaterial))
+                return;
+
             for (int i = 0; samplers != null && i < samplers.Length; i++)
             {
                 owner.GraphicsDevice.SamplerStates[samplers[i].samplerSlot] = samplers[i].state;
@@ -105,11 +118,34 @@ namespace XenoKit.Engine.Vfx.Shape
                 drawMaterial.SetGlareOutputAllowed(glareOutputAllowed);
                 pass.Apply();
 
-                if (drawIndices != null)
-                    owner.GraphicsDevice.DrawUserIndexedPrimitives(primitiveType, vertices, 0, vertices.Length, drawIndices, 0, primitiveCount);
-                else
-                    owner.GraphicsDevice.DrawUserPrimitives(primitiveType, vertices, 0, primitiveCount);
+                try
+                {
+                    if (drawIndices != null)
+                        owner.GraphicsDevice.DrawUserIndexedPrimitives(primitiveType, vertices, 0, vertices.Length, drawIndices, 0, primitiveCount);
+                    else
+                        owner.GraphicsDevice.DrawUserPrimitives(primitiveType, vertices, 0, primitiveCount);
+                }
+                catch (Exception ex)
+                {
+                    incompatibleMaterials.Add(drawMaterial);
+                    Log.Add($"EffectShapeMesh: skipped drawing a trail/effect mesh because material '{drawMaterial.Material?.Name}' (shader '{drawMaterial.shaderProgram?.Name}') is not compatible with the effect vertex format. Shader needs [{GetShaderInputList(drawMaterial)}]; vertex provides [POSITION0, COLOR0, TEXCOORD0, NORMAL0, TANGENT0]. {ex.Message}", LogType.Warning);
+                    return;
+                }
             }
+        }
+
+        // Returns the vertex input semantics the shader requires, so the skip log can name the element the effect
+        // vertex is missing (e.g. TEXCOORD1).
+        private static string GetShaderInputList(Xv2ShaderEffect material)
+        {
+            DxbcInputSignature[] inputs = material?.shaderProgram?.VsParser?.InputSignature;
+
+            if (inputs == null || inputs.Length == 0)
+                return "unknown";
+
+            return string.Join(", ", inputs
+                .Where(x => x.SysValueType == 0)
+                .Select(x => $"{x.Name}{x.SemanticIndex}"));
         }
 
         private void UpdateBounds()

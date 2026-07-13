@@ -6,7 +6,7 @@ namespace XenoKit.Engine.Vertex
 {
     //Vertex definition optimized for particles.
 
-    [StructLayout(LayoutKind.Explicit, Size = 24)]
+    [StructLayout(LayoutKind.Explicit, Size = 56)]
     public struct VertexPositionTextureColor : IVertexType
     {
         [FieldOffset(0)]
@@ -38,6 +38,10 @@ namespace XenoKit.Engine.Vertex
         public Vector3 Normal;
         [FieldOffset(36)]
         public Vector3 Tangent;
+        // Second UV set. Some effect shaders read a TEXCOORD1 input; without it in the declaration D3D can't build
+        // their input layout. Defaults to the primary UV.
+        [FieldOffset(48)]
+        public Vector2 TextureUV1;
 
         //Vertex Type:
         public static readonly VertexDeclaration VertexDeclaration;
@@ -51,6 +55,7 @@ namespace XenoKit.Engine.Vertex
         {
             Position = position;
             TextureUV = textureUV;
+            TextureUV1 = textureUV;
             Color_R = (byte)(color.X * 255);
             Color_G = (byte)(color.Y * 255);
             Color_B = (byte)(color.Z * 255);
@@ -63,6 +68,7 @@ namespace XenoKit.Engine.Vertex
         {
             Position = position;
             TextureUV = textureUV;
+            TextureUV1 = textureUV;
             Color_R = (byte)(color[0] * 255);
             Color_G = (byte)(color[1] * 255);
             Color_B = (byte)(color[2] * 255);
@@ -96,6 +102,7 @@ namespace XenoKit.Engine.Vertex
                 new VertexElement(16, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
                 new VertexElement(24, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
                 new VertexElement(36, VertexElementFormat.Vector3, VertexElementUsage.Tangent, 0),
+                new VertexElement(48, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
             };
             VertexDeclaration declaration = new VertexDeclaration(elements);
             VertexDeclaration = declaration;
