@@ -47,6 +47,10 @@ namespace XenoKit.Windows
             Owner = Application.Current.MainWindow;
             Title = string.Format("Select {0}", itemName);
             listBox.SelectionMode = _isMultiSelect ? System.Windows.Controls.DataGridSelectionMode.Extended : System.Windows.Controls.DataGridSelectionMode.Single;
+
+            //The Code column applies to any coded item (skills, characters); the portrait column only to characters.
+            codeColumn.Visibility = Items.OfType<Xv2CodedItem>().Any(x => !string.IsNullOrWhiteSpace(x.Code)) ? Visibility.Visible : Visibility.Collapsed;
+            portraitColumn.Visibility = Items.OfType<Xv2CharaItem>().Any(x => x.HasPortrait) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public RelayCommand SelectItemCommand => new RelayCommand(SelectItem, () => listBox.SelectedItem != null);
@@ -111,6 +115,8 @@ namespace XenoKit.Windows
                 {
                     if (item.Name.ToLower().Contains(searchParam)) return true;
                 }
+
+                if (item is Xv2CodedItem coded && coded.Code != null && coded.Code.ToLower().Contains(searchParam)) return true;
 
                 int num;
                 if (int.TryParse(searchParam, out num))
