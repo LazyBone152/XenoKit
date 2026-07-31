@@ -6,12 +6,20 @@
         xmlns:local="clr-namespace:XenoKit.Windows"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        Title="Entity Select" Height="550" Width="300" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" Name="Window" TitleCharacterCasing="Normal">
+        Title="Entity Select" Height="550" Width="440" ShowInTaskbar="True" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowIconOnTitleBar="False" Name="Window" TitleCharacterCasing="Normal">
     <Grid>
-        <DataGrid x:Name="listBox" Style="{DynamicResource MahApps.Styles.DataGrid.Azure}" AutoGenerateColumns="False" CanUserDeleteRows="False" CanUserAddRows="False" ItemsSource="{Binding FilterList}" HorizontalAlignment="Left" Height="397" Margin="31,10,0,0" VerticalAlignment="Top" Width="230" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="False" TextSearch.TextPath="Name">
+        <DataGrid x:Name="listBox" Style="{DynamicResource MahApps.Styles.DataGrid.Azure}" AutoGenerateColumns="False" CanUserDeleteRows="False" CanUserAddRows="False" ItemsSource="{Binding FilterList}" HorizontalAlignment="Stretch" Height="397" Margin="31,10,31,0" VerticalAlignment="Top" IsTextSearchEnabled="True" IsTextSearchCaseSensitive="False" TextSearch.TextPath="Name">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding ID}" IsReadOnly="True" Width="50*"/>
+                <DataGridTemplateColumn x:Name="portraitColumn" Header="" Width="100" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding Portrait}" Width="92" Height="92" Stretch="Uniform" Margin="2"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="ID" Binding="{Binding ID}" IsReadOnly="True" Width="40*"/>
+                <DataGridTextColumn x:Name="codeColumn" Header="Code" Binding="{Binding Code}" IsReadOnly="True" Width="45*"/>
                 <DataGridTemplateColumn Header="Name" Width="150*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -34,7 +42,7 @@
 
         <Button Content="Ok" HorizontalAlignment="Center" Margin="0,483,0,0" VerticalAlignment="Top" Width="76" Command="{Binding ElementName=Window, Path=SelectItemCommand}"/>
         <CheckBox x:Name="checkbox" ToolTip="{Binding ElementName=Window, Path=BooleanParameterToolTip}" IsChecked="{Binding ElementName=Window, Path=BooleanParameter}" FontWeight="SemiBold" Content="{Binding ElementName=Window, Path=BooleanParameterName}" HorizontalAlignment="Center" Margin="0,459,0,0" VerticalAlignment="Top" Width="152" Visibility="Collapsed"/>
-        <TextBox Text="{Binding ElementName=Window, Path=SearchFilter, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource MahApps.Styles.TextBox.Search}" Controls:TextBoxHelper.Watermark="Search..." Controls:TextBoxHelper.ButtonCommand="{Binding ElementName=Window, Path=ClearSearchCommand}" Controls:TextBoxHelper.ClearTextButton="True" HorizontalAlignment="Left" VerticalContentAlignment="Center" Height="23" Margin="50,425,0,0" VerticalAlignment="Top" Width="188" TextWrapping="Wrap" />
+        <TextBox Text="{Binding ElementName=Window, Path=SearchFilter, UpdateSourceTrigger=PropertyChanged}" Style="{DynamicResource MahApps.Styles.TextBox.Search}" Controls:TextBoxHelper.Watermark="Search..." Controls:TextBoxHelper.ButtonCommand="{Binding ElementName=Window, Path=ClearSearchCommand}" Controls:TextBoxHelper.ClearTextButton="True" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" Height="23" Margin="50,425,50,0" VerticalAlignment="Top" TextWrapping="Wrap" />
 
     </Grid>
 </Controls:MetroWindow>
