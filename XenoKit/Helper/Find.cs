@@ -137,15 +137,22 @@ namespace XenoKit.Helper.Find
     {
         public Type valueType;
         public string valueName;
+        public string displayName;
         public object value;
         public object parent;
 
-        public string ValueName => valueName;
+        public string ValueName => string.IsNullOrWhiteSpace(displayName) ? valueName : displayName;
 
         public Value(Type _valueType, string _valueName, object _value, object _parent)
+            : this(_valueType, _valueName, _value, _parent, null)
+        {
+        }
+
+        public Value(Type _valueType, string _valueName, object _value, object _parent, string _displayName)
         {
             valueType = _valueType;
             valueName = _valueName;
+            displayName = _displayName;
             value = _value;
             parent = _parent;
         }

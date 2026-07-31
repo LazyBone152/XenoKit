@@ -79,8 +79,8 @@
 
         </Grid>
 
-        <GridSplitter Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Margin="0.145,0,0.091,0.327"/>
-        <GridSplitter Grid.Column="3" Grid.Row="2" ResizeDirection="Rows" Height="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+        <GridSplitter x:Name="editorSceneSplitter" Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Margin="0.145,0,0.091,0.327"/>
+        <GridSplitter x:Name="sceneLogSplitter" Grid.Column="3" Grid.Row="2" ResizeDirection="Rows" Height="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
         <GridSplitter Grid.Column="3" Grid.Row="1" Grid.RowSpan="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
 
 
@@ -145,10 +145,13 @@
                     <_controls:BacTab x:Name="bacControlView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
                 </Grid>
             </Controls:MetroTabItem>
-            <Controls:MetroTabItem Header="State" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.StateVisibility}"/>
+            <Controls:MetroTabItem x:Name="stateTab" Header="State" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.StateVisibility}">
+                <_views:BcmTab x:Name="bcmTabView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Controls:MetroTabItem>
 
-            <Controls:MetroTabItem Header="Projectile" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.ProjectileVisibility}"/>
-            <Controls:MetroTabItem Header="Hitbox" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.HitboxVisibility}"/>
+            <Controls:MetroTabItem Header="Projectile" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.ProjectileVisibility}">
+                <_views:BsaTab HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Controls:MetroTabItem>
             <Controls:MetroTabItem Header="Effect" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.EffectVisibility}">
                 <Grid>
                     <Grid.RowDefinitions>

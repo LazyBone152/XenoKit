@@ -25,15 +25,12 @@ namespace XenoKit.Editor
         public Visibility ActionVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility EffectVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility AudioVisibility { get; private set; } = Visibility.Collapsed;
-        public Visibility HitboxVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility ProjectileVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility CameraVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility SystemVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility CacVisibility { get; private set; } = Visibility.Collapsed;
 
         //SubTabs:
-        public Visibility ShotBdmVisibility { get; private set; } = Visibility.Collapsed;
-        public Visibility BdmVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility SeVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility VoxVisibility { get; private set; } = Visibility.Collapsed;
 
@@ -52,24 +49,22 @@ namespace XenoKit.Editor
             else if (type == OutlinerItemType.CMN)
             {
                 AnimationVisibility = Visibility.Visible;
+                StateVisibility = Visibility.Visible;
                 ActionVisibility = Visibility.Visible;
                 EffectVisibility = Visibility.Visible;
                 AudioVisibility = Visibility.Visible;
                 SeVisibility = Visibility.Visible;
-                HitboxVisibility = Visibility.Visible;
                 ProjectileVisibility = Visibility.Visible;
                 CameraVisibility = Visibility.Visible;
-                BdmVisibility = Visibility.Visible;
-                ShotBdmVisibility = Visibility.Visible;
             }
             else if (type == OutlinerItemType.Character || type == OutlinerItemType.Moveset)
             {
                 AnimationVisibility = Visibility.Visible;
+                StateVisibility = Visibility.Visible;
                 ActionVisibility = Visibility.Visible;
                 EffectVisibility = Visibility.Visible;
                 AudioVisibility = Visibility.Visible;
                 SeVisibility = Visibility.Visible;
-                HitboxVisibility = Visibility.Visible;
                 CameraVisibility = Visibility.Visible;
 
                 if(type == OutlinerItemType.Character)
@@ -82,17 +77,15 @@ namespace XenoKit.Editor
             else if (type == OutlinerItemType.Skill)
             {
                 AnimationVisibility = Visibility.Visible;
+                StateVisibility = Visibility.Visible;
                 ActionVisibility = Visibility.Visible;
                 EffectVisibility = Visibility.Visible;
                 AudioVisibility = Visibility.Visible;
                 SeVisibility = Visibility.Visible;
                 VoxVisibility = Visibility.Visible;
-                HitboxVisibility = Visibility.Visible;
                 ProjectileVisibility = Visibility.Visible;
                 CameraVisibility = Visibility.Visible;
                 SystemVisibility = Visibility.Visible;
-                BdmVisibility = Visibility.Visible;
-                ShotBdmVisibility = Visibility.Visible;
             }
             else if(type == OutlinerItemType.ACB)
             {
@@ -111,12 +104,6 @@ namespace XenoKit.Editor
             {
                 CameraVisibility = Visibility.Visible;
             }
-
-
-            //Set all unimplemented tabs to be collapsed.
-            StateVisibility = Visibility.Collapsed;
-            HitboxVisibility = Visibility.Collapsed;
-            ProjectileVisibility = Visibility.Collapsed;
             SystemVisibility = Visibility.Collapsed;
         }
 

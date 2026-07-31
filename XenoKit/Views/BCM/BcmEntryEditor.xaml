@@ -1,0 +1,41 @@
+<UserControl x:Class="XenoKit.Views.BCM.BcmEntryEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro">
+    <Grid MinWidth="420">
+        <TextBlock x:Name="emptyTextBlock"
+                   Text="Select a child state. Root states cannot be edited."
+                   Foreground="{DynamicResource MahApps.Brushes.Text}"
+                   Margin="10"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed"/>
+        <Controls:MetroTabControl x:Name="tabControl"
+                                  Style="{DynamicResource UnderlinedTabControl}">
+            <Controls:MetroTabItem Header="Inputs" Controls:HeaderedControlHelper.HeaderFontSize="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="inputsPanel" Margin="10"/>
+                </ScrollViewer>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Activator" Controls:HeaderedControlHelper.HeaderFontSize="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="activatorPanel" Margin="10"/>
+                </ScrollViewer>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="BAC" Controls:HeaderedControlHelper.HeaderFontSize="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="bacPanel" Margin="10"/>
+                </ScrollViewer>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Misc" Controls:HeaderedControlHelper.HeaderFontSize="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="miscPanel" Margin="10"/>
+                </ScrollViewer>
+            </Controls:MetroTabItem>
+            <Controls:MetroTabItem Header="Unknown" Controls:HeaderedControlHelper.HeaderFontSize="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="unknownPanel" Margin="10"/>
+                </ScrollViewer>
+            </Controls:MetroTabItem>
+        </Controls:MetroTabControl>
+    </Grid>
+</UserControl>
