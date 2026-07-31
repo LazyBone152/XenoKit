@@ -255,7 +255,12 @@ namespace XenoKit.Engine.Animation
         {
             return CurrentBoneScale == body;
         }
-        
+
+        public int GetActiveBoneScaleId()
+        {
+            return CurrentBoneScale?.ID ?? 0;
+        }
+
         #endregion
 
         #region Helpers

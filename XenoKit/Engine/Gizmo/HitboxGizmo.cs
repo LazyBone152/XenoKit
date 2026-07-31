@@ -1,8 +1,11 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using System;
+using XenoKit.Editor;
 using XenoKit.Engine.Shapes;
 using XenoKit.Engine.View;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.CBS;
+using static Xv2CoreLib.Xenoverse2;
 
 namespace XenoKit.Engine.Gizmo
 {
@@ -87,9 +90,32 @@ namespace XenoKit.Engine.Gizmo
                 {
                     isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
                     boneIdx = SceneManager.Actors[0].Skeleton.GetBoneIndex(boneName);
+                    CBS_Entry cbsEntry = actor.CharacterData.CbsEntry.Find(x => x.BodyId == actor.Skeleton.GetActiveBoneScaleId());
+                    float cbsScaling = 1f;
+
+                    if (cbsEntry != null)
+                    {
+                        switch (Files.Instance.SelectedItem.SelectedBacFile.MoveType)
+                        {
+                            case MoveType.Character:
+                                cbsScaling = cbsEntry.F_04;
+                                break;
+                            case MoveType.Skill:
+                                cbsScaling = cbsEntry.F_12;
+                                break;
+                            default:
+                                cbsScaling = 1f;
+                                break;
+                        }
+                    }
 
                     //BAC Hitbox bounds are defined in half-metres (1.0 is actually 0.5)
-                    BoundingBox.SetBounds(new Vector3(hitbox.MinX, hitbox.MinY, hitbox.MinZ) / 2, new Vector3(hitbox.MaxX, hitbox.MaxY, hitbox.MaxZ) / 2, hitbox.Size / 2, hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform);
+                    BoundingBox.SetBounds(
+                        new Vector3(hitbox.MinX, (Hitbox.MinY + 0.5f), hitbox.MinZ) * cbsScaling, 
+                        new Vector3(hitbox.MaxX, hitbox.MaxY, hitbox.MaxZ) * cbsScaling,
+                        hitbox.Size * cbsScaling / 2f, 
+                        hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform
+                    );
                     BoundingBox.SetPosition(new Vector3(hitbox.PositionX, hitbox.PositionY, hitbox.PositionZ));
                 }
 

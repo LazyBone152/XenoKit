@@ -2,10 +2,11 @@
 using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BAC;
 using Xv2CoreLib.BAC;
-using Matrix4x4 = System.Numerics.Matrix4x4;
-using SimdVector3 = System.Numerics.Vector3;
-using SimdQuaternion = System.Numerics.Quaternion;
+using Xv2CoreLib.CBS;
 using Xv2CoreLib.Resource;
+using Matrix4x4 = System.Numerics.Matrix4x4;
+using SimdQuaternion = System.Numerics.Quaternion;
+using SimdVector3 = System.Numerics.Vector3;
 
 namespace XenoKit.Engine.Collision
 {
@@ -76,13 +77,47 @@ namespace XenoKit.Engine.Collision
 
             if (world.Translation == PreviousTranslation) return; //No need to update
 
+            CBS_Entry cbsEntry = SpawnActor.CharacterData.CbsEntry.Find(x => x.BodyId == SpawnActor.Skeleton.GetActiveBoneScaleId());
+            float cbsScaling = 1f;
+
+            if (cbsEntry != null)
+            {
+                switch (BacEntry.SkillMove.MoveType)
+                {
+                    case Move.Type.Moveset:
+                        cbsScaling = cbsEntry.F_04;
+                        break;
+                    case Move.Type.Skill:
+                        cbsScaling = cbsEntry.F_12;
+                        break;
+                    default:
+                        cbsScaling = 1f;
+                        break;
+                }
+            }
+
+
+            Vector3 hitboxVectorMin;
+            Vector3 hitboxVectorMax;
             if (Hitbox.BoundingBoxType == BAC_Type1.BoundingBoxTypeEnum.MinMax)
             {
-                BoundingBox = new BoundingBox((new Vector3(Hitbox.MinX, Hitbox.MinY, Hitbox.MinZ) / 2) + HitboxPosition + world.Translation, (new Vector3(Hitbox.MaxX, Hitbox.MaxY, Hitbox.MaxZ) / 2) + HitboxPosition + world.Translation);
+                hitboxVectorMin = new Vector3(Hitbox.MinX, (Hitbox.MinY + 0.5f), Hitbox.MinZ) * cbsScaling;
+                hitboxVectorMax = new Vector3(Hitbox.MaxX, Hitbox.MaxY, Hitbox.MaxZ) * cbsScaling;
+                BoundingBox = new BoundingBox(
+                    hitboxVectorMin + HitboxPosition + world.Translation, 
+                    hitboxVectorMax + HitboxPosition + world.Translation
+                );
             }
             else
             {
-                BoundingBox = new BoundingBox(new Vector3(-(Hitbox.Size / 2)) + HitboxPosition + world.Translation, new Vector3((Hitbox.Size / 2)) + HitboxPosition + world.Translation);
+                Vector3 halfSize = new Vector3(Hitbox.Size) * cbsScaling / 2f;
+
+                hitboxVectorMin = -halfSize;
+                hitboxVectorMax = halfSize;
+                BoundingBox = new BoundingBox(
+                    hitboxVectorMin + HitboxPosition + world.Translation,
+                    hitboxVectorMax + HitboxPosition + world.Translation
+                );
             }
 
             PreviousTranslation = world.Translation;

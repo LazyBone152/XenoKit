@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Linq;
 using XenoKit.Engine.Shapes;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.CBS;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Scripting.BAC.Simulation
@@ -87,9 +89,32 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
                 {
                     isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
                     boneIdx = SceneManager.Actors[0].Skeleton.GetBoneIndex(boneName);
+                    CBS_Entry cbsEntry = actor.CharacterData.CbsEntry.Find(x => x.BodyId == actor.Skeleton.GetActiveBoneScaleId());
+                    float cbsScaling = 1f;
+
+                    if (cbsEntry != null)
+                    {
+                        switch (ParentBacInstance.SkillMove.MoveType)
+                        {
+                            case Editor.Move.Type.Moveset:
+                                cbsScaling = cbsEntry.F_04;
+                                break;
+                            case Editor.Move.Type.Skill:
+                                cbsScaling = cbsEntry.F_12;
+                                break;
+                            default:
+                                cbsScaling = 1f;
+                                break;
+                        }
+                    }
 
                     //BAC Hitbox bounds are defined in half-metres (1.0 is actually 0.5)
-                    BoundingBox.SetBounds(new Vector3(Hitbox.MinX, Hitbox.MinY, Hitbox.MinZ) / 2, new Vector3(Hitbox.MaxX, Hitbox.MaxY, Hitbox.MaxZ) / 2, Hitbox.Size / 2, Hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform);
+                    BoundingBox.SetBounds(
+                        new Vector3(Hitbox.MinX, (Hitbox.MinY + 0.5f), Hitbox.MinZ) * cbsScaling, 
+                        new Vector3(Hitbox.MaxX, Hitbox.MaxY, Hitbox.MaxZ) * cbsScaling,
+                        Hitbox.Size * cbsScaling / 2f, 
+                        Hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform
+                    );
                     BoundingBox.SetPosition(new Vector3(Hitbox.PositionX, Hitbox.PositionY, Hitbox.PositionZ));
                 }
             }

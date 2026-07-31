@@ -19,10 +19,12 @@ namespace XenoKit.Engine.Shapes
         public Vector3 Scale;
         public Vector3 MinBounds;
         public Vector3 MaxBounds;
+        public bool useBounds;
         private Color Color;
         private float _initalSize;
         private Vector3 _initialMinBounds;
         private Vector3 _initialMaxBounds;
+        private bool _initialUseBounds;
 
         //Settings:
         private readonly bool Wireframe = false;
@@ -202,12 +204,13 @@ namespace XenoKit.Engine.Shapes
         public void SetBounds(Vector3 min, Vector3 max, float size, bool useDefinedBounds)
         {
             //Early out if bounds are already equal to input values
-            if (min.IsAproxEqual(_initialMinBounds) && max.IsAproxEqual(_initialMaxBounds) && MathHelpers.FloatEquals(size, _initalSize))
+            if (min.IsAproxEqual(_initialMinBounds) && max.IsAproxEqual(_initialMaxBounds) && MathHelpers.FloatEquals(size, _initalSize) && useDefinedBounds == _initialUseBounds)
                 return;
 
             _initalSize = size;
             _initialMinBounds = min;
             _initialMaxBounds = max;
+            _initialUseBounds = useDefinedBounds;
 
             if (useDefinedBounds)
             {
