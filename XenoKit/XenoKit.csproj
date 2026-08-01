@@ -521,7 +521,9 @@
     <Compile Include="Engine\FrameRateCounter.cs" />
     <Compile Include="Engine\Gizmo\CurrentGizmo.cs" />
     <Compile Include="Engine\Gizmo\EntityTransformGizmo.cs" />
+    <Compile Include="Engine\Gizmo\EffectPartGizmo.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\EntityTransformOperation.cs" />
+    <Compile Include="Engine\Gizmo\TransformOperations\EffectPartTransformOperation.cs" />
     <Compile Include="Engine\Character\DamageManager.cs" />
     <Compile Include="Engine\FpfPosePreview.cs" />
     <Compile Include="Engine\Lighting\SunLight.cs" />

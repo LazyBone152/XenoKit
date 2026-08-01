@@ -117,6 +117,7 @@ namespace XenoKit.Engine
         public HitboxGizmo BacHitboxGizmo { get; private set; }
         public ModelGizmo ModelGizmo { get; private set; }
         public EntityTransformGizmo EntityTransformGizmo { get; private set; }
+        public EffectPartGizmo EffectPartGizmo { get; private set; }
 
         #endregion
 
@@ -159,6 +160,7 @@ namespace XenoKit.Engine
             BacMatrixGizmo = new BacMatrixGizmo();
             BacHitboxGizmo = new HitboxGizmo();
             EntityTransformGizmo = new EntityTransformGizmo();
+            EffectPartGizmo = new EffectPartGizmo();
             ModelGizmo = new ModelGizmo();
 
             Camera = new Camera();

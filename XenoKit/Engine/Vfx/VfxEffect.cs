@@ -32,6 +32,23 @@ namespace XenoKit.Engine.Vfx
             effect.EffectParts.CollectionChanged += EffectParts_CollectionChanged;
         }
 
+        /// <summary>
+        /// Finds this effect's asset for the given effect part, so the editor can show a gizmo where the effect actually is.
+        /// </summary>
+        public VfxAsset FindAsset(EffectPart effectPart)
+        {
+            if (Assets == null || effectPart == null) return null;
+
+            foreach (VfxAsset asset in Assets)
+            {
+                //Not filtered on HasStarted, so the gizmo stays put during the start time delay and between loops.
+                if (asset.EffectPart == effectPart && !asset.IsFinished)
+                    return asset;
+            }
+
+            return null;
+        }
+
         public VfxEffect(Actor actor, EffectPart effectPart)
         {
             IsAssetPreview = true;

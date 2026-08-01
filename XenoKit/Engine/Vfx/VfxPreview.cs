@@ -46,6 +46,14 @@ namespace XenoKit.Engine.Vfx
             */
         }
 
+        /// <summary>
+        /// Finds the previewed asset for the given effect part, so the editor can show a gizmo where the effect actually is.
+        /// </summary>
+        public VfxAsset FindAsset(EffectPart effectPart)
+        {
+            return Effect?.FindAsset(effectPart) ?? Asset?.FindAsset(effectPart);
+        }
+
         public async void PreviewEffect(Effect effect)
         {
             await SceneManager.AsyncEnsureActorIsSet(0);

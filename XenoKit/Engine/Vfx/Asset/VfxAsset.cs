@@ -15,7 +15,18 @@ namespace XenoKit.Engine.Vfx.Asset
         public bool HasStarted { get; protected set; }
         public bool IsFinished { get; protected set; }
         public bool IsTerminating { get; protected set; }
-        protected readonly EffectPart EffectPart;
+        public EffectPart EffectPart { get; }
+
+        /// <summary>
+        /// Where the asset actually ends up on screen, matching the matrix used when drawing it.
+        /// </summary>
+        public Matrix4x4 VisualTransform => CurrentRotation * Transform;
+
+        /// <summary>
+        /// The basis the Position X/Y/Z offsets are applied in. Identity when they act in world space.
+        /// </summary>
+        public Matrix4x4 PositionSpace { get; private set; } = Matrix4x4.Identity;
+
         protected readonly Actor Actor;
         protected readonly bool SpawnedByProjectile;
 
@@ -27,6 +38,9 @@ namespace XenoKit.Engine.Vfx.Asset
         private Matrix4x4 InitialPosition;
         private Matrix4x4 InitialRotation;
         private Matrix4x4 CurrentRotation;
+        private float rotationFactorX;
+        private float rotationFactorY;
+        private float rotationFactorZ;
 
         //Asset Type
         private AssetType AssetType;
@@ -62,19 +76,13 @@ namespace XenoKit.Engine.Vfx.Asset
                 BoneIdx = Actor.Skeleton.GetBoneIndex(EffectPart.ESK, true);
             }
 
-            //Apply CurrentRotation, if enabled
-            if (EffectPart.EnableRotationValues)
-            {
-                float rotX = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationX_Min, EffectPart.RotationX_Max));
-                float rotY = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationY_Min, EffectPart.RotationY_Max));
-                float rotZ = MathHelper.ToRadians(Xv2CoreLib.Random.Range(EffectPart.RotationZ_Min, EffectPart.RotationZ_Max));
+            //Roll where in the min/max range this instance sits, once per spawn. Keeping the factor instead of the
+            //resulting angle lets the rotation follow edits to the min/max values without re-rolling and jittering.
+            rotationFactorX = Xv2CoreLib.Random.Range(0f, 1f);
+            rotationFactorY = Xv2CoreLib.Random.Range(0f, 1f);
+            rotationFactorZ = Xv2CoreLib.Random.Range(0f, 1f);
 
-                CurrentRotation = VfxRotation.Create(rotX, rotY, rotZ);
-            }
-            else
-            {
-                CurrentRotation = Matrix4x4.Identity;
-            }
+            RefreshRotation();
 
             //Set Transform to selected bone if on bone attachment, else use the StartingTransform (from BAC)
             if (EffectPart.AttachementType == EffectPart.Attachment.Bone && !UsesExternalSpawn())
@@ -135,8 +143,28 @@ namespace XenoKit.Engine.Vfx.Asset
         {
         }
 
+        /// <summary>
+        /// Recalculates the rotation from the current EffectPart values, so edits in the editor are seen right away.
+        /// </summary>
+        private void RefreshRotation()
+        {
+            if (!EffectPart.EnableRotationValues)
+            {
+                CurrentRotation = Matrix4x4.Identity;
+                return;
+            }
+
+            float rotX = MathHelper.ToRadians(MathHelper.Lerp(EffectPart.RotationX_Min, EffectPart.RotationX_Max, rotationFactorX));
+            float rotY = MathHelper.ToRadians(MathHelper.Lerp(EffectPart.RotationY_Min, EffectPart.RotationY_Max, rotationFactorY));
+            float rotZ = MathHelper.ToRadians(MathHelper.Lerp(EffectPart.RotationZ_Min, EffectPart.RotationZ_Max, rotationFactorZ));
+
+            CurrentRotation = VfxRotation.Create(rotX, rotY, rotZ);
+        }
+
         public override void Update()
         {
+            RefreshRotation();
+
             if (!HasStarted)
             {
                 if(CurrentFrame >= EffectPart.StartTime)
@@ -164,19 +192,23 @@ namespace XenoKit.Engine.Vfx.Asset
                 if (EffectPart.PositionUpdate && EffectPart.RotateUpdate)
                 {
                     Transform = offset * attachTransform;
+                    PositionSpace = attachRotation;
                 }
                 else if (EffectPart.PositionUpdate)
                 {
                     Transform = InitialRotation * attachPosition * offset;
+                    PositionSpace = Matrix4x4.Identity;
                 }
                 else if (EffectPart.RotateUpdate)
                 {
                     Transform = attachRotation * InitialPosition * offset;
+                    PositionSpace = Matrix4x4.Identity;
                 }
                 else
                 {
                     //Use starting position and rotation
                     Transform = offset * InitialRotation * InitialPosition;
+                    PositionSpace = InitialRotation;
                 }
             }
             else if(UsesExternalSpawn())
@@ -188,14 +220,17 @@ namespace XenoKit.Engine.Vfx.Asset
                 if (EffectPart.PositionUpdate && EffectPart.RotateUpdate)
                 {
                     Transform = offset * BacSpawnSource;
+                    PositionSpace = spawnRotation;
                 }
                 else if (EffectPart.PositionUpdate)
                 {
                     Transform = InitialRotation * spawnPosition * offset;
+                    PositionSpace = Matrix4x4.Identity;
                 }
                 else if (EffectPart.RotateUpdate)
                 {
                     Transform = spawnRotation * InitialPosition * offset;
+                    PositionSpace = Matrix4x4.Identity;
                 }
             }
 

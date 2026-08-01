@@ -175,6 +175,26 @@ namespace XenoKit.Engine.Vfx
             return vfxEffect;
         }
 
+        /// <summary>
+        /// Finds a playing asset for the given effect part, so the editor can show a gizmo where the effect actually is.
+        /// </summary>
+        public VfxAsset FindPlayingAsset(EffectPart effectPart)
+        {
+            if (effectPart == null) return null;
+
+            lock (Effects)
+            {
+                foreach (VfxEffect effect in Effects)
+                {
+                    VfxAsset asset = effect.FindAsset(effectPart);
+
+                    if (asset != null) return asset;
+                }
+            }
+
+            return null;
+        }
+
         public void StopActorEffects(Actor actor)
         {
             lock (Effects)
