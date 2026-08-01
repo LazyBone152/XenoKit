@@ -1,9 +1,8 @@
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using XenoKit.Engine.Gizmo.TransformOperations;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.EEPK;
-using SimdMatrix = System.Numerics.Matrix4x4;
 
 namespace XenoKit.Engine.Gizmo
 {
@@ -16,10 +15,10 @@ namespace XenoKit.Engine.Gizmo
                 VfxAsset asset = GetPlayingAsset();
                 if (asset == null) return Matrix.Identity;
 
-                Matrix visual = ToXna(asset.VisualTransform);
+                Matrix visual = Extensions.ToXna(asset.VisualTransform);
                 Matrix position = Matrix.CreateTranslation(visual.Translation);
 
-                Matrix attachSpace = ToXna(asset.PositionSpace);
+                Matrix attachSpace = Extensions.ToXna(asset.PositionSpace);
                 attachSpace.Translation = Vector3.Zero;
 
                 //Rotation X/Y/Z are euler angles relative to the attachment, so the rings have to be drawn in that
@@ -82,7 +81,7 @@ namespace XenoKit.Engine.Gizmo
             {
                 VfxAsset asset = GetPlayingAsset();
 
-                transformOperation.PositionSpace = asset != null ? ToXna(asset.PositionSpace) : Matrix.Identity;
+                transformOperation.PositionSpace = asset != null ? Extensions.ToXna(asset.PositionSpace) : Matrix.Identity;
                 transformOperation.DeltaIsWorldSpace = !LocalTranslate;
             }
 
@@ -109,15 +108,6 @@ namespace XenoKit.Engine.Gizmo
             //The Effect tab previews through VfxPreview, so check there first, then the effects spawned by BAC playback.
             return ViewportInstance?.VfxPreview?.FindAsset(effectPart)
                 ?? ViewportInstance?.VfxManager?.FindPlayingAsset(effectPart);
-        }
-
-        private static Matrix ToXna(SimdMatrix matrix)
-        {
-            return new Matrix(
-                matrix.M11, matrix.M12, matrix.M13, matrix.M14,
-                matrix.M21, matrix.M22, matrix.M23, matrix.M24,
-                matrix.M31, matrix.M32, matrix.M33, matrix.M34,
-                matrix.M41, matrix.M42, matrix.M43, matrix.M44);
         }
     }
 }
