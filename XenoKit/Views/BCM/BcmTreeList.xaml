@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="Root">
     <UserControl.Resources>
-        <Style x:Key="BcmTreeLinkButton" TargetType="Button">
+        <Style x:Key="BcmTreeLinkButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="0"/>
@@ -11,7 +11,7 @@
             <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
             <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content.Text}"/>
         </Style>
-        <Style x:Key="BcmTreeExpanderToggle" TargetType="ToggleButton">
+        <Style x:Key="BcmTreeExpanderToggle" TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Accent3}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
@@ -50,7 +50,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="BcmTreeItemStyle" TargetType="{x:Type TreeViewItem}">
+        <Style x:Key="BcmTreeItemStyle" TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
             <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

@@ -81,6 +81,12 @@ namespace XenoKit.Views.BCM
         {
             List<BCM_Entry> oldSelections = SelectedEntries.ToList();
             BCM_Entry oldSelection = SelectedEntry;
+
+            // Rows are rebuilt from scratch on every structural change, so expansion has to be carried over
+            // by entry. Without this, deleting one state collapses the whole tree.
+            HashSet<BCM_Entry> expandedEntries = new HashSet<BCM_Entry>(allRows.Where(row => row.IsExpanded && row.Entry != null).Select(row => row.Entry));
+            bool hadRows = allRows.Count > 0;
+
             allRows.Clear();
             rowsByIndex.Clear();
             RootRows.Clear();
@@ -89,11 +95,30 @@ namespace XenoKit.Views.BCM
             foreach (BCM_Entry entry in Entries?.OfType<BCM_Entry>() ?? Enumerable.Empty<BCM_Entry>())
                 RootRows.Add(AddRows(entry, null, 0));
 
+            // On the very first build the constructor default (roots expanded) is what we want.
+            if (hadRows)
+            {
+                foreach (BcmTreeRow row in allRows)
+                    row.IsExpanded = row.Entry != null && expandedEntries.Contains(row.Entry);
+            }
+
             foreach (BcmTreeRow row in allRows.Where(row => oldSelections.Contains(row.Entry)))
                 row.IsSelected = true;
 
             SyncSelectedEntries();
-            SelectRow(allRows.FirstOrDefault(row => ReferenceEquals(row.Entry, oldSelection)) ?? allRows.FirstOrDefault(row => row.IsSelected), true, false);
+
+            BcmTreeRow rowToSelect = allRows.FirstOrDefault(row => ReferenceEquals(row.Entry, oldSelection)) ?? allRows.FirstOrDefault(row => row.IsSelected);
+            ExpandAncestors(rowToSelect);
+            SelectRow(rowToSelect, true, false);
+        }
+
+        /// <summary>
+        /// Keeps a newly added or re-selected row reachable when its parent was collapsed.
+        /// </summary>
+        private static void ExpandAncestors(BcmTreeRow row)
+        {
+            for (BcmTreeRow parent = row?.Parent; parent != null; parent = parent.Parent)
+                parent.IsExpanded = true;
         }
 
         private BcmTreeRow AddRows(BCM_Entry entry, BcmTreeRow parent, int depth)

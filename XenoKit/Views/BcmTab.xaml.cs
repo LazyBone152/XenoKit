@@ -10,7 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using XenoKit.Editor;
-using XenoKit.Editor.Undo;
+using XenoKit.ViewModel.BCM;
 using Xv2CoreLib;
 using Xv2CoreLib.BCM;
 using Xv2CoreLib.Resource.UndoRedo;
@@ -24,6 +24,13 @@ namespace XenoKit.Views
 
         private BCM_Entry selectedEntry;
         private bool isUndoRedoHooked;
+        private BcmEntryViewModel bcmEntryViewModel;
+
+        /// <summary>
+        /// Root entries anchor the tree and are not editable, so the viewmodel is null for them and the
+        /// editor shows its empty state.
+        /// </summary>
+        public BcmEntryViewModel BcmEntryViewModel => bcmEntryViewModel;
 
         public IList<Xv2File<BCM_File>> BcmFiles
         {
@@ -53,6 +60,7 @@ namespace XenoKit.Views
             set
             {
                 selectedEntry = value;
+                RebuildEntryViewModel();
                 NotifyPropertyChanged(nameof(SelectedEntry));
                 NotifyPropertyChanged(nameof(EditableSelectedEntry));
                 NotifyPropertyChanged(nameof(HasMultipleSelectedEntries));
@@ -60,6 +68,29 @@ namespace XenoKit.Views
                 NotifyPropertyChanged(nameof(SelectedEntrySiblingIndex));
                 NotifyPropertyChanged(nameof(SelectedEntryChildIndex));
             }
+        }
+
+        private void RebuildEntryViewModel()
+        {
+            if (bcmEntryViewModel != null)
+                bcmEntryViewModel.EntryChanged -= BcmEntryViewModel_EntryChanged;
+
+            bcmEntryViewModel?.Dispose();
+
+            BCM_Entry editable = EditableSelectedEntry;
+            bcmEntryViewModel = editable != null
+                ? new BcmEntryViewModel(editable, GetNextSiblingIndex(editable), GetFirstChildIndex(editable))
+                : null;
+
+            if (bcmEntryViewModel != null)
+                bcmEntryViewModel.EntryChanged += BcmEntryViewModel_EntryChanged;
+
+            NotifyPropertyChanged(nameof(BcmEntryViewModel));
+        }
+
+        private void BcmEntryViewModel_EntryChanged(object sender, EventArgs e)
+        {
+            entryTree?.RefreshDisplay();
         }
 
         public BcmTab()
@@ -171,11 +202,6 @@ namespace XenoKit.Views
             return !string.IsNullOrWhiteSpace(file?.Path);
         }
 
-        private void EntryEditor_EntryEdited(object sender, EventArgs e)
-        {
-            entryTree?.RefreshDisplay();
-        }
-
         private void ToolsButton_Click(object sender, RoutedEventArgs e)
         {
             if (ToolsButton.ContextMenu == null) return;
@@ -258,9 +284,7 @@ namespace XenoKit.Views
             List<BCM_Entry> entries = GetNormalizedSelectedEntries();
             if (entries.Count == 0) return;
 
-            DataObject data = new DataObject();
-            data.SetData(ClipboardConstants.BcmSubtrees_CopyItems, entries.Select(CloneEntryTree).ToList());
-            Clipboard.SetDataObject(data);
+            XenoKitClipboard.SetData(ClipboardConstants.BcmSubtrees_CopyItems, entries.Select(CloneEntryTree).ToList());
         }
 
         public RelayCommand CutCommand => new RelayCommand(CutEntry, HasSelectedEntries);
@@ -334,33 +358,30 @@ namespace XenoKit.Views
 
         private bool CanPasteAsSibling()
         {
-            return files.SelectedItem?.SelectedBcmFile?.File != null && Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
+            return files.SelectedItem?.SelectedBcmFile?.File != null && XenoKitClipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
         }
 
         private bool CanPasteAsChild()
         {
-            return files.SelectedItem?.SelectedBcmFile?.File != null && Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
+            return files.SelectedItem?.SelectedBcmFile?.File != null && XenoKitClipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
         }
 
         private bool CanPasteBeforeSibling()
         {
-            return CanEditSelectedEntry() && Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
+            return CanEditSelectedEntry() && XenoKitClipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
         }
 
         private bool CanPasteAsFirstChild()
         {
-            return files.SelectedItem?.SelectedBcmFile?.File != null && Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
+            return files.SelectedItem?.SelectedBcmFile?.File != null && XenoKitClipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems);
         }
 
         private List<BCM_Entry> GetClipboardEntries(BCM_File file)
         {
-            if (file == null || !Clipboard.ContainsData(ClipboardConstants.BcmSubtrees_CopyItems)) return new List<BCM_Entry>();
+            if (file == null) return new List<BCM_Entry>();
+            if (!XenoKitClipboard.TryGetData(ClipboardConstants.BcmSubtrees_CopyItems, out List<BCM_Entry> stored)) return new List<BCM_Entry>();
 
-            List<BCM_Entry> clones = ((List<BCM_Entry>)Clipboard.GetData(ClipboardConstants.BcmSubtrees_CopyItems))?
-                .Select(CloneEntryTree)
-                .ToList() ?? new List<BCM_Entry>();
-
-            return clones;
+            return stored?.Select(CloneEntryTree).ToList() ?? new List<BCM_Entry>();
         }
 
         private BCM_Entry CloneEntryTree(BCM_Entry entry)
@@ -448,7 +469,12 @@ namespace XenoKit.Views
 
             int oldIndex = list.IndexOf(SelectedEntry);
             int newIndex = oldIndex + direction;
-            UndoManager.Instance.AddUndo(new ListMoveUndo<BCM_Entry>(list, oldIndex, newIndex, "BCM Move"));
+
+            BCM_Entry entry = list[oldIndex];
+            list.RemoveAt(oldIndex);
+            list.Insert(newIndex, entry);
+
+            UndoManager.Instance.AddUndo(new UndoableListMove<BCM_Entry>(list, oldIndex, newIndex, "BCM Move"));
             RefreshTree();
         }
 
@@ -515,8 +541,9 @@ namespace XenoKit.Views
                 return;
             }
 
-            List<BCM_Entry> newEntries = CloneEntryTreeList(file.BCMEntries);
-            UndoManager.Instance.AddUndo(new UndoablePropertyGeneric(nameof(BCM_File.BCMEntries), file, oldEntries, newEntries, "BCM Compress Loops"));
+            // The new value must be the live list, not a clone, so redo restores the instance the tree and
+            // selection actually point at. CompressLoops mutates in place, so the old value has to stay a clone.
+            UndoManager.Instance.AddUndo(new UndoableProperty<BCM_File>(nameof(BCM_File.BCMEntries), file, oldEntries, file.BCMEntries, "BCM Compress Loops"));
 
             SelectedEntry = null;
             RefreshTree();
@@ -564,9 +591,11 @@ namespace XenoKit.Views
         {
             if (file == null || list == null || entry == null) return;
 
-            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
             int insertIndex = ClampListIndex(list, index);
             list.Insert(insertIndex, entry);
+
+            // Snapshot after the insert so the Index that reindexing assigns to the new entry is undoable too.
+            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
 
             List<IUndoRedo> undos = new List<IUndoRedo>
             {
@@ -582,7 +611,6 @@ namespace XenoKit.Views
         {
             if (file == null || list == null || clones == null || clones.Count == 0) return;
 
-            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
             int insertIndex = ClampListIndex(list, index);
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
@@ -591,6 +619,9 @@ namespace XenoKit.Views
                 list.Insert(insertIndex++, clone);
                 undos.Add(new UndoableListAdd<BCM_Entry>(list, clone, message));
             }
+
+            // Snapshot after the inserts so the Indexes reindexing assigns to the pasted entries are undoable too.
+            List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
 
             AddCompositeUndoWithReindex(file, undos, oldValues, message);
             SelectedEntry = clones.LastOrDefault();
@@ -842,3 +873,4 @@ namespace XenoKit.Views
 
     }
 }
+

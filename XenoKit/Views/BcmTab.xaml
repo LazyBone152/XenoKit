@@ -124,11 +124,7 @@
             <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}"/>
 
             <bcmViews:BcmEntryEditor Grid.Column="4"
-                                     SelectedEntry="{Binding EditableSelectedEntry}"
-                                     IsRootEntry="{Binding IsSelectedEntryRoot}"
-                                     SiblingIndex="{Binding SelectedEntrySiblingIndex}"
-                                     ChildIndex="{Binding SelectedEntryChildIndex}"
-                                     EntryEdited="EntryEditor_EntryEdited"/>
+                                     BcmViewModel="{Binding BcmEntryViewModel}"/>
         </Grid>
     </Grid>
 </UserControl>

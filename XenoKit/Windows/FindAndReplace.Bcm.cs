@@ -131,7 +131,7 @@ namespace XenoKit.Windows
                 BcmValue("I_80", nameof(BCM_Entry.I_80)),
                 BcmValue("I_88", nameof(BCM_Entry.I_88)),
                 BcmValue("I_104", nameof(BCM_Entry.I_104)),
-                BcmValue("I_108", nameof(BCM_Entry.I_108))
+                BcmValue("Character Condition", nameof(BCM_Entry.I_108))
             };
         }
 
