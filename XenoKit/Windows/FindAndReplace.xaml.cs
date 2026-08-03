@@ -64,7 +64,7 @@ namespace XenoKit.Windows
             { typeof(BAC_Type19) , "Aura" },
             { typeof(BAC_Type20) , "Homing Movement" },
             { typeof(BAC_Type21) , "Eye Movement" },
-            { typeof(BAC_Type22) , "BAC_Type22" },
+            { typeof(BAC_Type22) , "Move to Object" },
             { typeof(BAC_Type23) , "Transparency Effect" },
             { typeof(BAC_Type24) , "Dual Skill Handler" },
             { typeof(BAC_Type25) , "Extended Chain Attack" },

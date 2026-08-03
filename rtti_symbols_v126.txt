@@ -1,0 +1,7 @@
+EXTERNAL:00000308 Label `vftable'
+EXTERNAL:000004ed Function __std_type_info_name
+EXTERNAL:000004f2 Function __std_type_info_compare
+140ea303c Function __std_type_info_compare
+140f4b868 Label PTR___std_type_info_name_140f4b868
+140f4b890 Label PTR___std_type_info_compare_140f4b890
+140f4c2f8 Label PTR_`vftable'_140f4c2f8
