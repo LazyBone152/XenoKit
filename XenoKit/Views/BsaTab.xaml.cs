@@ -1,7 +1,4 @@
-﻿using GalaSoft.MvvmLight.CommandWpf;
-using MahApps.Metro.Controls.Dialogs;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,15 +6,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media;
 using XenoKit.Editor;
-using XenoKit.Editor.Undo;
 using XenoKit.Engine;
 using XenoKit.Engine.Scripting.BSA;
 using XenoKit.ViewModel.BSA;
-using XenoKit.Windows;
-using Xv2CoreLib;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.Resource.UndoRedo;
 
@@ -25,52 +17,34 @@ namespace XenoKit.Views
 {
     public partial class BsaTab : UserControl, INotifyPropertyChanged
     {
-        private const string BsaCollisionCopyItem = "XenoKit_BsaCollisionCopyItem";
-        private const string BsaExpirationCopyItem = "XenoKit_BsaExpirationCopyItem";
-
-        public static event EventHandler BsaSubtypeSelectionChanged;
         public event PropertyChangedEventHandler PropertyChanged;
         public Files files => Files.Instance;
 
         private BSA_Entry selectedEntry;
         private BsaSubtypeRow selectedSubtypeRow;
+        private bool isSubscribed;
+
         private BsaEntryViewModel entryViewModel;
         private BsaTypeBaseViewModel typeViewModel;
-        private BsaTypeBaseViewModel typeActivationViewModel;
-        private BsaTypeBaseViewModel typeUnknownViewModel;
+        private BsaTypeBaseViewModel typeBaseViewModel;
         private BsaCollisionViewModel collisionViewModel;
         private BsaExpirationViewModel expirationViewModel;
         private ListCollectionView viewBsaEntries;
-        private bool isSelectingSubtype;
-        private bool isSubscribed;
+
+        public string SelectedBsaFileName => files.SelectedItem?.SelectedBsaFile?.DisplayName ?? string.Empty;
 
         public ObservableCollection<BsaSubtypeRow> SubtypeRows { get; } = new ObservableCollection<BsaSubtypeRow>();
 
-        public IList<Xv2File<BSA_File>> BsaFiles
-        {
-            get
-            {
-                List<Xv2File<BSA_File>> bsaFiles = new List<Xv2File<BSA_File>>();
-                if (files.SelectedMove?.Files?.BsaFile != null) bsaFiles.Add(files.SelectedMove.Files.BsaFile);
-                return bsaFiles;
-            }
-        }
-
-        public IList Entries => GetSelectedFile()?.BSA_Entries;
         private IList<BSA_Entry> SelectedEntries => entryGrid?.SelectedItems.Cast<BSA_Entry>().ToList() ?? new List<BSA_Entry>();
-        public Visibility BsaFileSelectorVisibility => BsaFiles.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility BsaFileTextVisibility => BsaFiles.Count <= 1 ? Visibility.Visible : Visibility.Collapsed;
-        public string SelectedBsaFileName => files.SelectedItem?.SelectedBsaFile?.DisplayName ?? string.Empty;
+
         public ListCollectionView ViewBsaEntries
         {
             get => viewBsaEntries;
             private set
             {
-                if (viewBsaEntries != value)
-                {
-                    viewBsaEntries = value;
-                    NotifyPropertyChanged(nameof(ViewBsaEntries));
-                }
+                if (viewBsaEntries == value) return;
+                viewBsaEntries = value;
+                NotifyPropertyChanged(nameof(ViewBsaEntries));
             }
         }
 
@@ -82,14 +56,26 @@ namespace XenoKit.Views
                 if (selectedEntry == value) return;
 
                 selectedEntry = value;
-                if (selectedEntry?.IBsaTypes == null)
-                    selectedEntry?.InitializeIBsaTypes();
-                SelectedSubtypeRow = null;
-                SetEntryViewModel(selectedEntry != null ? new BsaEntryViewModel(selectedEntry) : null);
+                InitSubEntries();
                 RebuildSubtypeRows();
+                SetEntryViewModel(selectedEntry != null ? new BsaEntryViewModel(selectedEntry) : null);
+                SelectedSubtypeRow = null;
                 NotifyPropertyChanged(nameof(SelectedEntry));
-                UpdateViewModels();
+                NotifyPropertyChanged(nameof(SelectedBsaID));
                 PlaySelectedEntryPreview();
+            }
+        }
+
+        /// <summary>
+        /// Backs the editable ID column on the entry grid, mirroring BacTab.SelectedBacID.
+        /// </summary>
+        public int SelectedBsaID
+        {
+            get => selectedEntry?.SortID ?? 0;
+            set
+            {
+                if (selectedEntry == null || selectedEntry.SortID == value) return;
+                EditBsaId(value);
             }
         }
 
@@ -98,101 +84,38 @@ namespace XenoKit.Views
             get => selectedSubtypeRow;
             set
             {
-                if (selectedSubtypeRow == value || isSelectingSubtype) return;
-
-                isSelectingSubtype = true;
-                try
-                {
-                    selectedSubtypeRow = value;
-                    if (selectedSubtypeRow == null)
-                        SetEntryViewModel(selectedEntry != null ? new BsaEntryViewModel(selectedEntry) : null);
-                    else
-                        SetEntryViewModel(null);
-
-                    UpdateSubtypeViewModels();
-                    NotifyPropertyChanged(nameof(SelectedSubtypeRow));
-                    UpdateViewModels();
-                }
-                finally
-                {
-                    isSelectingSubtype = false;
-                }
+                selectedSubtypeRow = value;
+                UpdateSubtypeViewModels();
+                NotifyPropertyChanged(nameof(SelectedSubtypeRow));
+                UpdateViewModels();
             }
         }
 
-        public BsaEntryViewModel EntryViewModel
-        {
-            get => entryViewModel;
-            private set
-            {
-                entryViewModel = value;
-                NotifyPropertyChanged(nameof(EntryViewModel));
-            }
-        }
+        private object SelectedSubtypeSource => selectedSubtypeRow?.Source;
 
-        public BsaTypeBaseViewModel TypeViewModel
-        {
-            get => typeViewModel;
-            private set
-            {
-                typeViewModel = value;
-                NotifyPropertyChanged(nameof(TypeViewModel));
-            }
-        }
+        /// <summary>
+        /// The entry sections (Projectile, Impact Properties, Pass On, Unknown) only apply to the entry
+        /// itself, so they are hidden while a subtype row is selected. Clicking the already selected entry
+        /// row clears the subtype selection and brings them back.
+        /// </summary>
+        public BsaEntryViewModel EntryViewModel => selectedSubtypeRow == null ? entryViewModel : null;
 
-        public BsaTypeBaseViewModel TypeActivationViewModel
-        {
-            get => typeActivationViewModel;
-            private set
-            {
-                typeActivationViewModel = value;
-                NotifyPropertyChanged(nameof(TypeActivationViewModel));
-            }
-        }
+        public BsaTypeBaseViewModel TypeBaseViewModel => typeBaseViewModel;
+        public BsaCollisionViewModel CollisionViewModel => collisionViewModel;
+        public BsaExpirationViewModel ExpirationViewModel => expirationViewModel;
 
-        public BsaTypeBaseViewModel TypeUnknownViewModel
-        {
-            get => typeUnknownViewModel;
-            private set
-            {
-                typeUnknownViewModel = value;
-                NotifyPropertyChanged(nameof(TypeUnknownViewModel));
-            }
-        }
-
-        public BsaCollisionViewModel CollisionViewModel
-        {
-            get => collisionViewModel;
-            private set
-            {
-                collisionViewModel = value;
-                NotifyPropertyChanged(nameof(CollisionViewModel));
-            }
-        }
-
-        public BsaExpirationViewModel ExpirationViewModel
-        {
-            get => expirationViewModel;
-            private set
-            {
-                expirationViewModel = value;
-                NotifyPropertyChanged(nameof(ExpirationViewModel));
-            }
-        }
-
-        public BsaTypeBaseViewModel TypeBaseViewModel => TypeViewModel;
-        public BsaType0ViewModel Type0ViewModel => TypeViewModel as BsaType0ViewModel;
-        public BsaType1ViewModel Type1ViewModel => TypeViewModel as BsaType1ViewModel;
-        public BsaType2ViewModel Type2ViewModel => TypeViewModel as BsaType2ViewModel;
-        public BsaType3ViewModel Type3ViewModel => TypeViewModel as BsaType3ViewModel;
-        public BsaType4ViewModel Type4ViewModel => TypeViewModel as BsaType4ViewModel;
-        public BsaType6ViewModel Type6ViewModel => TypeViewModel as BsaType6ViewModel;
-        public BsaType7ViewModel Type7ViewModel => TypeViewModel as BsaType7ViewModel;
-        public BsaType8ViewModel Type8ViewModel => TypeViewModel as BsaType8ViewModel;
-        public BsaType10ViewModel Type10ViewModel => TypeViewModel as BsaType10ViewModel;
-        public BsaType12ViewModel Type12ViewModel => TypeViewModel as BsaType12ViewModel;
-        public BsaType13ViewModel Type13ViewModel => TypeViewModel as BsaType13ViewModel;
-        public BsaType14ViewModel Type14ViewModel => TypeViewModel as BsaType14ViewModel;
+        public BsaType0ViewModel Type0ViewModel => typeViewModel as BsaType0ViewModel;
+        public BsaType1ViewModel Type1ViewModel => typeViewModel as BsaType1ViewModel;
+        public BsaType2ViewModel Type2ViewModel => typeViewModel as BsaType2ViewModel;
+        public BsaType3ViewModel Type3ViewModel => typeViewModel as BsaType3ViewModel;
+        public BsaType4ViewModel Type4ViewModel => typeViewModel as BsaType4ViewModel;
+        public BsaType6ViewModel Type6ViewModel => typeViewModel as BsaType6ViewModel;
+        public BsaType7ViewModel Type7ViewModel => typeViewModel as BsaType7ViewModel;
+        public BsaType8ViewModel Type8ViewModel => typeViewModel as BsaType8ViewModel;
+        public BsaType10ViewModel Type10ViewModel => typeViewModel as BsaType10ViewModel;
+        public BsaType12ViewModel Type12ViewModel => typeViewModel as BsaType12ViewModel;
+        public BsaType13ViewModel Type13ViewModel => typeViewModel as BsaType13ViewModel;
+        public BsaType14ViewModel Type14ViewModel => typeViewModel as BsaType14ViewModel;
 
         public BsaTab()
         {
@@ -212,18 +135,14 @@ namespace XenoKit.Views
         {
             UnsubscribeFromEvents();
             BsaEffectPreviewController.Instance.Stop();
-            SetTypeViewModel(null);
-            SetCollisionViewModel(null);
-            SetExpirationViewModel(null);
+            SelectedSubtypeRow = null;
             SetEntryViewModel(null);
             DisposeSubtypeRows();
-            SubtypeRows.Clear();
         }
 
         private void SubscribeToEvents()
         {
-            if (isSubscribed)
-                return;
+            if (isSubscribed) return;
 
             Files.SelectedItemChanged += Files_SelectedItemChanged;
             SceneManager.EditorTabChanged += SceneManager_EditorTabChanged;
@@ -233,8 +152,7 @@ namespace XenoKit.Views
 
         private void UnsubscribeFromEvents()
         {
-            if (!isSubscribed)
-                return;
+            if (!isSubscribed) return;
 
             Files.SelectedItemChanged -= Files_SelectedItemChanged;
             SceneManager.EditorTabChanged -= SceneManager_EditorTabChanged;
@@ -242,51 +160,39 @@ namespace XenoKit.Views
             isSubscribed = false;
         }
 
+        /// <summary>
+        /// Undo writes to the models directly, so only structural state is rebuilt here. Every viewmodel
+        /// re-raises its own properties from its own UndoOrRedoCalled subscription.
+        /// </summary>
         private void UndoManager_UndoOrRedoCalled(object sender, UndoEventRaisedEventArgs e)
         {
-            RefreshAfterUndoRedo();
-        }
+            if (!SceneManager.IsOnTab(EditorTabs.Projectile)) return;
 
-        private void RefreshAfterUndoRedo()
-        {
             BSA_File file = GetSelectedFile();
-            BSA_Entry previousEntry = SelectedEntry;
-            object previousSubtypeSource = SelectedSubtypeRow?.Source;
 
             if (file == null)
             {
                 ViewBsaEntries = null;
-                SelectedSubtypeRow = null;
                 SelectedEntry = null;
-                NotifyAll();
-                RefreshGrids();
                 return;
             }
 
-            CreateEntryList();
+            if (!ContainsEntry(file, SelectedEntry))
+                SelectedEntry = file.BSA_Entries?.FirstOrDefault();
 
-            if (!ContainsEntry(file, previousEntry))
-                previousEntry = file.BSA_Entries?.FirstOrDefault();
-
-            SelectedEntry = previousEntry;
-            if (SelectedEntry != null)
-            {
-                RebuildSubtypeRows();
-                RestoreSubtypeSelection(previousSubtypeSource);
-                SetEntryViewModel(new BsaEntryViewModel(SelectedEntry));
-            }
-            else
-            {
-                SelectedSubtypeRow = null;
-                SetEntryViewModel(null);
-                RebuildSubtypeRows();
-            }
-
-            UpdateSubtypeViewModels();
             ViewBsaEntries?.Refresh();
-            RefreshGrids();
-            NotifyAll();
-            UpdateViewModels();
+
+            if (SelectedEntry?.IBsaTypes != null)
+            {
+                foreach (IBsaType type in SelectedEntry.IBsaTypes)
+                    type.RefreshType();
+            }
+
+            // The subtype list is structural, so it has to be rebuilt after an undo of an add or delete.
+            object previousSource = SelectedSubtypeSource;
+            RebuildSubtypeRows();
+            SelectedSubtypeRow = SubtypeRows.FirstOrDefault(row => ReferenceEquals(row.Source, previousSource));
+
             PlaySelectedEntryPreview();
         }
 
@@ -298,60 +204,53 @@ namespace XenoKit.Views
         private void SceneManager_EditorTabChanged(object sender, EventArgs e)
         {
             if (SceneManager.IsOnTab(EditorTabs.Projectile))
-            {
                 RefreshSelectedMoveBsaFile();
-            }
             else
-            {
                 BsaEffectPreviewController.Instance.Stop();
-            }
         }
 
-        private void BsaFileSelection_Changed(object sender, SelectionChangedEventArgs e)
+        private void UpdateSubtypeViewModels()
         {
-            RefreshSelectedBsaFile();
+            SetTypeViewModel(SelectedSubtypeSource is IBsaType type ? BsaTypeBaseViewModel.Create(type) : null);
+
+            SetSubEntryViewModels(
+                SelectedSubtypeSource is BSA_Collision collision ? new BsaCollisionViewModel(collision) : null,
+                SelectedSubtypeSource is BSA_Expiration expiration ? new BsaExpirationViewModel(expiration) : null);
         }
 
+        private void SetEntryViewModel(BsaEntryViewModel viewModel)
+        {
+            entryViewModel?.Dispose();
+            entryViewModel = viewModel;
+            NotifyPropertyChanged(nameof(EntryViewModel));
+        }
 
+        private void SetTypeViewModel(BsaTypeBaseViewModel viewModel)
+        {
+            typeViewModel?.Dispose();
+            typeBaseViewModel?.Dispose();
 
+            typeViewModel = viewModel;
 
+            // A separate instance drives the shared Activation section, the same split BacTab uses.
+            typeBaseViewModel = viewModel?.SourceType is BSA_TypeBase typeBase ? new BsaTypeBaseViewModel(typeBase) : null;
 
+            NotifyPropertyChanged(nameof(TypeBaseViewModel));
+        }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        private void SetSubEntryViewModels(BsaCollisionViewModel collision, BsaExpirationViewModel expiration)
+        {
+            collisionViewModel?.Dispose();
+            expirationViewModel?.Dispose();
+            collisionViewModel = collision;
+            expirationViewModel = expiration;
+            NotifyPropertyChanged(nameof(CollisionViewModel));
+            NotifyPropertyChanged(nameof(ExpirationViewModel));
+        }
 
         private void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 }

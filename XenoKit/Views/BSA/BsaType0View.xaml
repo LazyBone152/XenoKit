@@ -4,45 +4,69 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BSA"
+             d:DataContext="{d:DesignInstance Type=local:BsaType0View}"
              mc:Ignorable="d"
-             d:DesignHeight="180" d:DesignWidth="760">
-    <UserControl.Resources>
-        <Style x:Key="BsaEditorField" TargetType="Grid">
-            <Setter Property="Width" Value="250"/>
-            <Setter Property="Margin" Value="3"/>
-        </Style>
-        <Style x:Key="BsaEditorLabel" TargetType="Label">
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="4,0"/>
-        </Style>
-    </UserControl.Resources>
+             d:DesignHeight="250" d:DesignWidth="520">
+    <Grid>
+        <StackPanel>
+            <Expander Header="Entry Passing" IsExpanded="True">
+                <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="BSA Entry ID" ToolTip="The BSA entry this projectile passes to."/>
+                        <controls:NumericUpDown Grid.Column="1" Minimum="0" Maximum="65535" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType0View}}, Path=BsaViewModel.BsaEntryId, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Main Condition" ToolTip="Condition flags for the pass. Stored as hex in the file."/>
+                        <controls:NumericUpDown Grid.Column="1" Minimum="0" Maximum="65535" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType0View}}, Path=BsaViewModel.MainCondition, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="BAC Condition"/>
+                        <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType0View}}, Path=BsaViewModel.BacCondition, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                </WrapPanel>
+            </Expander>
 
-    <Expander Header="Pass BSA Entry" IsExpanded="True" Margin="0,2,0,0">
-        <WrapPanel Margin="0,5">
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="BSA Entry"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding BsaEntryId, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-            </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="Main Condition"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding MainCondition, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-            </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="BAC Condition"/>
-                <controls:NumericUpDown Grid.Column="1" StringFormat="0.00#####" Interval="0.05" Value="{Binding BacCondition, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-            </Grid>
-        </WrapPanel>
-    </Expander>
+            <Expander Header="Unknown" IsExpanded="False">
+                <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_00"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType0View}}, Path=BsaViewModel.I_00, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_06"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType0View}}, Path=BsaViewModel.I_06, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="F_12"/>
+                        <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType0View}}, Path=BsaViewModel.F_12, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                </WrapPanel>
+            </Expander>
+        </StackPanel>
+    </Grid>
 </UserControl>

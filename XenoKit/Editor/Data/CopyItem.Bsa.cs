@@ -104,7 +104,9 @@ namespace XenoKit.Editor
 
         private void CopyBsaType7References(BSA_Type7 bsaType, Move move)
         {
-            if(CopyCue((Xv2CoreLib.BAC.AcbType)bsaType.AcbType, bsaType.CueId, move))
+            // BSA and BAC number AcbType differently, so this has to be mapped rather than cast.
+            // A raw cast turned BSA Skill_SE (3) into BAC Character_VOX (3) and copied from the wrong ACB.
+            if (CopyCue(XenoKit.ViewModel.BSA.BsaType7ViewModel.GetBacAcbType(bsaType.AcbType), bsaType.CueId, move))
             {
                 ValueRefs.Add(new ValueReference(bsaType, nameof(bsaType.CueId), ValueReference.InstanceRefType.SeAcb));
                 ValueRefs.Add(new ValueReference(bsaType, nameof(bsaType.AcbType), ValueReference.InstanceRefType.SeAcb, ValueReference.Mode.Type));

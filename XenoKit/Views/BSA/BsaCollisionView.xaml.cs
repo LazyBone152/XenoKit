@@ -1,59 +1,29 @@
-using System;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.ViewModel.BSA;
-using Xv2CoreLib.BSA;
 
 namespace XenoKit.Views.BSA
 {
-    public partial class BsaCollisionView : UserControl, INotifyPropertyChanged
+    public partial class BsaCollisionView : UserControl
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public static readonly DependencyProperty BsaViewModelProperty = DependencyProperty.Register(
+            nameof(BsaViewModel), typeof(BsaCollisionViewModel), typeof(BsaCollisionView), new PropertyMetadata(null, BsaViewModelChanged));
 
-        public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
-            nameof(ViewModel), typeof(BsaCollisionViewModel), typeof(BsaCollisionView), new PropertyMetadata(null, ViewModelChanged));
-
-        public Array EepkTypes { get; } = Enum.GetValues(typeof(EepkType));
-
-        public BsaCollisionViewModel ViewModel
+        public BsaCollisionViewModel BsaViewModel
         {
-            get => (BsaCollisionViewModel)GetValue(ViewModelProperty);
-            set
-            {
-                SetValue(ViewModelProperty, value);
-                NotifyPropertyChanged(nameof(ViewModel));
-            }
+            get => (BsaCollisionViewModel)GetValue(BsaViewModelProperty);
+            set => SetValue(BsaViewModelProperty, value);
         }
 
         public BsaCollisionView()
         {
             InitializeComponent();
-            DataContext = ViewModel;
-            BsaTab.BsaSubtypeSelectionChanged += BsaTab_BsaSubtypeSelectionChanged;
-            RefreshVisibility();
+            Visibility = Visibility.Collapsed;
         }
 
-        private static void ViewModelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        private static void BsaViewModelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            BsaCollisionView view = (BsaCollisionView)sender;
-            view.DataContext = e.NewValue;
-            view.RefreshVisibility();
-        }
-
-        private void BsaTab_BsaSubtypeSelectionChanged(object sender, EventArgs e)
-        {
-            RefreshVisibility();
-        }
-
-        private void RefreshVisibility()
-        {
-            Visibility = ViewModel != null ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            ((BsaCollisionView)sender).Visibility = e.NewValue != null ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

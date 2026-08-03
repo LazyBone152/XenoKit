@@ -3,7 +3,73 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:local="clr-namespace:XenoKit.Views.BSA"
+             xmlns:bsaDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib"
+             d:DataContext="{d:DesignInstance Type=local:BsaType2View}"
              mc:Ignorable="d"
-             d:DesignHeight="40" d:DesignWidth="760">
-    <Grid/>
+             d:DesignHeight="300" d:DesignWidth="520">
+    <Grid>
+        <StackPanel>
+            <Expander IsExpanded="True">
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Projectile Timeline Remap" VerticalAlignment="Center"/>
+                        <Border Width="20"
+                                Height="20"
+                                Margin="6,0,0,0"
+                                Background="Transparent"
+                                VerticalAlignment="Center"
+                                ToolTipService.InitialShowDelay="100"
+                                ToolTipService.ShowDuration="60000"
+                                ToolTip="Remaps the frame used by a projectile timeline while this entry is active.&#x0a;&#x0a;Start Time and Duration define the input range. Output Start Frame and Output End Frame define the output range. A longer output range speeds the timeline up. A shorter range slows it down. Equal values hold one frame.&#x0a;&#x0a;Examples: 0 to 60 mapped to 0 to 120 runs twice as fast. 0 to 60 mapped to 0 to 30 runs at half speed. 0 to 80 mapped to 0 to 0 holds one frame.">
+                            <iconPacks:PackIconMaterial Kind="Information"
+                                                         Width="18"
+                                                         Height="18"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"
+                                                         Foreground="{DynamicResource MahApps.Brushes.Text}"/>
+                        </Border>
+                    </StackPanel>
+                </Expander.Header>
+                <StackPanel>
+                    <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_00"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType2View}}, Path=BsaViewModel.I_00, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Output start frame" ToolTip="Timeline frame produced at the start of this entry."/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType2View}}, Path=BsaViewModel.OutputStartFrame, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Output end frame" ToolTip="Timeline frame produced at the end of this entry."/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType2View}}, Path=BsaViewModel.OutputEndFrame, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_06"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType2View}}, Path=BsaViewModel.I_06, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    </WrapPanel>
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+    </Grid>
 </UserControl>

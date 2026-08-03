@@ -692,7 +692,6 @@
     <Compile Include="ViewModel\BSA\BsaCollisionViewModel.cs" />
     <Compile Include="ViewModel\BSA\BsaEntryViewModel.cs" />
     <Compile Include="ViewModel\BSA\BsaExpirationViewModel.cs" />
-    <Compile Include="ViewModel\BSA\BsaSubtypeRow.cs" />
     <Compile Include="ViewModel\BSA\BsaType0ViewModel.cs" />
     <Compile Include="ViewModel\BSA\BsaType1ViewModel.cs" />
     <Compile Include="ViewModel\BSA\BsaType2ViewModel.cs" />
@@ -706,6 +705,9 @@
     <Compile Include="ViewModel\BSA\BsaType13ViewModel.cs" />
     <Compile Include="ViewModel\BSA\BsaType14ViewModel.cs" />
     <Compile Include="ViewModel\BSA\BsaTypeBaseViewModel.cs" />
+    <Compile Include="ViewModel\BSA\BsaSubtypeRow.cs" />
+    <Compile Include="ViewModel\BCM\BcmEntryViewModel.cs" />
+    <Compile Include="Converters\UIntValueEqualsConverter.cs" />
     <Compile Include="ViewModel\BCS\BcsBodyViewModel.cs" />
     <Compile Include="ViewModel\BCS\BcsColorSelectorViewModel.cs" />
     <Compile Include="ViewModel\BCS\BcsHeaderViewModel.cs" />
@@ -728,14 +730,8 @@
     <Compile Include="Views\BcmTab.xaml.cs">
       <DependentUpon>BcmTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BCM\BcmBitGroupView.xaml.cs">
-      <DependentUpon>BcmBitGroupView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\BCM\BcmEntryEditor.xaml.cs">
       <DependentUpon>BcmEntryEditor.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\BCM\BcmOptionGroupView.xaml.cs">
-      <DependentUpon>BcmOptionGroupView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BCM\BcmTreeList.xaml.cs">
       <DependentUpon>BcmTreeList.xaml</DependentUpon>
@@ -1008,7 +1004,6 @@
     </Compile>
     <Compile Include="Engine\Character\Actor.cs" />
     <Compile Include="Editor\Data\CopyItem.cs" />
-    <Compile Include="Editor\Undo\ListMoveUndo.cs" />
     <Compile Include="Editor\Data\CopyItem.Bac.cs" />
     <Compile Include="Editor\Data\CopyItem.Bsa.cs" />
     <Compile Include="Editor\Data\CopyItem.Bdm.cs" />
@@ -1035,11 +1030,6 @@
     <Compile Include="Engine\Vfx\Shape\EffectShapeMeshBuilder.Ribbon.cs" />
     <Compile Include="Engine\Vfx\Shape\EffectShapeMeshBuilder.TbindTrail.cs" />
     <Compile Include="Engine\Vfx\Shape\EffectShapeMeshBuilder.Vertices.cs" />
-    <Compile Include="Views\BCM\BcmEntryEditor.Tabs.cs" />
-    <Compile Include="Views\BCM\BcmEntryEditor.Groups.cs" />
-    <Compile Include="Views\BCM\BcmEntryEditor.SpecialEditors.cs" />
-    <Compile Include="Views\BCM\BcmEntryEditor.Fields.cs" />
-    <Compile Include="Views\BCM\BcmEntryEditor.ValueTypes.cs" />
     <Compile Include="Views\BsaTab.EntryCommands.cs" />
     <Compile Include="Views\BsaTab.SubtypeCommands.cs" />
     <Compile Include="Views\BsaTab.Selection.cs" />
@@ -1291,15 +1281,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\BCM\BcmBitGroupView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Views\BCM\BcmEntryEditor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\BCM\BcmOptionGroupView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1724,3 +1706,5 @@
   <Import Project="..\packages\Fody.6.5.5\build\Fody.targets" Condition="Exists('..\packages\Fody.6.5.5\build\Fody.targets')" />
   <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets')" />
 </Project>
+
+

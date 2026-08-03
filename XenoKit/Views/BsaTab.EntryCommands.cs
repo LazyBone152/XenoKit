@@ -1,20 +1,11 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
 using MahApps.Metro.Controls.Dialogs;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using XenoKit.Editor;
-using XenoKit.Editor.Undo;
-using XenoKit.Engine;
-using XenoKit.Engine.Scripting.BSA;
-using XenoKit.ViewModel.BSA;
 using XenoKit.Windows;
 using Xv2CoreLib;
 using Xv2CoreLib.BAC;
@@ -26,17 +17,11 @@ namespace XenoKit.Views
     public partial class BsaTab : UserControl, INotifyPropertyChanged
     {
         public RelayCommand AddEntryCommand => new RelayCommand(AddEntry, IsBsaFileLoaded);
-
         public RelayCommand AddEntryAtSpecificIdCommand => new RelayCommand(AddEntryAtSpecificId, IsBsaFileLoaded);
-
         public RelayCommand DuplicateEntryCommand => new RelayCommand(DuplicateEntry, () => SelectedEntry != null);
-
-        public RelayCommand CopyEntryCommand => new RelayCommand(CopyEntry, () => SelectedEntry != null);
-
+        public RelayCommand CopyEntryCommand => new RelayCommand(CopyEntry, () => SelectedEntry != null && IsBsaCopyPasteAvailable());
         public RelayCommand PasteEntryCommand => new RelayCommand(PasteEntry, CanPasteEntry);
-
         public RelayCommand DeleteEntryCommand => new RelayCommand(DeleteEntry, () => SelectedEntries.Count > 0);
-
         public RelayCommand ReindexCommand => new RelayCommand(ReindexEntries, IsBsaFileLoaded);
 
         private void AddEntry()
@@ -89,23 +74,22 @@ namespace XenoKit.Views
 
         private void CopyEntry()
         {
-            Clipboard.SetData(ClipboardConstants.BsaEntry_CopyItem, SelectedEntry.Copy());
+            if (files.SelectedMove == null) return;
+
+            List<BSA_Entry> entries = SelectedEntries.Distinct().ToList();
+            if (entries.Count == 0) return;
+
+            CopyItem copyItem = new CopyItem(entries, files.SelectedMove);
+            XenoKitClipboard.SetData(ClipboardConstants.BsaEntry_CopyItem, copyItem);
         }
 
         private void PasteEntry()
         {
-            BSA_File file = GetSelectedFile();
-            if (file == null || !Clipboard.ContainsData(ClipboardConstants.BsaEntry_CopyItem)) return;
+            if (files.SelectedMove == null) return;
+            if (!XenoKitClipboard.TryGetData(ClipboardConstants.BsaEntry_CopyItem, out CopyItem copyItem)) return;
 
-            BSA_Entry entry = ((BSA_Entry)Clipboard.GetData(ClipboardConstants.BsaEntry_CopyItem)).Copy();
-            if (file.BSA_Entries.Any(existing => existing.SortID == entry.SortID))
-                file.AddEntry(entry);
-            else
-                file.AddEntry(entry.SortID, entry);
-
-            UndoManager.Instance.AddUndo(new UndoableListAdd<BSA_Entry>(file.BSA_Entries, entry, "BSA Entry Paste"));
+            new PasteCopyItem(copyItem, files.SelectedMove).ShowDialog();
             RefreshEntryList();
-            SelectEntry(entry);
         }
 
         private void DeleteEntry()
@@ -119,8 +103,7 @@ namespace XenoKit.Views
                 .OrderByDescending(entry => file.BSA_Entries.IndexOf(entry))
                 .ToList();
 
-            if (entries.Count == 0)
-                return;
+            if (entries.Count == 0) return;
 
             List<IUndoRedo> undos = new List<IUndoRedo>();
             foreach (BSA_Entry entry in entries)
@@ -132,8 +115,6 @@ namespace XenoKit.Views
 
             UndoManager.Instance.AddCompositeUndo(undos, entries.Count > 1 ? "BSA Entries Delete" : "BSA Entry Delete");
             SelectedEntry = null;
-            SelectedSubtypeRow = null;
-            RebuildSubtypeRows();
             RefreshEntryList();
         }
 
@@ -155,13 +136,14 @@ namespace XenoKit.Views
             Dictionary<int, int> idMap = new Dictionary<int, int>();
             List<BSA_Entry> sortedEntries = file.BSA_Entries.OrderBy(entry => entry.SortID).ToList();
             int id = 0;
+
             foreach (BSA_Entry entry in sortedEntries)
             {
                 int oldId = entry.SortID;
                 idMap[oldId] = id;
                 if (oldId != id)
                 {
-                    undos.Add(new UndoablePropertyGeneric(nameof(BSA_Entry.SortID), entry, oldId, id, "BSA Entry ID"));
+                    undos.Add(new UndoableProperty<BSA_Entry>(nameof(BSA_Entry.SortID), entry, oldId, id, "BSA Entry ID"));
                     entry.SortID = id;
                 }
                 id++;
@@ -169,10 +151,7 @@ namespace XenoKit.Views
 
             foreach (BSA_Entry entry in file.BSA_Entries)
             {
-                RemapEntryReference(undos, entry, nameof(BSA_Entry.Expires), entry.Expires, idMap);
-                RemapEntryReference(undos, entry, nameof(BSA_Entry.ImpactProjectile), entry.ImpactProjectile, idMap);
-                RemapEntryReference(undos, entry, nameof(BSA_Entry.ImpactEnemy), entry.ImpactEnemy, idMap);
-                RemapEntryReference(undos, entry, nameof(BSA_Entry.ImpactGround), entry.ImpactGround, idMap);
+                RemapEntryReferences(undos, entry, idMap);
 
                 if (entry.IBsaTypes == null)
                     entry.InitializeIBsaTypes();
@@ -189,30 +168,50 @@ namespace XenoKit.Views
             PlaySelectedEntryPreview();
         }
 
-        private static void RemapEntryReference(List<IUndoRedo> undos, BSA_Entry entry, string propertyName, ushort oldValue, Dictionary<int, int> idMap)
+        private static void RemapEntryReferences(List<IUndoRedo> undos, BSA_Entry entry, Dictionary<int, int> idMap)
         {
+            if (TryRemap(entry.Expires, idMap, out ushort expires))
+            {
+                undos.Add(new UndoableProperty<BSA_Entry>(nameof(BSA_Entry.Expires), entry, entry.Expires, expires, "BSA Entry Reference"));
+                entry.Expires = expires;
+            }
+
+            if (TryRemap(entry.ImpactProjectile, idMap, out ushort impactProjectile))
+            {
+                undos.Add(new UndoableProperty<BSA_Entry>(nameof(BSA_Entry.ImpactProjectile), entry, entry.ImpactProjectile, impactProjectile, "BSA Entry Reference"));
+                entry.ImpactProjectile = impactProjectile;
+            }
+
+            if (TryRemap(entry.ImpactEnemy, idMap, out ushort impactEnemy))
+            {
+                undos.Add(new UndoableProperty<BSA_Entry>(nameof(BSA_Entry.ImpactEnemy), entry, entry.ImpactEnemy, impactEnemy, "BSA Entry Reference"));
+                entry.ImpactEnemy = impactEnemy;
+            }
+
+            if (TryRemap(entry.ImpactGround, idMap, out ushort impactGround))
+            {
+                undos.Add(new UndoableProperty<BSA_Entry>(nameof(BSA_Entry.ImpactGround), entry, entry.ImpactGround, impactGround, "BSA Entry Reference"));
+                entry.ImpactGround = impactGround;
+            }
+        }
+
+        private static bool TryRemap(ushort oldValue, Dictionary<int, int> idMap, out ushort newValue)
+        {
+            newValue = oldValue;
+
             if (oldValue == ushort.MaxValue || !idMap.TryGetValue(oldValue, out int mappedId))
-                return;
+                return false;
 
-            ushort newValue = (ushort)mappedId;
-            if (oldValue == newValue)
-                return;
-
-            undos.Add(new UndoablePropertyGeneric(propertyName, entry, oldValue, newValue, "BSA Entry Reference"));
-            entry.GetType().GetProperty(propertyName).SetValue(entry, newValue, null);
+            newValue = (ushort)mappedId;
+            return newValue != oldValue;
         }
 
         private static void RemapPassEntryReference(List<IUndoRedo> undos, BSA_Type0 passEntry, Dictionary<int, int> idMap)
         {
-            ushort oldValue = passEntry.BSA_EntryID;
-            if (oldValue == ushort.MaxValue || !idMap.TryGetValue(oldValue, out int mappedId))
+            if (!TryRemap(passEntry.BSA_EntryID, idMap, out ushort newValue))
                 return;
 
-            ushort newValue = (ushort)mappedId;
-            if (oldValue == newValue)
-                return;
-
-            undos.Add(new UndoablePropertyGeneric(nameof(BSA_Type0.BSA_EntryID), passEntry, oldValue, newValue, "BSA Pass Entry Reference"));
+            undos.Add(new UndoableProperty<BSA_Type0>(nameof(BSA_Type0.BSA_EntryID), passEntry, passEntry.BSA_EntryID, newValue, "BSA Pass Entry Reference"));
             passEntry.BSA_EntryID = newValue;
             passEntry.RefreshType();
         }
@@ -243,7 +242,7 @@ namespace XenoKit.Views
             if (projectile.EntryID == mappedId)
                 return;
 
-            undos.Add(new UndoablePropertyGeneric(nameof(BAC_Type9.EntryID), projectile, projectile.EntryID, mappedId, "BAC Projectile BSA Entry Reference"));
+            undos.Add(new UndoableProperty<BAC_Type9>(nameof(BAC_Type9.EntryID), projectile, projectile.EntryID, mappedId, "BAC Projectile BSA Entry Reference"));
             projectile.EntryID = mappedId;
             projectile.RefreshType();
         }
@@ -263,6 +262,5 @@ namespace XenoKit.Views
                     return false;
             }
         }
-
     }
 }

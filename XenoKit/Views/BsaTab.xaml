@@ -7,15 +7,12 @@
              xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:lbUtils="clr-namespace:LB_Common.Utils;assembly=LB_Common"
-             xmlns:editor="clr-namespace:XenoKit.Editor"
              xmlns:bsaView="clr-namespace:XenoKit.Views.BSA"
              Dialog:DialogParticipation.Register="{Binding}"
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1060"
              x:Name="UserControl">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-
         <Style x:Key="BsaToolButton" TargetType="Button" BasedOn="{StaticResource MahApps.Styles.Button.Circle}">
             <Setter Property="Width" Value="30"/>
             <Setter Property="Height" Value="30"/>
@@ -45,7 +42,6 @@
             <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent3}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
-
     </UserControl.Resources>
 
     <Grid>
@@ -58,23 +54,12 @@
 
         <StackPanel Orientation="Horizontal" Height="44">
             <Grid Margin="5"/>
-            <ComboBox SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBsaFile}"
-                      ItemsSource="{Binding BsaFiles}"
-                      DisplayMemberPath="DisplayName"
-                      Visibility="{Binding BsaFileSelectorVisibility}"
-                      Height="23"
-                      Width="220"
-                      SelectionChanged="BsaFileSelection_Changed"
-                      Margin="2,0"/>
-            <TextBlock Text="{Binding SelectedBsaFileName}"
-                       Visibility="{Binding BsaFileTextVisibility}"
-                       VerticalAlignment="Center"
-                       Margin="2,0,14,0"/>
+            <TextBlock Text="{Binding SelectedBsaFileName}" VerticalAlignment="Center" Margin="2,0,14,0"/>
         </StackPanel>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.4*" MinWidth="170" MaxWidth="300"/>
+                <ColumnDefinition Width="0.4*" MinWidth="200" MaxWidth="360"/>
                 <ColumnDefinition Width="3"/>
                 <ColumnDefinition Width="1.2*" MinWidth="420"/>
             </Grid.ColumnDefinitions>
@@ -122,8 +107,8 @@
                       SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
                       SelectionMode="Extended"
                       SelectionUnit="FullRow"
-                      PreviewMouseLeftButtonDown="EntryGrid_PreviewMouseLeftButtonDown"
-                      PreviewKeyDown="EntryGrid_PreviewKeyDown">
+                      PreviewKeyDown="EntryGrid_PreviewKeyDown"
+                      PreviewMouseLeftButtonDown="EntryGrid_PreviewMouseLeftButtonDown">
                 <DataGrid.InputBindings>
                     <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopyEntryCommand}"/>
                     <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteEntryCommand}"/>
@@ -131,8 +116,21 @@
                     <KeyBinding Key="Delete" Command="{Binding DeleteEntryCommand}"/>
                 </DataGrid.InputBindings>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="ID" Binding="{Binding SortID}" Width="80" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Life" Binding="{Binding I_22}" Width="80" IsReadOnly="True"/>
+                    <DataGridTemplateColumn Header="ID" Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SortID}" VerticalAlignment="Center" Margin="4,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <Controls:NumericUpDown Minimum="0" Maximum="10000" HideUpDownButtons="True"
+                                                        Value="{Binding DataContext.SelectedBsaID, ElementName=UserControl, UpdateSourceTrigger=LostFocus}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Name" Binding="{Binding UserDefinedName}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Life" Binding="{Binding I_22}" Width="60" IsReadOnly="True"/>
                 </DataGrid.Columns>
                 <DataGrid.ContextMenu>
                     <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -159,16 +157,16 @@
                             <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                 <MenuItem Header="Entry Passing" Command="{Binding AddSubtypeCommand}" CommandParameter="0"/>
                                 <MenuItem Header="Movement" Command="{Binding AddSubtypeCommand}" CommandParameter="1"/>
-                                <MenuItem Header="Type2" Command="{Binding AddSubtypeCommand}" CommandParameter="2"/>
+                                <MenuItem Header="Projectile Timeline Remap" Command="{Binding AddSubtypeCommand}" CommandParameter="2"/>
                                 <MenuItem Header="Hitbox" Command="{Binding AddSubtypeCommand}" CommandParameter="3"/>
                                 <MenuItem Header="Deflection" Command="{Binding AddSubtypeCommand}" CommandParameter="4"/>
                                 <MenuItem Header="Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="6"/>
                                 <MenuItem Header="Sound" Command="{Binding AddSubtypeCommand}" CommandParameter="7"/>
                                 <MenuItem Header="Screen Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="8"/>
                                 <MenuItem Header="Unknown 10" Command="{Binding AddSubtypeCommand}" CommandParameter="10"/>
-                                <MenuItem Header="Unknown 12" Command="{Binding AddSubtypeCommand}" CommandParameter="12"/>
-                                <MenuItem Header="Unknown 13" Command="{Binding AddSubtypeCommand}" CommandParameter="13"/>
-                                <MenuItem Header="Unknown 14" Command="{Binding AddSubtypeCommand}" CommandParameter="14"/>
+                                <MenuItem Header="Send Projectile Signal" Command="{Binding AddSubtypeCommand}" CommandParameter="12"/>
+                                <MenuItem Header="Projectile Protection" Command="{Binding AddSubtypeCommand}" CommandParameter="13"/>
+                                <MenuItem Header="Effect Placement" Command="{Binding AddSubtypeCommand}" CommandParameter="14"/>
                                 <Separator/>
                                 <MenuItem Header="Collision" Command="{Binding AddSubtypeCommand}" CommandParameter="Collision"/>
                                 <MenuItem Header="Expiration" Command="{Binding AddSubtypeCommand}" CommandParameter="Expiration"/>
@@ -185,77 +183,71 @@
                 </StackPanel>
             </StackPanel>
 
-            <DataGrid x:Name="subtypeGrid"
-                      Grid.Row="1"
-                      Grid.Column="2"
-                      ItemsSource="{Binding SubtypeRows}"
-                      SelectedItem="{Binding SelectedSubtypeRow, Mode=TwoWay}">
-                <DataGrid.InputBindings>
-                    <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopySubtypeCommand}"/>
-                    <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteSubtypeCommand}"/>
-                    <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DuplicateSubtypeCommand}"/>
-                    <KeyBinding Key="Delete" Command="{Binding DeleteSubtypeCommand}"/>
-                    <KeyBinding Key="Up" Modifiers="Alt" Command="{Binding MoveSubtypeUpCommand}"/>
-                    <KeyBinding Key="Down" Modifiers="Alt" Command="{Binding MoveSubtypeDownCommand}"/>
-                </DataGrid.InputBindings>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Start" Binding="{Binding StartTime}" Width="80" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="90" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Type" Binding="{Binding DisplayType}" Width="*" IsReadOnly="True"/>
-                </DataGrid.Columns>
-                <DataGrid.ContextMenu>
-                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                        <MenuItem Header="Add">
-                            <MenuItem Header="Entry Passing" Command="{Binding AddSubtypeCommand}" CommandParameter="0"/>
-                            <MenuItem Header="Movement" Command="{Binding AddSubtypeCommand}" CommandParameter="1"/>
-                            <MenuItem Header="Type2" Command="{Binding AddSubtypeCommand}" CommandParameter="2"/>
-                            <MenuItem Header="Hitbox" Command="{Binding AddSubtypeCommand}" CommandParameter="3"/>
-                            <MenuItem Header="Deflection" Command="{Binding AddSubtypeCommand}" CommandParameter="4"/>
-                            <MenuItem Header="Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="6"/>
-                            <MenuItem Header="Sound" Command="{Binding AddSubtypeCommand}" CommandParameter="7"/>
-                            <MenuItem Header="Screen Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="8"/>
-                            <MenuItem Header="Unknown 10" Command="{Binding AddSubtypeCommand}" CommandParameter="10"/>
-                            <MenuItem Header="Unknown 12" Command="{Binding AddSubtypeCommand}" CommandParameter="12"/>
-                            <MenuItem Header="Unknown 13" Command="{Binding AddSubtypeCommand}" CommandParameter="13"/>
-                            <MenuItem Header="Unknown 14" Command="{Binding AddSubtypeCommand}" CommandParameter="14"/>
+            <Grid Grid.Row="1" Grid.Column="2">
+                <DataGrid x:Name="subtypeGrid"
+                          ItemsSource="{Binding SubtypeRows}"
+                          SelectedItem="{Binding SelectedSubtypeRow, Mode=TwoWay}">
+                    <DataGrid.InputBindings>
+                        <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding CopySubtypeCommand}"/>
+                        <KeyBinding Key="V" Modifiers="Ctrl" Command="{Binding PasteSubtypeCommand}"/>
+                        <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding DuplicateSubtypeCommand}"/>
+                        <KeyBinding Key="Delete" Command="{Binding DeleteSubtypeCommand}"/>
+                    </DataGrid.InputBindings>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Start" Binding="{Binding StartTime, Mode=OneWay}" Width="70" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Duration" Binding="{Binding Duration, Mode=OneWay}" Width="80" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Type, Mode=OneWay}" Width="*" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <MenuItem Header="Add">
+                                <MenuItem Header="Entry Passing" Command="{Binding AddSubtypeCommand}" CommandParameter="0"/>
+                                <MenuItem Header="Movement" Command="{Binding AddSubtypeCommand}" CommandParameter="1"/>
+                                <MenuItem Header="Projectile Timeline Remap" Command="{Binding AddSubtypeCommand}" CommandParameter="2"/>
+                                <MenuItem Header="Hitbox" Command="{Binding AddSubtypeCommand}" CommandParameter="3"/>
+                                <MenuItem Header="Deflection" Command="{Binding AddSubtypeCommand}" CommandParameter="4"/>
+                                <MenuItem Header="Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="6"/>
+                                <MenuItem Header="Sound" Command="{Binding AddSubtypeCommand}" CommandParameter="7"/>
+                                <MenuItem Header="Screen Effect" Command="{Binding AddSubtypeCommand}" CommandParameter="8"/>
+                                <MenuItem Header="Unknown 10" Command="{Binding AddSubtypeCommand}" CommandParameter="10"/>
+                                <MenuItem Header="Send Projectile Signal" Command="{Binding AddSubtypeCommand}" CommandParameter="12"/>
+                                <MenuItem Header="Projectile Protection" Command="{Binding AddSubtypeCommand}" CommandParameter="13"/>
+                                <MenuItem Header="Effect Placement" Command="{Binding AddSubtypeCommand}" CommandParameter="14"/>
+                                <Separator/>
+                                <MenuItem Header="Collision" Command="{Binding AddSubtypeCommand}" CommandParameter="Collision"/>
+                                <MenuItem Header="Expiration" Command="{Binding AddSubtypeCommand}" CommandParameter="Expiration"/>
+                            </MenuItem>
                             <Separator/>
-                            <MenuItem Header="Collision" Command="{Binding AddSubtypeCommand}" CommandParameter="Collision"/>
-                            <MenuItem Header="Expiration" Command="{Binding AddSubtypeCommand}" CommandParameter="Expiration"/>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Copy" Command="{Binding CopySubtypeCommand}"/>
-                        <MenuItem Header="Paste" Command="{Binding PasteSubtypeCommand}"/>
-                        <MenuItem Header="Duplicate" Command="{Binding DuplicateSubtypeCommand}"/>
-                        <MenuItem Header="Delete" Command="{Binding DeleteSubtypeCommand}"/>
-                        <Separator/>
-                        <MenuItem Header="Move Up" Command="{Binding MoveSubtypeUpCommand}"/>
-                        <MenuItem Header="Move Down" Command="{Binding MoveSubtypeDownCommand}"/>
-                    </ContextMenu>
-                </DataGrid.ContextMenu>
-            </DataGrid>
+                            <MenuItem Header="Copy" Command="{Binding CopySubtypeCommand}"/>
+                            <MenuItem Header="Paste" Command="{Binding PasteSubtypeCommand}"/>
+                            <MenuItem Header="Duplicate" Command="{Binding DuplicateSubtypeCommand}"/>
+                            <MenuItem Header="Delete" Command="{Binding DeleteSubtypeCommand}"/>
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+            </Grid>
         </Grid>
 
-        <GridSplitter Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}"/>
 
         <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
-                <bsaView:BsaEntryView ViewModel="{Binding DataContext.EntryViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaTypeBaseView ViewModel="{Binding DataContext.TypeActivationViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType0View ViewModel="{Binding DataContext.Type0ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType1View ViewModel="{Binding DataContext.Type1ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType2View ViewModel="{Binding DataContext.Type2ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType3View ViewModel="{Binding DataContext.Type3ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType4View ViewModel="{Binding DataContext.Type4ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType6View ViewModel="{Binding DataContext.Type6ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType7View ViewModel="{Binding DataContext.Type7ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType8View ViewModel="{Binding DataContext.Type8ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType10View ViewModel="{Binding DataContext.Type10ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType12View ViewModel="{Binding DataContext.Type12ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType13View ViewModel="{Binding DataContext.Type13ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaType14View ViewModel="{Binding DataContext.Type14ViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaTypeBaseView ViewModel="{Binding DataContext.TypeUnknownViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaCollisionView ViewModel="{Binding DataContext.CollisionViewModel, ElementName=UserControl}"/>
-                <bsaView:BsaExpirationView ViewModel="{Binding DataContext.ExpirationViewModel, ElementName=UserControl}"/>
+                <bsaView:BsaEntryView BsaViewModel="{Binding EntryViewModel}"/>
+                <bsaView:BsaTypeBaseView BsaViewModel="{Binding TypeBaseViewModel}"/>
+                <bsaView:BsaType0View BsaViewModel="{Binding Type0ViewModel}"/>
+                <bsaView:BsaType1View BsaViewModel="{Binding Type1ViewModel}"/>
+                <bsaView:BsaType2View BsaViewModel="{Binding Type2ViewModel}"/>
+                <bsaView:BsaType3View BsaViewModel="{Binding Type3ViewModel}"/>
+                <bsaView:BsaType4View BsaViewModel="{Binding Type4ViewModel}"/>
+                <bsaView:BsaType6View BsaViewModel="{Binding Type6ViewModel}"/>
+                <bsaView:BsaType7View BsaViewModel="{Binding Type7ViewModel}"/>
+                <bsaView:BsaType8View BsaViewModel="{Binding Type8ViewModel}"/>
+                <bsaView:BsaType10View BsaViewModel="{Binding Type10ViewModel}"/>
+                <bsaView:BsaType12View BsaViewModel="{Binding Type12ViewModel}"/>
+                <bsaView:BsaType13View BsaViewModel="{Binding Type13ViewModel}"/>
+                <bsaView:BsaType14View BsaViewModel="{Binding Type14ViewModel}"/>
+                <bsaView:BsaCollisionView BsaViewModel="{Binding CollisionViewModel}"/>
+                <bsaView:BsaExpirationView BsaViewModel="{Binding ExpirationViewModel}"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

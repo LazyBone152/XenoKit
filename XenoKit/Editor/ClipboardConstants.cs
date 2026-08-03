@@ -15,7 +15,8 @@ namespace XenoKit.Editor
         //BSA/BCM
         public const string BsaEntry_CopyItem = "XenoKit_BsaEntryCopyItem";
         public const string BsaType_CopyItem = "XenoKit_BsaTypeCopyItem";
-        public const string BcmEntry_CopyItem = "XenoKit_BcmEntryCopyItem";
+        public const string BsaCollision_CopyItem = "XenoKit_BsaCollisionCopyItem";
+        public const string BsaExpiration_CopyItem = "XenoKit_BsaExpirationCopyItem";
         public const string BcmSubtrees_CopyItems = "XenoKit_BcmSubtreesCopyItems";
 
         //EAN

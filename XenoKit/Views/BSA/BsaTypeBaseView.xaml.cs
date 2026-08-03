@@ -1,56 +1,29 @@
-using System;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.ViewModel.BSA;
 
 namespace XenoKit.Views.BSA
 {
-    public partial class BsaTypeBaseView : UserControl, INotifyPropertyChanged
+    public partial class BsaTypeBaseView : UserControl
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public static readonly DependencyProperty BsaViewModelProperty = DependencyProperty.Register(
+            nameof(BsaViewModel), typeof(BsaTypeBaseViewModel), typeof(BsaTypeBaseView), new PropertyMetadata(null, BsaViewModelChanged));
 
-        public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
-            nameof(ViewModel), typeof(BsaTypeBaseViewModel), typeof(BsaTypeBaseView), new PropertyMetadata(null, ViewModelChanged));
-
-        public BsaTypeBaseViewModel ViewModel
+        public BsaTypeBaseViewModel BsaViewModel
         {
-            get => (BsaTypeBaseViewModel)GetValue(ViewModelProperty);
-            set
-            {
-                SetValue(ViewModelProperty, value);
-                NotifyPropertyChanged(nameof(ViewModel));
-            }
+            get => (BsaTypeBaseViewModel)GetValue(BsaViewModelProperty);
+            set => SetValue(BsaViewModelProperty, value);
         }
 
         public BsaTypeBaseView()
         {
             InitializeComponent();
-            DataContext = ViewModel;
-            BsaTab.BsaSubtypeSelectionChanged += BsaTab_BsaSubtypeSelectionChanged;
-            RefreshVisibility();
+            Visibility = Visibility.Collapsed;
         }
 
-        private static void ViewModelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        private static void BsaViewModelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            BsaTypeBaseView view = (BsaTypeBaseView)sender;
-            view.DataContext = e.NewValue;
-            view.RefreshVisibility();
-        }
-
-        private void BsaTab_BsaSubtypeSelectionChanged(object sender, EventArgs e)
-        {
-            RefreshVisibility();
-        }
-
-        private void RefreshVisibility()
-        {
-            Visibility = ViewModel != null ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            ((BsaTypeBaseView)sender).Visibility = e.NewValue != null ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

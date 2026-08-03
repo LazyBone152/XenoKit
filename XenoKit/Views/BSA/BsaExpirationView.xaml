@@ -4,53 +4,49 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BSA"
+             xmlns:bsaDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib"
+             d:DataContext="{d:DesignInstance Type=local:BsaExpirationView}"
              mc:Ignorable="d"
-             d:DesignHeight="220" d:DesignWidth="760">
-    <UserControl.Resources>
-        <Style x:Key="BsaEditorField" TargetType="Grid">
-            <Setter Property="Width" Value="250"/>
-            <Setter Property="Margin" Value="3"/>
-        </Style>
-        <Style x:Key="BsaEditorLabel" TargetType="Label">
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="4,0"/>
-        </Style>
-    </UserControl.Resources>
-
-    <Expander Header="Expiration" IsExpanded="True" Margin="0,2,0,0">
-        <WrapPanel Margin="0,5">
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="I_00"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_00, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-            </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="I_02"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_02, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-            </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="I_04"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_04, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-            </Grid>
-            <Grid Style="{StaticResource BsaEditorField}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Label Style="{StaticResource BsaEditorLabel}" Content="I_06"/>
-                <controls:NumericUpDown Grid.Column="1" Value="{Binding I_06, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-            </Grid>
-        </WrapPanel>
-    </Expander>
+             d:DesignHeight="300" d:DesignWidth="520">
+    <Grid>
+        <StackPanel>
+            <Expander Header="Collision Sound" IsExpanded="True">
+                <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="ACB type" ToolTip="Sound bank for this collision sound: Common SE, Character SE, or Skill SE."/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bsaDic:BSA.AcbType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaExpirationView}}, Path=BsaViewModel.AcbType, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_02"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaExpirationView}}, Path=BsaViewModel.I_02, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Cue ID" ToolTip="Sound cue in the selected ACB file. 65535 means no cue."/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaExpirationView}}, Path=BsaViewModel.CueId, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_06"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaExpirationView}}, Path=BsaViewModel.I_06, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                </WrapPanel>
+            </Expander>
+        </StackPanel>
+    </Grid>
 </UserControl>

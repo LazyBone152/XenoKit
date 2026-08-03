@@ -1,93 +1,76 @@
+using System;
 using System.ComponentModel;
 using Xv2CoreLib.BSA;
 
 namespace XenoKit.ViewModel.BSA
 {
-    public enum BsaSubtypeKind
+    /// <summary>
+    /// One row in the subtype list. Collision and Expiration are listed alongside the IBsaTypes as their own
+    /// types, but they are stored in separate arrays and have no timing fields, so this adapts all three to a
+    /// single set of columns. It forwards the source's own PropertyChanged, so rows stay live without the
+    /// grid being refreshed.
+    /// </summary>
+    public class BsaSubtypeRow : INotifyPropertyChanged, IDisposable
     {
-        TimedType,
-        Collision,
-        Expiration
-    }
+        private readonly INotifyPropertyChanged notifySource;
 
-    public class BsaSubtypeRow : INotifyPropertyChanged, System.IDisposable
-    {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public BsaSubtypeKind Kind { get; }
         public object Source { get; }
+
+        public bool HasTiming => Source is IBsaType;
+
         public string StartTime => Source is IBsaType type ? type.StartTime.ToString() : string.Empty;
         public string Duration => Source is IBsaType type ? type.Duration.ToString() : string.Empty;
-        public string DisplayType => GetDisplayType();
-        public string DisplayName => displayName ?? DisplayType;
-        public bool CanMove => Kind == BsaSubtypeKind.TimedType;
-        public bool CanCopy => true;
-        public bool CanDelete => true;
-        private readonly string kindDisplayType;
-        private readonly string displayName;
 
-        public BsaSubtypeRow(IBsaType type)
+        public string Type
         {
-            Kind = BsaSubtypeKind.TimedType;
-            Source = type;
-            type.PropertyChanged += Type_PropertyChanged;
+            get
+            {
+                switch (Source)
+                {
+                    case IBsaType type:
+                        return type.Type;
+                    case BSA_Collision collision:
+                        return $"Collision ({collision.EepkType}, {collision.SkillID}, {collision.EffectID})";
+                    case BSA_Expiration expiration:
+                        return $"Collision Sound ({expiration.I_00}, {expiration.I_02}, {expiration.I_04}, {expiration.I_06})";
+                    default:
+                        return string.Empty;
+                }
+            }
         }
 
-        public BsaSubtypeRow(BSA_Collision collision, int index)
+        public BsaSubtypeRow(object source)
         {
-            Kind = BsaSubtypeKind.Collision;
-            Source = collision;
-            kindDisplayType = GetCollisionDisplayType(collision);
-            displayName = $"Collision {index}";
-        }
+            Source = source;
+            notifySource = source as INotifyPropertyChanged;
 
-        public BsaSubtypeRow(BSA_Expiration expiration, int index)
-        {
-            Kind = BsaSubtypeKind.Expiration;
-            Source = expiration;
-            kindDisplayType = "Expiration";
-            displayName = $"Expiration {index}";
-        }
-
-        public void RefreshTiming()
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StartTime)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Duration)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayType)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+            if (notifySource != null)
+                notifySource.PropertyChanged += Source_PropertyChanged;
         }
 
         public void Dispose()
         {
-            if (Source is IBsaType type)
-                type.PropertyChanged -= Type_PropertyChanged;
+            if (notifySource != null)
+                notifySource.PropertyChanged -= Source_PropertyChanged;
         }
 
-        private void Type_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void Source_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(IBsaType.StartTime) ||
-                e.PropertyName == nameof(IBsaType.Duration) ||
-                e.PropertyName == nameof(IBsaType.Type) ||
-                string.IsNullOrEmpty(e.PropertyName))
-            {
-                RefreshTiming();
-            }
+            Refresh();
         }
 
-        private string GetDisplayType()
+        public void Refresh()
         {
-            if (Source is IBsaType type)
-                return type.Type;
-
-            if (Source is BSA_Collision collision)
-                return GetCollisionDisplayType(collision);
-
-            return kindDisplayType;
+            NotifyPropertyChanged(nameof(StartTime));
+            NotifyPropertyChanged(nameof(Duration));
+            NotifyPropertyChanged(nameof(Type));
         }
 
-        private static string GetCollisionDisplayType(BSA_Collision collision)
+        private void NotifyPropertyChanged(string propertyName)
         {
-            return $"Collision ({collision.EepkType}, {collision.SkillID}, {collision.EffectID})";
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

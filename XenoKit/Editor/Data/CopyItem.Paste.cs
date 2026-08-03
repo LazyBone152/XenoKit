@@ -43,6 +43,23 @@ namespace XenoKit.Editor
             return undos;
         }
 
+        public List<IUndoRedo> PasteIntoMove_Sub(BSA_Entry mainEntry, Move move, bool copyReferences)
+        {
+            if (entryType != EntryType.Sub)
+                throw new InvalidOperationException($"{nameof(CopyItem)}.{nameof(PasteIntoMove_Sub)}: function can only be called with entryType = Sub!");
+
+            RemoveDuplicates();
+            List<IUndoRedo> undos = new List<IUndoRedo>();
+
+            if (move.MoveGuid != MoveGuid)
+                undos.AddRange(PasteReferences(move, copyReferences));
+
+            foreach (IBsaType bsaType in Primary.BsaEntries[0].IBsaTypes)
+                undos.Add(mainEntry.AddIBsaType(bsaType.Copy()));
+
+            return undos;
+        }
+
         public List<IUndoRedo> PasteIntoMove_Main(Move move, bool copyReferences, BAC_Entry bacEntryToReplace = null)
         {
             if (entryType != EntryType.Main)

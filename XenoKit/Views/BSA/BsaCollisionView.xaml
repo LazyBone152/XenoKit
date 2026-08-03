@@ -4,86 +4,86 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BSA"
+             xmlns:bsaDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib"
+             d:DataContext="{d:DesignInstance Type=local:BsaCollisionView}"
              mc:Ignorable="d"
-             d:DesignHeight="260" d:DesignWidth="760">
-    <UserControl.Resources>
-        <Style x:Key="BsaEditorField" TargetType="Grid">
-            <Setter Property="Width" Value="250"/>
-            <Setter Property="Margin" Value="3"/>
-        </Style>
-        <Style x:Key="BsaEditorLabel" TargetType="Label">
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="4,0"/>
-        </Style>
-    </UserControl.Resources>
+             d:DesignHeight="250" d:DesignWidth="520">
+    <Grid>
+        <StackPanel>
+            <Expander Header="Collision Effect" IsExpanded="True">
+                <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="EEPK Type" ToolTip="This is the EEPK to use effects from."/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bsaDic:BSA.EepkType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.EepkType}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Effect ID" ToolTip="ID of an effect in the specified EEPK file."/>
+                        <controls:NumericUpDown Grid.Column="1" Minimum="0" Maximum="65535" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.EffectID, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="EEPK ID" ToolTip="This is the ID of the parent of the EEPK."/>
+                        <controls:NumericUpDown Grid.Column="1" Minimum="0" Maximum="65535" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.SkillID, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                </WrapPanel>
+            </Expander>
 
-    <StackPanel>
-        <Expander Header="Collision Effect" IsExpanded="True" Margin="0,2,0,0">
-            <WrapPanel Margin="0,5">
-                <Grid Style="{StaticResource BsaEditorField}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Style="{StaticResource BsaEditorLabel}" Content="EEPK Type"/>
-                    <ComboBox Grid.Column="1"
-                              ItemsSource="{Binding EepkTypes, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              SelectedItem="{Binding EepkType}"/>
-                </Grid>
-                <Grid Style="{StaticResource BsaEditorField}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Style="{StaticResource BsaEditorLabel}" Content="Skill ID"/>
-                    <controls:NumericUpDown Grid.Column="1" Value="{Binding SkillID, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-                </Grid>
-                <Grid Style="{StaticResource BsaEditorField}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Style="{StaticResource BsaEditorLabel}" Content="Effect ID"/>
-                    <controls:NumericUpDown Grid.Column="1" Value="{Binding EffectID, UpdateSourceTrigger=Default}" Minimum="0" Maximum="65535" HideUpDownButtons="True"/>
-                </Grid>
-            </WrapPanel>
-        </Expander>
-
-        <Expander Header="Unknown" IsExpanded="True" Margin="0,2,0,0">
-            <WrapPanel Margin="0,5">
-                <Grid Style="{StaticResource BsaEditorField}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Style="{StaticResource BsaEditorLabel}" Content="I_08"/>
-                    <controls:NumericUpDown Grid.Column="1" Value="{Binding I_08, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-                </Grid>
-                <Grid Style="{StaticResource BsaEditorField}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Style="{StaticResource BsaEditorLabel}" Content="I_12"/>
-                    <controls:NumericUpDown Grid.Column="1" Value="{Binding I_12, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-                </Grid>
-                <Grid Style="{StaticResource BsaEditorField}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Style="{StaticResource BsaEditorLabel}" Content="I_16"/>
-                    <controls:NumericUpDown Grid.Column="1" Value="{Binding I_16, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-                </Grid>
-                <Grid Style="{StaticResource BsaEditorField}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Style="{StaticResource BsaEditorLabel}" Content="I_20"/>
-                    <controls:NumericUpDown Grid.Column="1" Value="{Binding I_20, UpdateSourceTrigger=Default}" HideUpDownButtons="True"/>
-                </Grid>
-            </WrapPanel>
-        </Expander>
-    </StackPanel>
+            <Expander Header="Unknown" IsExpanded="False">
+                <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_06"/>
+                        <controls:NumericUpDown Grid.Column="1" Minimum="0" Maximum="65535" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.I_06, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_08"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.I_08, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_12"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.I_12, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_16"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.I_16, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="I_20"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaCollisionView}}, Path=BsaViewModel.I_20, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                </WrapPanel>
+            </Expander>
+        </StackPanel>
+    </Grid>
 </UserControl>
