@@ -7,6 +7,7 @@ using XenoKit.Engine.Scripting.BAC.Simulation;
 using XenoKit.Engine.View;
 using Xv2CoreLib;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.BSA;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.Resource.App;
 using Matrix4x4 = System.Numerics.Matrix4x4;
@@ -38,6 +39,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 BacEntryInstance.CurrentFrame = value;
             }
         }
+
         public int CurrentDuration
         {
             get
@@ -105,6 +107,7 @@ namespace XenoKit.Engine.Scripting.BAC
             if (clearing || BacEntryInstance == null || character.Controller.FreezeActionFrames > 0) return;
 
             UpdateBacLoop();
+            BacEntryInstance.ClearActiveBsaPassConditions();
 
             if (!BacEntryInstance.IsFinished)
                 UpdateBac(true, ref BacEntryInstance.CurrentFrame);
@@ -130,7 +133,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
             if (clearing) return;
             IOrderedEnumerable<IBacType> validEntries = BacEntryInstance.BacEntry.IBacTypes.Where
-                (b => BacEntryInstance.IsValidTime(b.StartTime, b.Duration) && (b.Flags == typeFlag || b.Flags == 0))
+                (b => IsValidBacTypeTime(b) && (b.Flags == typeFlag || b.Flags == 0))
                 .OrderBy(x => x.GetType() == typeof(BAC_Type4)); //TimeScale must be resolved before animation/camera
 
             //Read bac types
@@ -182,9 +185,7 @@ namespace XenoKit.Engine.Scripting.BAC
                                 break;
                             case BAC_Type0.EanTypeEnum.FaceBase:
                             case BAC_Type0.EanTypeEnum.FaceForehead:
-                                //I_14 tells the game to use the main animations face bones. In this case everything else on the entry is ignored.
-
-                                if (animation.I_14 == 1)
+                                if (ShouldUsePrimaryFaceAnimation(animation, eanFile))
                                 {
                                     BacEntryInstance.MainFaceAnimationEndTime = animation.StartTime + animation.Duration;
                                 }
@@ -256,6 +257,29 @@ namespace XenoKit.Engine.Scripting.BAC
                     }
                 }
 
+                //Projectile
+                if (type is BAC_Type9 projectile)
+                {
+                    bool canLoop = (projectile.BsaFlags & BAC_Type9.BsaFlagsEnum.Loop) == BAC_Type9.BsaFlagsEnum.Loop ||
+                                   (projectile.BsaFlags & BAC_Type9.BsaFlagsEnum.AllowLoop) == BAC_Type9.BsaFlagsEnum.AllowLoop;
+
+                    if (!canLoop && type.TimesActivated > 0) continue;
+                    if (!ActivationCheck(type) || !SettingsManager.Instance.Settings.XenoKit_ProjectileSimulation) continue;
+
+                    BSA_File bsaFile = Files.Instance.GetBsaFile(projectile.BsaType, projectile.SkillID, BacEntryInstance.SkillMove, BacEntryInstance.User, true);
+                    BSA_Entry bsaEntry = bsaFile?.BSA_Entries?.FirstOrDefault(entry => entry.SortID == projectile.EntryID);
+
+                    if (bsaEntry != null)
+                    {
+                        bsaEntry.InitializeIBsaTypes();
+                        BacEntryInstance.AddProjectile(projectile, bsaEntry, canLoop);
+                    }
+                    else
+                    {
+                        Log.Add($"BacPlayer: Could not find BSA entry {projectile.EntryID} in {projectile.BsaType}.", LogType.Warning);
+                    }
+                }
+
                 //Camera
                 if (type is BAC_Type10 camera)
                 {
@@ -308,6 +332,10 @@ namespace XenoKit.Engine.Scripting.BAC
                         case 0x14: //Sets BCS PartSet (permanent).
                             if (!ActivationCheck(type)) continue;
                             character.PartSet.ApplyBacPartSetSwap((int)function.Param1, function.FunctionType == 0x14);
+                            break;
+                        case 0x10: //Pass BSA entry when a projectile BSA Type0 row has the matching BAC condition.
+                        case 0x26:
+                            BacEntryInstance.AddActiveBsaPassCondition(function.Param1);
                             break;
                         case 0x6: //Invisibility
                             character.IsVisible = false;
@@ -407,6 +435,11 @@ namespace XenoKit.Engine.Scripting.BAC
             {
                 UpdateBac(false, ref _refFrame);
             }
+        }
+
+        private bool ShouldUsePrimaryFaceAnimation(BAC_Type0 animation, EAN_File eanFile)
+        {
+            return animation.I_14 == 1 || eanFile?.IsCharaUnique == true;
         }
 
         private void UpdateBacLoop()
@@ -540,6 +573,30 @@ namespace XenoKit.Engine.Scripting.BAC
 
             return true;
         }
+
+        private bool IsValidBacTypeTime(IBacType type)
+        {
+            return BacEntryInstance.IsValidTime(GetSimulationStartFrame(type), type.Duration);
+        }
+
+        private ushort GetSimulationStartFrame(IBacType type)
+        {
+            if (!ShouldDelaySimulationActivation(type))
+                return type.StartTime;
+
+            return (ushort)Math.Min(type.StartTime + 1, ushort.MaxValue);
+        }
+
+        private bool ShouldDelaySimulationActivation(IBacType type)
+        {
+            if (!BacEntryInstance.IsPreview)
+                return false;
+
+            if (type is BAC_Type8 || type is BAC_Type9 || type is BAC_Type11)
+                return true;
+
+            return type is BAC_Type15 function && (function.FunctionType == 0x10 || function.FunctionType == 0x26);
+        }
         
         #region Helpers
         private void RevertCharacterPosition(bool alwaysRevert)
@@ -630,9 +687,6 @@ namespace XenoKit.Engine.Scripting.BAC
 
             if (BacEntryInstance.CurrentFrame >= CurrentDuration)
                 ResetBacPreviewState();
-
-            //If anything was edited, it will be re-simulated
-            Seek((int)BacEntryInstance.CurrentFrame, true);
         }
 
         public void Stop()
@@ -669,9 +723,31 @@ namespace XenoKit.Engine.Scripting.BAC
             if (BacEntryInstance == null || SceneManager.CurrentSceneState != EditorTabs.Action) return;
 
             if (CurrentFrame < CurrentDuration)
-                Seek(CurrentFrame + 1, true);
+                StepNextFrameInPlace();
             else
                 Seek(0, true);
+        }
+
+        private void StepNextFrameInPlace()
+        {
+            if (BacEntryInstance == null)
+                return;
+
+            UpdateBacLoop();
+            BacEntryInstance.ClearActiveBsaPassConditions();
+
+            if (!BacEntryInstance.IsFinished)
+                UpdateBac(true, ref BacEntryInstance.CurrentFrame);
+
+            BacEntryInstance.AdvancePreviewFrame(1f);
+
+            character.Simulate(true, true);
+            SceneManager.Actors[1]?.Simulate(true, true);
+            Viewport.Instance.Camera.Simulate(true, true);
+            ViewportInstance.Simulation.Simulate();
+
+            VfxManager.ForceEffectUpdate = true;
+            VfxManager.Simulate();
         }
         #endregion
 

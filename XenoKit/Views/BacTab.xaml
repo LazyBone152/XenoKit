@@ -23,7 +23,7 @@
         
         <StackPanel x:Name="bacFileSelector_StackPanel" Orientation="Horizontal" Height="44">
             <Grid Margin="5"/>
-            <ComboBox x:Name="bacFileComboBox" SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBacFile}" ItemsSource="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.BacFiles.Binding}" SelectionChanged="BacFileSelection_ComboBox_SelectionChanged" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
+            <ComboBox x:Name="bacFileComboBox" SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedBacFile}" ItemsSource="{Binding BacFiles}" SelectionChanged="BacFileSelection_ComboBox_SelectionChanged" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
 
         </StackPanel>
 
@@ -165,7 +165,7 @@
                                 <MenuItem Header="[19] Aura" Command="{Binding AddBacTypeCommand}" CommandParameter="19"/>
                                 <MenuItem Header="[20] Homing Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="20"/>
                                 <MenuItem Header="[21] Eye Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="21"/>
-                                <MenuItem Header="[22] BAC_Type22" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
+                                <MenuItem Header="[22] Move to Object" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
                                 <MenuItem Header="[23] Transparency Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="23"/>
                                 <MenuItem Header="[24] Dual Skill Handler" Command="{Binding AddBacTypeCommand}" CommandParameter="24"/>
                                 <MenuItem Header="[25] Extended Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="25"/>
@@ -228,7 +228,7 @@
                             <MenuItem Header="[19] Aura" Command="{Binding AddBacTypeCommand}" CommandParameter="19"/>
                             <MenuItem Header="[20] Homing Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="20"/>
                             <MenuItem Header="[21] Eye Movement" Command="{Binding AddBacTypeCommand}" CommandParameter="21"/>
-                            <MenuItem Header="[22] BAC_Type22" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
+                            <MenuItem Header="[22] Move to Object" Command="{Binding AddBacTypeCommand}" CommandParameter="22"/>
                             <MenuItem Header="[23] Transparency Effect" Command="{Binding AddBacTypeCommand}" CommandParameter="23"/>
                             <MenuItem Header="[24] Dual Skill Handler" Command="{Binding AddBacTypeCommand}" CommandParameter="24"/>
                             <MenuItem Header="[25] Extended Charge Control" Command="{Binding AddBacTypeCommand}" CommandParameter="25"/>

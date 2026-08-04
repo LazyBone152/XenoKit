@@ -9,7 +9,7 @@ namespace XenoKit.ViewModel.BAC
     {
         private BAC_Type22 bacType;
 
-        public ushort I_08
+        public ushort ObjectMode
         {
             get
             {
@@ -17,12 +17,12 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.I_08), bacType, bacType.I_08, value, "BACType22 I_08"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.I_08), bacType, bacType.I_08, value, "Move to Object Mode"));
                 bacType.I_08 = value;
-                RaisePropertyChanged(() => I_08);
+                RaisePropertyChanged(() => ObjectMode);
             }
         }
-        public ushort I_10
+        public ushort MovementMode
         {
             get
             {
@@ -30,12 +30,12 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.I_10), bacType, bacType.I_10, value, "BACType22 I_10"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.I_10), bacType, bacType.I_10, value, "Move to Object Movement Mode"));
                 bacType.I_10 = value;
-                RaisePropertyChanged(() => I_10);
+                RaisePropertyChanged(() => MovementMode);
             }
         }
-        public float F_12
+        public float MovementDistance
         {
             get
             {
@@ -43,12 +43,12 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.F_12), bacType, bacType.F_12, value, "BACType22 F_12"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.F_12), bacType, bacType.F_12, value, "Move to Object Distance"));
                 bacType.F_12 = value;
-                RaisePropertyChanged(() => F_12);
+                RaisePropertyChanged(() => MovementDistance);
             }
         }
-        public string STR_16
+        public string ObjectNameOrPrefix
         {
             get
             {
@@ -56,9 +56,9 @@ namespace XenoKit.ViewModel.BAC
             }
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.STR_16), bacType, bacType.STR_16, value, "BACType22 STR_16"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type22>(nameof(bacType.STR_16), bacType, bacType.STR_16, value, "Move to Object Name or Prefix"));
                 bacType.STR_16 = value;
-                RaisePropertyChanged(() => STR_16);
+                RaisePropertyChanged(() => ObjectNameOrPrefix);
             }
         }
 
@@ -90,10 +90,10 @@ namespace XenoKit.ViewModel.BAC
         private void UpdateProperties()
         {
             //Needed for updating properties when undo/redo is called
-            RaisePropertyChanged(() => STR_16);
-            RaisePropertyChanged(() => F_12);
-            RaisePropertyChanged(() => I_10);
-            RaisePropertyChanged(() => I_08);
+            RaisePropertyChanged(() => ObjectNameOrPrefix);
+            RaisePropertyChanged(() => MovementDistance);
+            RaisePropertyChanged(() => MovementMode);
+            RaisePropertyChanged(() => ObjectMode);
 
         }
 

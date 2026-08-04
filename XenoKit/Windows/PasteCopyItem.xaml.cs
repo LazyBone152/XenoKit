@@ -27,6 +27,7 @@ namespace XenoKit.Windows
         private CopyItem copyItem;
         private Move move;
         private BAC_Entry bacEntry = null;
+        private Xv2CoreLib.BSA.BSA_Entry bsaEntry = null;
         private bool isBacReplace = false;
 
         public string DataDescription { get { return copyItem.MainEntriesDetails(); } }
@@ -61,6 +62,17 @@ namespace XenoKit.Windows
             }
         }
 
+        public PasteCopyItem(CopyItem copyItem, Move move, Xv2CoreLib.BSA.BSA_Entry bsaEntry)
+        {
+            PasteReferences = copyItem.MoveGuid != move.MoveGuid;
+            this.bsaEntry = bsaEntry;
+            this.copyItem = copyItem;
+            this.move = move;
+            Owner = Application.Current.MainWindow;
+            DataContext = this;
+            InitializeComponent();
+        }
+
         private void TryAutoResolve()
         {
             if (Xv2CoreLib.Resource.App.SettingsManager.Instance.Settings.XenoKit_AutoResolvePasteReferences)
@@ -87,9 +99,15 @@ namespace XenoKit.Windows
                 {
                     undos = copyItem.PasteIntoMove_Sub(bacEntry, move, PasteReferences);
                 }
+                else if (copyItem.fileType == FileType.Bsa && bsaEntry != null)
+                {
+                    undos = copyItem.PasteIntoMove_Sub(bsaEntry, move, PasteReferences);
+                }
             }
 
-            UndoManager.Instance.AddUndo(new CompositeUndo(undos, "Paste"));
+            if (undos != null && undos.Count > 0)
+                UndoManager.Instance.AddUndo(new CompositeUndo(undos, "Paste"));
+
             Close();
         }
 

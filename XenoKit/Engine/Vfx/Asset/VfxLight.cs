@@ -3,6 +3,7 @@ using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EMA;
 using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.App;
+using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace XenoKit.Engine.Vfx.Asset
 {
@@ -43,7 +44,7 @@ namespace XenoKit.Engine.Vfx.Asset
         private readonly int[] ColorKeyframeIndex = new int[4];
         private readonly int[] LightKeyframeIndex = new int[2];
 
-        public VfxLight(EMA_File emaFile, EffectPart effectPart, Actor actor) : base(System.Numerics.Matrix4x4.Identity, effectPart, actor)
+        public VfxLight(Matrix4x4 startWorld, EMA_File emaFile, EffectPart effectPart, Actor actor, bool spawnedByProjectile = false) : base(startWorld, effectPart, actor, spawnedByProjectile)
         {
             EmaFile = emaFile;
             SetDefaultValues();

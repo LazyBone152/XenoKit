@@ -245,7 +245,7 @@ namespace XenoKit.Engine.Rendering
                 smooth1.Parameters.SetModulate(0.25f, 0, 3);
                 finalSmooth.Parameters.SetModulate(0.25f, 0, 3);
 
-                merge.Parameters.SetMergeModulate(2, new Vector4(3.36f));
+                merge.Parameters.SetMergeModulate(2, new Vector4(1.25f));
                 sceneMerge.Parameters.SetSceneMergeValues();
 
                 glare1.Parameters.SetGlareModulate();

@@ -1,4 +1,4 @@
-﻿using MahApps.Metro.Controls;
+using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Xna.Framework;
 using System;
@@ -35,7 +35,7 @@ namespace XenoKit.Editor
     {
         #region INotifyPropChanged
         public event PropertyChangedEventHandler PropertyChanged;
-        
+
         private void NotifyPropertyChanged(String propertyName = "")
         {
             if (PropertyChanged != null)
@@ -54,7 +54,7 @@ namespace XenoKit.Editor
         private MetroWindow window = null;
 
         public AsyncObservableCollection<OutlinerItem> OutlinerItems { get; set; } = new AsyncObservableCollection<OutlinerItem>();
-        
+
         private OutlinerItem _selectedItem = null;
         public OutlinerItem SelectedItem
         {
@@ -79,7 +79,7 @@ namespace XenoKit.Editor
         }
 
         public static event EventHandler SelectedMoveChanged;
-        
+
         private Files()
         {
 
@@ -204,7 +204,7 @@ namespace XenoKit.Editor
         public Character LoadCharacter(int id, int partSetId, PartSet _partSet = null, bool readOnly = false)
         {
             Xv2Character xv2Character = xv2.Instance.GetCharacter(id);
-            
+
             string eskPath = xv2Utils.ResolveRelativePath(string.Format("chara/{0}/{1}_000.esk", xv2Character.CmsEntry.ShortName, xv2Character.CmsEntry.BcsPath));
             CharacterSkeleton skeleton = new CharacterSkeleton((ESK_File)xv2.Instance.GetParsedFileFromGame(eskPath));
             var chara = new Character(skeleton, SceneManager.GraphicsDeviceRef, new Vector3(), xv2Character.Name[0]);
@@ -282,7 +282,7 @@ namespace XenoKit.Editor
 
         private void HotswapBorrowedFiles<T>(Xv2File<T> xv2File) where T : class
         {
-            
+
             if (xv2File.Borrowed)
             {
                 object instance = TryGetFileInstance(xv2File.Path);
@@ -339,7 +339,7 @@ namespace XenoKit.Editor
             //Update dictionaries
             ValuesDictionary.BAC.AddMissing(moveFiles.BacFile?.File);
         }
-        
+
         #endregion
 
         #region Save
@@ -468,7 +468,7 @@ namespace XenoKit.Editor
                 xv2.Instance.SaveCharacter(item.move.ConvertToXv2Character(), true);
             }
         }
-        
+
         #endregion
 
         #region GetHelpers
@@ -509,7 +509,7 @@ namespace XenoKit.Editor
                 chars.Add(item.character);
             return chars;
         }
-        
+
         /// <summary>
         /// Returns the file instance associated with path, if it has been previously loaded.
         /// </summary>
@@ -521,7 +521,7 @@ namespace XenoKit.Editor
                 {
                     var ret = outlinerItem.move.TryGetFileInstance(path);
                     if (ret != null) return ret;
-                } 
+                }
                 else if(outlinerItem.character?.Moveset != null)
                 {
                     var ret = outlinerItem.character?.Moveset.TryGetFileInstance(path);
@@ -641,7 +641,7 @@ namespace XenoKit.Editor
 
             }
         }
-        
+
         public EffectContainerFile GetEepkFile(BAC_Type8.EepkTypeEnum eepkType, ushort skillId, Move move, Character character, bool logErrors)
         {
             //Currently only returns Skills and Moveset EEPKs
@@ -681,7 +681,7 @@ namespace XenoKit.Editor
             }
             return null;
         }
-        
+
         public ACB_Wrapper GetAcbFile(Xv2CoreLib.BAC.AcbType acbType, Move move, Character character, bool logErrors)
         {
             switch (acbType)
@@ -705,8 +705,8 @@ namespace XenoKit.Editor
             return null;
         }
         #endregion
-    
-    
+
+
     }
 
     public class OutlinerItem : INotifyPropertyChanged
@@ -773,7 +773,6 @@ namespace XenoKit.Editor
         public Visibility ActionVisibility { get { return (GetMove().Files.BacFile != null) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility EffectVisibility { get { return (GetMove().Files.EepkFile != null) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility AudioVisibility { get { return (GetMove().Files.SeAcbFile != null || GetMove().Files.VoxAcbFile?.Count > 0) ? Visibility.Visible : Visibility.Collapsed; } }
-        public Visibility HitboxVisibility { get { return (GetMove().Files.BdmFile != null || GetMove().Files.ShotBdmFile != null) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility ProjectileVisibility { get { return (GetMove().Files.BsaFile != null) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility CameraVisibility { get { return (GetMove().Files.CamEanFile != null) ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility SystemVisibility { get { return (Type == OutlinerItemType.Skill) ? Visibility.Visible : Visibility.Collapsed; } }
@@ -859,7 +858,7 @@ namespace XenoKit.Editor
                 }
             }
         }
-        
+
         #endregion
 
         public OutlinerItem(Move move, bool readOnly, OutlinerItemType type)
@@ -904,7 +903,7 @@ namespace XenoKit.Editor
                 }
             }
         }
-    
+
         public Move GetMove()
         {
             return Type == OutlinerItemType.Character ? character.Moveset : move;
@@ -916,7 +915,7 @@ namespace XenoKit.Editor
 
             return true;
         }
-    
+
         /// <summary>
         /// Call after loading - will set default selected items.
         /// </summary>
@@ -927,7 +926,7 @@ namespace XenoKit.Editor
             SelectedSeAcbFile = (GetMove().Files.SeAcbFile.Count > 0) ? GetMove().Files.SeAcbFile[0] : null;
             SelectedVoxAcbFile = (GetMove().Files.VoxAcbFile.Count > 0) ? GetMove().Files.VoxAcbFile[0] : null;
         }
-    
+
         public xv2.MoveType GetMoveType()
         {
             switch (Type)

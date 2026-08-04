@@ -1,0 +1,92 @@
+<UserControl x:Class="XenoKit.Views.BSA.BsaType13View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:local="clr-namespace:XenoKit.Views.BSA"
+             xmlns:bsaDic="clr-namespace:Xv2CoreLib.ValuesDictionary;assembly=Xv2CoreLib"
+             d:DataContext="{d:DesignInstance Type=local:BsaType13View}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="520">
+    <Grid>
+        <StackPanel>
+            <Expander Header="Projectile Protection" IsExpanded="True">
+                <WrapPanel>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Protection" TextWrapping="Wrap" VerticalAlignment="Center" Margin="3,0,5,0" ToolTip="On starts or replaces projectile protection. Off turns protection off without sending the Entry Passing signal."/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bsaDic:BSA.ProjectileProtectionState}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.ProtectionState}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="I_02" VerticalAlignment="Center" Margin="3,0,5,0"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.I_02, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Max Hitbox Power" TextWrapping="Wrap" VerticalAlignment="Center" Margin="3,0,5,0" ToolTip="Incoming hitboxes at or below this power stay protected."/>
+                        <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.MaxHitboxPower, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Protect Selectors 0-3" TextWrapping="Wrap" VerticalAlignment="Center" Margin="3,0,5,0" ToolTip="Enable protection for the game's projectile selector values 0, 1, 2, and 3."/>
+                        <CheckBox Grid.Column="1" Content="Enabled" VerticalAlignment="Center" ToolTip="Enable protection for the game's projectile selector values 0, 1, 2, and 3." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.ProtectSelectors0To3, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Protect Additional Selectors" TextWrapping="Wrap" VerticalAlignment="Center" Margin="3,0,5,0" ToolTip="These are the game's additional projectile selector values. Choose whether protection also covers 4 and 5, 6, or all of 4 through 6. Selector 6 follows a separate game path and may not be protected in every hit case."/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bsaDic:BSA.AdditionalSelectorCoverage}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.AdditionalSelectorCoverage}" ToolTip="These are the game's additional projectile selector values. Choose whether protection also covers 4 and 5, 6, or all of 4 through 6. Selector 6 follows a separate game path and may not be protected in every hit case."/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Entry Passing Signal" TextWrapping="Wrap" VerticalAlignment="Center" Margin="3,0,5,0" ToolTip="Signal value broadcast to matching BSA Type 0 Entry Passing entries when protection ends or a new protection replaces it."/>
+                        <controls:NumericUpDown Grid.Column="1" StringFormat="0.00" Interval="0.05" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.EntryPassingSignalValue, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Mark Protected Hit" TextWrapping="Wrap" VerticalAlignment="Center" Margin="3,0,5,0" ToolTip="Marks a hit stopped by projectile protection with the game's protected-hit event flag."/>
+                        <CheckBox Grid.Column="1" Content="Enabled" VerticalAlignment="Center" ToolTip="Marks a hit stopped by projectile protection with the game's protected-hit event flag." IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.MarkProtectedHit, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="I_24" VerticalAlignment="Center" Margin="3,0,5,0"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.I_24, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="360">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="175"/>
+                            <ColumnDefinition Width="175"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="I_28" VerticalAlignment="Center" Margin="3,0,5,0"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BsaType13View}}, Path=BsaViewModel.I_28, UpdateSourceTrigger=Default}"/>
+                    </Grid>
+                </WrapPanel>
+            </Expander>
+        </StackPanel>
+    </Grid>
+</UserControl>

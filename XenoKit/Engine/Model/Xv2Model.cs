@@ -327,7 +327,7 @@ namespace XenoKit.Engine.Model
 
         #region Rendering
 
-        public void Draw(Matrix4x4 world, int actor, Xv2ShaderEffect[] materials, Xv2Texture[] textures, Xv2Texture[] dyts, int dytIdx, Xv2Skeleton skeleton = null, ModelInstanceData instanceData = null)
+        public void Draw(Matrix4x4 world, int actor, Xv2ShaderEffect[] materials, Xv2Texture[] textures, Xv2Texture[] dyts, int dytIdx, Xv2Skeleton skeleton = null, ModelInstanceData instanceData = null, bool? glareOutputAllowed = null)
         {
             if (skeleton == null)
                 skeleton = Skeleton;
@@ -338,7 +338,7 @@ namespace XenoKit.Engine.Model
                 {
                     foreach (Xv2Submesh submesh in mesh.Submeshes)
                     {
-                        submesh.Draw(ref world, actor, materials, textures, dyts, dytIdx, skeleton, instanceData);
+                        submesh.Draw(ref world, actor, materials, textures, dyts, dytIdx, skeleton, instanceData, glareOutputAllowed);
                     }
                 }
             }
@@ -1365,7 +1365,7 @@ namespace XenoKit.Engine.Model
         }
 
         #region Draw / Update 
-        public void Draw(ref Matrix4x4 world, int actor, Xv2ShaderEffect[] materials, Xv2Texture[] textures, Xv2Texture[] dyts, int dytIdx, Xv2Skeleton skeleton = null, ModelInstanceData instanceData = null)
+        public void Draw(ref Matrix4x4 world, int actor, Xv2ShaderEffect[] materials, Xv2Texture[] textures, Xv2Texture[] dyts, int dytIdx, Xv2Skeleton skeleton = null, ModelInstanceData instanceData = null, bool? glareOutputAllowed = null)
         {
             if (materials == null) return;
 
@@ -1412,7 +1412,7 @@ namespace XenoKit.Engine.Model
 
             material.SetTextureTile(TexTile01, TexTile23);
 
-            DrawEnd(actor, material, skeleton, instanceData);
+            DrawEnd(actor, material, skeleton, instanceData, glareOutputAllowed);
 
             //Draw AABBs
             if(SceneManager.BoundingBoxVisible && VisibleAABB != null)
@@ -1437,7 +1437,7 @@ namespace XenoKit.Engine.Model
             DrawEnd(actor, material, skeleton, instanceData);
         }
 
-        private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton, ModelInstanceData instanceData = null)
+        private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton, ModelInstanceData instanceData = null, bool? glareOutputAllowed = null)
         {
             if (IsDisposed) return;
             if(MathHelpers.FloatEquals(material.World.Translation.X, -191.0107) &&
@@ -1467,6 +1467,9 @@ namespace XenoKit.Engine.Model
                     material.SetColorFade(SceneManager.Actors[actor]);
 
                 material.SetVfxLight();
+
+                if (glareOutputAllowed.HasValue)
+                    material.SetGlareOutputAllowed(glareOutputAllowed.Value);
 
                 pass.Apply();
 
@@ -1584,7 +1587,7 @@ namespace XenoKit.Engine.Model
                         var bcsColor = colors.GetColor(c);
                         Xv2CoreLib.HslColor.HslColor color = new Xv2CoreLib.HslColor.RgbColor(bcsColor).ToHsl();
 
-                        var pixelRgb = dyt.EmbEntry.Texture.GetPixel(width, height + dytLine);
+                        var pixelRgb = dyt.EmbEntry.Texture.GetPixel(width, height);
                         Xv2CoreLib.HslColor.HslColor pixelColor = new Xv2CoreLib.HslColor.RgbColor(pixelRgb.R, pixelRgb.G, pixelRgb.B).ToHsl();
                         pixelColor.SetHue(color.Hue);
                         pixelColor.Saturation = color.Saturation;
@@ -1598,10 +1601,10 @@ namespace XenoKit.Engine.Model
                         byte g = (byte)((newPixelRgb.G_int * bcsColor.A) + (pixelRgb.G * originalFactor));
                         byte b = (byte)((newPixelRgb.B_int * bcsColor.A) + (pixelRgb.B * originalFactor));
 
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 2, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 3, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + 1, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + 2, pixelRgb.A, r, g, b);
+                        dyt.EmbEntry.Texture.SetPixel(width, height + 3, pixelRgb.A, r, g, b);
 
                         //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
                         //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);

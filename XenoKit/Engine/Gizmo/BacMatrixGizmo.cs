@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using XenoKit.Engine.Gizmo.TransformOperations;
+using XenoKit.Engine.Scripting.BSA;
 using Xv2CoreLib.BAC;
 
 namespace XenoKit.Engine.Gizmo
@@ -11,6 +12,10 @@ namespace XenoKit.Engine.Gizmo
             get
             {
                 if (matrix == null) return Matrix.Identity;
+
+                if (matrix is BAC_Type9 projectileType)
+                    return Extensions.ToXna(ProjectileInstance.CreateProjectileWorldTransform(SceneManager.Actors[0], projectileType));
+
                 Matrix world = Matrix.Identity;
 
                 if(boneIdx != -1 && SceneManager.Actors[0] != null)

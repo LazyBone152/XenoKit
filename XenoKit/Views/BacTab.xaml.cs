@@ -39,6 +39,28 @@ namespace XenoKit.Controls
         public static event EventHandler BacTypeSelectionChanged;
         public Files files => Files.Instance;
 
+        public IList<Xv2File<BAC_File>> BacFiles
+        {
+            get
+            {
+                List<Xv2File<BAC_File>> bacFiles = new List<Xv2File<BAC_File>>();
+                IList<Xv2File<BAC_File>> sourceFiles = files.SelectedMove?.Files?.BacFiles;
+
+                if (sourceFiles == null)
+                    return bacFiles;
+
+                for (int i = 0; i < sourceFiles.Count; i++)
+                {
+                    Xv2File<BAC_File> file = sourceFiles[i];
+
+                    if (i == 0 || HasPath(file))
+                        bacFiles.Add(file);
+                }
+
+                return bacFiles;
+            }
+        }
+
         private BAC_Entry _selectedBacEntry = null;
         public BAC_Entry SelectedBacEntry
         {
@@ -455,13 +477,15 @@ namespace XenoKit.Controls
         private void CopyBacEntry()
         {
             CopyItem copyItem = new CopyItem(SelectedBacEntries, Files.Instance.SelectedMove);
-            Clipboard.SetData(ClipboardConstants.BacEntry_CopyItem, copyItem);
+            XenoKitClipboard.SetData(ClipboardConstants.BacEntry_CopyItem, copyItem);
         }
 
         public RelayCommand PasteBacEntryCommand => new RelayCommand(PasteBacEntry, CanPasteBacEntries);
         private void PasteBacEntry()
         {
-            CopyItem copyItem = (CopyItem)Clipboard.GetData(ClipboardConstants.BacEntry_CopyItem);
+            if (!XenoKitClipboard.TryGetData(ClipboardConstants.BacEntry_CopyItem, out CopyItem copyItem))
+                return;
+
             PasteCopyItem pasteWindow = new PasteCopyItem(copyItem, Files.Instance.SelectedMove);
             pasteWindow.ShowDialog();
         }
@@ -469,7 +493,9 @@ namespace XenoKit.Controls
         public RelayCommand PasteReplaceBacEntryCommand => new RelayCommand(PasteReplaceBacEntry, CanPasteReplaceBacEntries);
         private void PasteReplaceBacEntry()
         {
-            CopyItem copyItem = (CopyItem)Clipboard.GetData(ClipboardConstants.BacEntry_CopyItem);
+            if (!XenoKitClipboard.TryGetData(ClipboardConstants.BacEntry_CopyItem, out CopyItem copyItem))
+                return;
+
             PasteCopyItem pasteWindow = new PasteCopyItem(copyItem, Files.Instance.SelectedMove, SelectedBacEntry, true);
             pasteWindow.ShowDialog();
 
@@ -543,17 +569,17 @@ namespace XenoKit.Controls
 
         private bool CanPasteBacEntries()
         {
-            return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded();
+            return XenoKitClipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded();
         }
 
         private bool CanPasteReplaceBacEntries()
         {
-            return Clipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded() && IsBacEntrySelected();
+            return XenoKitClipboard.ContainsData(ClipboardConstants.BacEntry_CopyItem) && IsBacFileLoaded() && IsBacEntrySelected();
         }
 
         private bool CanPasteBacTypes()
         {
-            return Clipboard.ContainsData(ClipboardConstants.BacType_CopyItem) && IsBacEntrySelected();
+            return XenoKitClipboard.ContainsData(ClipboardConstants.BacType_CopyItem) && IsBacEntrySelected();
         }
         #endregion
 
@@ -578,13 +604,15 @@ namespace XenoKit.Controls
         private void CopyBacType()
         {
             CopyItem copyItem = new CopyItem(SelectedBacTypes, Files.Instance.SelectedMove);
-            Clipboard.SetData(ClipboardConstants.BacType_CopyItem, copyItem);
+            XenoKitClipboard.SetData(ClipboardConstants.BacType_CopyItem, copyItem);
         }
 
         public RelayCommand PasteBacTypeCommand => new RelayCommand(PasteBacType, CanPasteBacTypes);
         private void PasteBacType()
         {
-            CopyItem copyItem = (CopyItem)Clipboard.GetData(ClipboardConstants.BacType_CopyItem);
+            if (!XenoKitClipboard.TryGetData(ClipboardConstants.BacType_CopyItem, out CopyItem copyItem))
+                return;
+
             PasteCopyItem pasteWindow = new PasteCopyItem(copyItem, Files.Instance.SelectedMove, SelectedBacEntry, false);
             pasteWindow.ShowDialog();
         }
@@ -760,6 +788,8 @@ namespace XenoKit.Controls
 
         private void UpdateSelectedBacFile()
         {
+            SelectCurrentMoveBacFile();
+            NotifyPropertyChanged(nameof(BacFiles));
             NotifyPropertyChanged(nameof(BacTypeListVisbility));
             NotifyPropertyChanged(nameof(files));
             NotifyPropertyChanged(nameof(MaximumBacID));
@@ -774,6 +804,22 @@ namespace XenoKit.Controls
                 
                 cmnOverrideMenu.Visibility = IsMovesetBac ? Visibility.Visible : Visibility.Collapsed;
             }
+        }
+
+        private void SelectCurrentMoveBacFile()
+        {
+            if (files.SelectedItem == null)
+                return;
+
+            IList<Xv2File<BAC_File>> bacFiles = BacFiles;
+
+            if (files.SelectedItem.SelectedBacFile == null || !bacFiles.Contains(files.SelectedItem.SelectedBacFile))
+                files.SelectedItem.SelectedBacFile = bacFiles.FirstOrDefault();
+        }
+
+        private static bool HasPath<T>(Xv2File<T> file) where T : class
+        {
+            return !string.IsNullOrWhiteSpace(file?.Path);
         }
 
         private void UpdateViewModels()

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BAC.Simulation;
+using XenoKit.Engine.Scripting.BSA;
 using Xv2CoreLib.BAC;
 
 namespace XenoKit.Engine.Scripting.BAC
@@ -90,6 +91,11 @@ namespace XenoKit.Engine.Scripting.BAC
                 foreach(BacVisualCueObject visualCue in BacPlayer.BacEntryInstance.VisualSimulationCues)
                 {
                     visualCue.Draw();
+                }
+
+                foreach (ProjectileInstance projectile in BacPlayer.BacEntryInstance.Projectiles)
+                {
+                    projectile.Draw();
                 }
             }
         }
