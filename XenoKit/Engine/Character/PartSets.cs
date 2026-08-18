@@ -16,6 +16,8 @@ using Xv2CoreLib.EMB_CLASS;
 using Xv2CoreLib.EMD;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.ESK;
+using Xv2CoreLib.FPF;
+using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace XenoKit.Engine
 {
@@ -254,6 +256,49 @@ namespace XenoKit.Engine
                     }
                 }
             }
+        }
+
+        public void ApplyFpfPreviewToPhysicsParts(FPF_File fpfFile, FpfPoseMatrix poseMatrices, FpfPoseMatrix skinOffsetMatrices, FpfSkinOffsetMode skinOffsetMode)
+        {
+            HashSet<int> usedEntries = new HashSet<int>();
+
+            ApplyFpfPreviewToPhysicsParts(Parts, fpfFile, poseMatrices, skinOffsetMatrices, skinOffsetMode, usedEntries);
+            ApplyFpfPreviewToPhysicsParts(TransformedParts, fpfFile, poseMatrices, skinOffsetMatrices, skinOffsetMode, usedEntries);
+            ApplyFpfPreviewToPhysicsParts(BacTransformedParts, fpfFile, poseMatrices, skinOffsetMatrices, skinOffsetMode, usedEntries);
+        }
+
+        private static void ApplyFpfPreviewToPhysicsParts(CharaPart[] parts, FPF_File fpfFile, FpfPoseMatrix poseMatrices, FpfPoseMatrix skinOffsetMatrices, FpfSkinOffsetMode skinOffsetMode, HashSet<int> usedEntries)
+        {
+            if (parts == null)
+                return;
+
+            foreach (CharaPart part in parts)
+                part?.ApplyFpfPreviewToPhysicsParts(fpfFile, poseMatrices, skinOffsetMatrices, skinOffsetMode, usedEntries);
+        }
+
+        public int BakeFpfPreviewPhysicsPoses(FPF_File fpfFile, FpfPoseBakeMode bakeMode)
+        {
+            HashSet<int> usedEntries = new HashSet<int>();
+            int bakedCount = 0;
+
+            bakedCount += BakeFpfPreviewPhysicsPoses(Parts, fpfFile, bakeMode, usedEntries);
+            bakedCount += BakeFpfPreviewPhysicsPoses(TransformedParts, fpfFile, bakeMode, usedEntries);
+            bakedCount += BakeFpfPreviewPhysicsPoses(BacTransformedParts, fpfFile, bakeMode, usedEntries);
+
+            return bakedCount;
+        }
+
+        private static int BakeFpfPreviewPhysicsPoses(CharaPart[] parts, FPF_File fpfFile, FpfPoseBakeMode bakeMode, HashSet<int> usedEntries)
+        {
+            if (parts == null)
+                return 0;
+
+            int bakedCount = 0;
+
+            foreach (CharaPart part in parts)
+                bakedCount += part?.BakeFpfPreviewPhysicsPoses(fpfFile, bakeMode, usedEntries) ?? 0;
+
+            return bakedCount;
         }
         #endregion
 
@@ -953,7 +998,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EmdFile = (EMD_File)FileManager.Instance.GetParsedFileFromGame(path);
+                    EmdFile = (EMD_File)FileManager.Instance.GetParsedFileFromGame(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
             }
             else
@@ -996,7 +1041,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EmbFile = (EMB_File)FileManager.Instance.GetParsedFileFromGame(path);
+                    EmbFile = (EMB_File)FileManager.Instance.GetParsedFileFromGame(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if (EmbFile != null)
@@ -1038,7 +1083,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    DytFile = (EMB_File)FileManager.Instance.GetParsedFileFromGame(path);
+                    DytFile = (EMB_File)FileManager.Instance.GetParsedFileFromGame(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if (DytFile != null)
@@ -1081,7 +1126,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EmmFile = (EMM_File)FileManager.Instance.GetParsedFileFromGame(path);
+                    EmmFile = (EMM_File)FileManager.Instance.GetParsedFileFromGame(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if(EmmFile != null)
@@ -1124,7 +1169,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EanFile = (EAN_File)FileManager.Instance.GetParsedFileFromGame(path);
+                    EanFile = (EAN_File)FileManager.Instance.GetParsedFileFromGame(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
             }
 
@@ -1162,7 +1207,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EskFile = (ESK_File)FileManager.Instance.GetParsedFileFromGame(path);
+                    EskFile = (ESK_File)FileManager.Instance.GetParsedFileFromGame(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
             }
         }
@@ -1172,16 +1217,27 @@ namespace XenoKit.Engine
             if (chara.CharacterData.GetPartSetFile(Path.GetFileName(path)) != null)
                 return path;
 
-            if (FileManager.Instance.fileIO.FileExists(path))
+            if (FileExists(path))
                 return path;
 
             if (pathOnParent != null)
             {
-                if (FileManager.Instance.fileIO.FileExists(pathOnParent))
+                if (FileExists(pathOnParent))
                     return pathOnParent;
             }
 
             return null;
+        }
+
+        private bool FileExists(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return false;
+
+            if (chara.CharacterData.OnlyLoadFromCPK)
+                return FileManager.Instance.fileIO.FileExistsInCpk(path);
+
+            return FileManager.Instance.fileIO.FileExists(path);
         }
 
         private object GetFileFromOwner(string path)
@@ -1218,6 +1274,73 @@ namespace XenoKit.Engine
         public void UpdatePhysicsPart()
         {
             Skeleton?.ScdUpdate(chara.Skeleton, SkeletoBoneIndices);
+        }
+
+        public void ApplyFpfPreviewToPhysicsParts(FPF_File fpfFile, FpfPoseMatrix poseMatrices, FpfPoseMatrix skinOffsetMatrices, FpfSkinOffsetMode skinOffsetMode, HashSet<int> usedEntries)
+        {
+            if (IsPhysicsPart && Skeleton != null)
+            {
+                FPF_Entry entry = FindFpfPreviewEntry(fpfFile, Skeleton.Bones.Length, usedEntries);
+
+                if (entry != null)
+                    FpfPosePreview.ApplyEntryToScdSkeleton(Skeleton, entry, poseMatrices, skinOffsetMatrices, skinOffsetMode, SkeletoBoneIndices);
+            }
+
+            if (PhysicsParts == null)
+                return;
+
+            foreach (CharaPart physicsPart in PhysicsParts)
+                physicsPart?.ApplyFpfPreviewToPhysicsParts(fpfFile, poseMatrices, skinOffsetMatrices, skinOffsetMode, usedEntries);
+        }
+
+        public int BakeFpfPreviewPhysicsPoses(FPF_File fpfFile, FpfPoseBakeMode bakeMode, HashSet<int> usedEntries)
+        {
+            int bakedCount = 0;
+
+            if (IsPhysicsPart && Skeleton != null)
+            {
+                FPF_Entry entry = FindFpfPreviewEntry(fpfFile, Skeleton.Bones.Length, usedEntries);
+
+                if (entry != null)
+                    bakedCount += FpfPosePreview.BakeScdSkeletonPoseToEntry(Skeleton, entry, GetPhysicsPartAttachMatrix());
+            }
+
+            if (PhysicsParts == null)
+                return bakedCount;
+
+            foreach (CharaPart physicsPart in PhysicsParts)
+                bakedCount += physicsPart?.BakeFpfPreviewPhysicsPoses(fpfFile, bakeMode, usedEntries) ?? 0;
+
+            return bakedCount;
+        }
+
+        private Matrix4x4 GetPhysicsPartAttachMatrix()
+        {
+            int boneIndex = chara.Skeleton.GetBoneIndex(physicsPart?.BoneToAttach);
+            return boneIndex >= 0 ? chara.Skeleton.Bones[boneIndex].AbsoluteAnimationMatrix : Matrix4x4.Identity;
+        }
+
+        private static FPF_Entry FindFpfPreviewEntry(FPF_File fpfFile, int boneCount, HashSet<int> usedEntries)
+        {
+            if (fpfFile?.Entries == null)
+                return null;
+
+            FPF_Entry entry = fpfFile.Entries
+                .Where(fpfEntry => fpfEntry.ID != FPF_File.MainSkeletonEntryId)
+                .Where(fpfEntry => fpfEntry.BonePoses?.Count == boneCount)
+                .FirstOrDefault(fpfEntry => !usedEntries.Contains(fpfEntry.ID));
+
+            if (entry == null)
+            {
+                entry = fpfFile.Entries
+                    .Where(fpfEntry => fpfEntry.ID != FPF_File.MainSkeletonEntryId)
+                    .FirstOrDefault(fpfEntry => fpfEntry.BonePoses?.Count == boneCount);
+            }
+
+            if (entry != null)
+                usedEntries.Add(entry.ID);
+
+            return entry;
         }
 
         /// <summary>

@@ -10,7 +10,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
-        <Expander Header="BAC Type22" IsExpanded="True">
+        <Expander Header="Move to Object" IsExpanded="True">
             
             <StackPanel>
                 <WrapPanel>
@@ -19,24 +19,24 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="_I_08"/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.I_08, UpdateSourceTrigger=Default}"/>
+                        <Label Content="_Object mode" ToolTip="Selects what the player moves toward: a named object, the current or linked position, or the nearest object with a matching name."/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.ObjectMode}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.ObjectMode, UpdateSourceTrigger=Default}" ToolTip="Exact mode uses the full name. Current or linked mode uses the stored position. Nearest mode treats the name as a prefix."/>
                     </Grid>
                     <Grid Margin="3,5,0,0" Width="250">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="_I_10"/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.I_10, UpdateSourceTrigger=Default}"/>
+                        <Label Content="_Movement mode" ToolTip="Selects between a fixed step each update and movement timed to reach the object at the end of the entry."/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.ObjectMovementMode}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.MovementMode, UpdateSourceTrigger=Default}" ToolTip="Fixed step uses Movement Distance. Arrive by end frame uses the entry duration."/>
                     </Grid>
                     <Grid Margin="3,5,0,0" Width="250">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="_F_16"/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.F_12, UpdateSourceTrigger=Default}"/>
+                        <Label Content="_Movement distance" ToolTip="Distance moved each update in Fixed Step mode. Timed movement ignores this value."/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.MovementDistance, UpdateSourceTrigger=Default}" ToolTip="Distance moved in Fixed Step mode."/>
                     </Grid>
                 </WrapPanel>
 
@@ -45,8 +45,8 @@
                         <ColumnDefinition Width="125"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Label Content="_STR_16"/>
-                    <TextBox Grid.Column="1" Text="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.STR_16, UpdateSourceTrigger=Default}"/>
+                    <Label Content="_Object name or prefix" ToolTip="Name used to find the object. Exact mode matches the full name. Nearest mode matches names that start with this text."/>
+                    <TextBox Grid.Column="1" Text="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType22View}}, Path=BacViewModel.ObjectNameOrPrefix, UpdateSourceTrigger=Default}" ToolTip="Object name or prefix used by the selected object mode."/>
                 </Grid>
             </StackPanel>
         </Expander>

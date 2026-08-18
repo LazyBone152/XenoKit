@@ -101,6 +101,7 @@ namespace XenoKit.Engine.Vfx.Particle
                 //Shader passes and vertex drawing
                 foreach (EffectPass pass in EmissionData.Material.CurrentTechnique.Passes)
                 {
+                    EmissionData.Material.SetGlareOutputAllowed(!SourceEffectPart.NoGlare);
                     pass.Apply();
 
                     GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, EmgSubmesh.Vertices, 0, EmgSubmesh.Vertices.Length, EmgSubmesh.Indices, 0, EmgSubmesh.Indices.Length / 3);

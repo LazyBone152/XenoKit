@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 using XenoKit.Editor;
+using XenoKit.Engine.Shader;
 using XenoKit.Engine.Vertex;
 using XenoKit.Engine.Vfx.Particle;
 using XenoKit.Helper.Find;
@@ -22,8 +24,14 @@ namespace XenoKit.Engine.Rendering
         private int _maxBatchNumSinceLastSlowUpdate = 0;
         private const int MinBatchItemCount = 64;
 
+        // A file-defined material can reference a shader whose vertex inputs don't match VertexPositionTextureColor.
+        // D3D then fails to build the input layout and throws when the particles are drawn. Materials that fail once
+        // are tracked here and skipped, so one bad material can't take down the render loop.
+        private static readonly HashSet<Xv2ShaderEffect> incompatibleMaterials = new HashSet<Xv2ShaderEffect>();
+
         public readonly ParticleNode ParticleNode;
         public readonly ParticleEmissionData EmissionData;
+        public readonly bool NoGlare;
 
         public int NumBatch { get; private set; }
         public int MaxBatchSinceLastSlowUpdate => _maxBatchNumSinceLastSlowUpdate;
@@ -33,16 +41,18 @@ namespace XenoKit.Engine.Rendering
             get
             {
                 if (EmissionData?.Material == null) return 0;
+                if (ParticleEmissionBase.UsesSubtractiveMaterial(EmissionData.Material)) return 0;
                 if (EmissionData.Material.MatParam.LowRez == 1) return 1;
                 if (EmissionData.Material.MatParam.LowRezSmoke == 1) return 2;
                 return 0;
             }
         }
 
-        public ParticleBatch(ParticleEmissionData emissionData, ParticleNode particleNode)
+        public ParticleBatch(ParticleEmissionData emissionData, ParticleNode particleNode, bool noGlare)
         {
             EmissionData = emissionData;
             ParticleNode = particleNode;
+            NoGlare = noGlare;
             BatchItems = new ParticleBatchItem[MinBatchItemCount];
             Vertices = new VertexPositionTextureColor[MinBatchItemCount * 6];
         }
@@ -119,6 +129,11 @@ namespace XenoKit.Engine.Rendering
 
             if (!RenderSystem.CheckDrawPass(EmissionData.Material) || batchIndex == 0) return;
 
+            if (incompatibleMaterials.Contains(EmissionData.Material))
+            {
+                batchIndex = 0;
+                return;
+            }
 
             UpdateVertices();
 
@@ -140,9 +155,19 @@ namespace XenoKit.Engine.Rendering
             //Shader passes and vertex drawing
             foreach (EffectPass pass in EmissionData.Material.CurrentTechnique.Passes)
             {
+                EmissionData.Material.SetGlareOutputAllowed(!NoGlare);
                 pass.Apply();
 
-                GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, Vertices, 0, batchIndex * 2);
+                try
+                {
+                    GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, Vertices, 0, batchIndex * 2);
+                }
+                catch (Exception ex)
+                {
+                    incompatibleMaterials.Add(EmissionData.Material);
+                    Log.Add($"ParticleBatch: skipped drawing particles because material '{EmissionData.Material.Material?.Name}' is not compatible with the particle vertex format. {ex.Message}", LogType.Warning);
+                    break;
+                }
             }
 
             batchIndex = 0;

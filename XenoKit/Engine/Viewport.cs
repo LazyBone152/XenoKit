@@ -21,6 +21,7 @@ using XenoKit.Engine.Stage;
 using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Pool;
 using XenoKit.Engine.Scripting;
+using XenoKit.Engine.Scripting.BSA;
 using XenoKit.Engine.Textures;
 using Xv2CoreLib.Resource;
 
@@ -219,6 +220,9 @@ namespace XenoKit.Engine
                 }
                 else
                 {
+                    if (SceneManager.IsOnTab(EditorTabs.Projectile))
+                        BsaEffectPreviewController.Instance.Update();
+
                     VfxManager.Update();
                 }
 
@@ -349,6 +353,14 @@ namespace XenoKit.Engine
             else
             {
                 VfxManager.Draw();
+            }
+
+            if (SceneManager.IsOnTab(EditorTabs.Projectile))
+                BsaEffectPreviewController.Instance.Draw();
+
+            if (RenderSystem.HasPendingScreenshot())
+            {
+                RenderSystem.ProcessPendingScreenshot(RenderSystem.GetFinalRenderTarget(), MainRenderTarget.RenderTarget);
             }
 
             //Draw MainRenderTarget onto screen
@@ -605,6 +617,7 @@ namespace XenoKit.Engine
                     InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.PrevFrame();
                     break;
                 case EditorTabs.Animation:
+                case EditorTabs.FPF:
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].AnimationPlayer.PrevFrame();
                     break;
@@ -614,6 +627,9 @@ namespace XenoKit.Engine
                 case EditorTabs.Action:
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].ActionControl.SeekPrevFrame();
+                    break;
+                case EditorTabs.Projectile:
+                    BsaEffectPreviewController.Instance.SeekPrevFrame();
                     break;
             }
         }
@@ -633,6 +649,7 @@ namespace XenoKit.Engine
                     InspectorMode.Instance.ActiveSkinnedEntity?.AnimationPlayer?.NextFrame();
                     break;
                 case EditorTabs.Animation:
+                case EditorTabs.FPF:
                     if (SceneManager.Actors[0] != null)
                         SceneManager.Actors[0].AnimationPlayer.NextFrame();
                     break;
@@ -644,6 +661,9 @@ namespace XenoKit.Engine
                     {
                         SceneManager.Actors[0].ActionControl.SeekNextFrame();
                     }
+                    break;
+                case EditorTabs.Projectile:
+                    BsaEffectPreviewController.Instance.SeekNextFrame();
                     break;
             }
         }

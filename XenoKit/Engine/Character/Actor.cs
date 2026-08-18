@@ -9,6 +9,7 @@ using XenoKit.Engine.Character;
 using XenoKit.Engine.Collision;
 using XenoKit.Engine.Shader;
 using Microsoft.Xna.Framework;
+using Xv2CoreLib.FPF;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector3 = System.Numerics.Vector3;
 
@@ -24,6 +25,12 @@ namespace XenoKit.Engine
         public CharaPartSet PartSet;
         public int ForceDytOverride = -1;
         public bool IsVisible = true;
+        public FPF_File FpfPreviewFile = null;
+        public string FpfPreviewPath = null;
+        public FpfPoseMatrix FpfPreviewPoseMatrix = FpfPoseMatrix.AbsolutePoseTransform;
+        public FpfPoseMatrix FpfPreviewSkinOffsetMatrix = FpfPoseMatrix.None;
+        public FpfSkinOffsetMode FpfPreviewSkinOffsetMode = FpfSkinOffsetMode.InverseBindOffsetPose;
+        public bool FpfPreviewUsePlacementOffset = true;
 
         //TimeScale:
         public int BdmTimeScaleDuration = 0;
@@ -233,9 +240,12 @@ namespace XenoKit.Engine
             if (AnimationPlayer != null && Skeleton != null)
                 AnimationPlayer.Update(Matrix4x4.Identity);
 
+            FpfPosePreview.Apply(this);
+
             _visualSkeleton.Update(Skeleton.Bones);
 
             PartSet.Update();
+            FpfPosePreview.ApplyAdditionalSkeletons(this);
 
             //Update hitbox
             if (SceneManager.IsOnTab(EditorTabs.Action))
@@ -277,6 +287,10 @@ namespace XenoKit.Engine
             {
                 AnimationPlayer.Simulate(fullAnimUpdate, advance);
             }
+
+            FpfPosePreview.Apply(this);
+            PartSet.Update();
+            FpfPosePreview.ApplyAdditionalSkeletons(this);
 
             //Update hitbox
             if (SceneManager.IsOnTab(EditorTabs.Action))

@@ -7,6 +7,7 @@ using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.Character;
 using XenoKit.Engine.Vfx.Asset;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.BSA;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EffectContainer;
 using Matrix4x4 = System.Numerics.Matrix4x4;
@@ -84,6 +85,57 @@ namespace XenoKit.Engine.Vfx
             PlayEffect((BAC_Type8.EepkTypeEnum)bdmInstance.BdmSubEntry.Effect3_EepkType, bdmInstance.BdmSubEntry.Effect3_SkillID, bdmInstance.BdmSubEntry.Effect3_ID, bdmInstance);
         }
 
+        public async void PlayEffect(BSA_Type6 bsaEffect, Move move, Actor actor, Matrix4x4 world)
+        {
+            if (Effects.Count >= MAX_EFFECTS)
+            {
+                Log.Add("Maximum amount of effects that can be active at the same time reached. Cannot start new ones.", LogType.Warning);
+                return;
+            }
+
+            EffectContainerFile eepk = Files.Instance.GetEepkFile((BAC_Type8.EepkTypeEnum)bsaEffect.EepkType, bsaEffect.SkillID, move, actor, true);
+
+            if (eepk != null)
+            {
+                Effect eepkEffect = eepk.GetEffect(bsaEffect.EffectID);
+
+                if (eepkEffect != null)
+                {
+                    Matrix4x4 spawnPosition = world * Matrix4x4.CreateTranslation(new SimdVector3(bsaEffect.F_12, bsaEffect.F_16, bsaEffect.F_20));
+                    await Task.Run(() => AddEffect(actor, eepkEffect, spawnPosition));
+                }
+                else
+                {
+                    Log.Add($"No effect at ID {bsaEffect.EffectID} could be found in EEPK {bsaEffect.EepkType}.");
+                }
+            }
+        }
+
+        public VfxEffect PlayProjectileEffect(BSA_Type6 bsaEffect, Move move, Actor actor, Matrix4x4 world)
+        {
+            if (Effects.Count >= MAX_EFFECTS)
+            {
+                Log.Add("Maximum amount of effects that can be active at the same time reached. Cannot start new ones.", LogType.Warning);
+                return null;
+            }
+
+            EffectContainerFile eepk = Files.Instance.GetEepkFile((BAC_Type8.EepkTypeEnum)bsaEffect.EepkType, bsaEffect.SkillID, move, actor, true);
+
+            if (eepk != null)
+            {
+                Effect eepkEffect = eepk.GetEffect(bsaEffect.EffectID);
+
+                if (eepkEffect != null)
+                {
+                    return AddEffect(actor, eepkEffect, world, true);
+                }
+
+                Log.Add($"No effect at ID {bsaEffect.EffectID} could be found in EEPK {bsaEffect.EepkType}.");
+            }
+
+            return null;
+        }
+
         private async void PlayEffect(BAC_Type8.EepkTypeEnum eepkType, ushort skillId, short effectId, DamageManager bdmInstance)
         {
             if (Effects.Count >= MAX_EFFECTS)
@@ -111,14 +163,16 @@ namespace XenoKit.Engine.Vfx
             }
         }
 
-        private void AddEffect(Actor actor, Effect effect, Matrix4x4 world)
+        private VfxEffect AddEffect(Actor actor, Effect effect, Matrix4x4 world, bool spawnedByProjectile = false)
         {
-            VfxEffect vfxEffect = new VfxEffect(actor, effect, world);
+            VfxEffect vfxEffect = new VfxEffect(actor, effect, world, spawnedByProjectile);
 
             lock (Effects)
             {
                 NewEffects.Add(vfxEffect);
             }
+
+            return vfxEffect;
         }
 
         public void StopActorEffects(Actor actor)
@@ -208,6 +262,7 @@ namespace XenoKit.Engine.Vfx
                 {
                     if (Effects[i].IsDestroyed)
                     {
+                        Effects[i].Dispose();
                         Effects.RemoveAt(i);
                         continue;
                     }

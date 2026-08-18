@@ -233,7 +233,8 @@ namespace XenoKit.Editor.ValuesDictionary
         public static Dictionary<byte, string> BsaSpawnOrientation { get; private set; } = new Dictionary<byte, string>()
         {
             { 0 , "Default" },
-            { 3 , "User Direction" }
+            { 1 , "User Direction (1)" },
+            { 3 , "User Direction (3)" }
         };
 
         //Targeting Assistance

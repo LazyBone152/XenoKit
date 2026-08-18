@@ -130,6 +130,7 @@
                 <CheckBox x:Name="bonesCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ShowVisualSkeleton}" Content="Bones" Height="20" ToolTip="Toggle the visual skeleton in the relevant tabs." Margin="3, 0" Visibility="Collapsed"/>
                 <CheckBox x:Name="audioCheckBox" IsChecked="{Binding ElementName=UserControl, Path=AudioSimulation}" Content="Sound" Height="20" ToolTip="Toggle audio simulation (does not affect audio previewing)." Margin="3, 0" Visibility="Collapsed"/>
                 <CheckBox x:Name="hitboxCheckBox" IsChecked="{Binding ElementName=UserControl, Path=HitboxSimulation}" Content="Hitbox" Height="20" ToolTip="Toggle hitbox simulation (does not affect hitbox previewing when editing a hitbox directly)." Margin="3, 0" Visibility="Collapsed"/>
+                <CheckBox x:Name="projectileCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ProjectileSimulation}" Content="Projectiles" Height="20" ToolTip="Toggle projectile simulation." Margin="3, 0" Visibility="Collapsed"/>
                 <CheckBox x:Name="effectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=VfxSimulation}" Content="Effect" Height="20" ToolTip="Toggle effect previewing." Margin="3, 0" Visibility="Collapsed"/>
 
             </StackPanel>

@@ -25,8 +25,6 @@ namespace XenoKit.Engine.Vfx
                 case EditorTabs.Effect:
                     Effect?.Update();
                     break;
-                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
-                    break;
                 default:
                     Asset?.Update();
                     break;
@@ -40,8 +38,6 @@ namespace XenoKit.Engine.Vfx
             {
                 case EditorTabs.Effect:
                     Effect?.Draw();
-                    break;
-                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
                     break;
                 default:
                     Asset?.Draw();
@@ -95,8 +91,6 @@ namespace XenoKit.Engine.Vfx
                 case EditorTabs.Effect:
                     Effect?.SeekPrevFrame();
                     break;
-                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
-                    break;
                 default:
                     Asset?.SeekPrevFrame();
                     break;
@@ -109,8 +103,6 @@ namespace XenoKit.Engine.Vfx
             {
                 case EditorTabs.Effect:
                     Effect?.SeekNextFrame();
-                    break;
-                case EditorTabs.Effect_TBIND: //TBIND not currently supported - so dont do anything at all.
                     break;
                 default:
                     Asset?.SeekNextFrame();

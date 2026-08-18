@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
+using XenoKit.Engine.Scripting.BSA;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.Resource.App;
@@ -18,10 +19,10 @@ namespace XenoKit.Engine
         BCS = 0,
         Animation = 1,
         Camera = 2,
-        Action = 3, //bac
-        State = 4, //bcm
-        Projectile = 5,
-        Hitbox = 6,
+        FPF = 3,
+        Action = 4, //bac
+        State = 5, //bcm
+        Projectile = 6,
         Effect = 7,
         Audio = 8,
         System = 9,
@@ -61,7 +62,6 @@ namespace XenoKit.Engine
         Action,
         State,
         Projectile,
-        Hitbox,
         Effect,
         Effect_PBIND,
         Effect_TBIND,
@@ -73,7 +73,8 @@ namespace XenoKit.Engine
         System,
         CAC,
         Inspector,
-        InspectorAnimation
+        InspectorAnimation,
+        FPF
     }
 
     public enum DynamicTabs
@@ -180,6 +181,9 @@ namespace XenoKit.Engine
                     case MainEditorTabs.Camera:
                         CurrentSceneState = EditorTabs.Camera;
                         break;
+                    case MainEditorTabs.FPF:
+                        CurrentSceneState = EditorTabs.FPF;
+                        break;
                     case MainEditorTabs.Effect:
                         IsOnEffectTab = true;
 
@@ -208,11 +212,9 @@ namespace XenoKit.Engine
                                 break;
                         }
                         break;
-                    case MainEditorTabs.Hitbox:
-                        CurrentSceneState = EditorTabs.Hitbox;
-                        break;
                     case MainEditorTabs.Projectile:
                         CurrentSceneState = EditorTabs.Projectile;
+                        ActorsEnable[0] = false;
                         break;
                     case MainEditorTabs.State:
                         CurrentSceneState = EditorTabs.State;
@@ -235,9 +237,16 @@ namespace XenoKit.Engine
 
             }
 
-            if (CurrentSceneState == EditorTabs.Action)
+            if (CurrentSceneState == EditorTabs.Action || CurrentSceneState == EditorTabs.Projectile)
             {
                 await AsyncEnsureActorIsSet(0);
+
+                if (CurrentSceneState == EditorTabs.Projectile && Actors[0] != null)
+                    Actors[0].IsVisible = false;
+            }
+            else if (Actors[0] != null)
+            {
+                Actors[0].IsVisible = true;
             }
 
             //Needed because for SOME reason the tab changed event gets fired randomly when no change actually occured...
@@ -607,7 +616,7 @@ namespace XenoKit.Engine
                     Actors[0].ActionControl.Resume();
                 }
             }
-            else if (CurrentSceneState == EditorTabs.Animation)
+            else if (CurrentSceneState == EditorTabs.Animation || CurrentSceneState == EditorTabs.FPF)
             {
                 for (int i = 0; i < Actors.Length; i++)
                 {
@@ -649,6 +658,8 @@ namespace XenoKit.Engine
                 {
                     Viewport.Instance.VfxManager.StopEffects();
                 }
+
+                BsaEffectPreviewController.Instance.Stop();
 
             }
 

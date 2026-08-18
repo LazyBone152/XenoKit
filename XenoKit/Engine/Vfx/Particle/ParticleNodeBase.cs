@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using XenoKit.Editor;
 using XenoKit.Engine.Pool;
-using XenoKit.Helper;
 using Xv2CoreLib;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EMP_NEW;
@@ -59,6 +58,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public NodeState State { get; protected set; }
         public float CurrentFrame { get; private set; }
         public float CurrentTimeFactor { get; private set; }
+        protected EffectPart SourceEffectPart => EffectPart;
 
         //Children Nodes
         public List<ParticleNodeBase> Nodes = new List<ParticleNodeBase>();
@@ -247,7 +247,10 @@ namespace XenoKit.Engine.Vfx.Particle
                 //For now, splitting rotation out from Transform to fix an annoying bug with emissions.
                 //Rotation is only relevant for 2 things: 1. Its applied to emitted nodes (if this is an Emitter), rotating them. 2. For BillboardType=None, it rotates the texture in addition to the defined Rotation Axis
                 //It doesn't actually rotate the node, and so doesn't change the way position or a modifier is applied.
-                Rotation = Matrix4x4.CreateFromQuaternion(GeneralHelpers.EulerAnglesToQuaternion(new SimdVector3(MathHelper.ToRadians(rotation[0] + RotationX_Variance), MathHelper.ToRadians(rotation[1] + RotationY_Variance), MathHelper.ToRadians(rotation[2] + RotationZ_Variance))));
+                Rotation = VfxRotation.Create(
+                    MathHelper.ToRadians(rotation[0] + RotationX_Variance),
+                    MathHelper.ToRadians(rotation[1] + RotationY_Variance),
+                    MathHelper.ToRadians(rotation[2] + RotationZ_Variance));
 
                 /*
                 //AbsoluteTransform is used for Draw Order purposes only, so it only needs to be calculated on emission type nodes
@@ -413,6 +416,18 @@ namespace XenoKit.Engine.Vfx.Particle
                         else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.Mesh)
                         {
                             newNode = ObjectPoolManager.GetParticleMesh(ref emitTransform, ref velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
+                            ViewportInstance.RenderSystem.AddRenderEntity(newNode);
+                        }
+                        else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.ShapeDraw)
+                        {
+                            newNode = new ParticleShapeDraw();
+                            newNode.Initialize(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
+                            ViewportInstance.RenderSystem.AddRenderEntity(newNode);
+                        }
+                        else if (Node.ChildParticleNodes[i].EmissionNode.EmissionType == ParticleEmission.ParticleEmissionType.ConeExtrude)
+                        {
+                            newNode = new ParticleConeExtrude();
+                            newNode.Initialize(emitTransform, velocity, ParticleSystem, Node.ChildParticleNodes[i], EffectPart, ParticleSystem.Effect.Target);
                             ViewportInstance.RenderSystem.AddRenderEntity(newNode);
                         }
                         else

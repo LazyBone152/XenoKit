@@ -1197,7 +1197,9 @@ namespace XenoKit.Views.TimeLines
         public RelayCommand PasteHereLayerCommand => new RelayCommand(PasteHere, CanPasteHere);
         private void PasteHere()
         {
-            CopyItem copyItem = (CopyItem)Clipboard.GetData(ClipboardConstants.BacType_CopyItem);
+            if (!XenoKitClipboard.TryGetData(ClipboardConstants.BacType_CopyItem, out CopyItem copyItem))
+                return;
+
             copyItem.ResetTimeLineLayers = false;
 
             //Set desired layer and start time
@@ -1305,13 +1307,15 @@ namespace XenoKit.Views.TimeLines
         private void CopyBacType()
         {
             CopyItem copyItem = new CopyItem(SelectedItems.Cast<IBacType>().ToList(), Files.Instance.SelectedMove);
-            Clipboard.SetData(ClipboardConstants.BacType_CopyItem, copyItem);
+            XenoKitClipboard.SetData(ClipboardConstants.BacType_CopyItem, copyItem);
         }
 
         public RelayCommand PasteBacTypeCommand => new RelayCommand(PasteBacType, CanPasteBacTypes);
         private void PasteBacType()
         {
-            CopyItem copyItem = (CopyItem)Clipboard.GetData(ClipboardConstants.BacType_CopyItem);
+            if (!XenoKitClipboard.TryGetData(ClipboardConstants.BacType_CopyItem, out CopyItem copyItem))
+                return;
+
             PasteCopyItem pasteWindow = new PasteCopyItem(copyItem, Files.Instance.SelectedMove, BacEntry, false);
             pasteWindow.ShowDialog();
 
@@ -1363,7 +1367,7 @@ namespace XenoKit.Views.TimeLines
 
         private bool CanPasteBacTypes()
         {
-            return Clipboard.ContainsData(ClipboardConstants.BacType_CopyItem) && BacEntry != null;
+            return XenoKitClipboard.ContainsData(ClipboardConstants.BacType_CopyItem) && BacEntry != null;
         }
 
         private bool CanFocus()

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using XenoKit.Editor;
+using XenoKit.Engine.Scripting.BSA;
 using XenoKit.Engine.Scripting.BAC.Simulation;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.BSA;
 using Xv2CoreLib.EAN;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
@@ -57,6 +59,11 @@ namespace XenoKit.Engine.Scripting.BAC
         //Visual objects that render on screen as the entry plays. Currently only covers hitbox previews.
         //These have no actual logic and dont interact with anything. They are purely visual helpers.
         public List<BacVisualCueObject> VisualSimulationCues;
+        public List<ProjectileInstance> Projectiles;
+        private readonly HashSet<BAC_Type9> spawnedProjectileTypes = new HashSet<BAC_Type9>();
+        private readonly Dictionary<BAC_Type9, float> loopProjectileSpawnFrames = new Dictionary<BAC_Type9, float>();
+        private readonly List<float> activeBsaPassConditions = new List<float>();
+        private const float BsaConditionTolerance = 0.001f;
 
         /// <summary>
         /// The currently active eye movement entry. Only one of these can be active at any given time.
@@ -81,12 +88,14 @@ namespace XenoKit.Engine.Scripting.BAC
             if (IsPreview)
             {
                 VisualSimulationCues = new List<BacVisualCueObject>(16);
+                Projectiles = new List<ProjectileInstance>(8);
                 OriginalMatrix = new Matrix4x4[3];
                 CreateMatrixRestorePoint();
             }
             else
             {
                 VisualSimulationCues = null;
+                Projectiles = null;
                 OriginalMatrix = null;
             }
 
@@ -256,6 +265,7 @@ namespace XenoKit.Engine.Scripting.BAC
             InScope = CurrentFrame < Duration;
 
             UpdateVisualObjects();
+            UpdateProjectiles(User.ViewportInstance.IsPlaying ? Actor.ActiveTimeScale : 0f);
 
             //Advance current frame
             if (User.ViewportInstance.IsPlaying)
@@ -281,6 +291,19 @@ namespace XenoKit.Engine.Scripting.BAC
             IsFinished = CurrentFrame >= Duration;
         }
 
+        internal void AdvancePreviewFrame(float frameStep)
+        {
+            InScope = CurrentFrame < Duration;
+
+            UpdateVisualObjects();
+            UpdateProjectiles(frameStep);
+
+            PreviousFrame = CurrentFrame;
+            CurrentFrame = (int)CurrentFrame + 1;
+
+            IsFinished = CurrentFrame >= Duration;
+        }
+
         /// <summary>
         /// Checks if a StartTime is valid within the current context. 
         /// </summary>
@@ -299,6 +322,7 @@ namespace XenoKit.Engine.Scripting.BAC
         public void ResetState()
         {
             ClearVisualObjects();
+            ClearProjectiles();
 
             IsFinished = false;
             ActiveEyeMovement = null;
@@ -310,6 +334,7 @@ namespace XenoKit.Engine.Scripting.BAC
             LoopStartFrame = 0;
             LoopEndFrame = 0;
             LoopIsDirty = false;
+            ClearActiveBsaPassConditions();
 
             if (SceneManager.RetainActionMovement && IsPreview)
             {
@@ -322,6 +347,8 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             InScope = false;
             ClearVisualObjects();
+            ClearProjectiles();
+            ClearActiveBsaPassConditions();
         }
 
         public void AddVisualObject(BAC_Type1 hitbox, Viewport game)
@@ -333,6 +360,45 @@ namespace XenoKit.Engine.Scripting.BAC
                     VisualSimulationCues.Add(new HitboxPreview(hitbox, this));
                 }
             }
+        }
+
+        public void ClearActiveBsaPassConditions()
+        {
+            activeBsaPassConditions.Clear();
+        }
+
+        public void AddActiveBsaPassCondition(float condition)
+        {
+            if (!activeBsaPassConditions.Any(activeCondition => System.Math.Abs(activeCondition - condition) <= BsaConditionTolerance))
+                activeBsaPassConditions.Add(condition);
+        }
+
+        public bool HasActiveBsaPassCondition(float condition)
+        {
+            return activeBsaPassConditions.Any(activeCondition => System.Math.Abs(activeCondition - condition) <= BsaConditionTolerance);
+        }
+
+        public bool AddProjectile(BAC_Type9 projectileType, BSA_Entry bsaEntry, bool canLoop)
+        {
+            if (!IsPreview || bsaEntry == null) return false;
+
+            if (canLoop)
+            {
+                if (loopProjectileSpawnFrames.TryGetValue(projectileType, out float lastFrame) && System.Math.Abs(lastFrame - CurrentFrame) < 0.001f)
+                    return false;
+
+                loopProjectileSpawnFrames[projectileType] = CurrentFrame;
+            }
+            else
+            {
+                if (spawnedProjectileTypes.Contains(projectileType))
+                    return false;
+
+                spawnedProjectileTypes.Add(projectileType);
+            }
+
+            Projectiles.Add(new ProjectileInstance(this, projectileType, bsaEntry));
+            return true;
         }
 
         private void UpdateVisualObjects()
@@ -357,6 +423,35 @@ namespace XenoKit.Engine.Scripting.BAC
             if (!IsPreview) return;
 
             VisualSimulationCues.Clear();
+        }
+
+        private void UpdateProjectiles(float frameStep)
+        {
+            if (!IsPreview) return;
+
+            for (int i = Projectiles.Count - 1; i >= 0; i--)
+            {
+                if (Projectiles[i].IsFinished)
+                {
+                    Projectiles[i].Expire();
+                    Projectiles.RemoveAt(i);
+                    continue;
+                }
+
+                Projectiles[i].Update(frameStep);
+            }
+        }
+
+        private void ClearProjectiles()
+        {
+            if (!IsPreview) return;
+
+            foreach (ProjectileInstance projectile in Projectiles)
+                projectile.Dispose();
+
+            Projectiles.Clear();
+            spawnedProjectileTypes.Clear();
+            loopProjectileSpawnFrames.Clear();
         }
     }
 

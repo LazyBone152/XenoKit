@@ -56,6 +56,9 @@ namespace XenoKit.Engine.Stage
         public Vector4 FogMultiColor { get; private set; }
         public Vector4 FogAddColor { get; private set; }
         public Vector4 Fog { get; private set; }
+        public Vector4 BackgroundGlareTone { get; private set; }
+        public Vector4 EffectGlareTone { get; private set; }
+        public Vector4 EdgeColor { get; private set; }
 
         //Reflections
         public TextureCube EnvTexture { get; private set; }
@@ -230,6 +233,9 @@ namespace XenoKit.Engine.Stage
             FogMultiColor = new Vector4(CurrentSpm.FogMultiColorR, CurrentSpm.FogMultiColorG, CurrentSpm.FogMultiColorB, CurrentSpm.FogMultiColorA);
             FogAddColor = new Vector4(CurrentSpm.FogAddColorR, CurrentSpm.FogAddColorG, CurrentSpm.FogAddColorB, CurrentSpm.FogAddColorA);
             Fog = new Vector4(CurrentSpm.FogStartDist, CurrentSpm.FogEndDist, 1.11111f, -0.0037f);
+            BackgroundGlareTone = new Vector4(CurrentSpm.F_416[0], CurrentSpm.F_416[0], CurrentSpm.F_416[0], CurrentSpm.BackgroundGlareAdditiveColorR);
+            EffectGlareTone = new Vector4(CurrentSpm.EffectGlareTone, CurrentSpm.EffectGlareTone, CurrentSpm.EffectGlareTone, CurrentSpm.F_416[2]);
+            EdgeColor = new Vector4(CurrentSpm.EdgeStrokesColorR, CurrentSpm.EdgeStrokesColorG, CurrentSpm.EdgeStrokesColorB, CurrentSpm.EdgeStrokesWidth);
         }
 
         public void SetSpmFile(SPM_File spmFile)
