@@ -53,10 +53,22 @@ namespace XenoKit.Controls
 
 
         #region Commands
-        public RelayCommand CopyExceptionCommand => new RelayCommand(CopyException, CanCopyException);
-        public void CopyException()
+        public RelayCommand CopyLogEntryCommand => new RelayCommand(CopyLogEntry, CanCopyLogEntry);
+        public void CopyLogEntry()
         {
-            Clipboard.SetText(_selectedEntry.Exception, TextDataFormat.Text);
+            if (!CanCopyLogEntry()) return;
+
+            string text = $"Severity: {_selectedEntry.Type}{Environment.NewLine}" +
+                $"Occurrences: {_selectedEntry.Num}{Environment.NewLine}" +
+                $"Message: {_selectedEntry.Message}";
+
+            if (!string.IsNullOrWhiteSpace(_selectedEntry.Exception))
+            {
+                text += Environment.NewLine + Environment.NewLine +
+                    "Details:" + Environment.NewLine + _selectedEntry.Exception;
+            }
+
+            Clipboard.SetText(text, TextDataFormat.Text);
         }
 
         public RelayCommand ClearAllCommand => new RelayCommand(ClearAll, CanClear);
@@ -70,15 +82,9 @@ namespace XenoKit.Controls
             return LogEntries.Count > 0;
         }
 
-        private bool CanCopyException()
+        private bool CanCopyLogEntry()
         {
-            if (_selectedEntry != null)
-            {
-                if (!string.IsNullOrWhiteSpace(_selectedEntry.Exception))
-                    return true;
-            }
-
-            return false;
+            return _selectedEntry != null;
         }
 
 
