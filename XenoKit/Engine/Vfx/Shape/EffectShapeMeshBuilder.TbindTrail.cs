@@ -395,8 +395,9 @@ namespace XenoKit.Engine.Vfx.Shape
                     heightAxis = SimdVector3.UnitY;
 
                 SimdVector3 center = centers[i];
+                SimdVector3 normal = NormalizeOrFallback(heightAxis, viewForward);
 
-                frames[i] = new TbindRowFrame(center, widthAxis, heightAxis);
+                frames[i] = new TbindRowFrame(center, widthAxis, heightAxis, normal);
                 previousTangent = tangent;
                 previousWidthAxis = widthAxis;
             }
@@ -594,12 +595,14 @@ namespace XenoKit.Engine.Vfx.Shape
             public SimdVector3 Center { get; }
             public SimdVector3 WidthAxis { get; }
             public SimdVector3 HeightAxis { get; }
+            public SimdVector3 Normal { get; }
 
-            public TbindRowFrame(SimdVector3 center, SimdVector3 widthAxis, SimdVector3 heightAxis)
+            public TbindRowFrame(SimdVector3 center, SimdVector3 widthAxis, SimdVector3 heightAxis, SimdVector3 normal)
             {
                 Center = center;
                 WidthAxis = widthAxis;
                 HeightAxis = heightAxis;
+                Normal = normal;
             }
         }
 

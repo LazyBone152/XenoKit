@@ -507,7 +507,8 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_MaterialOffset0_VS"].SetVector4(MatParam.MatOffset0.Values);
                 Parameters["g_MaterialOffset1_VS"].SetVector4(MatParam.MatOffset1.Values);
                 Parameters["g_AlphaFade_VS"].SetValue(new Vector4(MatParam.FadeInit, MatParam.FadeSpeed, 0, 0));
-                Parameters["g_Incidence_VS"].SetValue(new Vector4(MatParam.IncidencePower, MatParam.IncidenceAlphaBias, 0, 0));
+                float incidenceCurve = shaderProgram.Name.StartsWith("T1_VFX_TRC_I", StringComparison.Ordinal) ? MatParam.IncidencePower : 0f;
+                Parameters["g_Incidence_VS"].SetValue(new Vector4(MatParam.IncidencePower, MatParam.IncidenceAlphaBias, incidenceCurve, 0));
                 Parameters["g_Gradient_VS"].SetValue(new Vector4(MatParam.GradientInit, MatParam.GradientSpeed, 0, 0));
                 Parameters["g_GlareCoeff_VS"].SetVector4(MatParam.GlareCol.Values);
                 Parameters["g_Reflection_VS"].SetValue(new Vector4(MatParam.ReflectCoeff, MatParam.ReflectFresnelBias, MatParam.ReflectFresnelCoeff, 0));
@@ -603,7 +604,8 @@ namespace XenoKit.Engine.Shader
                 Parameters["g_MaterialScale0_PS"].SetVector4(MatParam.MatScale0.Values);
                 Parameters["g_MaterialScale1_PS"].SetVector4(MatParam.MatScale1.Values);
                 Parameters["g_AlphaFade_PS"].SetValue(new Vector4(MatParam.FadeInit, MatParam.FadeSpeed, 0, 0));
-                Parameters["g_Incidence_PS"].SetValue(new Vector4(MatParam.IncidencePower, MatParam.IncidenceAlphaBias, 0, 0));
+                float incidenceCurve = shaderProgram.Name.StartsWith("T1_VFX_TRC_I", StringComparison.Ordinal) ? MatParam.IncidencePower : 0f;
+                Parameters["g_Incidence_PS"].SetValue(new Vector4(MatParam.IncidencePower, MatParam.IncidenceAlphaBias, incidenceCurve, 0));
                 Parameters["g_Gradient_PS"].SetValue(new Vector4(MatParam.GradientInit, MatParam.GradientSpeed, 0, 0));
                 Parameters["g_GlareCoeff_PS"].SetVector4(MatParam.GlareCol.Values);
                 Parameters["g_Reflection_PS"].SetValue(new Vector4(MatParam.ReflectCoeff, MatParam.ReflectFresnelBias, MatParam.ReflectFresnelCoeff, 0));

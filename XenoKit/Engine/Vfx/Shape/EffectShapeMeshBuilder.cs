@@ -178,7 +178,7 @@ namespace XenoKit.Engine.Vfx.Shape
             if (vertexCount > ushort.MaxValue)
                 throw new InvalidOperationException($"TBIND strip mesh has {vertexCount} vertices, which exceeds the 16-bit index limit.");
 
-            VertexPositionTextureColor[] vertices = new VertexPositionTextureColor[vertexCount];
+            VertexPositionNormalColorTexture[] vertices = new VertexPositionNormalColorTexture[vertexCount];
             TbindRowFrame[] rowFrames = autoOrientation ? BuildAutoOrientedRowFrames(profiledSamples, cameraViewForward) : null;
 
             for (int rowIndex = 0; rowIndex < rowCount; rowIndex++)
@@ -190,20 +190,22 @@ namespace XenoKit.Engine.Vfx.Shape
                     int vertexIndex = (rowIndex * columnCount) + columnIndex;
                     Vector2 uv = GetTbindGridUv(profiledSamples[0], row, rowIndex, rowCount, columnIndex, columnCount, uvScrollU, uvScrollV, uvStepU, uvStepV);
                     Color color = GetTbindColumnColor(row, columnIndex, columnCount);
+                    SimdVector3 normal = GetTbindVertexNormal(row, rowFrames, rowIndex, autoOrientation);
 
                     if (usePathOffsetAsWidth && columnCount == 2)
                     {
                         SimdVector3 point = GetPathWidthPoint(shape[columnIndex], row.Scale, pathPoints[rowIndex], row.Transform);
-                        vertices[vertexIndex] = CreateWorldVertex(point, color, uv.X, uv.Y);
+                        vertices[vertexIndex] = CreateTrailVertex(point, normal, color, uv.X, uv.Y);
                     }
                     else if (autoOrientation)
                     {
                         SimdVector3 point = GetAutoOrientedPoint(shape[columnIndex], row.Scale, columnIndex, columnCount, rowFrames[rowIndex]);
-                        vertices[vertexIndex] = CreateWorldVertex(point, color, uv.X, uv.Y);
+                        vertices[vertexIndex] = CreateTrailVertex(point, normal, color, uv.X, uv.Y);
                     }
                     else
                     {
-                        vertices[vertexIndex] = CreateVertex(Scale(shape[columnIndex], row.Scale), row.Transform, color, uv.X, uv.Y);
+                        SimdVector3 point = SimdVector3.Transform(ToVector(Scale(shape[columnIndex], row.Scale)), row.Transform);
+                        vertices[vertexIndex] = CreateTrailVertex(point, normal, color, uv.X, uv.Y);
                     }
                 }
             }
@@ -219,7 +221,25 @@ namespace XenoKit.Engine.Vfx.Shape
 
         private static EffectShapeMeshData CreateEmptyTbindMesh()
         {
-            return new EffectShapeMeshData(new VertexPositionTextureColor[0], null, PrimitiveType.TriangleStrip, 0);
+            return new EffectShapeMeshData(new VertexPositionNormalColorTexture[0], null, PrimitiveType.TriangleStrip, 0);
+        }
+
+        private static SimdVector3 GetTbindVertexNormal(EffectShapeSegment row, TbindRowFrame[] rowFrames, int rowIndex, bool autoOrientation)
+        {
+            if (autoOrientation && rowFrames != null)
+                return rowFrames[rowIndex].Normal;
+
+            SimdVector3 normal = GetTransformDirection(row.Transform, SimdVector3.UnitZ);
+            return TryNormalize(normal, out normal) ? normal : SimdVector3.UnitZ;
+        }
+
+        private static VertexPositionNormalColorTexture CreateTrailVertex(SimdVector3 position, SimdVector3 normal, Color color, float u, float v)
+        {
+            return new VertexPositionNormalColorTexture(
+                new Vector3(position.X, position.Y, position.Z),
+                new Vector3(normal.X, normal.Y, normal.Z),
+                new Vector2(u, v),
+                color);
         }
 
         private static ushort[] BuildTbindGridIndices(int rowCount, int columnCount)
