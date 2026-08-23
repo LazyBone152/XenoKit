@@ -364,13 +364,13 @@ namespace XenoKit.Windows
 
             value = value?.Trim() ?? string.Empty;
 
-            if (type.IsString())
+            if (type == typeof(string))
             {
                 result = value;
                 return true;
             }
 
-            if (type.IsBool())
+            if (type == typeof(bool))
             {
                 if (value.ToLower() != "true" && value.ToLower() != "false")
                     return false;
@@ -379,7 +379,7 @@ namespace XenoKit.Windows
                 return true;
             }
 
-            if (type.IsEnum())
+            if (type.IsEnum)
             {
                 try
                 {
@@ -396,7 +396,7 @@ namespace XenoKit.Windows
                 }
             }
 
-            if (type.IsFloat())
+            if (type == typeof(float))
             {
                 float ret;
                 if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out ret))
@@ -404,7 +404,7 @@ namespace XenoKit.Windows
 
                 result = ret;
             }
-            else if (type.IsDouble())
+            else if (type == typeof(double))
             {
                 double ret;
                 if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out ret))
@@ -412,49 +412,49 @@ namespace XenoKit.Windows
 
                 result = ret;
             }
-            else if (type.IsInt8())
+            else if (type == typeof(byte))
             {
                 if (!TryParseInteger(value, out long number) || number < byte.MinValue || number > byte.MaxValue)
                     return false;
 
                 result = (byte)number;
             }
-            else if (type.IsUInt8())
+            else if (type == typeof(sbyte))
             {
                 if (!TryParseInteger(value, out long number) || number < sbyte.MinValue || number > sbyte.MaxValue)
                     return false;
 
                 result = (sbyte)number;
             }
-            else if (type.IsInt16())
+            else if (type == typeof(short))
             {
                 if (!TryParseInteger(value, out long number) || number < short.MinValue || number > short.MaxValue)
                     return false;
 
                 result = (short)number;
             }
-            else if (type.IsUInt16())
+            else if (type == typeof(ushort))
             {
                 if (!TryParseInteger(value, out long number) || number < ushort.MinValue || number > ushort.MaxValue)
                     return false;
 
                 result = (ushort)number;
             }
-            else if (type.IsInt32())
+            else if (type == typeof(int))
             {
                 if (!TryParseInteger(value, out long number) || number < int.MinValue || number > int.MaxValue)
                     return false;
 
                 result = (int)number;
             }
-            else if (type.IsUInt32())
+            else if (type == typeof(uint))
             {
                 if (!TryParseInteger(value, out long number) || number < uint.MinValue || number > uint.MaxValue)
                     return false;
 
                 result = (uint)number;
             }
-            else if (type.IsInt64())
+            else if (type == typeof(long))
             {
                 if (!TryParseInteger(value, out long number))
                     return false;
@@ -487,7 +487,7 @@ namespace XenoKit.Windows
         private string CreateValueToolTipForEnum()
         {
             if (SelectedValue.valueType == null) return null;
-            if (!SelectedValue.valueType.IsEnum()) return null;
+            if (!SelectedValue.valueType.IsEnum) return null;
 
             StringBuilder str = new StringBuilder();
             str.Append("Possible values:\n");

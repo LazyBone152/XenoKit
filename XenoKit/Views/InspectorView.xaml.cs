@@ -1,9 +1,12 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.IO;
 using Microsoft.Win32;
+using Microsoft.Xna.Framework.Graphics;
 using GalaSoft.MvvmLight.CommandWpf;
 using GongSolutions.Wpf.DragDrop;
 using EEPK_Organiser.Forms;
@@ -11,15 +14,9 @@ using EEPK_Organiser.View;
 using XenoKit.Engine;
 using XenoKit.Inspector;
 using XenoKit.Inspector.InspectorEntities;
-using System;
 using XenoKit.Editor;
 using XenoKit.Engine.Textures;
-using Microsoft.Xna.Framework.Graphics;
-using System.IO;
-using System.Web.ModelBinding;
 using XenoKit.Engine.Model;
-using Xv2CoreLib.EMB_CLASS;
-using Xv2CoreLib.EMM;
 
 namespace XenoKit.Views
 {

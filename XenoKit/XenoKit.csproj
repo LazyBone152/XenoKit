@@ -70,15 +70,6 @@
     <ApplicationIcon>XenoKitIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AForge">
-      <HintPath>..\..\XV2 Tools\DLLs\AForge.dll</HintPath>
-    </Reference>
-    <Reference Include="AForge.Imaging">
-      <HintPath>..\..\XV2 Tools\DLLs\AForge.Imaging.dll</HintPath>
-    </Reference>
-    <Reference Include="AForge.Imaging.Formats">
-      <HintPath>..\..\XV2 Tools\DLLs\AForge.Imaging.Formats.dll</HintPath>
-    </Reference>
     <Reference Include="AutoUpdater">
       <HintPath>..\..\XV2 Tools\DLLs\AutoUpdater.dll</HintPath>
     </Reference>
@@ -91,9 +82,6 @@
     </Reference>
     <Reference Include="Costura, Version=5.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.5.7.0\lib\netstandard1.0\Costura.dll</HintPath>
-    </Reference>
-    <Reference Include="CSharpImageLibrary, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\CSharpImageLibrary.3.2.0.0\lib\net462\CSharpImageLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Cyotek.Drawing.BitmapFont, Version=1.0.0.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221, processorArchitecture=MSIL">
       <HintPath>..\packages\Cyotek.Drawing.BitmapFont.2.0.4\lib\net48\Cyotek.Drawing.BitmapFont.dll</HintPath>
@@ -150,12 +138,6 @@
     <Reference Include="MIConvexHull, Version=1.1.19.1018, Culture=neutral, PublicKeyToken=2644b6f8be52c998, processorArchitecture=MSIL">
       <HintPath>..\packages\MIConvexHull.1.1.19.1019\lib\netstandard2.0\MIConvexHull.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.1.0.0\lib\net45\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Win32.Primitives, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Xaml.Behaviors.Wpf.1.1.19\lib\net45\Microsoft.Xaml.Behaviors.dll</HintPath>
     </Reference>
@@ -178,12 +160,6 @@
     <Reference Include="SharpDX.DXGI, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.DXGI.4.2.0\lib\net45\SharpDX.DXGI.dll</HintPath>
     </Reference>
-    <Reference Include="Shim, Version=2.0.1.0, Culture=neutral, PublicKeyToken=c55ec16d10c4b366, processorArchitecture=MSIL">
-      <HintPath>..\packages\shim.2.0.1\lib\net40\Shim.dll</HintPath>
-    </Reference>
-    <Reference Include="Shim.Drawing, Version=3.0.1.0, Culture=neutral, PublicKeyToken=a7d03c0bc8d64dbc, processorArchitecture=MSIL">
-      <HintPath>..\packages\shim.drawing.3.0.1\lib\net45\Shim.Drawing.dll</HintPath>
-    </Reference>
     <Reference Include="StbImageSharp, Version=2.30.15.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\StbImageSharp.2.30.15\lib\net471\StbImageSharp.dll</HintPath>
     </Reference>
@@ -191,22 +167,8 @@
       <HintPath>..\packages\StbTrueTypeSharp.1.26.12\lib\net471\StbTrueTypeSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.AppContext.4.3.0\lib\net463\System.AppContext.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.Common, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.Common.4.3.0\lib\net451\System.Data.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Design" />
-    <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.3.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
     </Reference>
     <Reference Include="System.Globalization.Calendars, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Globalization.Calendars.4.3.0\lib\net46\System.Globalization.Calendars.dll</HintPath>
@@ -282,28 +244,20 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Xml.ReaderWriter.4.3.0\lib\net46\System.Xml.ReaderWriter.dll</HintPath>
     </Reference>
-    <Reference Include="UsefulThings, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UsefulCSharpThings.1.6.0.0\lib\net462\UsefulThings.dll</HintPath>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="WriteableBitmapEx.Wpf, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\WriteableBitmapEx.1.6.2\lib\net40\WriteableBitmapEx.Wpf.dll</HintPath>
+    <Reference Include="WriteableBitmapEx.Wpf, Version=1.6.11.0, Culture=neutral, PublicKeyToken=50375ca6144f1c69, processorArchitecture=MSIL">
+      <HintPath>..\packages\WriteableBitmapEx.1.6.11\lib\net40\WriteableBitmapEx.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="YAXLib, Version=2.15.0.0, Culture=neutral, PublicKeyToken=15c43682c986900f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -359,9 +313,6 @@
     </Compile>
     <Compile Include="..\..\XV2 Tools\AudioCueEditor\View\VolumeControl.xaml.cs">
       <Link>Views\ACE\View\VolumeControl.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Extensions\EMB\EmbExtensions.cs">
-      <Link>Extensions\EmbExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\AssetContainerSettings.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\AssetContainerSettings.xaml.cs</Link>
@@ -1668,7 +1619,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\" />
-    <Folder Include="Engine\Scripting\BSA\" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\transparent_checkerboard.png" />
@@ -1709,4 +1659,3 @@
   <Import Project="..\packages\Fody.6.5.5\build\Fody.targets" Condition="Exists('..\packages\Fody.6.5.5\build\Fody.targets')" />
   <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets')" />
 </Project>
-
