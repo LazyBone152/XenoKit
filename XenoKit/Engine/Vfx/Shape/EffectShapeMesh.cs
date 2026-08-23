@@ -12,20 +12,40 @@ using XenoKit.Engine.Vertex;
 
 namespace XenoKit.Engine.Vfx.Shape
 {
+    internal enum EffectShapeVertexLayout
+    {
+        Particle,
+        EtrTrail
+    }
+
     internal sealed class EffectShapeMeshData
     {
         public EffectShapeMeshData(VertexPositionTextureColor[] vertices, ushort[] indices, PrimitiveType primitiveType, int primitiveCount)
         {
             Vertices = vertices ?? new VertexPositionTextureColor[0];
+            TrailVertices = new VertexPositionNormalColorTexture[0];
             Indices = indices;
             PrimitiveType = primitiveType;
             PrimitiveCount = primitiveCount;
+            VertexLayout = EffectShapeVertexLayout.Particle;
+        }
+
+        public EffectShapeMeshData(VertexPositionNormalColorTexture[] vertices, ushort[] indices, PrimitiveType primitiveType, int primitiveCount)
+        {
+            Vertices = new VertexPositionTextureColor[0];
+            TrailVertices = vertices ?? new VertexPositionNormalColorTexture[0];
+            Indices = indices;
+            PrimitiveType = primitiveType;
+            PrimitiveCount = primitiveCount;
+            VertexLayout = EffectShapeVertexLayout.EtrTrail;
         }
 
         public VertexPositionTextureColor[] Vertices { get; }
+        public VertexPositionNormalColorTexture[] TrailVertices { get; }
         public ushort[] Indices { get; }
         public PrimitiveType PrimitiveType { get; }
         public int PrimitiveCount { get; }
+        public EffectShapeVertexLayout VertexLayout { get; }
     }
 
     public class EffectShapeMesh
@@ -36,14 +56,16 @@ namespace XenoKit.Engine.Vfx.Shape
         private static readonly HashSet<Xv2ShaderEffect> incompatibleMaterials = new HashSet<Xv2ShaderEffect>();
 
         private VertexPositionTextureColor[] vertices = new VertexPositionTextureColor[0];
+        private VertexPositionNormalColorTexture[] trailVertices = new VertexPositionNormalColorTexture[0];
         private ushort[] indices;
         private short[] drawIndices;
         private PrimitiveType primitiveType = PrimitiveType.TriangleList;
         private int primitiveCount;
+        private EffectShapeVertexLayout vertexLayout = EffectShapeVertexLayout.Particle;
 
-        public bool HasVertices => vertices.Length >= 3 && primitiveCount > 0;
+        public bool HasVertices => GetVertexCount() >= 3 && primitiveCount > 0;
         public BoundingBox Bounds { get; private set; } = new BoundingBox(Vector3.Zero, Vector3.Zero);
-        public int VertexCount => vertices.Length;
+        public int VertexCount => GetVertexCount();
         public int TriangleCount => primitiveCount;
 
         public void SetVertices(VertexPositionTextureColor[] newVertices)
@@ -54,14 +76,18 @@ namespace XenoKit.Engine.Vfx.Shape
         internal void SetMeshData(EffectShapeMeshData meshData)
         {
             vertices = new VertexPositionTextureColor[0];
+            trailVertices = new VertexPositionNormalColorTexture[0];
             indices = null;
             drawIndices = null;
             primitiveType = PrimitiveType.TriangleList;
             primitiveCount = 0;
+            vertexLayout = EffectShapeVertexLayout.Particle;
 
             if (meshData != null)
             {
+                vertexLayout = meshData.VertexLayout;
                 vertices = meshData.Vertices ?? new VertexPositionTextureColor[0];
+                trailVertices = meshData.TrailVertices ?? new VertexPositionNormalColorTexture[0];
                 indices = meshData.Indices;
                 primitiveType = meshData.PrimitiveType;
                 primitiveCount = meshData.PrimitiveCount;
@@ -81,10 +107,12 @@ namespace XenoKit.Engine.Vfx.Shape
         public void Clear()
         {
             vertices = new VertexPositionTextureColor[0];
+            trailVertices = new VertexPositionNormalColorTexture[0];
             indices = null;
             drawIndices = null;
             primitiveType = PrimitiveType.TriangleList;
             primitiveCount = 0;
+            vertexLayout = EffectShapeVertexLayout.Particle;
             Bounds = new BoundingBox(Vector3.Zero, Vector3.Zero);
         }
 
@@ -121,14 +149,27 @@ namespace XenoKit.Engine.Vfx.Shape
                 try
                 {
                     if (drawIndices != null)
-                        owner.GraphicsDevice.DrawUserIndexedPrimitives(primitiveType, vertices, 0, vertices.Length, drawIndices, 0, primitiveCount);
+                    {
+                        if (vertexLayout == EffectShapeVertexLayout.EtrTrail)
+                            owner.GraphicsDevice.DrawUserIndexedPrimitives(primitiveType, trailVertices, 0, trailVertices.Length, drawIndices, 0, primitiveCount);
+                        else
+                            owner.GraphicsDevice.DrawUserIndexedPrimitives(primitiveType, vertices, 0, vertices.Length, drawIndices, 0, primitiveCount);
+                    }
                     else
-                        owner.GraphicsDevice.DrawUserPrimitives(primitiveType, vertices, 0, primitiveCount);
+                    {
+                        if (vertexLayout == EffectShapeVertexLayout.EtrTrail)
+                            owner.GraphicsDevice.DrawUserPrimitives(primitiveType, trailVertices, 0, primitiveCount);
+                        else
+                            owner.GraphicsDevice.DrawUserPrimitives(primitiveType, vertices, 0, primitiveCount);
+                    }
                 }
                 catch (Exception ex)
                 {
                     incompatibleMaterials.Add(drawMaterial);
-                    Log.Add($"EffectShapeMesh: skipped drawing a trail/effect mesh because material '{drawMaterial.Material?.Name}' (shader '{drawMaterial.shaderProgram?.Name}') is not compatible with the effect vertex format. Shader needs [{GetShaderInputList(drawMaterial)}]; vertex provides [POSITION0, COLOR0, TEXCOORD0, NORMAL0, TANGENT0]. {ex.Message}", LogType.Warning);
+                    string vertexInputs = vertexLayout == EffectShapeVertexLayout.EtrTrail
+                        ? "POSITION0, NORMAL0, COLOR0, TEXCOORD0"
+                        : "POSITION0, COLOR0, TEXCOORD0, NORMAL0, TANGENT0";
+                    Log.Add($"EffectShapeMesh: skipped drawing a trail/effect mesh because material '{drawMaterial.Material?.Name}' (shader '{drawMaterial.shaderProgram?.Name}') is not compatible with the effect vertex format. Shader needs [{GetShaderInputList(drawMaterial)}]; vertex provides [{vertexInputs}]. {ex.Message}", LogType.Warning);
                     return;
                 }
             }
@@ -150,22 +191,35 @@ namespace XenoKit.Engine.Vfx.Shape
 
         private void UpdateBounds()
         {
-            if (vertices.Length == 0)
+            int vertexCount = GetVertexCount();
+
+            if (vertexCount == 0)
             {
                 Bounds = new BoundingBox(Vector3.Zero, Vector3.Zero);
                 return;
             }
 
-            Vector3 min = vertices[0].Position;
-            Vector3 max = vertices[0].Position;
+            Vector3 min = GetVertexPosition(0);
+            Vector3 max = min;
 
-            for (int i = 1; i < vertices.Length; i++)
+            for (int i = 1; i < vertexCount; i++)
             {
-                min = Vector3.Min(min, vertices[i].Position);
-                max = Vector3.Max(max, vertices[i].Position);
+                Vector3 position = GetVertexPosition(i);
+                min = Vector3.Min(min, position);
+                max = Vector3.Max(max, position);
             }
 
             Bounds = new BoundingBox(min, max);
+        }
+
+        private int GetVertexCount()
+        {
+            return vertexLayout == EffectShapeVertexLayout.EtrTrail ? trailVertices.Length : vertices.Length;
+        }
+
+        private Vector3 GetVertexPosition(int index)
+        {
+            return vertexLayout == EffectShapeVertexLayout.EtrTrail ? trailVertices[index].Position : vertices[index].Position;
         }
     }
 }

@@ -621,6 +621,7 @@
     <Compile Include="Engine\Text\TextRenderer.cs" />
     <Compile Include="Engine\Vertex\VertexPositionNormal.cs" />
     <Compile Include="Engine\Vertex\VertexPositionNormalTextureBlend.cs" />
+    <Compile Include="Engine\Vertex\VertexPositionNormalColorTexture.cs" />
     <Compile Include="Engine\Vertex\VertexPositionTexture2.cs" />
     <Compile Include="Engine\Vertex\VertexPositionTextureColor.cs" />
     <Compile Include="Engine\Vfx\Asset\VfxAsset.cs" />
@@ -1708,5 +1709,4 @@
   <Import Project="..\packages\Fody.6.5.5\build\Fody.targets" Condition="Exists('..\packages\Fody.6.5.5\build\Fody.targets')" />
   <Import Project="..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.5.7.0\build\Costura.Fody.targets')" />
 </Project>
-
 

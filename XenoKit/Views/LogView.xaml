@@ -42,7 +42,7 @@
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Copy Exception" Command="{Binding CopyExceptionCommand}"/>
+                            <MenuItem Header="Copy Log Entry" Command="{Binding CopyLogEntryCommand}"/>
                             <MenuItem Header="Clear All" Command="{Binding ClearAllCommand}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
