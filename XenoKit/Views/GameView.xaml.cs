@@ -374,6 +374,21 @@ namespace XenoKit.Controls
                 }
             }
         }
+        public bool StageBgVfxSimulation
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_StageBgVfxSimulation;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_StageBgVfxSimulation != value)
+                {
+                    SettingsManager.settings.XenoKit_StageBgVfxSimulation = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
         public bool RenderCharacters
         {
             get
@@ -488,6 +503,7 @@ namespace XenoKit.Controls
             hitboxCheckBox.Visibility = Visibility.Collapsed;
             projectileCheckBox.Visibility = Visibility.Collapsed;
             effectCheckBox.Visibility = Visibility.Collapsed;
+            stageBgEffectCheckBox.Visibility = Visibility.Collapsed;
 
             if (SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Camera))
             {
@@ -505,6 +521,7 @@ namespace XenoKit.Controls
                 audioCheckBox.Visibility = Visibility.Visible;
                 hitboxCheckBox.Visibility = Visibility.Visible;
                 projectileCheckBox.Visibility = Visibility.Visible;
+                stageBgEffectCheckBox.Visibility = Visibility.Visible;
             }
 
             if (SceneManager.IsOnTab(EditorTabs.Action, EditorTabs.Effect))
@@ -523,6 +540,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(HitboxSimulation));
             NotifyPropertyChanged(nameof(ProjectileSimulation));
             NotifyPropertyChanged(nameof(VfxSimulation));
+            NotifyPropertyChanged(nameof(StageBgVfxSimulation));
         }
 
         private void UpdateCheckedButtons()
