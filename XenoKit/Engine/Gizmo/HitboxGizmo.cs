@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using XenoKit.Editor;
-using XenoKit.Engine.Shapes;
+using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.View;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.CBS;
@@ -32,7 +32,7 @@ namespace XenoKit.Engine.Gizmo
                 return world;
             }
         }
-        private Cube BoundingBox;
+        private readonly BacHitboxVisual HitboxVisual;
 
         private BAC_Type1 Hitbox = null;
         private Actor actor;
@@ -42,7 +42,7 @@ namespace XenoKit.Engine.Gizmo
 
         public HitboxGizmo() : base()
         {
-            BoundingBox = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Green, true);
+            HitboxVisual = new BacHitboxVisual(new Color(255, 0, 0, 64), Color.Red);
             SceneManager.ActorChanged += SceneManager_ActorChanged;
         }
 
@@ -59,7 +59,7 @@ namespace XenoKit.Engine.Gizmo
         {
             if (IsContextValid() && actor != null)
             {
-                BoundingBox.Draw(WorldMatrix);
+                HitboxVisual.Draw(WorldMatrix);
             }
         }
 
@@ -89,7 +89,7 @@ namespace XenoKit.Engine.Gizmo
                 if(actor != null)
                 {
                     isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
-                    boneIdx = SceneManager.Actors[0].Skeleton.GetBoneIndex(boneName);
+                    boneIdx = actor.Skeleton.GetBoneIndex(boneName);
                     CBS_Entry cbsEntry = actor.CharacterData.CbsEntry.Find(x => x.BodyId == actor.Skeleton.GetActiveBoneScaleId());
                     float cbsScaling = 1f;
 
@@ -109,14 +109,7 @@ namespace XenoKit.Engine.Gizmo
                         }
                     }
 
-                    //BAC Hitbox bounds are defined in half-metres (1.0 is actually 0.5)
-                    BoundingBox.SetBounds(
-                        new Vector3(hitbox.MinX, (Hitbox.MinY + 0.5f), hitbox.MinZ) * cbsScaling, 
-                        new Vector3(hitbox.MaxX, hitbox.MaxY, hitbox.MaxZ) * cbsScaling,
-                        hitbox.Size * cbsScaling / 2f, 
-                        hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform
-                    );
-                    BoundingBox.SetPosition(new Vector3(hitbox.PositionX, hitbox.PositionY, hitbox.PositionZ));
+                    HitboxVisual.Update(hitbox, cbsScaling);
                 }
 
                 hitbox.PropertyChanged += Hitbox_PropertyChanged;

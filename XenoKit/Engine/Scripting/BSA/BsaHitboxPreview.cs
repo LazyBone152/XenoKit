@@ -1,7 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
-using XenoKit.Engine.Shapes;
-using Xv2CoreLib.BAC;
+using XenoKit.Engine.Collision;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.Resource.App;
 using Matrix4x4 = System.Numerics.Matrix4x4;
@@ -16,7 +15,7 @@ namespace XenoKit.Engine.Scripting.BSA
         private readonly Func<Matrix4x4> getDrawMatrix;
         private readonly Func<int> getFrame;
         private readonly Func<SimdVector3> getStartRelativeMovementDelta;
-        private readonly Cube boundingBox;
+        private readonly HitboxVisual hitboxVisual;
 
         public BsaHitboxPreview(BSA_Type3 hitbox, Func<Matrix4x4> getDrawMatrix, Func<int> getFrame, Func<SimdVector3> getStartRelativeMovementDelta)
         {
@@ -24,7 +23,7 @@ namespace XenoKit.Engine.Scripting.BSA
             this.getDrawMatrix = getDrawMatrix;
             this.getFrame = getFrame;
             this.getStartRelativeMovementDelta = getStartRelativeMovementDelta;
-            boundingBox = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Blue, true);
+            hitboxVisual = new HitboxVisual(new Color(255, 255, 0, 64), Color.Yellow);
 
             UpdateHitbox();
         }
@@ -39,63 +38,54 @@ namespace XenoKit.Engine.Scripting.BSA
             if (!IsContextValid())
                 return;
 
-            boundingBox.Draw(Extensions.ToXna(getDrawMatrix()));
+            hitboxVisual.Draw(Extensions.ToXna(getDrawMatrix()));
         }
 
         public void Dispose()
         {
+            hitboxVisual.Dispose();
         }
 
         private void UpdateHitbox()
         {
+            hitboxVisual.Clear();
+
             if (hitbox == null)
                 return;
 
-            bool useDefinedBounds = GetBoundsType() != BAC_Type1.BoundingBoxTypeEnum.Uniform;
-            bool growBounds = UsesGrowBounds();
-            SimdVector3 startRelativeMovementDelta = growBounds
-                ? getStartRelativeMovementDelta?.Invoke() ?? SimdVector3.Zero
-                : SimdVector3.Zero;
+            Vector3 position = new Vector3(hitbox.F_08, hitbox.F_12, hitbox.F_16);
 
-            if (useDefinedBounds)
-                SetMinMaxBounds(startRelativeMovementDelta, growBounds);
-            else
-                boundingBox.SetBounds(Vector3.Zero, Vector3.Zero, hitbox.F_20 / 2f, false);
-
-            boundingBox.SetPosition(new Vector3(hitbox.F_08, hitbox.F_12, hitbox.F_16));
+            switch (hitbox.I_00)
+            {
+                case 0:
+                    hitboxVisual.SetSphere(position, Math.Abs(hitbox.F_20));
+                    break;
+                case 1:
+                    SetCapsule(position, Math.Abs(hitbox.F_20));
+                    break;
+                case 2:
+                    Vector3 halfExtents = new Vector3(
+                        hitbox.F_20,
+                        hitbox.F_24,
+                        hitbox.F_28);
+                    hitboxVisual.SetBox(position, halfExtents);
+                    break;
+            }
         }
 
-        private void SetMinMaxBounds(SimdVector3 startRelativeMovementDelta, bool growBounds)
+        private void SetCapsule(Vector3 position, float radius)
         {
-            Vector3 rawMin = new Vector3(hitbox.F_36, hitbox.F_40, hitbox.F_44);
-            Vector3 rawMax = new Vector3(hitbox.F_24, hitbox.F_28, hitbox.F_32);
-            Vector3 size = new Vector3(hitbox.F_20 / 2f);
+            if (BsaHitboxGeometry.UsesDistanceRelativeGeometry(hitbox))
+            {
+                SimdVector3 movementDelta = getStartRelativeMovementDelta?.Invoke() ?? SimdVector3.Zero;
+                Vector3 movement = Extensions.ToXna(movementDelta);
+                hitboxVisual.SetCapsule(position, position + movement, radius);
+                return;
+            }
 
-            Vector3 movementDelta = growBounds
-                ? ToXnaVector(startRelativeMovementDelta)
-                : Vector3.Zero;
-
-            Vector3 movedMin = rawMin + movementDelta;
-            Vector3 movedMax = rawMax + movementDelta;
-
-            Vector3 finalMin = Vector3.Min(Vector3.Min(rawMin, rawMax), Vector3.Min(movedMin, movedMax)) - size;
-            Vector3 finalMax = Vector3.Max(Vector3.Max(rawMin, rawMax), Vector3.Max(movedMin, movedMax)) + size;
-            boundingBox.SetBounds(finalMin, finalMax, 0f, true);
-        }
-
-        private static Vector3 ToXnaVector(SimdVector3 value)
-        {
-            return new Vector3(value.X, value.Y, value.Z);
-        }
-
-        private bool UsesGrowBounds()
-        {
-            return GetBoundsType() == BAC_Type1.BoundingBoxTypeEnum.MinMax && hitbox.I_04 != 0;
-        }
-
-        private BAC_Type1.BoundingBoxTypeEnum GetBoundsType()
-        {
-            return (BAC_Type1.BoundingBoxTypeEnum)(hitbox.I_00 & 0x000F);
+            Vector3 start = position + new Vector3(hitbox.F_24, hitbox.F_28, hitbox.F_32);
+            Vector3 end = position + new Vector3(hitbox.F_36, hitbox.F_40, hitbox.F_44);
+            hitboxVisual.SetCapsule(start, end, radius);
         }
 
         private bool IsContextValid()
@@ -112,5 +102,6 @@ namespace XenoKit.Engine.Scripting.BSA
 
             return hitbox.Duration == 0 || frame < (int)hitbox.StartTime + hitbox.Duration;
         }
+
     }
 }

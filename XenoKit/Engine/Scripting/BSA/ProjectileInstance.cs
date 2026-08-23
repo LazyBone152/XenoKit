@@ -478,9 +478,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
         private static bool UsesGrowBounds(BSA_Type3 hitbox)
         {
-            return hitbox != null &&
-                   (BAC_Type1.BoundingBoxTypeEnum)(hitbox.I_00 & 0x000F) == BAC_Type1.BoundingBoxTypeEnum.MinMax &&
-                   hitbox.I_04 != 0;
+            return BsaHitboxGeometry.UsesDistanceRelativeGeometry(hitbox);
         }
 
         private SimdVector3 GetLocalMovementDelta(float startFrame, float endFrame)

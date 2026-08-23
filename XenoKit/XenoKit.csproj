@@ -468,6 +468,7 @@
     <Compile Include="Engine\Collision\AabbNode.cs" />
     <Compile Include="Engine\Collision\AabbTree.cs" />
     <Compile Include="Engine\Collision\BacHitbox.cs" />
+    <Compile Include="Engine\Collision\HitboxVisual.cs" />
     <Compile Include="Engine\Collision\TriangleBvhNode.cs" />
     <Compile Include="Engine\FrameRateCounter.cs" />
     <Compile Include="Engine\Gizmo\CurrentGizmo.cs" />
@@ -542,6 +543,7 @@
     <Compile Include="Engine\Scripting\BAC\Simulation\EyeMovementPositions.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\HitboxPreview.cs" />
     <Compile Include="Engine\Scripting\BAC\Simulation\BacVisualCueObject.cs" />
+    <Compile Include="Engine\Scripting\BAC\BacHitboxVisual.cs" />
     <Compile Include="Engine\Shader\PostShaderEffect.cs" />
     <Compile Include="Engine\Shapes\GizmoGeometry.cs" />
     <Compile Include="Engine\Gizmo\TransformOperations\AnimationTransformOperation.cs" />
@@ -552,6 +554,7 @@
     <Compile Include="Engine\Scripting\BAC\ActionControl.cs" />
     <Compile Include="Engine\Scripting\BAC\BacEntryInstance.cs" />
     <Compile Include="Engine\Scripting\BSA\BsaEffectPreviewController.cs" />
+    <Compile Include="Engine\Scripting\BSA\BsaHitboxGeometry.cs" />
     <Compile Include="Engine\Scripting\BSA\BsaHitboxPreview.cs" />
     <Compile Include="Engine\Scripting\BSA\ProjectileInstance.cs" />
     <Compile Include="Engine\Scripting\ScriptEntity.cs" />
@@ -563,6 +566,7 @@
     <Compile Include="Engine\Shader\Xv2ShaderEffect.cs" />
     <Compile Include="Engine\Shader\Xv2Shader.cs" />
     <Compile Include="Engine\Shapes\GeometricPrimitive.cs" />
+    <Compile Include="Engine\Shapes\Capsule.cs" />
     <Compile Include="Engine\Shapes\Quad.cs" />
     <Compile Include="Engine\Objects\VisualBone.cs" />
     <Compile Include="Engine\Shapes\Sphere.cs" />
