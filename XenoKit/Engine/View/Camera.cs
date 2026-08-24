@@ -7,12 +7,16 @@ using Xv2CoreLib.EAN;
 using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.Resource.UndoRedo;
 using Matrix4x4 = System.Numerics.Matrix4x4;
+using SimdQuaternion = System.Numerics.Quaternion;
 using SimdVector3 = System.Numerics.Vector3;
 
 namespace XenoKit.Engine.View
 {
     public class Camera : CameraBase
     {
+        //When BAC transform modifiers are on, the game ignores the EAN roll/FoV curve and modifies this base FoV instead
+        private const float BacModifierBaseFieldOfView = 45f;
+
         //Camera State:
         private CameraState BackupCameraState = null;
 
@@ -137,9 +141,9 @@ namespace XenoKit.Engine.View
             float _drawFrame = (CurrentFrame <= cameraInstance.Animation.FrameCount) ? CurrentFrame : cameraInstance.Animation.FrameCount - 1;
 
             //If current frame is greater than animation duration, just leave the last frame playing
-            var pos = cameraInstance.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Position);
-            var targetPos = cameraInstance.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Rotation);
-            var camera = cameraInstance.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Scale);
+            var cameraNode = cameraInstance.Animation.GetNode("Node");
+            var pos = cameraNode.GetComponent(EAN_AnimationComponent.ComponentType.Position);
+            var targetPos = cameraNode.GetComponent(EAN_AnimationComponent.ComponentType.Rotation);
 
             CameraState.Position.X = pos.GetKeyframeValue(_drawFrame, Axis.X);
             CameraState.Position.Y = pos.GetKeyframeValue(_drawFrame, Axis.Y);
@@ -148,24 +152,46 @@ namespace XenoKit.Engine.View
             CameraState.TargetPosition.Y = targetPos.GetKeyframeValue(_drawFrame, Axis.Y);
             CameraState.TargetPosition.Z = targetPos.GetKeyframeValue(_drawFrame, Axis.Z);
 
-            if (camera != null && !cameraInstance.bacCameraSettings.Enabled)
+            if (cameraInstance.bacCameraSettings.Enabled)
             {
-                CameraState.Roll = -MathHelper.ToDegrees(camera.GetKeyframeValue(_drawFrame, Axis.X));
-                CameraState.FieldOfView = MathHelper.ToDegrees(camera.GetKeyframeValue(_drawFrame, Axis.Y));
+                CameraState.Roll = 0f;
+                CameraState.FieldOfView = BacModifierBaseFieldOfView;
             }
             else
             {
-                CameraState.FieldOfView = EAN_File.DefaultFoV;
-                CameraState.Roll = 0f;
+                var camera = cameraNode.GetComponent(EAN_AnimationComponent.ComponentType.Scale);
+
+                if (camera != null)
+                {
+                    CameraState.Roll = MathHelper.ToDegrees(camera.GetKeyframeValue(_drawFrame, Axis.X));
+                    CameraState.FieldOfView = MathHelper.ToDegrees(camera.GetKeyframeValue(_drawFrame, Axis.Y));
+                }
+                else
+                {
+                    CameraState.FieldOfView = EAN_File.DefaultFoV;
+                    CameraState.Roll = 0f;
+                }
             }
 
             //Bone Focus
             if (SceneManager.CharacterExists(cameraInstance.cameraTarget.CharacterIndex) && !SceneManager.IsOnTab(EditorTabs.Camera))
             {
-                SimdVector3 bonePos = SceneManager.Actors[cameraInstance.cameraTarget.CharacterIndex].GetBoneCurrentAbsolutePosition(cameraInstance.cameraTarget.Bone);
+                Actor targetActor = SceneManager.Actors[cameraInstance.cameraTarget.CharacterIndex];
+                int boneIndex = targetActor.Skeleton.GetBoneIndex(cameraInstance.cameraTarget.Bone, true);
 
-                CameraState.Position += bonePos;
-                CameraState.TargetPosition += bonePos;
+                if (boneIndex != -1)
+                {
+                    //Camera animations use the actor's own space (CMN_CAM_FRONT and CMN_CAM_BACK sit on its -Z and +Z),
+                    //so the actor facing must rotate them. The bone only shifts the focus away from the actor root.
+                    //Root motion can carry scale on b_C_Base, and that scale resizes the shot, so only the facing and position apply here.
+                    if (Matrix4x4.Decompose(targetActor.Transform, out _, out SimdQuaternion actorFacing, out SimdVector3 actorPosition))
+                    {
+                        SimdVector3 boneOffset = targetActor.GetAbsoluteBoneMatrix(boneIndex).Translation - actorPosition;
+
+                        CameraState.Position = SimdVector3.Transform(CameraState.Position, actorFacing) + actorPosition + boneOffset;
+                        CameraState.TargetPosition = SimdVector3.Transform(CameraState.TargetPosition, actorFacing) + actorPosition + boneOffset;
+                    }
+                }
             }
 
             //Bac modifers
@@ -173,12 +199,7 @@ namespace XenoKit.Engine.View
             {
                 CameraState.Roll += cameraInstance.bacCameraSettings.GetCurrentRoll();
                 CameraState.FieldOfView += cameraInstance.bacCameraSettings.GetCurrentFoV();
-                CameraState.Position += cameraInstance.bacCameraSettings.GetCurrentRotation(CameraState.Position, CameraState.TargetPosition);
-
-                //I think Position Z offsets are not 100% correct... the target position seems off
-                SimdVector3 positionDelta = cameraInstance.bacCameraSettings.GetCurrentPosition(CameraState.Position, CameraState.TargetPosition);
-                CameraState.Position += positionDelta;
-                CameraState.TargetPosition += positionDelta;
+                cameraInstance.bacCameraSettings.ApplyTo(ref CameraState.Position, ref CameraState.TargetPosition);
             }
 
             //Scale animations to fit current actor size

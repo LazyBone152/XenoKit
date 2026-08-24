@@ -2,7 +2,6 @@
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.EAN;
 using static Xv2CoreLib.ValuesDictionary.BAC;
-using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector3 = System.Numerics.Vector3;
 using SimdQuaternion = System.Numerics.Quaternion;
 using Xv2CoreLib.Resource;
@@ -100,6 +99,8 @@ namespace XenoKit.Engine.View
 
     public struct BacCameraSettings
     {
+        private const float BacModifierHorizontalOffsetScale = 1f / 6f;
+
         private readonly CameraAnimInstance ParentInstance;
         public bool Enabled;
         public ushort GlobalDuration;
@@ -120,8 +121,8 @@ namespace XenoKit.Engine.View
         public float RotY;
         public float RotZ; //Roll
         public float FoV;
-        public float DispXZ; //Not implementing
-        public float DispZY; //Not implementing
+        public float DispXZ;
+        public float DispZY;
 
         //Interpolated Values
         public float CurrentFoV
@@ -135,7 +136,7 @@ namespace XenoKit.Engine.View
         {
             get
             {
-                return (PosX) * GetFactor(PosXDuration);
+                return PosX * GetFactor(PosXDuration);
             }
         }
         public float CurrentPosY
@@ -152,6 +153,8 @@ namespace XenoKit.Engine.View
                 return PosZ * GetFactor(PosZDuration);
             }
         }
+        public float CurrentDispXZ => DispXZ * GetFactor(DispXZDuration);
+        public float CurrentDispZY => DispZY * GetFactor(DispZYDuration);
         public float CurrentRotX
         {
             get
@@ -173,8 +176,6 @@ namespace XenoKit.Engine.View
                 return RotZ * GetFactor(RotZDuration);
             }
         }
-
-        public bool IsRotationReversed;
 
         public BacCameraSettings(CameraAnimInstance camera)
         {
@@ -199,9 +200,6 @@ namespace XenoKit.Engine.View
             FovDuration = 0;
             DispXZDuration = 0;
             DispZYDuration = 0;
-
-            EAN_AnimationComponent pos = camera.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Position);
-            IsRotationReversed = pos.GetKeyframeValue(0, Axis.Z) > 0f;
         }
 
         public BacCameraSettings(CameraAnimInstance camera, BAC_Type10 bacCameraEntry)
@@ -227,20 +225,46 @@ namespace XenoKit.Engine.View
             FovDuration = bacCameraEntry.FieldOfView_Duration;
             DispXZDuration = bacCameraEntry.DisplacementXZ_Duration;
             DispZYDuration = bacCameraEntry.DisplacementZY_Duration;
-
-            EAN_AnimationComponent pos = camera.Animation.GetNode("Node").GetComponent(EAN_AnimationComponent.ComponentType.Position);
-            IsRotationReversed = pos.GetKeyframeValue(0, Axis.Z) > 0f;
         }
 
-        public SimdVector3 GetCurrentPosition(SimdVector3 position, SimdVector3 targetPosition)
+        public void ApplyTo(ref SimdVector3 position, ref SimdVector3 targetPosition)
         {
-            SimdVector3 forward = targetPosition - position;
-            forward = SimdVector3.Normalize(forward);
+            SimdVector3 backward = position - targetPosition;
+            float originalDistance = backward.Length();
 
-            SimdVector3 posToMove = new SimdVector3(CurrentPosX, CurrentPosY, CurrentPosZ);
-            posToMove = SimdVector3.Transform(posToMove, Matrix4x4.CreateWorld(position, forward, MathHelpers.Up));
+            if (originalDistance <= float.Epsilon)
+                return;
 
-            return (posToMove - position) * CurrentGlobalFactor();
+            backward /= originalDistance;
+
+            float modifiedDistance = originalDistance + CurrentPosZ;
+            float currentDispXZ = CurrentDispXZ;
+            float currentDispZY = CurrentDispZY;
+
+            SimdVector3 modifiedBackward = RotateCameraDirection(backward, CurrentRotY, CurrentRotX);
+
+            SimdVector3 modifiedPosition = targetPosition + modifiedBackward * modifiedDistance;
+            SimdVector3 modifiedTargetPosition = targetPosition;
+
+            SimdVector3 positionOffset = GetCameraRight(modifiedBackward) * (CurrentPosX * BacModifierHorizontalOffsetScale);
+            modifiedPosition += positionOffset;
+            modifiedTargetPosition += positionOffset;
+
+            if (currentDispXZ != 0f || currentDispZY != 0f)
+            {
+                SimdVector3 aim = RotateCameraDirection(-modifiedBackward, currentDispXZ, currentDispZY);
+                modifiedTargetPosition = modifiedPosition + aim * modifiedDistance;
+            }
+
+            //PosY raises the whole shot, so it moves the target as well
+            SimdVector3 heightOffset = MathHelpers.Up * CurrentPosY;
+            modifiedPosition += heightOffset;
+            modifiedTargetPosition += heightOffset;
+
+            float factor = CurrentGlobalFactor();
+            position = SimdVector3.Lerp(position, modifiedPosition, factor);
+            targetPosition = SimdVector3.Lerp(targetPosition, modifiedTargetPosition, factor);
+
         }
 
         public float GetCurrentFoV()
@@ -251,32 +275,33 @@ namespace XenoKit.Engine.View
         public float GetCurrentRoll()
         {
             return CurrentRotZ * CurrentGlobalFactor();
-            //return IsRotationReversed ? -CurrentRotZ * CurrentGlobalFactor() : (CurrentRotZ) * CurrentGlobalFactor();
         }
 
-        public SimdVector3 GetCurrentRotation(SimdVector3 position, SimdVector3 targetPosition)
+        private SimdVector3 GetCameraRight(SimdVector3 backward)
         {
-            //Calculate the extra position needed to perform the rotation
-            //Calculate the WHOLE thing first, then multiply it by CurrentFactor
-            //This is how it is done in XV2. The result is multiplied, not the RotX,Y,Z values. (which results in the interpolation not actually rotating... just goes from point a to point b)
+            SimdVector3 right = SimdVector3.Cross(MathHelpers.Up, backward);
+            float rightLength = right.Length();
 
-            SimdVector3 newPosition;
+            return rightLength > float.Epsilon ? right / rightLength : right;
+        }
 
-            //Rotate Y
-            SimdVector3 temp = position - targetPosition;
-            temp = SimdVector3.Transform(temp, Matrix4x4.CreateRotationY(MathHelper.ToRadians(CurrentRotY)));
-            newPosition = targetPosition + temp;
+        //Yaw comes first, because the pitch axis is the right vector that the yaw produces
+        private SimdVector3 RotateCameraDirection(SimdVector3 direction, float yawDegrees, float pitchDegrees)
+        {
+            SimdVector3 yawed = direction;
 
-            //Rotate X
-            temp = newPosition - targetPosition;
+            if (yawDegrees != 0f)
+            {
+                SimdQuaternion yawRotation = SimdQuaternion.CreateFromAxisAngle(MathHelpers.Up, MathHelper.ToRadians(yawDegrees));
+                yawed = SimdVector3.Transform(yawed, yawRotation);
+            }
 
-            //CurrentRotX needs to be inverted based on the cameras Z position, else the rotation will happen in the wrong direction if the camera is behind the target
-            temp = IsRotationReversed ? SimdVector3.Transform(temp, Matrix4x4.CreateRotationX(MathHelper.ToRadians(CurrentRotX))) : SimdVector3.Transform(temp, Matrix4x4.CreateRotationX(MathHelper.ToRadians(-CurrentRotX)));
-            //temp = Vector3.Transform(temp, Matrix.CreateRotationX(MathHelper.ToRadians(CurrentRotX)));
+            if (pitchDegrees == 0f)
+                return yawed;
 
-            newPosition = targetPosition + temp;
+            SimdQuaternion pitchRotation = SimdQuaternion.CreateFromAxisAngle(GetCameraRight(yawed), MathHelper.ToRadians(pitchDegrees));
 
-            return (newPosition - position) * CurrentGlobalFactor();
+            return SimdVector3.Normalize(SimdVector3.Transform(yawed, pitchRotation));
         }
 
         private float CurrentGlobalFactor()
