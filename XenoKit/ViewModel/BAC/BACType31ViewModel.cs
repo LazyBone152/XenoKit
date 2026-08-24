@@ -14,7 +14,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_08;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_08), bacType, bacType.I_08, value, "I_08"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_08), bacType, bacType.I_08, value, "ProjectileCallback I_08"));
                 bacType.I_08 = value;
                 RaisePropertyChanged(() => I_08);
             }
@@ -24,39 +24,53 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_12;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_12), bacType, bacType.I_12, value, "I_12"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_12), bacType, bacType.I_12, value, "ProjectileCallback I_12"));
                 bacType.I_12 = value;
                 RaisePropertyChanged(() => I_12);
             }
         }
-        public ushort I_16
+        public ushort BACEntryPass
         {
             get => bacType.I_16;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_16), bacType, bacType.I_16, value, "I_16"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_16), bacType, bacType.I_16, value, "ProjectileCallback BACEntryPass"));
                 bacType.I_16 = value;
-                RaisePropertyChanged(() => I_16);
+                RaisePropertyChanged(() => BACEntryPass);
             }
         }
-        public ushort I_18
+        public byte I_18
         {
-            get => bacType.I_18;
+            get => bacType.I_18a;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_18), bacType, bacType.I_18, value, "I_18"));
-                bacType.I_18 = value;
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_18a), bacType, bacType.I_18a, value, "ProjectileCallback I_18"));
+                bacType.I_18a = value;
                 RaisePropertyChanged(() => I_18);
             }
         }
-        public ushort I_20
+        public ushort SkillType
+        {
+            get
+            {
+                return (ushort)bacType.SkillType;
+            }
+            set
+            {
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type8>(nameof(bacType.SkillType), bacType, bacType.SkillType, (BAC_Type8.EepkTypeEnum)value, "ProjectileCallback SkillType"));
+                bacType.SkillType = (BAC_Type8.EepkTypeEnum)value;
+                RaisePropertyChanged(() => SkillType);
+                bacType.RefreshType();
+            }
+        }
+        public ushort SkillID
         {
             get => bacType.I_20;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_20), bacType, bacType.I_20, value, "I_20"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_20), bacType, bacType.I_20, value, "ProjectileCallback SkillID"));
                 bacType.I_20 = value;
-                RaisePropertyChanged(() => I_20);
+                RaisePropertyChanged(() => SkillID);
             }
         }
         public ushort I_22
@@ -64,20 +78,20 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_22;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_22), bacType, bacType.I_22, value, "I_22"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_22), bacType, bacType.I_22, value, "ProjectileCallback I_22"));
                 bacType.I_22 = value;
                 RaisePropertyChanged(() => I_22);
             }
         }
 
-        public float F_24
+        public float HitboxSize
         {
             get => bacType.F_24;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.F_24), bacType, bacType.F_24, value, "F_24"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.F_24), bacType, bacType.F_24, value, "ProjectileCallback Hitbox Size"));
                 bacType.F_24 = value;
-                RaisePropertyChanged(() => F_24);
+                RaisePropertyChanged(() => HitboxSize);
             }
         }
         public float F_28
@@ -85,7 +99,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.F_28;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.F_28), bacType, bacType.F_28, value, "F_28"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.F_28), bacType, bacType.F_28, value, "ProjectileCallback F_28"));
                 bacType.F_28 = value;
                 RaisePropertyChanged(() => F_28);
             }
@@ -95,7 +109,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_32;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_32), bacType, bacType.I_32, value, "I_32"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_32), bacType, bacType.I_32, value, "ProjectileCallback I_32"));
                 bacType.I_32 = value;
                 RaisePropertyChanged(() => I_32);
             }
@@ -105,7 +119,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_36;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_36), bacType, bacType.I_36, value, "I_36"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_36), bacType, bacType.I_36, value, "ProjectileCallback I_36"));
                 bacType.I_36 = value;
                 RaisePropertyChanged(() => I_36);
             }
@@ -115,7 +129,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_40;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_40), bacType, bacType.I_40, value, "I_40"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_40), bacType, bacType.I_40, value, "ProjectileCallback I_40"));
                 bacType.I_40 = value;
                 RaisePropertyChanged(() => I_40);
             }
@@ -125,7 +139,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_44;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_44), bacType, bacType.I_44, value, "I_44"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_44), bacType, bacType.I_44, value, "ProjectileCallback I_44"));
                 bacType.I_44 = value;
                 RaisePropertyChanged(() => I_44);
             }
@@ -135,7 +149,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_48;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_48), bacType, bacType.I_48, value, "I_48"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_48), bacType, bacType.I_48, value, "ProjectileCallback I_48"));
                 bacType.I_48 = value;
                 RaisePropertyChanged(() => I_48);
             }
@@ -145,7 +159,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_52;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_52), bacType, bacType.I_52, value, "I_52"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_52), bacType, bacType.I_52, value, "ProjectileCallback I_52"));
                 bacType.I_52 = value;
                 RaisePropertyChanged(() => I_52);
             }
@@ -155,7 +169,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_56;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_56), bacType, bacType.I_56, value, "I_56"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_56), bacType, bacType.I_56, value, "ProjectileCallback I_56"));
                 bacType.I_56 = value;
                 RaisePropertyChanged(() => I_56);
             }
@@ -165,7 +179,7 @@ namespace XenoKit.ViewModel.BAC
             get => bacType.I_60;
             set
             {
-                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_60), bacType, bacType.I_60, value, "I_60"));
+                UndoManager.Instance.AddUndo(new UndoableProperty<BAC_Type31>(nameof(bacType.I_60), bacType, bacType.I_60, value, "ProjectileCallback I_60"));
                 bacType.I_60 = value;
                 RaisePropertyChanged(() => I_60);
             }
@@ -201,11 +215,12 @@ namespace XenoKit.ViewModel.BAC
             //Needed for updating properties when undo/redo is called
             RaisePropertyChanged(() => I_08);
             RaisePropertyChanged(() => I_12);
-            RaisePropertyChanged(() => I_16);
+            RaisePropertyChanged(() => BACEntryPass);
             RaisePropertyChanged(() => I_18);
-            RaisePropertyChanged(() => I_20);
+            RaisePropertyChanged(() => SkillType);
+            RaisePropertyChanged(() => SkillID);
             RaisePropertyChanged(() => I_22);
-            RaisePropertyChanged(() => F_24);
+            RaisePropertyChanged(() => HitboxSize);
             RaisePropertyChanged(() => F_28);
             RaisePropertyChanged(() => I_32);
             RaisePropertyChanged(() => I_36);

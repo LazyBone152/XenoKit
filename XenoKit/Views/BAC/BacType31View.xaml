@@ -10,7 +10,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="520">
     <Grid>
-        <Expander Header="BAC Type31" IsExpanded="True">
+        <Expander Header="Projectile Callback" IsExpanded="True">
             <StackPanel>
                 <WrapPanel>
                     <Grid Margin="3,5,0,0" Width="250">
@@ -34,8 +34,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="I__16"/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType31View}}, Path=BacViewModel.I_16, UpdateSourceTrigger=Default}"/>
+                        <Label Content="BAC Entry Pass"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType31View}}, Path=BacViewModel.BACEntryPass, UpdateSourceTrigger=Default}"/>
                     </Grid>
                     
                 </WrapPanel>
@@ -53,8 +53,16 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="I__20"/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType31View}}, Path=BacViewModel.I_20, UpdateSourceTrigger=Default}"/>
+                        <Label Content="Skill Type"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static bacDic:BAC.EepkType}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType31View}}, Path=BacViewModel.SkillType}"/>
+                    </Grid>
+                    <Grid Margin="3,5,0,0" Width="250">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Content="Skill ID"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType31View}}, Path=BacViewModel.SkillID, UpdateSourceTrigger=Default}"/>
                     </Grid>
                     <Grid Margin="3,5,0,0" Width="250">
                         <Grid.ColumnDefinitions>
@@ -71,8 +79,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Label Content="F__24"/>
-                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType31View}}, Path=BacViewModel.F_24, UpdateSourceTrigger=Default}" StringFormat="0.0######"/>
+                        <Label Content="Hitbox Size"/>
+                        <controls:NumericUpDown Grid.Column="1" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:BacType31View}}, Path=BacViewModel.HitboxSize, UpdateSourceTrigger=Default}" StringFormat="0.0######"/>
                     </Grid>
                     <Grid Margin="3,5,0,0" Width="250">
                         <Grid.ColumnDefinitions>
