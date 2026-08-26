@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>net480</TargetFrameworks>
+    <TargetFrameworks>net480;net8-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <PackageId>MonoGame.Framework.WpfInterop</PackageId>
     <Version>1.9.1</Version>
