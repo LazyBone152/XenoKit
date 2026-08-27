@@ -76,7 +76,7 @@ namespace XenoKit.Engine.Vfx.Particle
             if (Node.NodeFlags2.HasFlag(NodeFlags2.Unk2))
                 return ShapeDrawStripMode.PathNormalDepthBand;
 
-            return Node.NodeFlags2 == 0
+            return Node.NodeFlags2 == 0 || Node.NodeFlags2.HasFlag(NodeFlags2.Unk1)
                 ? ShapeDrawStripMode.PathNormalWidth
                 : ShapeDrawStripMode.UprightWidth;
         }

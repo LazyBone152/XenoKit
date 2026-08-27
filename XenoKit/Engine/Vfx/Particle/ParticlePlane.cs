@@ -84,13 +84,24 @@ namespace XenoKit.Engine.Vfx.Particle
                         //This is not entirely correct.
                         //Matrix.CreateBillboard does not create the same result as in game. This method makes the particle always look at the current camera position, while in game it only cares about camera direction
                         //newWorld = Matrix.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi) * Matrix.CreateConstrainedBillboard(world.Translation, CameraBase.CameraState.Position, world.Up, -Vector3.Up, null) * Matrix.CreateScale(ParticleSystem.Scale);
-                        newWorld = Matrix4x4.CreateConstrainedBillboard(world.Translation, Camera.CameraState.Position, world.GetUp(), -MathHelpers.Up, SimdVector3.Zero) * Matrix4x4.CreateScale(ParticleSystem.Scale);
+                        Matrix4x4 billboard = Matrix4x4.CreateFromAxisAngle(MathHelpers.Up, MathHelper.Pi) *
+                                   Matrix4x4.CreateConstrainedBillboard(world.Translation, Camera.CameraState.Position, world.GetUp(), -MathHelpers.Up, SimdVector3.Zero);
+                        billboard.Translation = SimdVector3.Zero;
+
+                        newWorld = billboard *
+                                   Matrix4x4.CreateScale(ParticleSystem.Scale);
                         
                         newWorld.Translation = worldTranslation.Translation;
                     }
                     else
                     {
-                        newWorld = Matrix4x4.CreateFromAxisAngle(MathHelpers.Up, MathHelper.Pi) * Matrix4x4.CreateFromAxisAngle(MathHelpers.Forward, MathHelper.ToRadians(-rotAmount)) * MathHelpers.Invert(Camera.ViewMatrix) * Matrix4x4.CreateScale(ParticleSystem.Scale);
+                        Matrix4x4 billboard = Matrix4x4.CreateFromAxisAngle(MathHelpers.Up, MathHelper.Pi) *
+                                   Matrix4x4.CreateFromAxisAngle(MathHelpers.Forward, MathHelper.ToRadians(-rotAmount)) *
+                                   MathHelpers.Invert(Camera.ViewMatrix);
+                        billboard.Translation = SimdVector3.Zero;
+
+                        newWorld = billboard *
+                                   Matrix4x4.CreateScale(ParticleSystem.Scale);
                         newWorld.Translation = worldTranslation.Translation;
                     }
                 }
@@ -99,8 +110,12 @@ namespace XenoKit.Engine.Vfx.Particle
                     Matrix4x4 attachBone = GetAttachmentBone();
                     float rotAmount = RandomDirection ? -RotationAmount : RotationAmount;
                     Matrix4x4 world = Transform * Matrix4x4.CreateScale(ParticleSystem.Scale) * attachBone;
+                    Matrix4x4 billboard = Matrix4x4.CreateFromAxisAngle(MathHelpers.Forward, MathHelper.ToRadians(-rotAmount)) *
+                               Matrix4x4.CreateBillboard(world.Translation, attachBone.Translation, MathHelpers.Up, SimdVector3.Zero);
+                    billboard.Translation = SimdVector3.Zero;
 
-                    newWorld = Matrix4x4.CreateFromAxisAngle(MathHelpers.Forward, MathHelper.ToRadians(-rotAmount)) * Matrix4x4.CreateBillboard(world.Translation, attachBone.Translation, MathHelpers.Up, SimdVector3.Zero) * Matrix4x4.CreateScale(ParticleSystem.Scale);
+                    newWorld = billboard *
+                               Matrix4x4.CreateScale(ParticleSystem.Scale);
                     newWorld.Translation = world.Translation;
                 }
                 else
