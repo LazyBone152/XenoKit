@@ -12,6 +12,7 @@ using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.BCS;
 using Xv2CoreLib.BDM;
+using Xv2CoreLib.BPE;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.CUS;
 using Xv2CoreLib.EAN;
@@ -40,6 +41,16 @@ namespace XenoKit.Editor
         {
             var move = OutlinerItems.FirstOrDefault(x => x.Type == OutlinerItem.OutlinerItemType.CMN);
             return move != null ? move.move : null;
+        }
+
+        public BPE_Entry GetBpeEntry(ushort bpeIndex, bool logErrors)
+        {
+            BPE_Entry entry = CmnBpeFile?.Entries?.FirstOrDefault(x => x.SortID == bpeIndex);
+
+            if (entry == null && logErrors)
+                Log.Add($"Files.GetBpeEntry: Could not find BPE entry {bpeIndex}.", LogType.Warning);
+
+            return entry;
         }
 
         public List<Actor> GetLoadedCharacters()

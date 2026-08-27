@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework;
 using Xv2CoreLib.FPF;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector3 = System.Numerics.Vector3;
+using SimdVector4 = System.Numerics.Vector4;
 
 namespace XenoKit.Engine
 {
@@ -189,6 +190,10 @@ namespace XenoKit.Engine
         public void ResetState(bool keepAnimation = false)
         {
             ShaderParameters.ShaderPath = ActorShaderPath.Default;
+            ShaderParameters.BodyOutlineActive = false;
+            ShaderParameters.BodyOutlineColor = SimdVector4.Zero;
+            ShaderParameters.BodyOutlineParam2 = SimdVector4.Zero;
+            ShaderParameters.BodyOutlineParam3 = SimdVector4.Zero;
             BdmTimeScaleDuration = 0;
             BdmTimeScale = 1f;
             BacTimeScale = 1f;
