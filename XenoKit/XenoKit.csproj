@@ -1644,9 +1644,6 @@
   <ItemGroup>
     <Resource Include="XenoKitIcon.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="costura64\AesCtrLibrary.dll" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
