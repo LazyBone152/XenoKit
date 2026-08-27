@@ -16,9 +16,12 @@ namespace XenoKit.Engine.Shader
             DepthToDepth, //Copies depth from the input render target onto the current
             NineConeFilter, //Blur filter
             AGE_MERGE_AddLowRez_AddMrt, //Merges the "LowRez" render targets into another (the primary RT)
-            Sampler0, //Copy one RT (input) onto another (current), and turns alpha black (?). Probably not needed since SpriteBatch can do this
-            EDGELINE_VFX, //BPE "BodyOutline" shader. Relies on 2 inputs: NormalPassRT1 and a texture that contains the outline color (16x16, though only the second pixel on the first line is used)
+            EDGELINE_VFX, //BPE "BodyOutline" shader. Uses NormalPassRT1 and a 16x16 outline-color palette.
             AGE_TEST_DEPTH_TO_PFXD,
+            DTMAP_BLEND_CST_ADD,
+            DTMAP_BLEND_CST_MUL,
+            DTMAP_BLEND_CST_HUE,
+            DTMAP_BLEND_CST_HSV,
 
             //ExtShaders
             YBS_Copy,
@@ -41,6 +44,8 @@ namespace XenoKit.Engine.Shader
         public readonly SamplerState[] ImageSampler = new SamplerState[4];
 
         private EffectParameter g_vParam0_PS;
+        private EffectParameter g_vParam0_VS;
+        private EffectParameter g_vParam1_VS;
         private EffectParameter g_vEdge_PS;
         private EffectParameter afRGBA_Modulate;
         private EffectParameter afUV_TexCoordOffsetV16;
@@ -69,14 +74,21 @@ namespace XenoKit.Engine.Shader
             switch (Shader)
             {
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
-                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 0);
+                    ImageSampler[0] = CreateSampler(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Point, 0);
                     break;
                 case PostProccessShader.EDGELINE_VFX:
-                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 0);
-                    ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 1);
+                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Point, 0);
+                    ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Point, 1);
                     break;
                 case PostProccessShader.DepthToDepth:
                     ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Point, 0);
+                    break;
+                case PostProccessShader.DTMAP_BLEND_CST_ADD:
+                case PostProccessShader.DTMAP_BLEND_CST_MUL:
+                case PostProccessShader.DTMAP_BLEND_CST_HUE:
+                case PostProccessShader.DTMAP_BLEND_CST_HSV:
+                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear, 0);
+                    ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear, 1);
                     break;
                 case PostProccessShader.YBS_Copy:
                 case PostProccessShader.YBS_Dim:
@@ -129,6 +141,8 @@ namespace XenoKit.Engine.Shader
             g_mWLP_SM_VS = Parameters["g_mWLP_SM_VS"];
 
             g_vParam0_PS = Parameters["g_vParam0_PS"];
+            g_vParam0_VS = Parameters["g_vParam0_VS"];
+            g_vParam1_VS = Parameters["g_vParam1_VS"];
             g_vParam1_PS = Parameters["g_vParam1_PS"];
             g_vEdge_PS = Parameters["g_vEdge_PS"];
             g_vScreen_VS = Parameters["g_vScreen_VS"];
@@ -180,15 +194,19 @@ namespace XenoKit.Engine.Shader
             switch (Shader)
             {
                 case PostProccessShader.EDGELINE_VFX:
-                    g_vParam0_PS?.SetValue(new Vector4(0.00104f, 0.00185f, 0.00026f, 0.00046f));
-                    g_vParam1_PS?.SetValue(new Vector4(0, 1f, 10f, 0));
+                    float inverseTargetWidth = 1f / Viewport.Instance.RenderSystem.CurrentRT_Width;
+                    float inverseTargetHeight = 1f / Viewport.Instance.RenderSystem.CurrentRT_Height;
+                    float inverseSourceWidth = 1f / Viewport.Instance.RenderSystem.RenderWidth;
+                    float inverseSourceHeight = 1f / Viewport.Instance.RenderSystem.RenderHeight;
+                    g_vParam0_PS?.SetValue(new Vector4(
+                        inverseTargetWidth,
+                        inverseTargetHeight,
+                        inverseSourceWidth,
+                        inverseSourceHeight));
+                    g_vParam1_PS?.SetValue(new Vector4(0, 1f, 7.5f, 0));
                     break;
                 case PostProccessShader.AGE_TEST_EDGELINE_MRT:
                     g_vParam0_PS?.SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
-                    //Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
-                    //float factor = Viewport.Instance.RenderSystem.SuperSampleFactor > 1 ? 0.85f : 1f;
-                    //Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.00039f, 0.00055f, 3f, 0.6f) * factor);
-                    //Attempt to fix a weird bug where outlines disappear
                     if (Viewport.Instance.RenderSystem.SuperSampleFactor > 1)
                     {
                         g_vParam1_PS?.SetValue(new Vector4(0.000312f, 0.000552f, 2.4f, 0.5f));
@@ -201,6 +219,14 @@ namespace XenoKit.Engine.Shader
                 case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
                     g_vParam0_PS?.SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));
                     g_vScreen_VS?.SetValue(new Vector4(Viewport.Instance.RenderSystem.RenderWidth, Viewport.Instance.RenderSystem.RenderHeight, 0.10f, 10106.85645f));
+                    break;
+                case PostProccessShader.DTMAP_BLEND_CST_ADD:
+                case PostProccessShader.DTMAP_BLEND_CST_MUL:
+                case PostProccessShader.DTMAP_BLEND_CST_HUE:
+                case PostProccessShader.DTMAP_BLEND_CST_HSV:
+                    g_vParam0_VS?.SetValue(Vector4.One);
+                    g_vParam1_VS?.SetValue(Vector4.One);
+                    g_vParam0_PS?.SetValue(Vector4.Zero);
                     break;
                 case PostProccessShader.BIRD_BG_EDGELINE_RGB_HF:
                     g_vEdge_PS?.SetValue(new Vector4(0.1f, 0.1f, 0.1f, 5f));
@@ -270,6 +296,14 @@ namespace XenoKit.Engine.Shader
                 case PostProccessShader.AGE_MERGE_AddLowRez_AddMrt:
                     blendState.ApplyCustom(0, BlendFunction.Add, Blend.One, Blend.SourceAlpha, ColorWriteChannels.Red | ColorWriteChannels.Green | ColorWriteChannels.Blue);
                     blendState.ApplyCustom(1, BlendFunction.Add, Blend.One, Blend.SourceAlpha);
+                    break;
+                case PostProccessShader.NineConeFilter:
+                case PostProccessShader.DTMAP_BLEND_CST_ADD:
+                case PostProccessShader.DTMAP_BLEND_CST_MUL:
+                case PostProccessShader.DTMAP_BLEND_CST_HUE:
+                case PostProccessShader.DTMAP_BLEND_CST_HSV:
+                    blendState.ApplyCustom(0, BlendFunction.Add, Blend.One, Blend.Zero);
+                    blendState.ApplyNone(1);
                     break;
             }
 
