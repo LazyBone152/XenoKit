@@ -201,6 +201,7 @@ namespace XenoKit.Engine.Rendering
         {
             bool changed = false;
             bool hasActiveBodyOutline = false;
+            bool renderBpeEffects = SettingsManager.settings.XenoKit_BpeSimulation;
 
             for (int actorSlot = 0; actorSlot < SceneManager.NumActors; actorSlot++)
             {
@@ -208,7 +209,7 @@ namespace XenoKit.Engine.Rendering
                 int paletteIndex = 1 + actorSlot;
                 Color color = new Color(0, 0, 0, 0);
 
-                if (actor?.ShaderParameters.BodyOutlineActive == true)
+                if (renderBpeEffects && actor?.ShaderParameters.BodyOutlineActive == true)
                 {
                     hasActiveBodyOutline = true;
                     System.Numerics.Vector4 outlineColor = actor.ShaderParameters.BodyOutlineColor;
@@ -230,6 +231,9 @@ namespace XenoKit.Engine.Rendering
 
         private void ApplyScreenEffects()
         {
+            if (!SettingsManager.settings.XenoKit_BpeSimulation)
+                return;
+
             for (int actorSlot = 0; actorSlot < SceneManager.NumActors; actorSlot++)
             {
                 BacScreenEffectState state = SceneManager.Actors[actorSlot]?.ActionControl?.BacPlayer?.BacEntryInstance?.ScreenEffectState;
