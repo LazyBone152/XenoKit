@@ -551,6 +551,7 @@
     <Compile Include="Engine\Objects\DrawableBoundingBox.cs" />
     <Compile Include="Engine\Scripting\BAC\ActionControl.cs" />
     <Compile Include="Engine\Scripting\BAC\BacEntryInstance.cs" />
+    <Compile Include="Engine\Scripting\BAC\BacScreenEffectEvaluator.cs" />
     <Compile Include="Engine\Scripting\BSA\BsaEffectPreviewController.cs" />
     <Compile Include="Engine\Scripting\BSA\BsaHitboxPreview.cs" />
     <Compile Include="Engine\Scripting\BSA\ProjectileInstance.cs" />

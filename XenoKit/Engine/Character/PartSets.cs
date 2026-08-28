@@ -1460,7 +1460,7 @@ namespace XenoKit.Engine
         {
             if (Model != null)
             {
-                Model.Draw(chara.Transform, 0, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, Skeleton);
+                Model.Draw(chara.Transform, chara.ActorSlot, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, Skeleton);
             }
         }
 

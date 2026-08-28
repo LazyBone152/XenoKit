@@ -23,14 +23,22 @@ namespace XenoKit.Engine.Vfx.Particle
                 if (velocityOriented)
                 {
                     Matrix4x4 baseWorld = particle.Transform * attachBone;
-                    world = Matrix4x4.CreateConstrainedBillboard(baseWorld.Translation, particle.Camera.CameraState.Position, baseWorld.GetUp(), -MathHelpers.Up, SimdVector3.Zero) * Matrix4x4.CreateScale(particle.ParticleSystem.Scale);
+                    Matrix4x4 billboard = Matrix4x4.CreateFromAxisAngle(MathHelpers.Up, MathHelper.Pi) *
+                        Matrix4x4.CreateConstrainedBillboard(baseWorld.Translation, particle.Camera.CameraState.Position, baseWorld.GetUp(), -MathHelpers.Up, SimdVector3.Zero);
+                    billboard.Translation = SimdVector3.Zero;
+
+                    world = billboard *
+                            Matrix4x4.CreateScale(particle.ParticleSystem.Scale);
                     world.Translation = worldTranslation.Translation;
                 }
                 else
                 {
-                    world = Matrix4x4.CreateFromAxisAngle(MathHelpers.Up, MathHelper.Pi) *
+                    Matrix4x4 billboard = Matrix4x4.CreateFromAxisAngle(MathHelpers.Up, MathHelper.Pi) *
                             Matrix4x4.CreateFromAxisAngle(MathHelpers.Forward, MathHelper.ToRadians(-angle)) *
-                            MathHelpers.Invert(particle.Camera.ViewMatrix) *
+                            MathHelpers.Invert(particle.Camera.ViewMatrix);
+                    billboard.Translation = SimdVector3.Zero;
+
+                    world = billboard *
                             Matrix4x4.CreateScale(particle.ParticleSystem.Scale);
                     world.Translation = worldTranslation.Translation;
                 }
@@ -40,9 +48,11 @@ namespace XenoKit.Engine.Vfx.Particle
                 Matrix4x4 attachBone = particle.GetParticleAttachmentBone();
                 float angle = randomDirection ? -rotationAmount : rotationAmount;
                 Matrix4x4 baseWorld = particle.Transform * Matrix4x4.CreateScale(particle.ParticleSystem.Scale) * attachBone;
+                Matrix4x4 billboard = Matrix4x4.CreateFromAxisAngle(MathHelpers.Forward, MathHelper.ToRadians(-angle)) *
+                        Matrix4x4.CreateBillboard(baseWorld.Translation, attachBone.Translation, MathHelpers.Up, SimdVector3.Zero);
+                billboard.Translation = SimdVector3.Zero;
 
-                world = Matrix4x4.CreateFromAxisAngle(MathHelpers.Forward, MathHelper.ToRadians(-angle)) *
-                        Matrix4x4.CreateBillboard(baseWorld.Translation, attachBone.Translation, MathHelpers.Up, SimdVector3.Zero) *
+                world = billboard *
                         Matrix4x4.CreateScale(particle.ParticleSystem.Scale);
                 world.Translation = baseWorld.Translation;
             }

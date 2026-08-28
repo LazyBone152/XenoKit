@@ -12,6 +12,7 @@ using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.BCS;
 using Xv2CoreLib.BDM;
+using Xv2CoreLib.BPE;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.CUS;
 using Xv2CoreLib.EAN;
@@ -236,6 +237,8 @@ namespace XenoKit.Editor
                 move.SetName("CMN");
                 move.MoveType = Move.Type.CMN;
                 move.Files = new Xv2MoveFiles();
+
+                CmnBpeFile = BPE_File.Load(file.Instance.GetBytesFromGame("pe/cmn.bpe", false, true));
 
                 move.Files.BdmFile = new Xv2File<BDM_File>((BDM_File)file.Instance.GetParsedFileFromGame(xv2.CMN_BDM_PATH), file.Instance.GetAbsolutePath(xv2.CMN_BDM_PATH), false, null, false, xv2.MoveFileTypes.BDM, 0, true, xv2.MoveType.Common);
                 move.Files.BsaFile = new Xv2File<BSA_File>((BSA_File)file.Instance.GetParsedFileFromGame(xv2.CMN_BSA_PATH), file.Instance.GetAbsolutePath(xv2.CMN_BSA_PATH), false, null, false, xv2.MoveFileTypes.BSA, 0, true, xv2.MoveType.Common);

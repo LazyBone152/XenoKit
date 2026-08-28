@@ -944,15 +944,21 @@ namespace XenoKit.Engine.Shader
 
             if (ShaderType == ShaderType.CharaNormals)
             {
-                //Controls the final vertex color of NormalPassRT0 and 1, which is key for the black body outline around characters as well as BPE BodyOutlines 
-                //g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
-                //g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
-                //g_vParam3_PS.SetValue(new Vector4(10f, 1000f, 0.0f, 0.0f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
+                Actor actor = ActorSlot >= 0 && ActorSlot < SceneManager.NumActors ? SceneManager.Actors[ActorSlot] : null;
 
-                //Testing:
-                g_vParam1_PS?.SetValue(new Vector4(0f, 1, 1.0f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
-                g_vParam2_PS?.SetValue(new Vector4(0f, 0.00f, 1.0f, 0.0f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
-                g_vParam3_PS?.SetValue(new Vector4(10f, 10000.00f, 0.00f, 0.00f)); //Z = BPE Outline strength
+                g_vParam1_PS?.SetValue(new Vector4(0f, 1f, 1f, 0.6f));
+
+                if (actor?.ShaderParameters.BodyOutlineActive == true)
+                {
+                    g_vParam2_PS?.SetValue(actor.ShaderParameters.BodyOutlineParam2);
+                    g_vParam3_PS?.SetValue(actor.ShaderParameters.BodyOutlineParam3);
+                }
+                else
+                {
+                    g_vParam2_PS?.SetValue(new Vector4(0f, 0f, 1f, 0f));
+                    g_vParam3_PS?.SetValue(new Vector4(10f, 10000f, 0f, 0f));
+                }
+
                 return;
             }
 
@@ -1259,6 +1265,7 @@ namespace XenoKit.Engine.Shader
             if (MatParam.AlphaBlend == 1 && MatParam.AlphaBlendType != 3)
             {
                 depth.DepthBufferEnable = true;
+                depth.DepthBufferWriteEnable = false;
                 depth.DepthBufferFunction = CompareFunction.LessEqual;
                 depth.StencilEnable = false;
                 depth.StencilMask = 255;
@@ -1544,5 +1551,9 @@ namespace XenoKit.Engine.Shader
         public SimdVector4 g_vColor4_PS; //Tint color (RGB used, A ignored).
         public SimdVector4 g_vParam9_PS; //X = horizontal line size, Y = vertical line size, Z = gap between horizontal lines, W = gap between vertical lines
         public SimdVector4 g_vUserFlag1_VS; //X = Activate Path (115 = Vanish, 7936 = HC), Y = controls intensity of g_vColor4_PS (0 - 10 range, where 0 just tints the character, and 10 is fully opaque with no texture details) 
+        public bool BodyOutlineActive;
+        public SimdVector4 BodyOutlineColor;
+        public SimdVector4 BodyOutlineParam2;
+        public SimdVector4 BodyOutlineParam3;
     }
 }

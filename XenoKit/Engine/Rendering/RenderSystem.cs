@@ -76,6 +76,7 @@ namespace XenoKit.Engine.Rendering
         //Characters are drawn onto these RTs using the shader NORMAL_FADE_WATERDEPTH_W_M
         private RenderTargetWrapper NormalPassRT0;
         private RenderTargetWrapper NormalPassRT1;
+        private RenderTargetWrapper BodyOutlineSourceRT;
 
         //Characters and the stage enviroments are drawn onto these RTs using their proper materials
         private RenderTargetWrapper ColorPassRT0;
@@ -85,8 +86,8 @@ namespace XenoKit.Engine.Rendering
         //The remaining stage elements are then drawn to this RT and ColorPassRT1
         private RenderTargetWrapper NextColorPassRT0;
 
-        //Some BPE effects such as BodyOutline are done at this point, and drawn onto NextColorPassRT0 + ColorPassRT1
-        //Next are effects, using the same RTs
+        //Post effects use the full-resolution color target after the low-resolution merge.
+        private RenderTargetWrapper ScreenEffectRT;
         private RenderTargetWrapper LowRezRT0;
         private RenderTargetWrapper LowRezRT1;
         private RenderTargetWrapper LowRezSmokeRT0;
@@ -115,14 +116,18 @@ namespace XenoKit.Engine.Rendering
         private PostShaderEffect DepthToDepth;
         private PostShaderEffect NineConeFilter;
         private PostShaderEffect AGE_MERGE_AddLowRez_AddMrt;
-        private PostShaderEffect Sampler0;
         private PostShaderEffect EDGELINE_VFX;
         private PostShaderEffect AGE_TEST_DEPTH_TO_PFXD;
+        private PostShaderEffect DTMAP_BLEND_CST_ADD;
+        private PostShaderEffect DTMAP_BLEND_CST_MUL;
+        private PostShaderEffect DTMAP_BLEND_CST_HUE;
+        private PostShaderEffect DTMAP_BLEND_CST_HSV;
         private PostShaderEffect DepthToColor;
         private PostShaderEffect AddTex; //Merge up to 2 textures into a RenderTarget
 
-        //private Texture2D TestOutlineTexture;
-        //private Texture2D TestOutlineTexture2;
+        private Texture2D BodyOutlinePaletteTexture;
+        private readonly Color[] BodyOutlinePalette = new Color[16 * 16];
+        private DepthStencilState BackgroundOnlyDepthState;
 
         public RenderSystem(SpriteBatch spriteBatch, bool createInternalResources)
         {
@@ -134,9 +139,6 @@ namespace XenoKit.Engine.Rendering
 
             if (createInternalResources)
                 CreateInternalResources();
-
-            //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
-            //TestOutlineTexture2 = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest2.dds"), GraphicsDevice);
 
             if(ShaderManager.IsExtShadersLoaded)
                 YBS = new YBSPostProcess(this, NextColorPassRT0, ColorPassRT1);
@@ -168,9 +170,12 @@ namespace XenoKit.Engine.Rendering
             AddTex = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AddTex"));
             NineConeFilter = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("NineConeFilter"));
             AGE_MERGE_AddLowRez_AddMrt = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_MERGE_AddLowRez_AddMrt"));
-            Sampler0 = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("Sampler0"));
             EDGELINE_VFX = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("EDGELINE_VFX"));
             AGE_TEST_DEPTH_TO_PFXD = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_DEPTH_TO_PFXD"));
+            DTMAP_BLEND_CST_ADD = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DTMAP_BLEND_CST_ADD"));
+            DTMAP_BLEND_CST_MUL = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DTMAP_BLEND_CST_MUL"));
+            DTMAP_BLEND_CST_HUE = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DTMAP_BLEND_CST_HUE"));
+            DTMAP_BLEND_CST_HSV = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DTMAP_BLEND_CST_HSV"));
 
             //Create RTs
             ReflectionRT = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "ReflectionRT");
@@ -178,9 +183,11 @@ namespace XenoKit.Engine.Rendering
             DepthBuffer = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true);
             NormalPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "NormalPassRT0");
             NormalPassRT1 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, false, "NormalPassRT1");
+            BodyOutlineSourceRT = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, false, "BodyOutlineSourceRT");
             ColorPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "ColorPassRT0");
             ColorPassRT1 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, false, "ColorPassRT1");
             NextColorPassRT0 = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "NextColorPassRT0");
+            ScreenEffectRT = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, false, "ScreenEffectRT");
             FinalRenderTarget = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "FinalRenderTarget");
             SamplerAlphaDepth = new RenderTargetWrapper(this, 1, SurfaceFormat.Single, false, "SamplerAlphaDepth");
             LowRezRT0 = new RenderTargetWrapper(this, 0.5f, SurfaceFormat.Color, true, "LowRezRT0");
@@ -190,6 +197,19 @@ namespace XenoKit.Engine.Rendering
             LowRezSmokeRT1 = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, false, "LowRezSmokeRT1");
             ScreenshotRT = new RenderTargetWrapper(this, 1, SurfaceFormat.Color, true, "ScreenshotRT");
             SmallSceneRT = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "SmallSceneRT");
+            BodyOutlinePaletteTexture = new Texture2D(GraphicsDevice, 16, 16, false, SurfaceFormat.Color);
+            BodyOutlinePaletteTexture.SetData(BodyOutlinePalette);
+            BackgroundOnlyDepthState = new DepthStencilState
+            {
+                DepthBufferEnable = false,
+                DepthBufferWriteEnable = false,
+                StencilEnable = true,
+                StencilMask = 80,
+                StencilWriteMask = 0,
+                ReferenceStencil = 80,
+                StencilFunction = CompareFunction.NotEqual,
+                CounterClockwiseStencilFunction = CompareFunction.NotEqual
+            };
 
 
             //Register all render targets so they get auto-updated if the viewport changes size
@@ -197,9 +217,11 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(ShadowPassRT0);
             RegisterRenderTarget(NormalPassRT0);
             RegisterRenderTarget(NormalPassRT1);
+            RegisterRenderTarget(BodyOutlineSourceRT);
             RegisterRenderTarget(ColorPassRT0);
             RegisterRenderTarget(ColorPassRT1);
             RegisterRenderTarget(NextColorPassRT0);
+            RegisterRenderTarget(ScreenEffectRT);
             RegisterRenderTarget(FinalRenderTarget);
             RegisterRenderTarget(SamplerAlphaDepth);
             RegisterRenderTarget(LowRezRT0);
@@ -278,9 +300,6 @@ namespace XenoKit.Engine.Rendering
             DumpRenderTargetsNextFrame = false;
             bool dumpShadowMap = DumpShadowMapNextFrame;
             DumpShadowMapNextFrame = false;
-
-            //TestOutlineTexture = Textures.TextureLoader.ConvertToTexture2D(SettingsManager.Instance.GetAbsPathInAppFolder("EdgeLineTest.dds"), GraphicsDevice);
-            //return;
 
             Directory.CreateDirectory(SettingsManager.Instance.GetAbsPathInAppFolder("RT_Dump"));
 

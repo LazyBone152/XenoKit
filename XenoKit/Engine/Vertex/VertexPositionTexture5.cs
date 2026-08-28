@@ -9,6 +9,7 @@ namespace XenoKit.Engine.Vertex
     {
         public Vector3 Position;
         public Vector2 TextureCoordinate;
+        public Color Color;
         public Vector2 TextureCoordinate2;
         public Vector2 TextureCoordinate3;
         public Vector2 TextureCoordinate4;
@@ -20,6 +21,7 @@ namespace XenoKit.Engine.Vertex
         {
             this.Position = position;
             this.TextureCoordinate = textureUv1;
+            this.Color = Microsoft.Xna.Framework.Color.White;
             TextureCoordinate2 = Vector2.Zero;
             TextureCoordinate3 = Vector2.Zero;
             TextureCoordinate4 = Vector2.Zero;
@@ -30,6 +32,7 @@ namespace XenoKit.Engine.Vertex
         {
             this.Position = position;
             this.TextureCoordinate = textureUv1;
+            this.Color = Microsoft.Xna.Framework.Color.White;
             this.TextureCoordinate2 = textureUv2;
             TextureCoordinate3 = Vector2.Zero;
             TextureCoordinate4 = Vector2.Zero;
@@ -40,6 +43,7 @@ namespace XenoKit.Engine.Vertex
         {
             this.Position = position;
             this.TextureCoordinate = textureUv1;
+            this.Color = Microsoft.Xna.Framework.Color.White;
             this.TextureCoordinate2 = textureUv2;
             TextureCoordinate3 = textureUv3;
             TextureCoordinate4 = textureUv4;
@@ -58,7 +62,7 @@ namespace XenoKit.Engine.Vertex
         {
             unchecked
             {
-                return (Position.GetHashCode() * 397) ^ TextureCoordinate.GetHashCode() ^ TextureCoordinate2.GetHashCode()
+                return (Position.GetHashCode() * 397) ^ Color.GetHashCode() ^ TextureCoordinate.GetHashCode() ^ TextureCoordinate2.GetHashCode()
                     ^ TextureCoordinate3.GetHashCode() ^ TextureCoordinate4.GetHashCode() ^ TextureCoordinate5.GetHashCode();
             }
         }
@@ -70,7 +74,7 @@ namespace XenoKit.Engine.Vertex
 
         public static bool operator ==(VertexPositionTexture5 left, VertexPositionTexture5 right)
         {
-            return ((left.Position == right.Position) && (left.TextureCoordinate == right.TextureCoordinate)
+            return ((left.Position == right.Position) && (left.Color == right.Color) && (left.TextureCoordinate == right.TextureCoordinate)
                 && (left.TextureCoordinate2 == right.TextureCoordinate2)
                 && (left.TextureCoordinate3 == right.TextureCoordinate3)
                 && (left.TextureCoordinate4 == right.TextureCoordinate4)
@@ -98,12 +102,13 @@ namespace XenoKit.Engine.Vertex
         static VertexPositionTexture5()
         {
             VertexElement[] elements = new VertexElement[] {
-                new VertexElement(0, VertexElementFormat.Vector2, VertexElementUsage.Position, 0),
+                new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
                 new VertexElement(12, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
-                new VertexElement(20, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
-                new VertexElement(28, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 2),
-                new VertexElement(36, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 3),
-                new VertexElement(44, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 4),
+                new VertexElement(20, VertexElementFormat.Color, VertexElementUsage.Color, 0),
+                new VertexElement(24, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 1),
+                new VertexElement(32, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 2),
+                new VertexElement(40, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 3),
+                new VertexElement(48, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 4),
             };
             VertexDeclaration declaration = new VertexDeclaration(elements);
             VertexDeclaration = declaration;
