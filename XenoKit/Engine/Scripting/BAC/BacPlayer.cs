@@ -399,7 +399,7 @@ namespace XenoKit.Engine.Scripting.BAC
                                 MathHelper.Max((int)(transparency.HorizontalLineSize * fadeInFactor), transparency.HorizontalLineSize > 0 ? 1 : 0),
                                 MathHelper.Max((int)(transparency.VerticalLineSize * fadeInFactor), transparency.VerticalLineSize > 0 ? 1 : 0),
                                 MathHelper.Max((int)(transparency.HorizontalLineSpacing * fadeInFactor), transparency.HorizontalLineSpacing > 0 ? 1 : 0),
-                                MathHelper.Max((int)(transparency.VerticalLineSpacing * fadeInFactor), transparency.VerticalLineSpacing > 1 ? 0 : 0));
+                                MathHelper.Max((int)(transparency.VerticalLineSpacing * fadeInFactor), transparency.VerticalLineSpacing > 0 ? 1 : 0));
                             break;
                         case BAC_Type23.ShaderPathOptions.HC:
                             character.ShaderParameters.ShaderPath = Shader.ActorShaderPath.HC;

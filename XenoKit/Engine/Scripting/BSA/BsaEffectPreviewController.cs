@@ -67,7 +67,7 @@ namespace XenoKit.Engine.Scripting.BSA
             bsaFile = null;
             move = null;
             duration = 0;
-            Viewport.Instance?.VfxManager.StopEffects();
+            Viewport.Instance?.VfxManager?.StopEffects();
         }
 
         public void Update()
@@ -91,7 +91,7 @@ namespace XenoKit.Engine.Scripting.BSA
 
             if (projectile == null || projectile.IsFinished)
             {
-                Viewport.Instance?.VfxManager.StopEffects();
+                Viewport.Instance?.VfxManager?.StopEffects();
                 projectile?.Dispose();
                 projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, bsaFile, Matrix4x4.Identity);
             }
@@ -134,7 +134,7 @@ namespace XenoKit.Engine.Scripting.BSA
                 return;
             }
 
-            Viewport.Instance?.VfxManager.StopEffects();
+            Viewport.Instance?.VfxManager?.StopEffects();
             projectile?.Dispose();
             projectile = ProjectileInstance.CreatePreview(SceneManager.Actors[0], move, entry, bsaFile, Matrix4x4.Identity);
 
@@ -145,7 +145,7 @@ namespace XenoKit.Engine.Scripting.BSA
         private void AdvanceOneFrame()
         {
             projectile?.Update(1f);
-            Viewport.Instance?.VfxManager.Simulate();
+            Viewport.Instance?.VfxManager?.Simulate();
         }
 
         public void Draw()

@@ -38,9 +38,13 @@ namespace XenoKit.Engine
         {
             if (key == null) return null;
 
+            object cacheKey = key;
+            if (typeof(T) == typeof(Xv2ShaderEffect))
+                cacheKey = Tuple.Create(key, shaderType);
+
             lock (CachedObjects)
             {
-                CachedObjects.TryGetValue(key, out CompiledObjectCacheEntry cacheEntry);
+                CachedObjects.TryGetValue(cacheKey, out CompiledObjectCacheEntry cacheEntry);
 
                 object result = cacheEntry?.CachedObject?.Target;
 
@@ -101,7 +105,7 @@ namespace XenoKit.Engine
                     {
                         try
                         {
-                            CachedObjects.Add(key, new CompiledObjectCacheEntry(key, result));
+                            CachedObjects.Add(cacheKey, new CompiledObjectCacheEntry(cacheKey, result));
                         }
                         catch
                         {
@@ -110,7 +114,7 @@ namespace XenoKit.Engine
                     }
                     else
                     {
-                        CachedObjects.Add(key, new CompiledObjectCacheEntry(key, result));
+                        CachedObjects.Add(cacheKey, new CompiledObjectCacheEntry(cacheKey, result));
                     }
                 }
 
