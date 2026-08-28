@@ -62,6 +62,7 @@ namespace XenoKit.Engine.Shader
         protected EffectParameter g_mVP_VS;
         protected EffectParameter g_mWVP_Prev_VS;
         protected EffectParameter g_mWV_VS;
+        protected EffectParameter g_mWV_VS_padding;
         protected EffectParameter g_mW_VS;
         protected EffectParameter g_mWIT_VS;
         protected EffectParameter g_mWLP_SM_VS;
@@ -86,7 +87,9 @@ namespace XenoKit.Engine.Shader
         protected EffectParameter g_vParam5_PS;
 
         protected EffectParameter g_vColor4_PS;
+        protected EffectParameter g_vParam8_PS;
         protected EffectParameter g_vParam9_PS;
+        protected EffectParameter g_vParam10_PS;
         protected EffectParameter g_vParam11_PS;
         protected EffectParameter g_vParam12_PS;
         protected EffectParameter g_vParam13_PS;
@@ -114,6 +117,7 @@ namespace XenoKit.Engine.Shader
         private static Vector4 HC_Param12 = new Vector4(-0.55689f, 0.79556f, -0.23867f, 1.00f);
         private static Vector4 HC_Param13 = new Vector4(8.00f, 0.40f, 0.00f, 0.00f);
         private static Vector4 HC_UserFlag1 = new Vector4(7936f, 0, 0.00f, 0.00f);
+        private const float VanishShaderFlag = 115f;
         private static readonly Vector4 DefaultBackgroundGlareTone = new Vector4(0.5f, 0.5f, 0.5f, 3.75f);
         private static readonly Vector4 DefaultEffectGlareTone = new Vector4(0.9f, 0.9f, 0.9f, 0.95f);
 
@@ -669,6 +673,7 @@ namespace XenoKit.Engine.Shader
             g_mVP_VS = Parameters["g_mVP_VS"];
             g_mWVP_Prev_VS = Parameters["g_mWVP_Prev_VS"];
             g_mWV_VS = Parameters["g_mWV_VS"];
+            g_mWV_VS_padding = Parameters["g_mWV_VS_padding"];
             g_mW_VS = Parameters["g_mW_VS"];
             g_mWIT_VS = Parameters["g_mWIT_VS"];
             g_mWLPB_SM_VS = Parameters["g_mWLPB_SM_VS"];
@@ -714,7 +719,9 @@ namespace XenoKit.Engine.Shader
             g_mMatrixPalette_VS = Parameters["g_mMatrixPalette_VS"];
 
             g_vColor4_PS = Parameters["g_vColor4_PS"];
+            g_vParam8_PS = Parameters["g_vParam8_PS"];
             g_vParam9_PS = Parameters["g_vParam9_PS"];
+            g_vParam10_PS = Parameters["g_vParam10_PS"];
             g_vParam11_PS = Parameters["g_vParam11_PS"];
             g_vParam12_PS = Parameters["g_vParam12_PS"];
             g_vParam13_PS = Parameters["g_vParam13_PS"];
@@ -916,17 +923,29 @@ namespace XenoKit.Engine.Shader
                     g_MaterialCol3_PS?.SetValue(new Vector4(SceneManager.BattleDamageScratches, SceneManager.BattleDamageBlood, Material.DecompiledParameters.MatCol3.B, Material.DecompiledParameters.MatCol3.A));
                 }
 
-                if (SceneManager.Actors[ActorSlot] != null)
+                Actor actor = SceneManager.Actors[ActorSlot];
+                if (actor != null)
                 {
-                    switch (SceneManager.Actors[ActorSlot].ShaderParameters.ShaderPath)
+                    ActorShaderPath shaderPath = actor.ShaderParameters.ShaderPath;
+                    if (shaderPath != ActorShaderPath.Vanish)
+                    {
+                        g_mWV_VS_padding?.SetValue(Vector4.Zero);
+                        g_vParam8_PS?.SetValue(Vector4.Zero);
+                        g_vParam10_PS?.SetValue(Vector4.Zero);
+                    }
+
+                    switch (shaderPath)
                     {
                         case ActorShaderPath.Default:
                             g_vUserFlag1_VS?.SetValue(Vector4.Zero);
                             break;
                         case ActorShaderPath.Vanish:
-                            g_vUserFlag1_VS?.SetValue(new Vector4(115f, SceneManager.Actors[ActorSlot].ShaderParameters.g_vUserFlag1_VS.Y, 0, 0));
-                            g_vColor4_PS?.SetValue(SceneManager.Actors[ActorSlot].ShaderParameters.g_vColor4_PS);
-                            g_vParam9_PS?.SetValue(SceneManager.Actors[ActorSlot].ShaderParameters.g_vParam9_PS);
+                            g_mWV_VS_padding?.SetValue(new Vector4(VanishShaderFlag, 0, 0, 0));
+                            g_vUserFlag1_VS?.SetValue(new Vector4(VanishShaderFlag, actor.ShaderParameters.g_vUserFlag1_VS.Y, 0, 0));
+                            g_vColor4_PS?.SetValue(actor.ShaderParameters.g_vColor4_PS);
+                            g_vParam8_PS?.SetValue(new Vector4(0f, 0f, 0.001f, 1f));
+                            g_vParam9_PS?.SetValue(actor.ShaderParameters.g_vParam9_PS);
+                            g_vParam10_PS?.SetValue(new Vector4(0f, 0f, 1f, 0f));
                             break;
                         case ActorShaderPath.HC:
                             g_vUserFlag1_VS?.SetValue(HC_UserFlag1);
@@ -944,15 +963,21 @@ namespace XenoKit.Engine.Shader
 
             if (ShaderType == ShaderType.CharaNormals)
             {
-                //Controls the final vertex color of NormalPassRT0 and 1, which is key for the black body outline around characters as well as BPE BodyOutlines 
-                //g_vParam1_PS.SetValue(new Vector4(0, 50, 1, 0.6f)); //Related to RT0
-                //g_vParam2_PS.SetValue(new Vector4(0.01563f, 0, 1, 0)); //X = NormalPassRT1 B? Z is related to RT0
-                //g_vParam3_PS.SetValue(new Vector4(10f, 1000f, 0.0f, 0.0f)); //Z = NormalPassRT1 Alpha (This is 0 if no BodyOutline BPE, else some value greater than 0. Values seen: 0.92549 = chara 1, 0.4: = chara 2)
+                Actor actor = ActorSlot >= 0 && ActorSlot < SceneManager.NumActors ? SceneManager.Actors[ActorSlot] : null;
 
-                //Testing:
-                g_vParam1_PS?.SetValue(new Vector4(0f, 1, 1.0f, 0.6f)); //W = Outline strength (chara black edgeline), Y = somehow affects size of outline, default value is 50 but that looks off in XenoKit so a value of 1 is used instead
-                g_vParam2_PS?.SetValue(new Vector4(0f, 0.00f, 1.0f, 0.0f)); //X = Pixel color in main color pallete texture (0.00391 * index) (BPE)
-                g_vParam3_PS?.SetValue(new Vector4(10f, 10000.00f, 0.00f, 0.00f)); //Z = BPE Outline strength
+                g_vParam1_PS?.SetValue(new Vector4(0f, 1f, 1f, 0.6f));
+
+                if (actor?.ShaderParameters.BodyOutlineActive == true)
+                {
+                    g_vParam2_PS?.SetValue(actor.ShaderParameters.BodyOutlineParam2);
+                    g_vParam3_PS?.SetValue(actor.ShaderParameters.BodyOutlineParam3);
+                }
+                else
+                {
+                    g_vParam2_PS?.SetValue(new Vector4(0f, 0f, 1f, 0f));
+                    g_vParam3_PS?.SetValue(new Vector4(10f, 10000f, 0f, 0f));
+                }
+
                 return;
             }
 
@@ -1259,6 +1284,7 @@ namespace XenoKit.Engine.Shader
             if (MatParam.AlphaBlend == 1 && MatParam.AlphaBlendType != 3)
             {
                 depth.DepthBufferEnable = true;
+                depth.DepthBufferWriteEnable = false;
                 depth.DepthBufferFunction = CompareFunction.LessEqual;
                 depth.StencilEnable = false;
                 depth.StencilMask = 255;
@@ -1544,5 +1570,9 @@ namespace XenoKit.Engine.Shader
         public SimdVector4 g_vColor4_PS; //Tint color (RGB used, A ignored).
         public SimdVector4 g_vParam9_PS; //X = horizontal line size, Y = vertical line size, Z = gap between horizontal lines, W = gap between vertical lines
         public SimdVector4 g_vUserFlag1_VS; //X = Activate Path (115 = Vanish, 7936 = HC), Y = controls intensity of g_vColor4_PS (0 - 10 range, where 0 just tints the character, and 10 is fully opaque with no texture details) 
+        public bool BodyOutlineActive;
+        public SimdVector4 BodyOutlineColor;
+        public SimdVector4 BodyOutlineParam2;
+        public SimdVector4 BodyOutlineParam3;
     }
 }

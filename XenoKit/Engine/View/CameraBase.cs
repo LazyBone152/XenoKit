@@ -358,7 +358,7 @@ namespace XenoKit.Engine.View
             float fieldOfViewRadians = (float)(Math.PI / 180 * CameraState.FieldOfView);
             float nearClipPlane = ViewportInstance.CurrentStage.NearClip;
             float farClipPlane = ViewportInstance.CurrentStage.FarClip;
-            float aspectRatio = GraphicsDevice.Viewport.Width / (float)GraphicsDevice.Viewport.Height;
+            float aspectRatio = RenderSystem.RenderWidth / (float)RenderSystem.RenderHeight;
 
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(fieldOfViewRadians, aspectRatio, nearClipPlane, farClipPlane);
             //ProjectionMatrix = EngineUtils.CreateInfinitePerspective(fieldOfViewRadians, aspectRatio, nearClipPlane);
@@ -387,7 +387,7 @@ namespace XenoKit.Engine.View
         public void LookAt(BoundingBox box)
         {
             float fieldOfViewRadians = (float)(Math.PI / 180 * CameraState.FieldOfView);
-            float aspectRatio = GraphicsDevice.Viewport.Width / (float)GraphicsDevice.Viewport.Height;
+            float aspectRatio = RenderSystem.RenderWidth / (float)RenderSystem.RenderHeight;
 
             Vector3 boxCenter = (box.Min + box.Max) * 0.5f;
             Vector3 boxExtents = (box.Max - box.Min) * 0.5f;

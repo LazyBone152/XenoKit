@@ -12,6 +12,7 @@ namespace XenoKit.Engine.Shapes
         private IndexBuffer IndexBuffer;
         private VertexPositionColorTexture[] Vertices { get; set; }
         private short[] Indices;
+        private short[] WireframeIndices;
         private BasicEffect Material;
         private RasterizerState rasterState;
 
@@ -73,57 +74,72 @@ namespace XenoKit.Engine.Shapes
             Material.VertexColorEnabled = true;
 
             Vertices = new VertexPositionColorTexture[8];
-            Indices = new short[36]; //6 * 6
+            if (Wireframe)
+            {
+                WireframeIndices = new short[]
+                {
+                    0, 1, 1, 3, 3, 2, 2, 0,
+                    6, 7, 7, 5, 5, 4, 4, 6,
+                    0, 6, 1, 7, 2, 4, 3, 5
+                };
+            }
+            else
+            {
+                Indices = new short[36]; //6 * 6
+            }
             CreateVertices();
 
-            //Create vertex index
-            //TOP
-            Indices[0] = 0;
-            Indices[1] = 1;
-            Indices[2] = 2;
-            Indices[3] = 1;
-            Indices[4] = 2;
-            Indices[5] = 3;
+            if (!Wireframe)
+            {
+                //Create vertex index
+                //TOP
+                Indices[0] = 0;
+                Indices[1] = 1;
+                Indices[2] = 2;
+                Indices[3] = 1;
+                Indices[4] = 2;
+                Indices[5] = 3;
 
-            //BOTTOM
-            Indices[6] = 4;
-            Indices[7] = 5;
-            Indices[8] = 6;
-            Indices[9] = 5;
-            Indices[10] = 6;
-            Indices[11] = 7;
+                //BOTTOM
+                Indices[6] = 4;
+                Indices[7] = 5;
+                Indices[8] = 6;
+                Indices[9] = 5;
+                Indices[10] = 6;
+                Indices[11] = 7;
 
-            //LEFT
-            Indices[12] = 0;
-            Indices[13] = 2;
-            Indices[14] = 4;
-            Indices[15] = 0;
-            Indices[16] = 4;
-            Indices[17] = 6;
+                //LEFT
+                Indices[12] = 0;
+                Indices[13] = 2;
+                Indices[14] = 4;
+                Indices[15] = 0;
+                Indices[16] = 4;
+                Indices[17] = 6;
 
-            //RIGHT
-            Indices[18] = 1;
-            Indices[19] = 3;
-            Indices[20] = 5;
-            Indices[21] = 1;
-            Indices[22] = 5;
-            Indices[23] = 7;
+                //RIGHT
+                Indices[18] = 1;
+                Indices[19] = 3;
+                Indices[20] = 5;
+                Indices[21] = 1;
+                Indices[22] = 5;
+                Indices[23] = 7;
 
-            //FRONT
-            Indices[24] = 0;
-            Indices[25] = 1;
-            Indices[26] = 6;
-            Indices[27] = 1;
-            Indices[28] = 6;
-            Indices[29] = 7;
+                //FRONT
+                Indices[24] = 0;
+                Indices[25] = 1;
+                Indices[26] = 6;
+                Indices[27] = 1;
+                Indices[28] = 6;
+                Indices[29] = 7;
 
-            //BACK
-            Indices[30] = 2;
-            Indices[31] = 3;
-            Indices[32] = 4;
-            Indices[33] = 3;
-            Indices[34] = 4;
-            Indices[35] = 5;
+                //BACK
+                Indices[30] = 2;
+                Indices[31] = 3;
+                Indices[32] = 4;
+                Indices[33] = 3;
+                Indices[34] = 4;
+                Indices[35] = 5;
+            }
 
             //CreateBuffers();
 
@@ -133,7 +149,7 @@ namespace XenoKit.Engine.Shapes
                 {
                     rasterState = new RasterizerState()
                     {
-                        FillMode = FillMode.WireFrame,
+                        FillMode = FillMode.Solid,
                         CullMode = CullMode.None
                     };
                 }
@@ -282,13 +298,16 @@ namespace XenoKit.Engine.Shapes
         {
             foreach (var pass in Material.CurrentTechnique.Passes)
             {
-                GraphicsDevice.BlendState = BlendState.Opaque;
+                GraphicsDevice.BlendState = Color.A < 255 ? BlendState.AlphaBlend : BlendState.Opaque;
                 GraphicsDevice.DepthStencilState = AlwaysVisible ? DepthStencilState.None : DepthStencilState.Default;
                 GraphicsDevice.RasterizerState = rasterState;
 
                 pass.Apply();
 
-                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, Vertices, 0, Vertices.Length, Indices, 0, 12);
+                PrimitiveType primitiveType = Wireframe ? PrimitiveType.LineList : PrimitiveType.TriangleList;
+                short[] drawIndices = Wireframe ? WireframeIndices : Indices;
+                int primitiveCount = Wireframe ? WireframeIndices.Length / 2 : Indices.Length / 3;
+                GraphicsDevice.DrawUserIndexedPrimitives(primitiveType, Vertices, 0, Vertices.Length, drawIndices, 0, primitiveCount);
                 //GraphicsDevice.SetVertexBuffer(VertexBuffer);
                 //GraphicsDevice.Indices = IndexBuffer;
                 //GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, IndexBuffer.IndexCount / 3);

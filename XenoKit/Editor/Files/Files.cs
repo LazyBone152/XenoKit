@@ -12,6 +12,7 @@ using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.BCS;
 using Xv2CoreLib.BDM;
+using Xv2CoreLib.BPE;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.CUS;
 using Xv2CoreLib.EAN;
@@ -61,6 +62,8 @@ namespace XenoKit.Editor
         private MainWindow window = null;
         private readonly Dictionary<string, EffectContainerFile> stageEepkCache = new Dictionary<string, EffectContainerFile>();
         private readonly HashSet<string> missingStageEepks = new HashSet<string>();
+
+        private BPE_File CmnBpeFile;
 
         public AsyncObservableCollection<OutlinerItem> OutlinerItems { get; set; } = new AsyncObservableCollection<OutlinerItem>();
 

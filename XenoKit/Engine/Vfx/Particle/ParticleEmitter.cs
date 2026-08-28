@@ -113,12 +113,13 @@ namespace XenoKit.Engine.Vfx.Particle
 
                 // Generate a random angle within the specified range
                 float randomAngle = isEdgeIncrement ? EdgeIncrement * 360f : Xv2CoreLib.Random.Range(0, 360);
+                float randomAngleRadians = MathHelper.ToRadians(randomAngle);
 
                 // Calculate the position based on the random angle and radius
                 position = new SimdVector3(
-                        randomPosition * (float)Math.Cos(randomAngle),
+                        randomPosition * (float)Math.Cos(randomAngleRadians),
                         0f,
-                        randomPosition * (float)Math.Sin(randomAngle)
+                        randomPosition * (float)Math.Sin(randomAngleRadians)
                     );
             }
 
@@ -266,12 +267,13 @@ namespace XenoKit.Engine.Vfx.Particle
 
             float randomPosition = Xv2CoreLib.Random.Range(0, radius);
             float randomAngle = Xv2CoreLib.Random.Range(0, 360);
+            float randomAngleRadians = MathHelper.ToRadians(randomAngle);
 
             //Calculate the position based on the random angle and radius
             SimdVector3 position = new SimdVector3(
-                    randomPosition * (float)Math.Cos(randomAngle),
+                    randomPosition * (float)Math.Cos(randomAngleRadians),
                     0f,
-                    randomPosition * (float)Math.Sin(randomAngle)
+                    randomPosition * (float)Math.Sin(randomAngleRadians)
                 );
 
             SimdVector3 positionOffsetVector = new SimdVector3(0, positionOffset, 0);
@@ -311,12 +313,13 @@ namespace XenoKit.Engine.Vfx.Particle
 
             // Generate a random angle within the specified range
             float randomAngle = Xv2CoreLib.Random.Range(0, 360);
+            float randomAngleRadians = MathHelper.ToRadians(randomAngle);
 
             // Calculate the position based on the random angle and radius
             SimdVector3 position = new SimdVector3(
-                    randomPosition * (float)Math.Cos(randomAngle),
+                    randomPosition * (float)Math.Cos(randomAngleRadians),
                     0f,
-                    randomPosition * (float)Math.Sin(randomAngle)
+                    randomPosition * (float)Math.Sin(randomAngleRadians)
                 );
 
             SimdVector3 positionOffsetVector = new SimdVector3(0, positionOffset, 0);

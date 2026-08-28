@@ -19,6 +19,7 @@ namespace XenoKit.Engine.Scripting.BAC
     {
         //Parent character that this BacPlayer is for
         private readonly Actor character;
+        private readonly BacScreenEffectEvaluator screenEffectEvaluator;
 
         //Bac Entry:
         public BacEntryInstance BacEntryInstance { get; private set; }
@@ -66,6 +67,7 @@ namespace XenoKit.Engine.Scripting.BAC
         public BacPlayer(Actor chara)
         {
             character = chara;
+            screenEffectEvaluator = new BacScreenEffectEvaluator(chara);
             Xv2CoreLib.Resource.UndoRedo.UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
         }
 
@@ -260,6 +262,25 @@ namespace XenoKit.Engine.Scripting.BAC
                     }
                 }
 
+                //Screen effect
+                if (type is BAC_Type16 screenEffect)
+                {
+                    bool allowLoop = (screenEffect.ScreenEffectFlags & BAC_Type16.ScreenEffectFlagsEnum.AllowLoop) == BAC_Type16.ScreenEffectFlagsEnum.AllowLoop;
+
+                    if (!allowLoop && type.TimesActivated > 0) continue;
+                    if (!ActivationCheck(type)) continue;
+
+                    if ((screenEffect.ScreenEffectFlags & BAC_Type16.ScreenEffectFlagsEnum.DisableEffect) == BAC_Type16.ScreenEffectFlagsEnum.DisableEffect)
+                    {
+                        BacEntryInstance.ClearScreenEffect(screenEffect);
+                        continue;
+                    }
+
+                    Xv2CoreLib.BPE.BPE_Entry bpeEntry = Files.Instance.GetBpeEntry(screenEffect.BpeIndex, true);
+                    if (screenEffectEvaluator.HasData(bpeEntry))
+                        BacEntryInstance.StartScreenEffect(bpeEntry, screenEffect);
+                }
+
                 //Projectile
                 if (type is BAC_Type9 projectile)
                 {
@@ -288,7 +309,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 {
                     if (!ActivationCheck(type) || character.ActorSlot != 0) continue;
 
-                    EAN_File ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, true);
+                    EAN_File ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, camera.UseCharacterSpecificCameraEan);
 
                     if (ean != null && camera.EanIndex != ushort.MaxValue && SceneManager.UseCameras)
                     {
@@ -381,7 +402,7 @@ namespace XenoKit.Engine.Scripting.BAC
                                 MathHelper.Max((int)(transparency.HorizontalLineSize * fadeInFactor), transparency.HorizontalLineSize > 0 ? 1 : 0),
                                 MathHelper.Max((int)(transparency.VerticalLineSize * fadeInFactor), transparency.VerticalLineSize > 0 ? 1 : 0),
                                 MathHelper.Max((int)(transparency.HorizontalLineSpacing * fadeInFactor), transparency.HorizontalLineSpacing > 0 ? 1 : 0),
-                                MathHelper.Max((int)(transparency.VerticalLineSpacing * fadeInFactor), transparency.VerticalLineSpacing > 1 ? 0 : 0));
+                                MathHelper.Max((int)(transparency.VerticalLineSpacing * fadeInFactor), transparency.VerticalLineSpacing > 0 ? 1 : 0));
                             break;
                         case BAC_Type23.ShaderPathOptions.HC:
                             character.ShaderParameters.ShaderPath = Shader.ActorShaderPath.HC;
@@ -394,6 +415,8 @@ namespace XenoKit.Engine.Scripting.BAC
                     //character.ShaderParameters.g_vParam9_PS = new Vector4(0, 10, 0, 30);
                 }
             }
+
+            screenEffectEvaluator.Update(BacEntryInstance, CurrentFrame);
 
             //Update Eye Movements
             if (BacEntryInstance.ActiveEyeMovement != null)
@@ -539,6 +562,8 @@ namespace XenoKit.Engine.Scripting.BAC
                     while (character.Controller.FreezeActionFrames > 0);
                 }
             }
+
+            screenEffectEvaluator.Update(BacEntryInstance, CurrentFrame);
 
             //Reset camera state if no cam anim is active. This allows the bac entry to be paused, then the camera moved, and the scene to resume without the camera resetting to the last simulated camera
             if (Viewport.Instance.Camera.cameraInstance == null && SceneManager.UseCameras)
@@ -751,6 +776,7 @@ namespace XenoKit.Engine.Scripting.BAC
 
             VfxManager.ForceEffectUpdate = true;
             VfxManager.Simulate();
+            screenEffectEvaluator.Update(BacEntryInstance, CurrentFrame);
         }
         #endregion
 

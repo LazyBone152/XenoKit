@@ -2,10 +2,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
+using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.Shader;
 using XenoKit.Inspector.InspectorEntities;
 using Xv2CoreLib.EMM;
@@ -63,6 +62,10 @@ namespace XenoKit.Engine.Rendering
             if (SceneManager.UseRenderScene)
                 RenderScene.DrawPass(true);
 
+            bool hasActiveBodyOutline = UpdateBodyOutlinePalette();
+            if (hasActiveBodyOutline)
+                CopyRenderTarget(NormalPassRT1, BodyOutlineSourceRT);
+
             //Color Pass (Chara + Stage Enviroment)
             SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
@@ -89,9 +92,12 @@ namespace XenoKit.Engine.Rendering
             }
 
             //Black Chara Outline Shader
-            if (SettingsManager.settings.XenoKit_UseOutlinePostEffect)
+            if (SettingsManager.settings.XenoKit_UseOutlinePostEffect || hasActiveBodyOutline)
             {
-                SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
+                SetRenderTargets(
+                    ColorPassRT0.RenderTarget,
+                    ColorPassRT1.RenderTarget,
+                    hasActiveBodyOutline ? BodyOutlineSourceRT.RenderTarget : NormalPassRT1.RenderTarget);
                 GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
                 SetTexture(NormalPassRT0.RenderTarget);
                 PostFilter.Apply(AGE_TEST_EDGELINE_MRT);
@@ -132,15 +138,17 @@ namespace XenoKit.Engine.Rendering
 
             //DrawEntityList(Effects, LOW_REZ_SMOKE);
 
-            //Render EdgeLine (BPE Outline Test)
-            //SetTextures(NormalPassRT1.RenderTarget, TestOutlineTexture);
-            //PostFilter.Apply(EDGELINE_VFX);
+            if (hasActiveBodyOutline)
+            {
+                SetTextures(BodyOutlineSourceRT.RenderTarget, BodyOutlinePaletteTexture);
+                PostFilter.Apply(EDGELINE_VFX);
+            }
 
             //Apply blur filter to LowRezSmoke
             SetRenderTargets(LowRezSmokeRT0_New.RenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             SetTexture(LowRezSmokeRT0.RenderTarget);
-            PostFilter.SetTextureCoordinates(1f / (CurrentRT_Width * 2), 1f / (CurrentRT_Height * 2));
+            PostFilter.SetNineConeOffsets(1f / (CurrentRT_Width * 2), 1f / (CurrentRT_Height * 2));
             PostFilter.Apply(NineConeFilter);
 
             //Merge onto main RT
@@ -149,6 +157,8 @@ namespace XenoKit.Engine.Rendering
             SetTextures(LowRezRT0.RenderTarget, LowRezSmokeRT0_New.RenderTarget, LowRezRT1.RenderTarget, LowRezSmokeRT1.RenderTarget);
             PostFilter.SetDefaultTexCord2();
             PostFilter.Apply(AGE_MERGE_AddLowRez_AddMrt);
+
+            ApplyScreenEffects();
 
             //YBS post process effects (just glare for now)
             RenderTargetWrapper result;
@@ -185,6 +195,204 @@ namespace XenoKit.Engine.Rendering
             GraphicsDevice.SetDepthAsTexture(DepthBuffer.RenderTarget, 0);
             PostFilter.Apply(DepthToDepth);
             GraphicsDevice.Textures[0] = null;
+        }
+
+        private bool UpdateBodyOutlinePalette()
+        {
+            bool changed = false;
+            bool hasActiveBodyOutline = false;
+            bool renderBpeEffects = SettingsManager.settings.XenoKit_BpeSimulation;
+
+            for (int actorSlot = 0; actorSlot < SceneManager.NumActors; actorSlot++)
+            {
+                Actor actor = SceneManager.Actors[actorSlot];
+                int paletteIndex = 1 + actorSlot;
+                Color color = new Color(0, 0, 0, 0);
+
+                if (renderBpeEffects && actor?.ShaderParameters.BodyOutlineActive == true)
+                {
+                    hasActiveBodyOutline = true;
+                    System.Numerics.Vector4 outlineColor = actor.ShaderParameters.BodyOutlineColor;
+                    color = new Color(outlineColor.X, outlineColor.Y, outlineColor.Z, outlineColor.W);
+                }
+
+                if (!BodyOutlinePalette[paletteIndex].Equals(color))
+                {
+                    BodyOutlinePalette[paletteIndex] = color;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+                BodyOutlinePaletteTexture.SetData(BodyOutlinePalette);
+
+            return hasActiveBodyOutline;
+        }
+
+        private void ApplyScreenEffects()
+        {
+            if (!SettingsManager.settings.XenoKit_BpeSimulation)
+                return;
+
+            for (int actorSlot = 0; actorSlot < SceneManager.NumActors; actorSlot++)
+            {
+                BacScreenEffectState state = SceneManager.Actors[actorSlot]?.ActionControl?.BacPlayer?.BacEntryInstance?.ScreenEffectState;
+                ApplyScreenEffects(state);
+            }
+        }
+
+        private void ApplyScreenEffects(BacScreenEffectState state)
+        {
+            if (state == null)
+                return;
+
+            bool hasScreenEffect = state.BlurAmount > 0.0001f ||
+                                   state.WhiteShineAmount > 0.0001f ||
+                                   state.HasColorMultiply ||
+                                   state.HasColorAdd ||
+                                   state.HasHue ||
+                                   Math.Abs(state.ZoomLevel) > 0.0001f;
+            if (!hasScreenEffect)
+                return;
+
+            RenderTargetWrapper source = NextColorPassRT0;
+            RenderTargetWrapper target = ScreenEffectRT;
+
+            ApplyScreenEffectSpritePass(ref source, ref target, 1f, Vector2.Zero);
+
+            if (state.BlurAmount > 0.0001f)
+            {
+                float blurU = MathHelper.Clamp(state.BlurAmount / (MathHelper.Pi * 2f), 1f / CurrentRT_Width, 0.02f);
+                float blurV = blurU * CurrentRT_Width / CurrentRT_Height;
+
+                PostFilter.SetNineConeOffsets(blurU, blurV);
+                ApplyScreenEffectPass(ref source, ref target, NineConeFilter);
+            }
+
+            if (state.HasColorMultiply)
+                ApplyDtmapsPass(ref source, ref target, DTMAP_BLEND_CST_MUL, state.ColorMultiply);
+
+            if (state.HasColorAdd)
+                ApplyDtmapsPass(ref source, ref target, DTMAP_BLEND_CST_ADD, state.ColorAdd);
+
+            if (state.WhiteShineAmount > 0.0001f)
+                ApplyDtmapsPass(ref source, ref target, DTMAP_BLEND_CST_ADD, new System.Numerics.Vector4(state.WhiteShineAmount, state.WhiteShineAmount, state.WhiteShineAmount, 0f));
+
+            if (state.HasHue)
+                ApplyHuePass(ref source, ref target, state);
+
+            if (Math.Abs(state.ZoomLevel) > 0.0001f)
+            {
+                float zoom = MathHelper.Clamp(state.ZoomLevel, -0.9f, 1f);
+                ApplyScreenEffectSpritePass(ref source, ref target, 1f + zoom, Vector2.Zero);
+            }
+
+            if (source != NextColorPassRT0)
+            {
+                ApplyScreenEffectSpritePass(ref source, ref target, 1f, Vector2.Zero);
+            }
+
+        }
+
+        private void ApplyHuePass(ref RenderTargetWrapper source, ref RenderTargetWrapper target, BacScreenEffectState state)
+        {
+            PostShaderEffect effect;
+            System.Numerics.Vector4 color = state.HueColor;
+            color.W *= state.HueStrength;
+
+            switch (state.HueMode)
+            {
+                case 2:
+                    effect = DTMAP_BLEND_CST_HUE;
+                    break;
+                case 3:
+                    effect = DTMAP_BLEND_CST_MUL;
+                    float brightness = 1f - MathHelper.Clamp(color.W, 0f, 1f);
+                    color = new System.Numerics.Vector4(brightness, brightness, brightness, 1f);
+                    break;
+                case 6:
+                    effect = DTMAP_BLEND_CST_HUE;
+                    color = new System.Numerics.Vector4(0.5f * MathHelper.Clamp(color.W, 0f, 1f), 0f, 0f, 1f);
+                    break;
+                case 7:
+                case 8:
+                    effect = DTMAP_BLEND_CST_HSV;
+                    color = new System.Numerics.Vector4(color.X, 0.5f + color.Y * 0.5f, 0.5f + color.Z * 0.5f, 1f);
+                    break;
+                default:
+                    effect = DTMAP_BLEND_CST_MUL;
+                    color = System.Numerics.Vector4.Lerp(
+                        System.Numerics.Vector4.One,
+                        new System.Numerics.Vector4(color.X, color.Y, color.Z, 1f),
+                        MathHelper.Clamp(color.W, 0f, 1f));
+                    break;
+            }
+
+            ApplyDtmapsPass(ref source, ref target, effect, color, true);
+        }
+
+        private void ApplyDtmapsPass(ref RenderTargetWrapper source, ref RenderTargetWrapper target, PostShaderEffect effect, System.Numerics.Vector4 color, bool backgroundOnly = false)
+        {
+            if (backgroundOnly)
+                CopyRenderTarget(source, target);
+
+            SetRenderTargets(target.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(backgroundOnly ? DepthBuffer.RenderTarget : null);
+            SetTextures(source.RenderTarget, source.RenderTarget);
+            PostFilter.SetVertexColor(new Color(color.X, color.Y, color.Z, color.W));
+            PostFilter.Apply(effect, backgroundOnly ? BackgroundOnlyDepthState : null);
+            PostFilter.SetVertexColor(Color.White);
+            SwapScreenEffectTargets(ref source, ref target);
+        }
+
+        private void ApplyScreenEffectPass(ref RenderTargetWrapper source, ref RenderTargetWrapper target, PostShaderEffect effect)
+        {
+            SetRenderTargets(target.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(null);
+            SetTexture(source.RenderTarget);
+            PostFilter.Apply(effect);
+            SwapScreenEffectTargets(ref source, ref target);
+        }
+
+        private void ApplyScreenEffectSpritePass(ref RenderTargetWrapper source, ref RenderTargetWrapper target, float scale, Vector2 offset)
+        {
+            SetRenderTargets(target.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(null);
+            GraphicsDevice.Clear(Color.Transparent);
+
+            Vector2 targetCenter = new Vector2(target.Width * 0.5f, target.Height * 0.5f);
+            Vector2 sourceOrigin = new Vector2(source.Width * 0.5f, source.Height * 0.5f);
+            Vector2 position = targetCenter + new Vector2(offset.X * target.Width, offset.Y * target.Height);
+
+            SpriteBatch.Begin(
+                blendState: BlendState.Opaque,
+                samplerState: SamplerState.LinearClamp,
+                depthStencilState: DepthStencilState.None);
+            SpriteBatch.Draw(source.RenderTarget, position, null, Color.White, 0f, sourceOrigin, scale, SpriteEffects.None, 0f);
+            SpriteBatch.End();
+
+            SwapScreenEffectTargets(ref source, ref target);
+        }
+
+        private void CopyRenderTarget(RenderTargetWrapper source, RenderTargetWrapper target)
+        {
+            SetRenderTargets(target.RenderTarget);
+            GraphicsDevice.SetDepthBuffer(null);
+            GraphicsDevice.Clear(Color.Transparent);
+
+            SpriteBatch.Begin(
+                blendState: BlendState.Opaque,
+                samplerState: SamplerState.PointClamp,
+                depthStencilState: DepthStencilState.None);
+            SpriteBatch.Draw(source.RenderTarget, new Rectangle(0, 0, target.Width, target.Height), Color.White);
+            SpriteBatch.End();
+        }
+
+        private static void SwapScreenEffectTargets(ref RenderTargetWrapper source, ref RenderTargetWrapper target)
+        {
+            RenderTargetWrapper oldSource = source;
+            source = target;
+            target = oldSource;
         }
 
         public void SetTexture(Texture texture, int textureSlot = 0)

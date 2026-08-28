@@ -5,9 +5,11 @@ using XenoKit.Editor;
 using XenoKit.Engine.Scripting.BSA;
 using XenoKit.Engine.Scripting.BAC.Simulation;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.BPE;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.EAN;
 using Matrix4x4 = System.Numerics.Matrix4x4;
+using SimdVector4 = System.Numerics.Vector4;
 
 namespace XenoKit.Engine.Scripting.BAC
 {
@@ -64,6 +66,10 @@ namespace XenoKit.Engine.Scripting.BAC
         private readonly Dictionary<BAC_Type9, float> loopProjectileSpawnFrames = new Dictionary<BAC_Type9, float>();
         private readonly List<float> activeBsaPassConditions = new List<float>();
         private const float BsaConditionTolerance = 0.001f;
+
+        private readonly Dictionary<ushort, BacScreenEffectInstance> activeScreenEffects = new Dictionary<ushort, BacScreenEffectInstance>();
+        internal IEnumerable<BacScreenEffectInstance> ActiveScreenEffects => activeScreenEffects.Values;
+        public BacScreenEffectState ScreenEffectState { get; } = new BacScreenEffectState();
 
         /// <summary>
         /// The currently active eye movement entry. Only one of these can be active at any given time.
@@ -215,7 +221,9 @@ namespace XenoKit.Engine.Scripting.BAC
 
                     if (anim != null && BAC_Type0.IsFullBodyAnimation(animationBacType.EanType))
                     {
-                        animTypeDuration = anim.FrameCount;
+                        animTypeDuration = animationBacType.StartTime == 0
+                            ? anim.FrameCount
+                            : anim.FrameCount - animationBacType.StartFrame;
                     }
                 }
             }
@@ -323,6 +331,7 @@ namespace XenoKit.Engine.Scripting.BAC
         {
             ClearVisualObjects();
             ClearProjectiles();
+            ClearScreenEffect();
 
             IsFinished = false;
             ActiveEyeMovement = null;
@@ -348,7 +357,62 @@ namespace XenoKit.Engine.Scripting.BAC
             InScope = false;
             ClearVisualObjects();
             ClearProjectiles();
+            ClearScreenEffect();
             ClearActiveBsaPassConditions();
+        }
+
+        public void StartScreenEffect(BPE_Entry bpeEntry, BAC_Type16 screenEffect)
+        {
+            ushort bpeIndex = checked((ushort)bpeEntry.SortID);
+            activeScreenEffects[bpeIndex] = new BacScreenEffectInstance(
+                bpeEntry,
+                screenEffect.ScreenEffectFlags,
+                (int)CurrentFrame);
+        }
+
+        public void ClearScreenEffect(BAC_Type16 screenEffect)
+        {
+            ushort bpeIndex = screenEffect.BpeIndex;
+            if (activeScreenEffects.TryGetValue(bpeIndex, out BacScreenEffectInstance activeEffect) &&
+                GetScreenEffectMatchFlags(activeEffect.ScreenEffectFlags) == GetScreenEffectMatchFlags(screenEffect.ScreenEffectFlags))
+            {
+                ClearScreenEffect(bpeIndex);
+            }
+        }
+
+        public void ClearScreenEffect(ushort bpeIndex)
+        {
+            activeScreenEffects.Remove(bpeIndex);
+
+            if (activeScreenEffects.Count == 0)
+            {
+                ScreenEffectState.Clear();
+                ClearBodyOutlineValues();
+            }
+        }
+
+        public void ClearScreenEffect()
+        {
+            activeScreenEffects.Clear();
+            ScreenEffectState.Clear();
+
+            ClearBodyOutlineValues();
+        }
+
+        public void ClearBodyOutlineValues()
+        {
+            if (Actor != null)
+            {
+                Actor.ShaderParameters.BodyOutlineActive = false;
+                Actor.ShaderParameters.BodyOutlineColor = SimdVector4.Zero;
+                Actor.ShaderParameters.BodyOutlineParam2 = SimdVector4.Zero;
+                Actor.ShaderParameters.BodyOutlineParam3 = SimdVector4.Zero;
+            }
+        }
+
+        private static BAC_Type16.ScreenEffectFlagsEnum GetScreenEffectMatchFlags(BAC_Type16.ScreenEffectFlagsEnum flags)
+        {
+            return flags & ~BAC_Type16.ScreenEffectFlagsEnum.DisableEffect;
         }
 
         public void AddVisualObject(BAC_Type1 hitbox, Viewport game)
@@ -452,6 +516,50 @@ namespace XenoKit.Engine.Scripting.BAC
             Projectiles.Clear();
             spawnedProjectileTypes.Clear();
             loopProjectileSpawnFrames.Clear();
+        }
+    }
+
+    internal sealed class BacScreenEffectInstance
+    {
+        public BPE_Entry Entry { get; private set; }
+        public BAC_Type16.ScreenEffectFlagsEnum ScreenEffectFlags { get; private set; }
+        public int StartFrame { get; private set; }
+
+        public BacScreenEffectInstance(BPE_Entry entry, BAC_Type16.ScreenEffectFlagsEnum screenEffectFlags, int startFrame)
+        {
+            Entry = entry;
+            ScreenEffectFlags = screenEffectFlags;
+            StartFrame = startFrame;
+        }
+    }
+
+    public sealed class BacScreenEffectState
+    {
+        public float BlurAmount;
+        public float WhiteShineAmount;
+        public System.Numerics.Vector4 ColorMultiply = SimdVector4.One;
+        public System.Numerics.Vector4 ColorAdd;
+        public bool HasColorMultiply;
+        public bool HasColorAdd;
+        public int HueMode = -1;
+        public System.Numerics.Vector4 HueColor;
+        public float HueStrength = 1f;
+        public bool HasHue;
+        public float ZoomLevel;
+
+        public void Clear()
+        {
+            BlurAmount = 0f;
+            WhiteShineAmount = 0f;
+            ColorMultiply = SimdVector4.One;
+            ColorAdd = SimdVector4.Zero;
+            HasColorMultiply = false;
+            HasColorAdd = false;
+            HueMode = -1;
+            HueColor = SimdVector4.Zero;
+            HueStrength = 1f;
+            HasHue = false;
+            ZoomLevel = 0f;
         }
     }
 

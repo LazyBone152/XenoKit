@@ -14,7 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="90"/>
+            <RowDefinition Height="60"/>
         </Grid.RowDefinitions>
         <engine:Viewport Grid.Row="1" Margin="0,5,0,0" x:Name="monoGame" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <StackPanel Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="10,15,0,0" Visibility="{Binding ElementName=UserControl, Path=OverlayVisibility}">
@@ -102,39 +102,84 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="20"/>
-                <RowDefinition Height="25"/>
             </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal">
-                <Button Click="Play_Click"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="{Binding PlayPauseButtonBinding}" />
-                </Button>
-                <Button  Click="Stop_Click" Margin="5,0,0,0"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="Stop" />
-                </Button>
-                <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekPrevCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="SeekPrevious" />
-                </RepeatButton>
-                <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekNextCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="SeekNext" />
-                </RepeatButton>
-            </StackPanel>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Button Click="Play_Click"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="{Binding PlayPauseButtonBinding}" />
+                    </Button>
+                    <Button  Click="Stop_Click" Margin="5,0,0,0"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="Stop" />
+                    </Button>
+                    <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekPrevCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="SeekPrevious" />
+                    </RepeatButton>
+                    <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekNextCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="SeekNext" />
+                    </RepeatButton>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Margin="10,0,0,0" Orientation="Horizontal">
+                    <Label VerticalContentAlignment="Center" Content="{Binding ElementName=UserControl, Path=TimeScale}" FontSize="12"/>
+                    <Label VerticalContentAlignment="Center" Content="{Binding ElementName=UserControl, Path=StateExtraInfo}" FontSize="12" Margin="10,0,0,0" FontStyle="Normal"/>
+                </StackPanel>
+            </Grid>
 
             <Label Grid.Row="1" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Right" Content="{Binding ElementName=UserControl, Path=CurrentFramePreview}" FontSize="14" Margin="0,0,0,0" Height="37" Width="75"/>
             <Slider Grid.Row="1" Margin="10,0,75,0" Maximum="{Binding ElementName=UserControl, Path=MaxFrameValue}" Value="{Binding ElementName=UserControl, Path=CurrentFrame}" Minimum="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" ToolTip="Seek" Cursor="Hand"/>
-            <StackPanel Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,0.073" Orientation="Horizontal" Height="24" Width="Auto">
-                <CheckBox IsChecked="{Binding ElementName=UserControl, Path=RenderCharacters}" Content="Characters" Height="20" Margin="3, 0" ToolTip="Toggle the visibility of characters."/>
-                <CheckBox IsChecked="{Binding ElementName=UserControl, Path=Loop}" Content="Loop" Height="20" Margin="3, 0"/>
-                <CheckBox x:Name="bacLoopCheckBox" IsChecked="{Binding ElementName=UserControl, Path=BacLoop}" Content="BAC Loop" Height="20" Margin="3, 0" ToolTip="Toggle loops within Actions (BAC).&#x0a;&#x0a;These are the loops defined in a primary animation or function (0x0 / 0x22) entry."/>
-                <CheckBox IsChecked="{Binding ElementName=UserControl, Path=AutoPlay}" Content="Auto Play"  Height="20" ToolTip="Toggle autoplay. If enabled, then items will be auto-played when selected." Margin="3, 0"/>
-                <CheckBox x:Name="cameraCheckBox" IsChecked="{Binding ElementName=UserControl, Path=UseCameras}" Content="Cameras"  Height="20" ToolTip="Toggle camera animations." Margin="3, 0" Visibility="Collapsed"/>
-                <CheckBox x:Name="bonesCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ShowVisualSkeleton}" Content="Bones" Height="20" ToolTip="Toggle the visual skeleton in the relevant tabs." Margin="3, 0" Visibility="Collapsed"/>
-                <CheckBox x:Name="audioCheckBox" IsChecked="{Binding ElementName=UserControl, Path=AudioSimulation}" Content="Sound" Height="20" ToolTip="Toggle audio simulation (does not affect audio previewing)." Margin="3, 0" Visibility="Collapsed"/>
-                <CheckBox x:Name="hitboxCheckBox" IsChecked="{Binding ElementName=UserControl, Path=HitboxSimulation}" Content="Hitbox" Height="20" ToolTip="Toggle hitbox simulation (does not affect hitbox previewing when editing a hitbox directly)." Margin="3, 0" Visibility="Collapsed"/>
-                <CheckBox x:Name="projectileCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ProjectileSimulation}" Content="Projectiles" Height="20" ToolTip="Toggle projectile simulation." Margin="3, 0" Visibility="Collapsed"/>
-                <CheckBox x:Name="effectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=VfxSimulation}" Content="Effect" Height="20" ToolTip="Toggle effect previewing." Margin="3, 0" Visibility="Collapsed"/>
-                <CheckBox x:Name="stageBgEffectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=StageBgVfxSimulation}" Content="Stage BG" Height="20" ToolTip="Toggle Stage BG effects." Margin="3, 0" Visibility="Collapsed"/>
 
-            </StackPanel>
+            <Grid Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" Height="22">
+                <ToggleButton x:Name="previewOptionsButton" Height="22" Padding="8,0" VerticalContentAlignment="Center" ToolTip="Show preview options.">
+                    <ToggleButton.Style>
+                        <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource MahApps.Styles.ToggleButton.Flat}">
+                            <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Transparent}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Control.Border}"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Text}"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Gray.MouseOver}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ToggleButton.Style>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <iconPacks:PackIconMaterialLight Kind="FormatListChecks" Width="14" Height="14" VerticalAlignment="Center"/>
+                        <TextBlock Text="Preview" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                        <iconPacks:PackIconMaterialLight Kind="ArrowUp" Width="10" Height="10" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </ToggleButton>
+                <Popup x:Name="previewOptionsPopup" IsOpen="{Binding ElementName=previewOptionsButton, Path=IsChecked, Mode=TwoWay}" Placement="Top" PlacementTarget="{Binding ElementName=previewOptionsButton}" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                    <Border MinWidth="170" Margin="0,0,0,4" Padding="8" Background="{DynamicResource MahApps.Brushes.ThemeBackground}" BorderBrush="{DynamicResource MahApps.Brushes.Control.Border}" BorderThickness="1" CornerRadius="2">
+                        <StackPanel>
+                            <CheckBox IsChecked="{Binding ElementName=UserControl, Path=RenderCharacters}" Content="Characters" Height="20" Margin="3, 0" ToolTip="Toggle the visibility of characters."/>
+                            <CheckBox IsChecked="{Binding ElementName=UserControl, Path=Loop}" Content="Loop" Height="20" Margin="3, 0"/>
+                            <CheckBox x:Name="bacLoopCheckBox" IsChecked="{Binding ElementName=UserControl, Path=BacLoop}" Content="BAC Loop" Height="20" Margin="3, 0" ToolTip="Toggle loops within Actions (BAC).&#x0a;&#x0a;These are the loops defined in a primary animation or function (0x0 / 0x22) entry."/>
+                            <CheckBox IsChecked="{Binding ElementName=UserControl, Path=AutoPlay}" Content="Auto Play"  Height="20" ToolTip="Toggle autoplay. If enabled, then items will be auto-played when selected." Margin="3, 0"/>
+                            <CheckBox x:Name="cameraCheckBox" IsChecked="{Binding ElementName=UserControl, Path=UseCameras}" Content="Cameras"  Height="20" ToolTip="Toggle camera animations." Margin="3, 0" Visibility="Collapsed"/>
+                            <CheckBox x:Name="bonesCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ShowVisualSkeleton}" Content="Bones" Height="20" ToolTip="Toggle the visual skeleton in the relevant tabs." Margin="3, 0" Visibility="Collapsed"/>
+                            <CheckBox x:Name="audioCheckBox" IsChecked="{Binding ElementName=UserControl, Path=AudioSimulation}" Content="Sound" Height="20" ToolTip="Toggle audio simulation (does not affect audio previewing)." Margin="3, 0" Visibility="Collapsed"/>
+                            <CheckBox x:Name="hitboxCheckBox" IsChecked="{Binding ElementName=UserControl, Path=HitboxSimulation}" Content="Hitbox" Height="20" ToolTip="Toggle hitbox simulation (does not affect hitbox previewing when editing a hitbox directly)." Margin="3, 0" Visibility="Collapsed"/>
+                            <CheckBox x:Name="projectileCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ProjectileSimulation}" Content="Projectiles" Height="20" ToolTip="Toggle projectile simulation." Margin="3, 0" Visibility="Collapsed"/>
+                            <CheckBox x:Name="bpeEffectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=BpeSimulation}" Content="BPE" Height="20" ToolTip="Toggle BPE screen effects." Margin="3, 0" Visibility="Collapsed"/>
+                            <CheckBox x:Name="effectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=VfxSimulation}" Content="Effect" Height="20" ToolTip="Toggle effect previewing." Margin="3, 0" Visibility="Collapsed"/>
+                            <CheckBox x:Name="stageBgEffectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=StageBgVfxSimulation}" Content="Stage BG" Height="20" ToolTip="Toggle Stage BG effects." Margin="3, 0" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Border>
+                </Popup>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

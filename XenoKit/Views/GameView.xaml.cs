@@ -359,6 +359,21 @@ namespace XenoKit.Controls
                 }
             }
         }
+        public bool BpeSimulation
+        {
+            get
+            {
+                return SettingsManager.settings.XenoKit_BpeSimulation;
+            }
+            set
+            {
+                if (SettingsManager.settings.XenoKit_BpeSimulation != value)
+                {
+                    SettingsManager.settings.XenoKit_BpeSimulation = value;
+                    SettingsManager.Instance.SaveSettings();
+                }
+            }
+        }
         public bool VfxSimulation
         {
             get
@@ -502,6 +517,7 @@ namespace XenoKit.Controls
             bonesCheckBox.Visibility = Visibility.Collapsed;
             hitboxCheckBox.Visibility = Visibility.Collapsed;
             projectileCheckBox.Visibility = Visibility.Collapsed;
+            bpeEffectCheckBox.Visibility = Visibility.Collapsed;
             effectCheckBox.Visibility = Visibility.Collapsed;
             stageBgEffectCheckBox.Visibility = Visibility.Collapsed;
 
@@ -520,6 +536,7 @@ namespace XenoKit.Controls
                 bacLoopCheckBox.Visibility = Visibility.Visible;
                 audioCheckBox.Visibility = Visibility.Visible;
                 hitboxCheckBox.Visibility = Visibility.Visible;
+                bpeEffectCheckBox.Visibility = Visibility.Visible;
                 projectileCheckBox.Visibility = Visibility.Visible;
                 stageBgEffectCheckBox.Visibility = Visibility.Visible;
             }
@@ -539,6 +556,7 @@ namespace XenoKit.Controls
             NotifyPropertyChanged(nameof(AudioSimulation));
             NotifyPropertyChanged(nameof(HitboxSimulation));
             NotifyPropertyChanged(nameof(ProjectileSimulation));
+            NotifyPropertyChanged(nameof(BpeSimulation));
             NotifyPropertyChanged(nameof(VfxSimulation));
             NotifyPropertyChanged(nameof(StageBgVfxSimulation));
         }

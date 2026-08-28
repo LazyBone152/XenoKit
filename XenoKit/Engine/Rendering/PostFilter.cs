@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Reflection;
 using XenoKit.Engine.Shader;
 using XenoKit.Engine.Vertex;
 
@@ -126,6 +125,17 @@ namespace XenoKit.Engine.Rendering
             SetUV(index);
         }
 
+        public void SetNineConeOffsets(float u, float v)
+        {
+            SetTextureCoordinates(u, v);
+        }
+
+        public void SetVertexColor(Color color)
+        {
+            for (int i = 0; i < vertices.Length; i++)
+                vertices[i].Color = color;
+        }
+
         public void SetTextureCoordinates(Vector2[] coords, int index)
         {
             if (coords.Length != 4) throw new ArgumentException("SetTextureCoordinates: expected coords to be of length 4.");
@@ -173,7 +183,7 @@ namespace XenoKit.Engine.Rendering
             }
         }
 
-        public void Apply(PostShaderEffect effect)
+        public void Apply(PostShaderEffect effect, DepthStencilState depthStencilState = null)
         {
             VerticeUpdateCheck();
 
@@ -183,6 +193,8 @@ namespace XenoKit.Engine.Rendering
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
+                if (depthStencilState != null)
+                    GraphicsDevice.DepthStencilState = depthStencilState;
                 DrawQuad();
             }
 
@@ -192,5 +204,6 @@ namespace XenoKit.Engine.Rendering
         {
             GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, 4, indices, 0, 2);
         }
+
     }
 }

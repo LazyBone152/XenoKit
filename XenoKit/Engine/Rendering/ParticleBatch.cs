@@ -28,6 +28,7 @@ namespace XenoKit.Engine.Rendering
         // D3D then fails to build the input layout and throws when the particles are drawn. Materials that fail once
         // are tracked here and skipped, so one bad material can't take down the render loop.
         private static readonly HashSet<Xv2ShaderEffect> incompatibleMaterials = new HashSet<Xv2ShaderEffect>();
+        private static readonly BlendState subtractiveBlendState = CreateSubtractiveBlendState();
 
         public readonly ParticleNode ParticleNode;
         public readonly ParticleEmissionData EmissionData;
@@ -158,6 +159,12 @@ namespace XenoKit.Engine.Rendering
                 EmissionData.Material.SetGlareOutputAllowed(!NoGlare);
                 pass.Apply();
 
+                if (EmissionData.Material.MatParam.AlphaBlendType == 2)
+                {
+                    GraphicsDevice.BlendState = subtractiveBlendState;
+                    GraphicsDevice.DepthStencilState = DepthStencilState.None;
+                }
+
                 try
                 {
                     GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, Vertices, 0, batchIndex * 2);
@@ -171,6 +178,14 @@ namespace XenoKit.Engine.Rendering
             }
 
             batchIndex = 0;
+        }
+
+        private static BlendState CreateSubtractiveBlendState()
+        {
+            BlendState blendState = new BlendState { IndependentBlendEnable = true };
+            blendState.ApplySubtractive(0);
+            blendState.ApplySubtractive(1);
+            return blendState;
         }
 
         private void UpdateVertices()
