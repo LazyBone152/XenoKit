@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Linq;
-using XenoKit.Engine.Shapes;
+using XenoKit.Engine.Scripting.BAC;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.CBS;
 using Xv2CoreLib.Resource.App;
@@ -33,7 +32,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
         }
 
         private readonly BAC_Type1 Hitbox;
-        private readonly Cube BoundingBox;
+        private readonly BacHitboxVisual HitboxVisual;
         private Actor actor;
         private int boneIdx = -1;
         private bool isBaseBone = false;
@@ -42,7 +41,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
         public HitboxPreview(BAC_Type1 hitbox, BacEntryInstance bacEntryInstance) : base(hitbox, bacEntryInstance)
         {
             Hitbox = hitbox;
-            BoundingBox = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Blue, true);
+            HitboxVisual = new BacHitboxVisual(new Color(255, 0, 0, 64), Color.Red);
 
             UpdateHitbox();
             Hitbox.PropertyChanged += Hitbox_PropertyChanged;
@@ -61,7 +60,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
         {
             if (IsContextValid() && actor != null)
             {
-                BoundingBox.Draw(WorldMatrix);
+                HitboxVisual.Draw(WorldMatrix);
             }
         }
 
@@ -88,7 +87,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
                 if(actor != null)
                 {
                     isBaseBone = boneName == Xv2CoreLib.ESK.ESK_File.BaseBone;
-                    boneIdx = SceneManager.Actors[0].Skeleton.GetBoneIndex(boneName);
+                    boneIdx = actor.Skeleton.GetBoneIndex(boneName);
                     CBS_Entry cbsEntry = actor.CharacterData.CbsEntry.Find(x => x.BodyId == actor.Skeleton.GetActiveBoneScaleId());
                     float cbsScaling = 1f;
 
@@ -108,14 +107,7 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
                         }
                     }
 
-                    //BAC Hitbox bounds are defined in half-metres (1.0 is actually 0.5)
-                    BoundingBox.SetBounds(
-                        new Vector3(Hitbox.MinX, (Hitbox.MinY + 0.5f), Hitbox.MinZ) * cbsScaling, 
-                        new Vector3(Hitbox.MaxX, Hitbox.MaxY, Hitbox.MaxZ) * cbsScaling,
-                        Hitbox.Size * cbsScaling / 2f, 
-                        Hitbox.BoundingBoxType != BAC_Type1.BoundingBoxTypeEnum.Uniform
-                    );
-                    BoundingBox.SetPosition(new Vector3(Hitbox.PositionX, Hitbox.PositionY, Hitbox.PositionZ));
+                    HitboxVisual.Update(Hitbox, cbsScaling);
                 }
             }
         }
@@ -129,6 +121,8 @@ namespace XenoKit.Engine.Scripting.BAC.Simulation
         {
             if(Hitbox != null)
                 Hitbox.PropertyChanged -= Hitbox_PropertyChanged;
+
+            HitboxVisual.Dispose();
         }
 
         protected override bool IsContextValid()

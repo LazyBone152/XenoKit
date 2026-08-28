@@ -25,10 +25,14 @@ namespace XenoKit.Engine.Shapes
 
         List<VertexPositionNormal> vertices = new List<VertexPositionNormal>();
         List<ushort> indices = new List<ushort>();
+        List<ushort> wireframeIndices = new List<ushort>();
 
         VertexBuffer vertexBuffer;
         IndexBuffer indexBuffer;
+        IndexBuffer wireframeIndexBuffer;
+        int wireframePrimitiveCount;
         BasicEffect basicEffect;
+        RasterizerState wireframeRasterizerState;
 
 
         #endregion
@@ -49,6 +53,18 @@ namespace XenoKit.Engine.Shapes
                 throw new ArgumentOutOfRangeException("index");
 
             indices.Add((ushort)index);
+        }
+
+        protected void AddWireframeLine(int startIndex, int endIndex)
+        {
+            if (startIndex > ushort.MaxValue)
+                throw new ArgumentOutOfRangeException("startIndex");
+
+            if (endIndex > ushort.MaxValue)
+                throw new ArgumentOutOfRangeException("endIndex");
+
+            wireframeIndices.Add((ushort)startIndex);
+            wireframeIndices.Add((ushort)endIndex);
         }
 
         protected int CurrentVertex
@@ -72,6 +88,20 @@ namespace XenoKit.Engine.Shapes
                                           indices.Count, BufferUsage.None);
 
             indexBuffer.SetData(indices.ToArray());
+
+            if (wireframeIndices.Count > 0)
+            {
+                wireframeIndexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort),
+                                                        wireframeIndices.Count, BufferUsage.None);
+                wireframeIndexBuffer.SetData(wireframeIndices.ToArray());
+                wireframePrimitiveCount = wireframeIndices.Count / 2;
+                wireframeIndices = null;
+                wireframeRasterizerState = new RasterizerState()
+                {
+                    FillMode = FillMode.Solid,
+                    CullMode = CullMode.None
+                };
+            }
 
             // Create a BasicEffect, which will be used to render the primitive.
             basicEffect = new BasicEffect(graphicsDevice);
@@ -113,8 +143,14 @@ namespace XenoKit.Engine.Shapes
                 if (indexBuffer != null)
                     indexBuffer.Dispose();
 
+                if (wireframeIndexBuffer != null)
+                    wireframeIndexBuffer.Dispose();
+
                 if (basicEffect != null)
                     basicEffect.Dispose();
+
+                if (wireframeRasterizerState != null)
+                    wireframeRasterizerState.Dispose();
             }
         }
 
@@ -132,21 +168,21 @@ namespace XenoKit.Engine.Shapes
         /// </summary>
         public void Draw(Effect effect)
         {
-            // Set our vertex declaration, vertex buffer, and index buffer.
+            Draw(effect, indexBuffer, PrimitiveType.TriangleList, indices.Count / 3);
+        }
+
+        private void Draw(Effect effect, IndexBuffer buffer, PrimitiveType primitiveType, int primitiveCount)
+        {
+            if (buffer == null || primitiveCount <= 0)
+                return;
+
             GraphicsDevice.SetVertexBuffer(vertexBuffer);
-
-            GraphicsDevice.Indices = indexBuffer;
-
+            GraphicsDevice.Indices = buffer;
 
             foreach (EffectPass effectPass in effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-
-                int primitiveCount = indices.Count / 3;
-
-                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, primitiveCount);
-                //GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Count, 0, primitiveCount);
-
+                GraphicsDevice.DrawIndexedPrimitives(primitiveType, 0, 0, primitiveCount);
             }
         }
 
@@ -183,6 +219,37 @@ namespace XenoKit.Engine.Shapes
 
             // Draw the model, using BasicEffect.
             Draw(basicEffect);
+        }
+
+        public void DrawWireframe(Matrix world, Matrix view, Matrix projection, Color color)
+        {
+            if (wireframeIndexBuffer == null || wireframePrimitiveCount <= 0)
+                return;
+
+            basicEffect.World = world;
+            basicEffect.View = view;
+            basicEffect.Projection = projection;
+            basicEffect.DiffuseColor = color.ToVector3();
+            basicEffect.Alpha = color.A / 255.0f;
+
+            GraphicsDevice device = basicEffect.GraphicsDevice;
+            device.DepthStencilState = (alwaysVisible) ? DepthStencilState.None : DepthStencilState.Default;
+            device.BlendState = color.A < 255 ? BlendState.AlphaBlend : BlendState.Opaque;
+
+            RasterizerState previousRasterizerState = device.RasterizerState;
+            bool previousLightingEnabled = basicEffect.LightingEnabled;
+            device.RasterizerState = wireframeRasterizerState;
+            basicEffect.LightingEnabled = false;
+
+            try
+            {
+                Draw(basicEffect, wireframeIndexBuffer, PrimitiveType.LineList, wireframePrimitiveCount);
+            }
+            finally
+            {
+                basicEffect.LightingEnabled = previousLightingEnabled;
+                device.RasterizerState = previousRasterizerState;
+            }
         }
 
 

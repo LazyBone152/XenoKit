@@ -356,7 +356,7 @@ namespace XenoKit.Engine
         {
             if (!HitboxEnabled || Controller.InvulnerabilityFrames > 0 || Controller.FreezeActionFrames > 0) return false;
 
-            if (Hitbox.Intersects(hitbox.BoundingBox))
+            if (hitbox.IsSupported && Hitbox.Intersects(hitbox.BoundingBox))
             {
                 Xv2CoreLib.BDM.BDM_File bdm = Files.Instance.GetBdmFile(hitbox.Hitbox.bdmFile, hitbox.BacEntry.SkillMove, hitbox.BacEntry.User, false);
 
