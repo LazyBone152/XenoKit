@@ -131,6 +131,7 @@
 
             <Label Grid.Row="1" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Right" Content="{Binding ElementName=UserControl, Path=CurrentFramePreview}" FontSize="14" Margin="0,0,0,0" Height="37" Width="75"/>
             <Slider Grid.Row="1" Margin="10,0,75,0" Maximum="{Binding ElementName=UserControl, Path=MaxFrameValue}" Value="{Binding ElementName=UserControl, Path=CurrentFrame}" Minimum="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" ToolTip="Seek" Cursor="Hand"/>
+
             <Grid Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" Height="22">
                 <ToggleButton x:Name="previewOptionsButton" Height="22" Padding="8,0" VerticalContentAlignment="Center" ToolTip="Show preview options.">
                     <ToggleButton.Style>
@@ -174,7 +175,7 @@
                             <CheckBox x:Name="projectileCheckBox" IsChecked="{Binding ElementName=UserControl, Path=ProjectileSimulation}" Content="Projectiles" Height="20" ToolTip="Toggle projectile simulation." Margin="3, 0" Visibility="Collapsed"/>
                             <CheckBox x:Name="bpeEffectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=BpeSimulation}" Content="BPE" Height="20" ToolTip="Toggle BPE screen effects." Margin="3, 0" Visibility="Collapsed"/>
                             <CheckBox x:Name="effectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=VfxSimulation}" Content="Effect" Height="20" ToolTip="Toggle effect previewing." Margin="3, 0" Visibility="Collapsed"/>
-
+                            <CheckBox x:Name="stageBgEffectCheckBox" IsChecked="{Binding ElementName=UserControl, Path=StageBgVfxSimulation}" Content="Stage BG" Height="20" ToolTip="Toggle Stage BG effects." Margin="3, 0" Visibility="Collapsed"/>
                         </StackPanel>
                     </Border>
                 </Popup>

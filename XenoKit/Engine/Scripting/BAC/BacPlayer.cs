@@ -137,6 +137,7 @@ namespace XenoKit.Engine.Scripting.BAC
             IOrderedEnumerable<IBacType> validEntries = BacEntryInstance.BacEntry.IBacTypes.Where
                 (b => IsValidBacTypeTime(b) && (b.Flags == typeFlag || b.Flags == 0))
                 .OrderBy(x => x.GetType() == typeof(BAC_Type4)); //TimeScale must be resolved before animation/camera
+            var settings = SettingsManager.Instance.Settings;
 
             //Read bac types
             foreach (IBacType type in validEntries)
@@ -247,7 +248,9 @@ namespace XenoKit.Engine.Scripting.BAC
                 if (type is BAC_Type8 effect)
                 {
                     if ((effect.EffectFlags & BAC_Type8.EffectFlagsEnum.Loop) != BAC_Type8.EffectFlagsEnum.Loop && type.TimesActivated > 0) continue;
-                    if (!ActivationCheck(type) || !SettingsManager.Instance.Settings.XenoKit_VfxSimulation) continue;
+                    if (!ActivationCheck(type) ||
+                        !settings.XenoKit_VfxSimulation ||
+                        (effect.EepkType == BAC_Type8.EepkTypeEnum.StageBG && !settings.XenoKit_StageBgVfxSimulation)) continue;
 
                     if ((effect.EffectFlags & BAC_Type8.EffectFlagsEnum.Off) == BAC_Type8.EffectFlagsEnum.Off)
                     {
@@ -285,7 +288,7 @@ namespace XenoKit.Engine.Scripting.BAC
                                    (projectile.BsaFlags & BAC_Type9.BsaFlagsEnum.AllowLoop) == BAC_Type9.BsaFlagsEnum.AllowLoop;
 
                     if (!canLoop && type.TimesActivated > 0) continue;
-                    if (!ActivationCheck(type) || !SettingsManager.Instance.Settings.XenoKit_ProjectileSimulation) continue;
+                    if (!ActivationCheck(type) || !settings.XenoKit_ProjectileSimulation) continue;
 
                     BSA_File bsaFile = Files.Instance.GetBsaFile(projectile.BsaType, projectile.SkillID, BacEntryInstance.SkillMove, BacEntryInstance.User, true);
                     BSA_Entry bsaEntry = bsaFile?.BSA_Entries?.FirstOrDefault(entry => entry.SortID == projectile.EntryID);
