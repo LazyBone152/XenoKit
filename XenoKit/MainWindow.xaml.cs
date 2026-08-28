@@ -1,26 +1,20 @@
-using AutoUpdater;
 using ControlzEx.Theming;
 using GalaSoft.MvvmLight.CommandWpf;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.Editor;
 using XenoKit.Engine;
 using XenoKit.Windows;
-using Xv2CoreLib;
 using Xv2CoreLib.Resource.App;
-using Xv2CoreLib.SAV;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace XenoKit
 {
