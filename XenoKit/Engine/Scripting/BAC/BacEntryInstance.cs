@@ -221,7 +221,9 @@ namespace XenoKit.Engine.Scripting.BAC
 
                     if (anim != null && BAC_Type0.IsFullBodyAnimation(animationBacType.EanType))
                     {
-                        animTypeDuration = anim.FrameCount;
+                        animTypeDuration = animationBacType.StartTime == 0
+                            ? anim.FrameCount
+                            : anim.FrameCount - animationBacType.StartFrame;
                     }
                 }
             }

@@ -103,20 +103,31 @@
                 <RowDefinition Height="40"/>
                 <RowDefinition Height="20"/>
             </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal">
-                <Button Click="Play_Click"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="{Binding PlayPauseButtonBinding}" />
-                </Button>
-                <Button  Click="Stop_Click" Margin="5,0,0,0"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="Stop" />
-                </Button>
-                <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekPrevCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="SeekPrevious" />
-                </RepeatButton>
-                <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekNextCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
-                    <iconPacks:PackIconMaterialLight Kind="SeekNext" />
-                </RepeatButton>
-            </StackPanel>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Button Click="Play_Click"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="{Binding PlayPauseButtonBinding}" />
+                    </Button>
+                    <Button  Click="Stop_Click" Margin="5,0,0,0"  Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="Stop" />
+                    </Button>
+                    <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekPrevCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="SeekPrevious" />
+                    </RepeatButton>
+                    <RepeatButton Command="{Binding ElementName=UserControl, Path=SeekNextCommand}" Margin="5,0,0,0" Width="27" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="27">
+                        <iconPacks:PackIconMaterialLight Kind="SeekNext" />
+                    </RepeatButton>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Margin="10,0,0,0" Orientation="Horizontal">
+                    <Label VerticalContentAlignment="Center" Content="{Binding ElementName=UserControl, Path=TimeScale}" FontSize="12"/>
+                    <Label VerticalContentAlignment="Center" Content="{Binding ElementName=UserControl, Path=StateExtraInfo}" FontSize="12" Margin="10,0,0,0" FontStyle="Normal"/>
+                </StackPanel>
+            </Grid>
 
             <Label Grid.Row="1" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Right" Content="{Binding ElementName=UserControl, Path=CurrentFramePreview}" FontSize="14" Margin="0,0,0,0" Height="37" Width="75"/>
             <Slider Grid.Row="1" Margin="10,0,75,0" Maximum="{Binding ElementName=UserControl, Path=MaxFrameValue}" Value="{Binding ElementName=UserControl, Path=CurrentFrame}" Minimum="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" ToolTip="Seek" Cursor="Hand"/>
