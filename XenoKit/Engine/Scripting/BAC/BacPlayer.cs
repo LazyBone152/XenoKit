@@ -306,7 +306,7 @@ namespace XenoKit.Engine.Scripting.BAC
                 {
                     if (!ActivationCheck(type) || character.ActorSlot != 0) continue;
 
-                    EAN_File ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, true);
+                    EAN_File ean = Files.Instance.GetCamEanFile(camera.EanType, BacEntryInstance.SkillMove, BacEntryInstance.User, true, camera.UseCharacterSpecificCameraEan);
 
                     if (ean != null && camera.EanIndex != ushort.MaxValue && SceneManager.UseCameras)
                     {

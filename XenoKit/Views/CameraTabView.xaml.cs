@@ -732,7 +732,7 @@ namespace XenoKit.Controls
             float rotX = Viewport.Instance.Camera.CameraState.TargetPosition.X;
             float rotY = Viewport.Instance.Camera.CameraState.TargetPosition.Y;
             float rotZ = Viewport.Instance.Camera.CameraState.TargetPosition.Z;
-            float scaleX = -MathHelper.ToRadians(Viewport.Instance.Camera.CameraState.Roll);
+            float scaleX = MathHelper.ToRadians(Viewport.Instance.Camera.CameraState.Roll);
             float scaleY = MathHelper.ToRadians(Viewport.Instance.Camera.CameraState.FieldOfView);
 
             //"Unscale" the camera if the current EAN file is not chara unique
