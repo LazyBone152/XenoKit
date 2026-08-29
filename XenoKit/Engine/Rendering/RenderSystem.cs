@@ -20,20 +20,20 @@ namespace XenoKit.Engine.Rendering
         public readonly ParticleBatcher ParticleBatcher;
         private readonly SpriteBatch SpriteBatch;
 
-        private readonly List<RenderObject> Reflections = new List<RenderObject>();
-        private readonly List<RenderObject> Characters = new List<RenderObject>();
-        private readonly List<RenderObject> Stages = new List<RenderObject>();
-        private readonly List<RenderObject> Effects = new List<RenderObject>(); //PBIND, TBIND, EMO
+        private readonly List<RenderObject> Reflections = new List<RenderObject>(4);
+        private readonly List<RenderObject> Characters = new List<RenderObject>(4);
+        private readonly List<RenderObject> Stages = new List<RenderObject>(4);
+        private readonly List<RenderObject> Effects = new List<RenderObject>(4096); //PBIND, TBIND, EMO
 
-        private readonly List<RenderObject> ReflectionsToAdd = new List<RenderObject>();
-        private readonly List<RenderObject> CharasToAdd = new List<RenderObject>();
-        private readonly List<RenderObject> StagesToAdd = new List<RenderObject>();
-        private readonly List<RenderObject> EffectsToAdd = new List<RenderObject>();
+        private readonly List<RenderObject> ReflectionsToAdd = new List<RenderObject>(4);
+        private readonly List<RenderObject> CharasToAdd = new List<RenderObject>(4);
+        private readonly List<RenderObject> StagesToAdd = new List<RenderObject>(4);
+        private readonly List<RenderObject> EffectsToAdd = new List<RenderObject>(1024);
 
-        private readonly List<RenderObject> ReflectionsToRemove = new List<RenderObject>();
-        private readonly List<RenderObject> CharasToRemove = new List<RenderObject>();
-        private readonly List<RenderObject> StagesToRemove = new List<RenderObject>();
-        private readonly List<RenderObject> EffectsToRemove = new List<RenderObject>();
+        private readonly List<RenderObject> ReflectionsToRemove = new List<RenderObject>(4);
+        private readonly List<RenderObject> CharasToRemove = new List<RenderObject>(4);
+        private readonly List<RenderObject> StagesToRemove = new List<RenderObject>(4);
+        private readonly List<RenderObject> EffectsToRemove = new List<RenderObject>(1024);
 
         private RenderScene RenderScene = null;
 

@@ -1,14 +1,10 @@
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using XenoKit.Editor;
 using XenoKit.Engine.Model;
-using XenoKit.Engine.Shader;
 using XenoKit.Inspector.InspectorEntities;
-using Xv2CoreLib.EMM;
+using Xv2CoreLib.BEV;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Rendering
@@ -86,9 +82,9 @@ namespace XenoKit.Engine.Rendering
         {
             if (entitiesToRemove.Count > 0)
             {
-                foreach (RenderObject entity in entitiesToRemove)
+                for(int i = 0; i < entitiesToRemove.Count; i++)
                 {
-                    entities.Remove(entity);
+                    entities.Remove(entitiesToRemove[i]);
                 }
 
                 entitiesToRemove.Clear();
@@ -96,10 +92,10 @@ namespace XenoKit.Engine.Rendering
 
             if (entitiesToAdd.Count > 0)
             {
-                foreach (RenderObject entity in entitiesToAdd)
+                for (int i = 0; i < entitiesToAdd.Count; i++)
                 {
-                    if (!entities.Contains(entity))
-                        entities.Add(entity);
+                    if (!entities.Contains(entitiesToAdd[i]))
+                        entities.Add(entitiesToAdd[i]);
                 }
 
                 entitiesToAdd.Clear();
