@@ -11,7 +11,7 @@ namespace XenoKit.Engine.Objects
 
 		public DrawableBoundingBox()
 		{
-			cube = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Pink, true);
+			cube = new Cube(new Vector3(0.5f), new Vector3(-0.5f), new Vector3(0.5f), 0.5f, Color.Pink, true, false);
         }
 
         public void SetBounds(BoundingBox boundingBox)

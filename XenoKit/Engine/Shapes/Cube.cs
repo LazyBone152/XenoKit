@@ -8,11 +8,9 @@ namespace XenoKit.Engine.Shapes
     public class Cube : RenderObject
     {
         //Vertex:
-        private VertexBuffer VertexBuffer;
-        private IndexBuffer IndexBuffer;
         private VertexPositionColorTexture[] Vertices { get; set; }
         private short[] Indices;
-        private short[] WireframeIndices;
+        private int PrimitiveCount;
         private BasicEffect Material;
         private RasterizerState rasterState;
 
@@ -29,6 +27,7 @@ namespace XenoKit.Engine.Shapes
 
         //Settings:
         private readonly bool Wireframe = false;
+        private readonly bool UseQuadFaces = false;
         private readonly bool AlwaysVisible = false;
         private readonly float YAxisOffset = 0f;
 
@@ -53,20 +52,21 @@ namespace XenoKit.Engine.Shapes
         /// <summary>
         /// Initialize a cube as a bounding box. The parameters of the bounding box can be updated by calling the <see cref="SetBounds(Vector3, Vector3, float)"/> and <see cref="SetPosition(Vector3)"/> methods.
         /// </summary>
-        public Cube(Vector3 position, Vector3 minBounds, Vector3 maxBounds, float size, Color color, bool wireframe)
+        public Cube(Vector3 position, Vector3 minBounds, Vector3 maxBounds, float size, Color color, bool wireframe, bool wireframeUseQuadFaces = true)
         {
             Wireframe = wireframe;
+            UseQuadFaces = wireframe && wireframeUseQuadFaces;
             Color = color;
             Scale = new Vector3(1f);
 
             MinBounds = minBounds;
             MaxBounds = maxBounds;
             SetPosition(position);
-            ConstructCube(false);
+            ConstructCube();
             SetBounds(minBounds, maxBounds, size, true);
         }
 
-        private void ConstructCube(bool createVertices = true)
+        private void ConstructCube()
         {
             //Create the material this cube will use
             Material = new BasicEffect(GraphicsDevice);
@@ -74,23 +74,23 @@ namespace XenoKit.Engine.Shapes
             Material.VertexColorEnabled = true;
 
             Vertices = new VertexPositionColorTexture[8];
-            if (Wireframe)
+            CreateVertices();
+
+            if (UseQuadFaces)
             {
-                WireframeIndices = new short[]
+                Indices = new short[]
                 {
                     0, 1, 1, 3, 3, 2, 2, 0,
                     6, 7, 7, 5, 5, 4, 4, 6,
                     0, 6, 1, 7, 2, 4, 3, 5
                 };
+
+                PrimitiveCount = Indices.Length / 2;
             }
             else
             {
                 Indices = new short[36]; //6 * 6
-            }
-            CreateVertices();
 
-            if (!Wireframe)
-            {
                 //Create vertex index
                 //TOP
                 Indices[0] = 0;
@@ -139,9 +139,9 @@ namespace XenoKit.Engine.Shapes
                 Indices[33] = 3;
                 Indices[34] = 4;
                 Indices[35] = 5;
-            }
 
-            //CreateBuffers();
+                PrimitiveCount = Indices.Length / 3;
+            }
 
             if (rasterState == null)
             {
@@ -149,7 +149,7 @@ namespace XenoKit.Engine.Shapes
                 {
                     rasterState = new RasterizerState()
                     {
-                        FillMode = FillMode.Solid,
+                        FillMode = FillMode.WireFrame,
                         CullMode = CullMode.None
                     };
                 }
@@ -158,19 +158,6 @@ namespace XenoKit.Engine.Shapes
                     rasterState = RasterizerState.CullNone;
                 }
             }
-        }
-
-        private void CreateBuffers()
-        {
-            return; //Causing device crashes
-            if (VertexBuffer == null)
-                VertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColorTexture), Vertices.Length, BufferUsage.WriteOnly);
-
-            if (IndexBuffer == null)
-                IndexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.SixteenBits, Indices.Length, BufferUsage.WriteOnly);
-
-            VertexBuffer.SetData(Vertices);
-            IndexBuffer.SetData(Indices);
         }
 
         private void CreateVertices()
@@ -204,8 +191,6 @@ namespace XenoKit.Engine.Shapes
             Vertices[5] = new VertexPositionColorTexture(btmRightBack, Color, textureBottomRight);
             Vertices[6] = new VertexPositionColorTexture(btmLeftFront, Color, textureBottomLeft);
             Vertices[7] = new VertexPositionColorTexture(btmRightFront, Color, textureBottomRight);
-
-            CreateBuffers();
         }
 
         public void SetPosition(Vector3 position)
@@ -304,13 +289,14 @@ namespace XenoKit.Engine.Shapes
 
                 pass.Apply();
 
-                PrimitiveType primitiveType = Wireframe ? PrimitiveType.LineList : PrimitiveType.TriangleList;
-                short[] drawIndices = Wireframe ? WireframeIndices : Indices;
-                int primitiveCount = Wireframe ? WireframeIndices.Length / 2 : Indices.Length / 3;
-                GraphicsDevice.DrawUserIndexedPrimitives(primitiveType, Vertices, 0, Vertices.Length, drawIndices, 0, primitiveCount);
-                //GraphicsDevice.SetVertexBuffer(VertexBuffer);
-                //GraphicsDevice.Indices = IndexBuffer;
-                //GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, IndexBuffer.IndexCount / 3);
+                if (UseQuadFaces)
+                {
+                    GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineList, Vertices, 0, Vertices.Length, Indices, 0, PrimitiveCount);
+                }
+                else
+                {
+                    GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, Vertices, 0, Vertices.Length, Indices, 0, PrimitiveCount);
+                }
             }
         }
     }

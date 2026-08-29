@@ -32,8 +32,8 @@ namespace XenoKit.Engine.Collision
         {
             this.fillColor = fillColor;
             this.wireColor = wireColor;
-            boxFill = new Cube(Vector3.Zero, new Vector3(-1f), new Vector3(1f), 0f, fillColor, false);
-            boxWireframe = new Cube(Vector3.Zero, new Vector3(-1f), new Vector3(1f), 0f, wireColor, true);
+            //boxFill = new Cube(Vector3.Zero, new Vector3(-1f), new Vector3(1f), 0f, fillColor, false);
+            boxWireframe = new Cube(Vector3.Zero, new Vector3(-1f), new Vector3(1f), 0f, wireColor, true, false);
         }
 
         public void Clear()
@@ -96,7 +96,7 @@ namespace XenoKit.Engine.Collision
             if (halfExtents.X <= 0f && halfExtents.Y <= 0f && halfExtents.Z <= 0f)
                 return;
 
-            boxFill.SetBounds(-halfExtents, halfExtents, 0f, true);
+            //boxFill.SetBounds(-halfExtents, halfExtents, 0f, true);
             boxWireframe.SetBounds(-halfExtents, halfExtents, 0f, true);
             boxPosition = position;
             shapeType = ShapeType.Box;
@@ -117,9 +117,9 @@ namespace XenoKit.Engine.Collision
                     capsule.DrawWireframe(capsuleWorld, Camera.ViewMatrix, Camera.ProjectionMatrix, wireColor);
                     break;
                 case ShapeType.Box:
-                    boxFill.SetPosition(boxPosition);
+                    //boxFill.SetPosition(boxPosition);
                     boxWireframe.SetPosition(boxPosition);
-                    boxFill.Draw(world);
+                    //boxFill.Draw(world);
                     boxWireframe.Draw(world);
                     break;
             }
