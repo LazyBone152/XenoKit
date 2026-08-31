@@ -341,29 +341,14 @@
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EntitySelector.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\EntitySelector.xaml.cs</Link>
     </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\EtrScale.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\EtrScale.xaml.cs</Link>
-    </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\KeyframeScale.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\KeyframeScale.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\LogForm.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\LogForm.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\LogPrompt.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\LogPrompt.xaml.cs</Link>
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorAll.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\Recolor\RecolorAll.xaml.cs</Link>
     </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorAll_HueSet.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\Recolor\RecolorAll_HueSet.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorTexture_HueSet.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\Recolor\RecolorTexture_HueSet.xaml.cs</Link>
-    </Compile>
-    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\TextureEditHueChange.xaml.cs">
-      <Link>Views\EEPK Organiser\Forms\Recolor\TextureEditHueChange.xaml.cs</Link>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorTexture.xaml.cs">
+      <Link>Views\EEPK Organiser\Forms\Recolor\RecolorTexture.xaml.cs</Link>
     </Compile>
     <Compile Include="..\..\XV2 Tools\EEPK Editor\Forms\RenameForm.xaml.cs">
       <Link>Views\EEPK Organiser\Forms\RenameForm.xaml.cs</Link>
@@ -1084,23 +1069,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\EtrScale.xaml">
-      <Link>Views\EEPK Organiser\Forms\EtrScale.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\KeyframeScale.xaml">
       <Link>Views\EEPK Organiser\Forms\KeyframeScale.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\LogForm.xaml">
-      <Link>Views\EEPK Organiser\Forms\LogForm.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\LogPrompt.xaml">
-      <Link>Views\EEPK Organiser\Forms\LogPrompt.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -1109,18 +1079,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorAll_HueSet.xaml">
-      <Link>Views\EEPK Organiser\Forms\Recolor\RecolorAll_HueSet.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorTexture_HueSet.xaml">
-      <Link>Views\EEPK Organiser\Forms\Recolor\RecolorTexture_HueSet.xaml</Link>
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\TextureEditHueChange.xaml">
-      <Link>Views\EEPK Organiser\Forms\Recolor\TextureEditHueChange.xaml</Link>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\Forms\Recolor\RecolorTexture.xaml">
+      <Link>Views\EEPK Organiser\Forms\Recolor\RecolorTexture.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
