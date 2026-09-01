@@ -1,17 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using XenoKit.Editor;
-using XenoKit.Helper;
-using Xv2CoreLib;
-using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCM;
-using Xv2CoreLib.BDM;
 using Xv2CoreLib.BSA;
-using Xv2CoreLib.EAN;
-using Xv2CoreLib.EEPK;
-using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Editor
@@ -71,9 +61,8 @@ namespace XenoKit.Editor
 
             if (entry != null && !Secondary.BsaEntries.Any(x => (ushort)x.SortID == bsaType.BSA_EntryID))
             {
-                var entryCopy = entry.Copy();
-                Secondary.BsaEntries.Add(entryCopy);
-                CopyBsaEntryReferences(entryCopy, move);
+                Secondary.BsaEntries.Add(entry);
+                CopyBsaEntryReferences(entry, move);
             }
 
             if(entry != null)
@@ -119,11 +108,10 @@ namespace XenoKit.Editor
 
             foreach (var bsaEntry in bsaEntries)
             {
-                var pastedEntry = bsaEntry.Copy();
-                int oldId = pastedEntry.SortID;
-                int newId = move.Files.BsaFile.File.AddEntry(pastedEntry);
+                int oldId = bsaEntry.SortID;
+                int newId = move.Files.BsaFile.File.AddEntry(bsaEntry);
                 ReplaceIdReference(ValueReference.InstanceRefType.Bsa, oldId, newId);
-                undos.Add(new UndoableListAdd<BSA_Entry>(move.Files.BsaFile.File.BSA_Entries, pastedEntry));
+                undos.Add(new UndoableListAdd<BSA_Entry>(move.Files.BsaFile.File.BSA_Entries, bsaEntry));
             }
 
             return undos;

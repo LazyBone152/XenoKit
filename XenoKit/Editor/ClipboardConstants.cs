@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows;
 
 namespace XenoKit.Editor
@@ -49,97 +45,37 @@ namespace XenoKit.Editor
 
     public static class XenoKitClipboard
     {
-        private static readonly Dictionary<string, ClipboardItem> items = new Dictionary<string, ClipboardItem>();
-
         public static void SetData(string format, object value)
         {
-            string token = Guid.NewGuid().ToString("N");
-            items[format] = new ClipboardItem(token, value);
-
-            DataObject dataObject = new DataObject();
-            dataObject.SetData(format, token, false);
-            Clipboard.SetDataObject(dataObject, false);
+            Clipboard.SetData(format, value);
         }
 
         public static bool ContainsData(string format)
         {
-            return TryGetStoredItem(format, out _);
+            return Clipboard.ContainsData(format);
         }
 
         public static bool TryGetData<T>(string format, out T value) where T : class
         {
-            value = null;
-
-            if (!TryGetStoredItem(format, out ClipboardItem item))
-                return false;
-
-            if (!(item.Value is T typedValue))
-                return false;
-
-            value = Clone(typedValue) ?? typedValue;
-            return true;
-        }
-
-        private static bool TryGetStoredItem(string format, out ClipboardItem item)
-        {
-            item = null;
-
-            if (!items.TryGetValue(format, out ClipboardItem storedItem))
-                return false;
-
-            if (!HasClipboardToken(format, storedItem.Token))
+            if(!Clipboard.ContainsData(format))
             {
-                items.Remove(format);
+                value = null;
                 return false;
             }
-
-            item = storedItem;
-            return true;
-        }
-
-        private static bool HasClipboardToken(string format, string token)
-        {
-            try
+            else
             {
-                if (!Clipboard.ContainsData(format))
-                    return false;
-
-                return Clipboard.GetData(format) as string == token;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private static T Clone<T>(T value) where T : class
-        {
-            try
-            {
-                using (MemoryStream stream = new MemoryStream())
+                try
                 {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, value);
-                    stream.Position = 0;
-                    return formatter.Deserialize(stream) as T;
+                    value = Clipboard.GetData(format) as T;
+                    return true;
+                }
+                catch
+                {
+                    value = null;
+                    Log.Add("Failed to retrieve data from clipboard for format: " + format, LogType.Error);
+                    return false;
                 }
             }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private class ClipboardItem
-        {
-            public ClipboardItem(string token, object value)
-            {
-                Token = token;
-                Value = value;
-            }
-
-            public string Token { get; }
-            public object Value { get; }
         }
     }
 }

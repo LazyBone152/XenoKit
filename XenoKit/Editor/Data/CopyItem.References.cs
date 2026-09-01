@@ -1,18 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using XenoKit.Editor;
-using XenoKit.Helper;
-using Xv2CoreLib;
-using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCM;
-using Xv2CoreLib.BDM;
-using Xv2CoreLib.BSA;
-using Xv2CoreLib.EAN;
-using Xv2CoreLib.EEPK;
-using Xv2CoreLib.Resource;
-using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Editor
 {
@@ -75,9 +62,8 @@ namespace XenoKit.Editor
 
                 if (projectile != null && !Secondary.BsaEntries.Any(x => (ushort)x.SortID == bsaId))
                 {
-                    var projectileCopy = projectile.Copy();
-                    Secondary.BsaEntries.Add(projectileCopy);
-                    CopyBsaEntryReferences(projectileCopy, move);
+                    Secondary.BsaEntries.Add(projectile);
+                    CopyBsaEntryReferences(projectile, move);
                 }
 
                 return projectile != null;
@@ -93,9 +79,8 @@ namespace XenoKit.Editor
 
                 if (projectile != null && !Secondary.BsaEntries.Any(x => (ushort)x.SortID == bsaId))
                 {
-                    var projectileCopy = projectile.Copy();
-                    Secondary.BsaEntries.Add(projectileCopy);
-                    CopyBsaEntryReferences(projectileCopy, move);
+                    Secondary.BsaEntries.Add(projectile);
+                    CopyBsaEntryReferences(projectile, move);
                 }
 
                 return projectile != null;
@@ -103,9 +88,9 @@ namespace XenoKit.Editor
             return false;
         }
 
-        private bool CopyCue(Xv2CoreLib.BAC.AcbType acbType, ushort cueId, Move move)
+        private bool CopyCue(AcbType acbType, ushort cueId, Move move)
         {
-            if (cueId != ushort.MaxValue && (acbType == Xv2CoreLib.BAC.AcbType.Character_SE || acbType == Xv2CoreLib.BAC.AcbType.Skill_SE))
+            if (cueId != ushort.MaxValue && (acbType == AcbType.Character_SE || acbType == AcbType.Skill_SE))
             {
                 //Only copy SE sounds
                 var acbFile = move.TryGetAcbFile(acbType);

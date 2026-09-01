@@ -11,19 +11,20 @@ namespace XenoKit.Editor
         //BDM:
         //0 = ACB, 1 = Effect1, 2 = Effect2, 3 = Effect3, 4 = StaminaBrokenOverrideBdmId
 
-        public ReplacedId(object idObect)
+        public ReplacedId(object idObject)
         {
-            IdObject = idObect;
+            IdObject = idObject;
             IdIndex = 0;
         }
 
-        public ReplacedId(object idObect, int idIndex)
+        public ReplacedId(object idObject, int idIndex)
         {
-            IdObject = idObect;
+            IdObject = idObject;
             IdIndex = idIndex;
         }
     }
 
+    [Serializable]
     internal class ValueReference
     {
         internal enum Mode

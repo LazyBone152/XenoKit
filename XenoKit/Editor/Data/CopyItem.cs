@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using XenoKit.Editor;
-using XenoKit.Helper;
 using Xv2CoreLib;
-using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.BCM;
 using Xv2CoreLib.BDM;
 using Xv2CoreLib.BSA;
-using Xv2CoreLib.EAN;
-using Xv2CoreLib.EEPK;
 using Xv2CoreLib.Resource;
-using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Editor
 {
@@ -59,13 +53,13 @@ namespace XenoKit.Editor
             MoveGuid = move.MoveGuid;
 
             //Copy references into Secondary
-            foreach(var bacEntry in bacEntries)
+            foreach (var bacEntry in bacEntries)
             {
                 CopyBacEntryReferences(bacEntry, move);
             }
 
             //Add bac entry to Primary
-            Primary.BacEntries.AddRange(bacEntries.Select(x => x.Copy()));
+            Primary.BacEntries.AddRange(bacEntries);
 
             RemoveDuplicates();
         }
@@ -177,33 +171,6 @@ namespace XenoKit.Editor
         }
 
 
-        #region Copy
-        //BAC
-
-
-
-
-
-
-
-
-        //BDM
-
-        //BSA
-
-
-
-
-        #endregion
-
-        #region CopyGeneral
-
-
-
-
-
-
-
         private bool CopyEffect(BAC_Type8.EepkTypeEnum eepkType, uint effectId, ushort skillId, Move move)
         {
             if (effectId > ushort.MaxValue)
@@ -211,20 +178,8 @@ namespace XenoKit.Editor
 
             return CopyEffect(eepkType, (int)effectId, skillId, move);
         }
-        #endregion
 
-        #region Paste
-
-
-
-
-
-
-
-
-        #endregion
-
-        #region Utils
+        #region Helpers
         private void RemoveDuplicates()
         {
             //Remove any entries in Secondary that already exist in Primary.
@@ -238,7 +193,7 @@ namespace XenoKit.Editor
 
         private void RemoveDuplicates<T>(IList<T> primaryEntries, IList<T> secondaryEntries) where T : IInstallable
         {
-            foreach(var entry in primaryEntries)
+            foreach (var entry in primaryEntries)
             {
                 var existing = secondaryEntries.FirstOrDefault(x => x.SortID == entry.SortID);
 
@@ -249,11 +204,6 @@ namespace XenoKit.Editor
             }
         }
 
-
-
-        #endregion
-
-        #region Helpers
         public int NumMainEntries()
         {
             int total = 0;

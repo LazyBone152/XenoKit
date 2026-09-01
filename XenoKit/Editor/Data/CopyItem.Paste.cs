@@ -1,17 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using XenoKit.Editor;
 using XenoKit.Helper;
-using Xv2CoreLib;
-using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCM;
-using Xv2CoreLib.BDM;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.EAN;
-using Xv2CoreLib.EEPK;
-using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Editor
@@ -29,9 +22,8 @@ namespace XenoKit.Editor
             if(move.MoveGuid != MoveGuid)
                 undos.AddRange(PasteReferences(move, copyReferences));
 
-            foreach(var bacEntry in Primary.BacEntries[0].IBacTypes)
+            foreach(var bacType in Primary.BacEntries[0].IBacTypes)
             {
-                var bacType = (IBacType)bacEntry.Copy();
                 if(ResetTimeLineLayers)
                     bacType.Layer = -1;
 
@@ -55,7 +47,7 @@ namespace XenoKit.Editor
                 undos.AddRange(PasteReferences(move, copyReferences));
 
             foreach (IBsaType bsaType in Primary.BsaEntries[0].IBsaTypes)
-                undos.Add(mainEntry.AddIBsaType(bsaType.Copy()));
+                undos.Add(mainEntry.AddIBsaType(bsaType));
 
             return undos;
         }

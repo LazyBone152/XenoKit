@@ -1,17 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using XenoKit.Editor;
-using XenoKit.Helper;
-using Xv2CoreLib;
-using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCM;
-using Xv2CoreLib.BDM;
-using Xv2CoreLib.BSA;
 using Xv2CoreLib.EAN;
-using Xv2CoreLib.EEPK;
-using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.UndoRedo;
 
 namespace XenoKit.Editor

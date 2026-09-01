@@ -5,20 +5,18 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using XenoKit.Editor;
-using Xv2CoreLib.BAC;
-using XenoKit.ViewModel.BAC;
+using System.Windows.Input;
+using MahApps.Metro.Controls.Dialogs;
 using GalaSoft.MvvmLight.CommandWpf;
+using XenoKit.ViewModel.BAC;
+using Xv2CoreLib;
+using Xv2CoreLib.BAC;
 using Xv2CoreLib.Resource.UndoRedo;
+using Xv2CoreLib.Resource.App;
 using XenoKit.Windows;
 using XenoKit.Engine;
-using Xv2CoreLib.Resource.App;
-using MahApps.Metro.Controls.Dialogs;
-using Xv2CoreLib.Resource;
+using XenoKit.Editor;
 using XenoKit.Windows.EAN;
-using Xv2CoreLib;
-using Xv2CoreLib.BEV;
-using System.Windows.Input;
 
 namespace XenoKit.Controls
 {
@@ -485,7 +483,6 @@ namespace XenoKit.Controls
         {
             if (!XenoKitClipboard.TryGetData(ClipboardConstants.BacEntry_CopyItem, out CopyItem copyItem))
                 return;
-
             PasteCopyItem pasteWindow = new PasteCopyItem(copyItem, Files.Instance.SelectedMove);
             pasteWindow.ShowDialog();
         }
