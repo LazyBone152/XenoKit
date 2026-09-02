@@ -1,37 +1,19 @@
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using XenoKit.Windows;
 using Xv2CoreLib;
 using Xv2CoreLib.ACB;
 using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCS;
 using Xv2CoreLib.BDM;
 using Xv2CoreLib.BPE;
 using Xv2CoreLib.BSA;
-using Xv2CoreLib.CUS;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.ERS;
 using Xv2CoreLib.EffectContainer;
 using xv2 = Xv2CoreLib.Xenoverse2;
 using file = Xv2CoreLib.FileManager;
 using XenoKit.Engine;
-using GalaSoft.MvvmLight.CommandWpf;
-using System.Runtime.ExceptionServices;
-using Xv2CoreLib.Resource;
-using Xv2CoreLib.ValuesDictionary;
-using System.Windows;
-using Xv2CoreLib.Resource.App;
-using Xv2CoreLib.SAV;
-using Xv2CoreLib.Resource.UndoRedo;
-using Xv2CoreLib.SPM;
-using XenoKit.Engine.Stage;
-using ControlzEx.Standard;
 
 namespace XenoKit.Editor
 {

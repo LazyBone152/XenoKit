@@ -13,6 +13,7 @@ using Xv2CoreLib.BCS;
 using Xv2CoreLib.Resource.UndoRedo;
 using MahApps.Metro.Controls.Dialogs;
 using GalaSoft.MvvmLight.CommandWpf;
+using LB_Common.Forms;
 
 namespace XenoKit.Views
 {
@@ -233,13 +234,13 @@ namespace XenoKit.Views
             NotifyPropertyChanged(nameof(EanFiles));
         }
 
-        public async void SetPartSetID(int newId)
+        public void SetPartSetID(int newId)
         {
             if (SelectedPartSet != null)
             {
                 if (BcsFile.PartSets.Any(x => x.ID == newId && x != SelectedPartSet))
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", $"Another Part Set already has ID \"{newId}\".", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show($"Another Part Set already has ID \"{newId}\".", "ID Already Used", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 

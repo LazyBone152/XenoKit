@@ -1,11 +1,11 @@
-﻿using System.Windows.Controls;
+﻿using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using GalaSoft.MvvmLight.CommandWpf;
+using GongSolutions.Wpf.DragDrop;
 using XenoKit.Editor;
 using XenoKit.Engine;
 using XenoKit.Windows;
-using GalaSoft.MvvmLight.CommandWpf;
-using GongSolutions.Wpf.DragDrop;
-using System.Windows;
-using System.Linq;
 
 namespace XenoKit.Controls
 {

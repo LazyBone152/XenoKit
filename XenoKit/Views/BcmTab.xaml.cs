@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
+using LB_Common.Forms;
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections;
@@ -409,7 +410,7 @@ namespace XenoKit.Views
         }
 
         public RelayCommand DeleteCommand => new RelayCommand(DeleteEntry, HasSelectedEntries);
-        private async void DeleteEntry()
+        private void DeleteEntry()
         {
             BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
             if (file?.BCMEntries == null) return;
@@ -422,8 +423,9 @@ namespace XenoKit.Views
                 string message = entries.Count == 1
                     ? "Are you sure you want to delete this entry? This will delete ALL children of this entry"
                     : "Are you sure you want to delete these entries? This will delete ALL children of these entries";
-                MessageDialogResult result = await DialogCoordinator.Instance.ShowMessageAsync(this, "Delete BCM Entry", message, MessageDialogStyle.AffirmativeAndNegative, DialogSettings.DefaultYesNo);
-                if (result != MessageDialogResult.Affirmative)
+                MessagePromptResult result = MessagePrompt.Show(message, "Delete BCM Entry", MessagePromptButtons.YesNo, MessagePromptIcon.Question);
+
+                if (result != MessagePromptResult.Yes)
                     return;
             }
 
@@ -498,13 +500,13 @@ namespace XenoKit.Views
         }
 
         public RelayCommand ReindexCommand => new RelayCommand(Reindex);
-        private async void Reindex()
+        private void Reindex()
         {
             BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
             if (file == null) return;
 
-            MessageDialogResult result = await DialogCoordinator.Instance.ShowMessageAsync(this, "Reindex BCM", "Reindex all BCM states? This changes state IDs and updates loop links.", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.DefaultYesNo);
-            if (result != MessageDialogResult.Affirmative)
+            MessagePromptResult result = MessagePrompt.Show("Reindex all BCM states? This changes state IDs and updates loop links.", "Reindex BCM", MessagePromptButtons.YesNo, MessagePromptIcon.Question);
+            if (result != MessagePromptResult.Yes)
                 return;
 
             List<ReindexSnapshot> oldValues = GetReindexSnapshots(file);
@@ -517,7 +519,7 @@ namespace XenoKit.Views
         }
 
         public RelayCommand CompressCommand => new RelayCommand(Compress, IsBcmFileLoaded);
-        private async void Compress()
+        private void Compress()
         {
             BCM_File file = files.SelectedItem?.SelectedBcmFile?.File;
             if (file == null) return;
@@ -531,13 +533,13 @@ namespace XenoKit.Views
             }
             catch (InvalidDataException ex)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "BCM Compression", ex.Message, MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show($"Error compressing BCM loops: {ex.Message}", "BCM Compression", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
             if (removedCount == 0)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "BCM Compression", "No repeated BCM child loops were found.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("No repeated BCM child loops were found.", "BCM Compression", MessagePromptButtons.OK, MessagePromptIcon.Information);
                 return;
             }
 
@@ -548,7 +550,7 @@ namespace XenoKit.Views
             SelectedEntry = null;
             RefreshTree();
 
-            await DialogCoordinator.Instance.ShowMessageAsync(this, "BCM Compression", $"Compressed BCM loops. Removed {removedCount} repeated entries.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+            MessagePrompt.Show($"Compressed BCM loops. Removed {removedCount} repeated entries.", "BCM Compression", MessagePromptButtons.OK, MessagePromptIcon.Information);
         }
 
         private bool IsBcmFileLoaded()

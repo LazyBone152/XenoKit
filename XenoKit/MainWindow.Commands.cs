@@ -1,4 +1,5 @@
 using GalaSoft.MvvmLight.CommandWpf;
+using LB_Common.Forms;
 using MahApps.Metro.Controls.Dialogs;
 using System.Collections.Generic;
 using System.IO;
@@ -64,7 +65,7 @@ namespace XenoKit
         {
             if (!File.Exists(SettingsManager.settings.SaveFile))
             {
-                await this.ShowMessageAsync("No Save File", "A save file must be set in the settings to use this feature.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("A save file must be set in the settings to use this feature.", "No Save File", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 return;
             }
 
@@ -96,11 +97,11 @@ namespace XenoKit
             Files.Instance.SaveItem(Files.Instance.SelectedItem);
         }
 
-        private async void SaveAll()
+        private void SaveAll()
         {
-            var result = await this.ShowMessageAsync("Save All", "Save all files currently loaded in the outliner (except those marked as \"Read Only\"?", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
+            var result = MessagePrompt.Show("Save all files currently loaded in the outliner (except those marked as \"Read Only\"?", "Save All", MessagePromptButtons.YesNo, MessagePromptIcon.Question);
 
-            if (result == MessageDialogResult.Affirmative)
+            if (result == MessagePromptResult.Yes)
                 Files.Instance.SaveAll();
         }
 

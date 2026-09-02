@@ -1,35 +1,14 @@
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using XenoKit.Windows;
-using Xv2CoreLib;
-using Xv2CoreLib.ACB;
-using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCS;
-using Xv2CoreLib.BDM;
-using Xv2CoreLib.BSA;
-using Xv2CoreLib.CUS;
-using Xv2CoreLib.EAN;
-using Xv2CoreLib.EffectContainer;
-using xv2 = Xv2CoreLib.Xenoverse2;
-using file = Xv2CoreLib.FileManager;
-using XenoKit.Engine;
-using GalaSoft.MvvmLight.CommandWpf;
-using System.Runtime.ExceptionServices;
-using Xv2CoreLib.Resource;
-using Xv2CoreLib.ValuesDictionary;
 using System.Windows;
-using Xv2CoreLib.Resource.App;
-using Xv2CoreLib.SAV;
+using MahApps.Metro.Controls.Dialogs;
+using GalaSoft.MvvmLight.CommandWpf;
+using Xv2CoreLib;
 using Xv2CoreLib.Resource.UndoRedo;
-using Xv2CoreLib.SPM;
-using XenoKit.Engine.Stage;
-using ControlzEx.Standard;
+using XenoKit.Engine;
+using LB_Common.Forms;
 
 namespace XenoKit.Editor
 {
@@ -70,14 +49,14 @@ namespace XenoKit.Editor
 
         public async void RemoveSelectedItem(IList<OutlinerItem> items)
         {
-            int count = items.Where(x => x.CanDelete).Count();
+            int count = items.Count(x => x.CanDelete);
 
             string message = count == 1 ? $"Do you want to remove \"{SelectedItem.DisplayName}\"? It will be removed from the outliner and any edits will be lost if not saved." :
                 $"{count} items will be removed from the outliner and any edits made to them will be lost if not saved.";
 
-            MessageDialogResult result = await window.ShowMessageAsync(items.Count > 1 ? "Remove Items" : "Remove Item", message, MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
+            MessagePromptResult result = MessagePrompt.Show(message, items.Count > 1 ? "Remove Items" : "Remove Item", MessagePromptButtons.YesNo, MessagePromptIcon.Question);
 
-            if (result == MessageDialogResult.Affirmative)
+            if (result == MessagePromptResult.Yes)
             {
                 SelectedItem = null;
 
@@ -194,7 +173,7 @@ namespace XenoKit.Editor
                         else
                         {
                             //Show an error message to the user and quit
-                            MessageBox.Show($"This {item.DisplayType.ToLower()} is already loaded.", "Already Exists", MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessagePrompt.Show($"This {item.DisplayType.ToLower()} is already loaded.", "Already Exists", MessagePromptButtons.OK, MessagePromptIcon.Error);
                             return;
                         }
                     }
@@ -213,13 +192,13 @@ namespace XenoKit.Editor
 
         private void SelectOutlinerItem(OutlinerItem item)
         {
-            if (System.Windows.Application.Current?.Dispatcher?.CheckAccess() != false)
+            if (Application.Current?.Dispatcher?.CheckAccess() != false)
             {
                 SelectedItem = item;
                 return;
             }
 
-            System.Windows.Application.Current.Dispatcher.Invoke(() => SelectedItem = item);
+            Application.Current.Dispatcher.Invoke(() => SelectedItem = item);
         }
 
     }

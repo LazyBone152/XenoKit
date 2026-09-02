@@ -18,6 +18,7 @@ using xv2 = Xv2CoreLib.Xenoverse2;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Xv2CoreLib.CMS;
+using LB_Common.Forms;
 
 namespace XenoKit.Editor 
 {
@@ -170,13 +171,13 @@ namespace XenoKit.Editor
             {
                 if (PupEntries.Count > 0 && PupEntries?.Count != CusEntry.NumTransformations)
                 {
-                    window.ShowMessageAsync($"Invalid PUP Entry Count", $"Pup Entry count must match CUS > NumTransformations or be 0.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("Pup Entry count must match CUS > NumTransformations or be 0.", "Invalid PUP Entry Count", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return false;
                 }
 
                 if(CusEntry.ID2 > 5000)
                 {
-                    window.ShowMessageAsync($"Invalid ID", $"Skill ID must be between 0 and 5000 (currently is: {CusEntry.ID2}).", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show($"Skill ID must be between 0 and 5000 (currently is: {CusEntry.ID2}).", $"Invalid ID", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return false;
                 }
             }
@@ -221,7 +222,7 @@ namespace XenoKit.Editor
 
             if(conflicts.Count() > 0)
             {
-                window.ShowMessageAsync($"ID Conflict ({MoveType}: {Name})", $"There are multiple {typeText} entries with the ID {conflicts.First().SortID}. To continue with saving, please give each entry a unique ID!", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show($"There are multiple {typeText} entries with the ID {conflicts.First().SortID}. To continue with saving, please give each entry a unique ID!", $"ID Conflict ({MoveType}: {Name})", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return false;
             }
             return true;
@@ -236,7 +237,7 @@ namespace XenoKit.Editor
                 //Check for same chara code and language
                 if(files.Any(x => x.CharaCode == file.CharaCode && x.IsEnglish == file.IsEnglish && x != file))
                 {
-                    window.ShowMessageAsync($"Duplicate {valueText}", $"There are multiple {fileText} with the same {valueText}. To continue with saving, please give each {fileText} a unique {valueText}.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show($"There are multiple {fileText} with the same {valueText}. To continue with saving, please give each {fileText} a unique {valueText}.", $"Duplicate {valueText}", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return false;
                 }
             }

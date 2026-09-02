@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
+using LB_Common.Forms;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using System;
@@ -99,13 +100,13 @@ namespace XenoKit.Windows
         {
             if (outlinerItem?.character?.CharacterData?.IsCaC == true)
             {
-                MessageBox.Show("Operation not available for CACs!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessagePrompt.Show("Operation not available for CACs!", "Error", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
             if (file != null)
             {
-                if(MessageBox.Show("This will create a new unique copy of this file, ensuring that any further edits will not affect its original instance.\n\n(This is only for files that are \"borrowed\" from other skills or characters, does nothing otherwise)", "Break Share Link", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                if(MessagePrompt.Show("This will create a new unique copy of this file, ensuring that any further edits will not affect its original instance.\n\n(This is only for files that are \"borrowed\" from other skills or characters, does nothing otherwise)", "Break Share Link", MessagePromptButtons.YesNo, MessagePromptIcon.Question) != MessagePromptResult.Yes)
                 {
                     return;
                 }

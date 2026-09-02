@@ -33,7 +33,9 @@ namespace XenoKit.Editor
 
         //SubTabs:
         public Visibility SeVisibility { get; private set; } = Visibility.Collapsed;
+        public Visibility SeSlotsVisibility { get; private set; } = Visibility.Collapsed;
         public Visibility VoxVisibility { get; private set; } = Visibility.Collapsed;
+        public Visibility VoxSlotsVisibility { get; private set; } = Visibility.Collapsed;
 
         public EditorVisibility(OutlinerItemType type)
         {
@@ -67,8 +69,10 @@ namespace XenoKit.Editor
                 AudioVisibility = Visibility.Visible;
                 SeVisibility = Visibility.Visible;
                 CameraVisibility = Visibility.Visible;
+                SeSlotsVisibility = Visibility.Visible;
+                VoxSlotsVisibility = Visibility.Visible;
 
-                if(type == OutlinerItemType.Character)
+                if (type == OutlinerItemType.Character)
                 {
                     BcsVisibility = Visibility.Visible;
                     FpfVisibility = Visibility.Visible;
@@ -88,6 +92,7 @@ namespace XenoKit.Editor
                 ProjectileVisibility = Visibility.Visible;
                 CameraVisibility = Visibility.Visible;
                 SystemVisibility = Visibility.Visible;
+                VoxSlotsVisibility = Visibility.Visible;
             }
             else if(type == OutlinerItemType.ACB)
             {

@@ -17,6 +17,7 @@ using XenoKit.Inspector.InspectorEntities;
 using XenoKit.Editor;
 using XenoKit.Engine.Textures;
 using XenoKit.Engine.Model;
+using LB_Common.Forms;
 
 namespace XenoKit.Views
 {
@@ -88,7 +89,7 @@ namespace XenoKit.Views
             {
                 if (!SelectedItem.Save())
                 {
-                    MessageBox.Show("This file does not support saving.", "Save Not Possible", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessagePrompt.Show("Save Not Possible", "This file does not support saving.", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 }
             }
         }
@@ -100,7 +101,7 @@ namespace XenoKit.Views
             {
                 if (!SelectedItem.Load())
                 {
-                    MessageBox.Show("This file does not support reloading.", "Reload Not Possible", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessagePrompt.Show("Reload Not Possible", "This file does not support reloading.", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 }
             }
         }
@@ -153,7 +154,7 @@ namespace XenoKit.Views
             {
                 if(mesh.EmgFile != null)
                 {
-                    MessageBox.Show("Only EMD, NSK and EMO models are supported for editing", "Not Supported", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessagePrompt.Show("Only EMD, NSK and EMO models are supported for editing", "Not Supported", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 

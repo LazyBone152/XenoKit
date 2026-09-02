@@ -1,4 +1,5 @@
-﻿using MahApps.Metro.Controls;
+﻿using LB_Common.Forms;
+using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using System;
 using System.ComponentModel;
@@ -241,7 +242,7 @@ namespace XenoKit.Windows
                 }
                 else
                 {
-                    MessageBox.Show(this, "The entered game directory is not valid.\n\nPlease enter a valid directory. It should be the folder named \"DB Xenoverse 2\", and contain the bin and cpk folders within. You must select this FOLDER, not the game exe!", "Settings", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessagePrompt.Show("The entered game directory is not valid.\n\nPlease enter a valid directory. It should be the folder named \"DB Xenoverse 2\", and contain the bin and cpk folders within. You must select this FOLDER, not the game exe!", "Settings", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 }
             }
         }
@@ -265,7 +266,7 @@ namespace XenoKit.Windows
             if (!settings.ValidGameDir)
             {
                 settings.GameDirectory = OriginalGameDir;
-                MessageBox.Show("The entered game directory is not valid and it will be removed, with the original directory being restored.", "Settings", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessagePrompt.Show("The entered game directory is not valid and it will be removed, with the original directory being restored.", "Settings", MessagePromptButtons.OK, MessagePromptIcon.Error);
             }
         }
 

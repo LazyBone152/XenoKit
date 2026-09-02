@@ -1,5 +1,6 @@
 using ControlzEx.Theming;
 using GalaSoft.MvvmLight.CommandWpf;
+using LB_Common.Forms;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using System;
@@ -48,10 +49,10 @@ namespace XenoKit
                 }
             }
         }
+        public Visibility DebugMenuVisible { get; set; } = Visibility.Hidden;
 
         #endregion
 
-        private bool ErrorMessageCurrentDisplayed = false;
         public Stopwatch sw;
 
         public MainWindow()
@@ -208,7 +209,7 @@ namespace XenoKit
 
             if (!SettingsManager.settings.ValidGameDir)
             {
-                MessageBox.Show("The game directory was not found. \n\nThe application will now close.", "Game Directory Not Found", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessagePrompt.Show("The game directory was not found. \n\nThe application will now close.", "Game Directory Not Found", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 Environment.Exit(0);
             }
         }
@@ -247,24 +248,16 @@ namespace XenoKit
 
         #region Exit
         public RelayCommand ExitCommand => new RelayCommand(Exit);
-        private async void Exit()
+        private void Exit()
         {
-            SettingsManager.Instance.SaveSettings(false);
-
-            var dialog = await this.ShowMessageAsync("Exit", "Do you wish to exit? Any unsaved data will be lost!", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
-
-            if (dialog == MessageDialogResult.Affirmative)
+            if (MessagePrompt.Show("Do you wish to exit? Any unsaved data will be lost!", "Exit", MessagePromptButtons.YesNo, MessagePromptIcon.Question, true) == MessagePromptResult.Yes)
             {
                 SettingsManager.Instance.SaveSettings(false);
                 LocalSettings.Save();
                 Environment.Exit(0);
             }
-
         }
         #endregion
-
-
-
 
         private void EepkEditor_SelectedEffectTabChanged(object sender, EventArgs e)
         {
@@ -308,34 +301,27 @@ namespace XenoKit
             }
         }
 
+        public void ShowTextForm()
+        {
+            MessagePromptResult result = MessagePrompt.Show("Exception Thrown", "The program has encountered an exception with the following error message. (These error messages can be disabled in the settings menu. When disabled they will still appear in the log, and can also be copied from there by right clicking)",
+                MessagePromptButtons.OK, MessagePromptIcon.Error, "ajsbfjkasdbfjkasdbfkjasfdlknaslfk/nafsfasfasfasfas/nasdfasfsafsaf", "OK", null, "Copy Message", null);
+
+            if (result == MessagePromptResult.Negative)
+            {
+                //Clipboard.SetText("ajsbfjkasdbfjkasdbfkjasfdlknaslfk/nafsfasfasfasfas/nasdfasfsafsaf");
+            }
+        }
+
         public async void ShowException(Exception ex)
         {
-            if (ErrorMessageCurrentDisplayed) return;
-            ErrorMessageCurrentDisplayed = true;
+            MessagePromptResult result = MessagePrompt.Show("Exception Thrown", "The program has encountered an exception with the following error message. (These error messages can be disabled in the settings menu. When disabled they will still appear in the log, and can also be copied from there by right clicking)",
+                MessagePromptButtons.OK, MessagePromptIcon.Error, ex.Message, "OK", null, "Copy Message", null);
 
-            var dialogSettings = DialogSettings.Default;
-            dialogSettings.AffirmativeButtonText = "OK";
-            dialogSettings.NegativeButtonText = "OK (Copy Full Error)";
-
-            var dialog = await this.ShowMessageAsync("Unhandled Exception", string.Format("An error has occurred with the following message: {0}\n\nIf the error keeps occuring, consider opening an issue on GitHub and posting the details of the error (plus the full error message, using the copy button).\n\n(These error messages can be disabled in the settings menu, though that's not recommended. If disabled then they will still appear in the log, and can also be copied from there by right clicking)", ex.Message), MessageDialogStyle.AffirmativeAndNegative, dialogSettings);
-
-            if (dialog == MessageDialogResult.Negative)
+            if(result == MessagePromptResult.Negative)
             {
                 Clipboard.SetText(ex.ToString());
             }
-
-            ErrorMessageCurrentDisplayed = false;
         }
-
-        #region DEBUG MENU
-        public Visibility DebugMenuVisible { get; set; } = Visibility.Hidden;
-
-
-
-
-
-
-        #endregion
 
     }
 }

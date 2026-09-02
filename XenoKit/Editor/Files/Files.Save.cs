@@ -1,35 +1,12 @@
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using XenoKit.Windows;
-using Xv2CoreLib;
-using Xv2CoreLib.ACB;
-using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCS;
-using Xv2CoreLib.BDM;
-using Xv2CoreLib.BSA;
-using Xv2CoreLib.CUS;
-using Xv2CoreLib.EAN;
-using Xv2CoreLib.EffectContainer;
-using xv2 = Xv2CoreLib.Xenoverse2;
-using file = Xv2CoreLib.FileManager;
-using XenoKit.Engine;
-using GalaSoft.MvvmLight.CommandWpf;
-using System.Runtime.ExceptionServices;
-using Xv2CoreLib.Resource;
-using Xv2CoreLib.ValuesDictionary;
-using System.Windows;
+using System.ComponentModel;
+using MahApps.Metro.Controls.Dialogs;
 using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.SAV;
-using Xv2CoreLib.Resource.UndoRedo;
-using Xv2CoreLib.SPM;
-using XenoKit.Engine.Stage;
-using ControlzEx.Standard;
+using xv2 = Xv2CoreLib.Xenoverse2;
+using file = Xv2CoreLib.FileManager;
+using LB_Common.Forms;
 
 namespace XenoKit.Editor
 {
@@ -190,7 +167,7 @@ namespace XenoKit.Editor
         {
             if (!File.Exists(SettingsManager.settings.SaveFile))
             {
-                MessageBox.Show("A save file must be set in the settings to use this feature.", "No Save File", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessagePrompt.Show("A save file must be set in the settings to use this feature.", "No Save File", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 

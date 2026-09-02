@@ -21,7 +21,7 @@
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="50"/>
             <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
@@ -32,13 +32,13 @@
                 <Button Command="{Binding ElementName=UserControl, Path=AddBodyCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                     <iconPacks:PackIconMaterialLight Kind="Plus"/>
                 </Button>
-                <TextBlock Text="New" HorizontalAlignment="Center" FontSize="8"/>
+                <TextBlock Text="New" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
             <StackPanel VerticalAlignment="Center">
                 <Button Command="{Binding ElementName=UserControl, Path=RemoveBodyCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                     <iconPacks:PackIconMaterialLight Kind="Delete"/>
                 </Button>
-                <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="8"/>
+                <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
         </StackPanel>
 

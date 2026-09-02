@@ -22,24 +22,38 @@
             <lbUtils:BindingProxy x:Key="Proxy" Data="{Binding}" />
         </Grid.Resources>
         <Grid.RowDefinitions>
-            <RowDefinition Height="44"/>
-            <RowDefinition Height="1"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="15"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="1"/>
+            <RowDefinition Height="15"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <StackPanel x:Name="actorFiles" Grid.Row="0"  Orientation="Horizontal">
             <Grid Margin="5"/>
-            <ComboBox x:Name="filesComboBox" Controls:TextBoxHelper.ClearTextButton="True" Controls:TextBoxHelper.ButtonCommand="{Binding DeleteEanFileCommand}" SelectedItem="{Binding files.SelectedItem.SelectedEanFile, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding files.SelectedMove.Files.EanFile.Binding}" DisplayMemberPath="DisplayName" SelectionChanged="filesComboBox_SelectionChanged" Height="23" Width="182" Margin="2, 0"/>
-            
-            <Button Command="{Binding AddEanFileCommand}" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Create a new EAN file" HorizontalAlignment="Center" VerticalAlignment="Center" Width="20" Height="20" Margin="2">
-                <iconPacks:PackIconModern Kind="Add" Width="12" Height="12"/>
-            </Button>
+            <ComboBox x:Name="filesComboBox" SelectedItem="{Binding files.SelectedItem.SelectedEanFile, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding files.SelectedMove.Files.EanFile.Binding}" DisplayMemberPath="DisplayName" SelectionChanged="filesComboBox_SelectionChanged" Height="23" Width="182" Margin="2, 0"/>
 
-            <Button Command="{Binding RenameEanFileCommand}" Style="{DynamicResource MahApps.Styles.Button.Circle}" ToolTip="Change character ID" HorizontalAlignment="Center" VerticalAlignment="Center" Width="20" Height="20" Margin="2">
-                <iconPacks:PackIconModern Kind="Edit" Width="10" Height="10"/>
-            </Button>
+            <StackPanel Orientation="Horizontal" Height="38" Margin="0,10,0,0" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.IsSkill}">
+                <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                    <Button Command="{Binding ElementName=UserControl, Path=AddEanFileCommand}" ToolTip="Create a new EAN file" HorizontalAlignment="Left" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                        <iconPacks:PackIconModern Kind="Add" Width="12" Height="12" />
+                    </Button>
+                    <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="10"/>
+                </StackPanel>
+
+                <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                    <Button Command="{Binding ElementName=UserControl, Path=RenameEanFileCommand}" ToolTip="Change character ID" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                        <iconPacks:PackIconModern Kind="Edit" Width="12" Height="12" />
+                    </Button>
+                    <TextBlock Text="Edit" HorizontalAlignment="Center" FontSize="10"/>
+                </StackPanel>
+                <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                    <Button Command="{Binding ElementName=UserControl, Path=DeleteEanFileCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                        <iconPacks:PackIconModern Kind="Delete" Width="12" Height="12" />
+                    </Button>
+                    <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="10"/>
+                </StackPanel>
+            </StackPanel>
 
         </StackPanel>
         <StackPanel x:Name="inspectorFiles" Grid.Row="0"  Orientation="Horizontal" Margin="5" Visibility="Collapsed">
@@ -61,8 +75,8 @@
 
         </StackPanel>
 
-        <Grid Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent}"/>
-        <Grid Grid.Row="3" Background="{DynamicResource MahApps.Brushes.Accent}"/>
+        <Grid Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent}" Height="1" VerticalAlignment="Center"/>
+        <Grid Grid.Row="3" Background="{DynamicResource MahApps.Brushes.Accent}" Height="1" VerticalAlignment="Center"/>
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
@@ -73,21 +87,21 @@
             
             <StackPanel Grid.Column="0" Margin="5, 25">
                 <StackPanel VerticalAlignment="Center">
-                    <Button Command="{Binding ElementName=UserControl, Path=NewAnimationCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25">
+                    <Button Command="{Binding ElementName=UserControl, Path=NewAnimationCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="30" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Plus" />
                     </Button>
-                    <TextBlock Text="New" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="New" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
                 <StackPanel VerticalAlignment="Center">
-                    <Button Command="{Binding ElementName=UserControl, Path=DeleteAnimationsCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25">
+                    <Button Command="{Binding ElementName=UserControl, Path=DeleteAnimationsCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="30" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Plus" />
                     </Button>
-                    <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
                 <Separator Visibility="{Binding ElementName=UserControl, Path=FaceToolVisiblity}" Margin="0,5" />
                 <!-- Currently this menu is only useful for face EANs, so it will be hidden for everything else. -->
                 <StackPanel VerticalAlignment="Center" Visibility="{Binding ElementName=UserControl, Path=FaceToolVisiblity}" >
-                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="30" Height="30" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
                         <iconPacks:Material Kind="Tools" Width="13" Height="13"/>
                         <Button.ContextMenu>
                             <ContextMenu>
@@ -95,7 +109,7 @@
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
-                    <TextBlock Text="Tools" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Tools" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
             </StackPanel>
 
@@ -258,7 +272,7 @@
 
             <StackPanel Grid.RowSpan="2" Grid.Column="0" Margin="5, 25">
                 <StackPanel VerticalAlignment="Center">
-                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="30" Height="30" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
                         <Button.ContextMenu>
                             <ContextMenu Opened="Bone_ContextMenu_Opened">
                                 <MenuItem Header="Bones" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AddBones}" Click="AddBone_Click">
@@ -272,13 +286,13 @@
                         </Button.ContextMenu>
                         <iconPacks:PackIconMaterialLight Kind="Plus" />
                     </Button>
-                    <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
                 <StackPanel VerticalAlignment="Center">
-                    <Button Command="{Binding ElementName=UserControl, Path=DeleteBoneCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="25" Height="25">
+                    <Button Command="{Binding ElementName=UserControl, Path=DeleteBoneCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{DynamicResource MahApps.Styles.Button.Circle}" Width="30" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Delete" />
                     </Button>
-                    <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
             </StackPanel>
 

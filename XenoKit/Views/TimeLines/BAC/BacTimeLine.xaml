@@ -136,19 +136,19 @@
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
-                <TextBlock Text="Add Layer" HorizontalAlignment="Center" FontSize="8"/>
+                <TextBlock Text="Add Layer" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
             <StackPanel VerticalAlignment="Center" ToolTip="Character Type Filter">
                 <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="FlagsFilter_Click">
                     <iconPacks:PackIconMaterialLight Kind="FormatListChecks"/>
                 </Button>
-                <TextBlock Text="Chara Filter" HorizontalAlignment="Center" FontSize="8"/>
+                <TextBlock Text="Chara Filter" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
             <StackPanel VerticalAlignment="Center" ToolTip="BAC Type Filter">
                 <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="BacTypeFilter_Click">
                     <iconPacks:PackIconMaterialLight Kind="FormatListChecks"/>
                 </Button>
-                <TextBlock Text="BAC Filter" HorizontalAlignment="Center" FontSize="8"/>
+                <TextBlock Text="BAC Filter" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
             <Separator Width="20" RenderTransformOrigin="0.5,0.5" Margin="10,0,0,0">
                 <Separator.RenderTransform>
@@ -164,13 +164,13 @@
                 <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="Button_ZoomOut_Click">
                     <iconPacks:PackIconMaterialDesign Kind="ZoomOut"/>
                 </Button>
-                <TextBlock Text="Zoom Out" HorizontalAlignment="Center" FontSize="8"/>
+                <TextBlock Text="Out" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
             <StackPanel VerticalAlignment="Center" ToolTip="Zoom In">
                 <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="Button_ZoomIn_Click">
                     <iconPacks:PackIconMaterialDesign Kind="ZoomIn"/>
                 </Button>
-                <TextBlock Text="Zoom In" HorizontalAlignment="Center" FontSize="8"/>
+                <TextBlock Text="In" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
             <Slider VerticalAlignment="Center" Width="150" Margin="10,-7.5,0,0" Minimum="1" Maximum="100" Value="{Binding ElementName=UserControl, Path=UnitSize}"/>
         </StackPanel>

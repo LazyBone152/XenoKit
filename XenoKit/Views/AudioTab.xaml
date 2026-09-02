@@ -12,7 +12,7 @@
              xmlns:editor="clr-namespace:XenoKit.Editor"
              mc:Ignorable="d" 
              Dialog:DialogParticipation.Register="{Binding}"
-             d:DesignHeight="500" d:DesignWidth="600">
+             d:DesignHeight="500" d:DesignWidth="600" Name="UserControl">
     <Grid Controls:ControlsHelper.ContentCharacterCasing="Normal">
 
         <TabControl x:Name="audioTabControl" Grid.Row="2" Controls:TabControlHelper.Underlined="TabPanel">
@@ -20,63 +20,84 @@
             <Controls:MetroTabItem Header="SE" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.SeVisibility}">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="44"/>
-                        <RowDefinition Height="1"/>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="15"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Grid.Row="0"  Orientation="Horizontal">
                         <Grid Width="15"/>
-                        <ComboBox x:Name="filesComboBox" Controls:TextBoxHelper.ClearTextButton="True" SelectedItem="{Binding files.SelectedItem.SelectedSeAcbFile, UpdateSourceTrigger=PropertyChanged}" Controls:TextBoxHelper.ButtonCommand="{Binding DeleteSeFileCommand}" ItemsSource="{Binding files.SelectedMove.Files.SeAcbFile.Binding}" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="3,0"/>
+                        <ComboBox x:Name="filesComboBox" SelectedItem="{Binding files.SelectedItem.SelectedSeAcbFile, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding files.SelectedMove.Files.SeAcbFile.Binding}" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="3,0"/>
 
-                        <StackPanel VerticalAlignment="Center"  Margin="2,10,2,3" Height="31">
-                            <Button Command="{Binding AddSeFileCommand}" ToolTip="Create a new SE ACB file." HorizontalAlignment="Left" VerticalAlignment="Center" Width="20" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="20">
-                                <iconPacks:PackIconModern Kind="Add"  Width="12" Height="12"/>
-                            </Button>
-                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Height="38" Margin="0,10,0,0" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.SeSlotsVisibility}">
+                            <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                                <Button Command="{Binding ElementName=UserControl, Path=AddSeFileCommand}" ToolTip="Create a new English VOX ACB file." HorizontalAlignment="Left" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                                    <iconPacks:PackIconModern Kind="Add" Width="12" Height="12" />
+                                </Button>
+                                <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="10"/>
+                            </StackPanel>
 
-                        <StackPanel VerticalAlignment="Center" Margin="2,10,2,3" Height="31">
-                            <Button Command="{Binding RenameSeFileCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="20" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="20">
-                                <iconPacks:PackIconModern Kind="Edit" Width="10" Height="10" />
-                            </Button>
+                            <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                                <Button Command="{Binding ElementName=UserControl, Path=RenameSeFileCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                                    <iconPacks:PackIconModern Kind="Edit" Width="12" Height="12" />
+                                </Button>
+                                <TextBlock Text="Edit" HorizontalAlignment="Center" FontSize="10"/>
+                            </StackPanel>
+                            <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                                <Button Command="{Binding ElementName=UserControl, Path=DeleteSeFileCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                                    <iconPacks:PackIconModern Kind="Delete" Width="12" Height="12" />
+                                </Button>
+                                <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="10"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
 
+                    <Grid Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent}" Height="1" VerticalAlignment="Center"/>
                     <view:CueEditorView Grid.Row="2" AcbWrapperDP="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedSeAcbFile.File}"/>
                 </Grid>
             </Controls:MetroTabItem>
             <Controls:MetroTabItem Header="Voice" Controls:HeaderedControlHelper.HeaderFontSize="14" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.VoxVisibility}">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="44"/>
-                        <RowDefinition Height="1"/>
+                        <RowDefinition Height="50"/>
+                        <RowDefinition Height="15"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <StackPanel Grid.Row="0"  Orientation="Horizontal">
                         <Grid Width="15"/>
-                        <ComboBox x:Name="voxComboBox" Controls:TextBoxHelper.ClearTextButton="True" SelectedItem="{Binding files.SelectedItem.SelectedVoxAcbFile, UpdateSourceTrigger=PropertyChanged}" Controls:TextBoxHelper.ButtonCommand="{Binding DeleteSeFileCommand}" ItemsSource="{Binding files.SelectedMove.Files.VoxAcbFile.Binding}" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="3, 0"/>
+                        <ComboBox x:Name="voxComboBox" SelectedItem="{Binding files.SelectedItem.SelectedVoxAcbFile, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding files.SelectedMove.Files.VoxAcbFile.Binding}" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="3, 0"/>
 
-                        <StackPanel VerticalAlignment="Center"  Margin="2,10,2,0" Height="34">
-                            <Button Command="{Binding AddEnVoxFileCommand}" ToolTip="Create a new English VOX ACB file." HorizontalAlignment="Left" VerticalAlignment="Center" Width="20" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="20">
-                                <iconPacks:PackIconModern Kind="Add" Width="12" Height="12" />
-                            </Button>
-                            <TextBlock Text="EN" HorizontalAlignment="Center" FontSize="8"/>
-                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Height="38" Margin="0,10,0,0" Visibility="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.Visibilities.VoxSlotsVisibility}">
+                            <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                                <Button Command="{Binding ElementName=UserControl, Path=AddEnVoxFileCommand}" ToolTip="Create a new English VOX ACB file." HorizontalAlignment="Left" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                                    <iconPacks:PackIconModern Kind="Add" Width="12" Height="12" />
+                                </Button>
+                                <TextBlock Text="EN" HorizontalAlignment="Center" FontSize="10"/>
+                            </StackPanel>
 
-                        <StackPanel VerticalAlignment="Center" Margin="2,10,2,0" Height="34">
-                            <Button Command="{Binding AddJpVoxFileCommand}" ToolTip="Create a new Japanese VOX ACB file." HorizontalAlignment="Left" VerticalAlignment="Center" Width="20" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="20">
-                                <iconPacks:PackIconModern Kind="Add" Width="12" Height="12" />
-                            </Button>
-                            <TextBlock Text="JP" HorizontalAlignment="Center" FontSize="8"/>
-                        </StackPanel>
+                            <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                                <Button Command="{Binding ElementName=UserControl, Path=AddJpVoxFileCommand}" ToolTip="Create a new Japanese VOX ACB file." HorizontalAlignment="Left" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                                    <iconPacks:PackIconModern Kind="Add" Width="12" Height="12" />
+                                </Button>
+                                <TextBlock Text="JP" HorizontalAlignment="Center" FontSize="10"/>
+                            </StackPanel>
 
-                        <StackPanel VerticalAlignment="Center" Margin="2,10,2,0" Height="34">
-                            <Button Command="{Binding RenameVoxFileCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="20" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="20">
-                                <iconPacks:PackIconModern Kind="Edit" Width="10" Height="10" />
-                            </Button>
+                            <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                                <Button Command="{Binding ElementName=UserControl, Path=RenameVoxFileCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                                    <iconPacks:PackIconModern Kind="Edit" Width="12" Height="12" />
+                                </Button>
+                                <TextBlock Text="Edit" HorizontalAlignment="Center" FontSize="10"/>
+                            </StackPanel>
+                            <StackPanel VerticalAlignment="Center" Margin="2.5,0">
+                                <Button Command="{Binding ElementName=UserControl, Path=DeleteVoxFileCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="25" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="25">
+                                    <iconPacks:PackIconModern Kind="Delete" Width="12" Height="12" />
+                                </Button>
+                                <TextBlock Text="Delete" HorizontalAlignment="Center" FontSize="10"/>
+                            </StackPanel>
                         </StackPanel>
 
                     </StackPanel>
 
+                    <Grid Grid.Row="1" Background="{DynamicResource MahApps.Brushes.Accent}" Height="1" VerticalAlignment="Center"/>
                     <view:CueEditorView Grid.Row="2" AcbWrapperDP="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedVoxAcbFile.File}"/>
                 </Grid>
 

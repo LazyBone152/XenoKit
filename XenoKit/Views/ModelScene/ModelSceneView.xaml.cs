@@ -26,6 +26,7 @@ using XenoKit.Engine.Gizmo.TransformOperations;
 using Xv2CoreLib.EMO;
 using Xv2CoreLib.EMG;
 using Xv2CoreLib.EMA;
+using LB_Common.Forms;
 
 namespace XenoKit.Views
 {
@@ -631,7 +632,7 @@ namespace XenoKit.Views
 
                 if (submesh.TextureSamplerDefs.Count >= 4)
                 {
-                    MessageBox.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    MessagePrompt.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                     return;
                 }
 
@@ -649,7 +650,7 @@ namespace XenoKit.Views
 
                 if (submesh.TextureSamplerDefs.Count >= 4)
                 {
-                    MessageBox.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    MessagePrompt.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                     return;
                 }
 
@@ -677,7 +678,7 @@ namespace XenoKit.Views
 
                 if (submesh.TextureSamplerDefs.Count >= 4)
                 {
-                    MessageBox.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    MessagePrompt.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                     return;
                 }
 
@@ -695,7 +696,7 @@ namespace XenoKit.Views
 
                 if (submesh.TextureSamplerDefs.Count >= 4)
                 {
-                    MessageBox.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    MessagePrompt.Show("Cannot add anymore Texture Samplers.", "Maximum Texture Samplers", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                     return;
                 }
 

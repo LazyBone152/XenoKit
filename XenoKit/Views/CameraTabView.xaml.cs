@@ -6,17 +6,18 @@ using System.Windows.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Media;
 using Microsoft.Xna.Framework;
+using GalaSoft.MvvmLight.CommandWpf;
+using MahApps.Metro.Controls.Dialogs;
 using Xv2CoreLib;
 using Xv2CoreLib.EAN;
+using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.UndoRedo;
 using XenoKit.Engine;
 using XenoKit.Editor;
 using XenoKit.Windows.EAN;
-using GalaSoft.MvvmLight.CommandWpf;
-using MahApps.Metro.Controls.Dialogs;
-using System.Windows.Media;
-using Xv2CoreLib.Resource;
+using LB_Common.Forms;
 
 namespace XenoKit.Controls
 {
@@ -317,7 +318,7 @@ namespace XenoKit.Controls
             {
                 if (SelectedAnimation != null && value >= 0)
                 {
-                    ChangeAnimIdAsync(value);
+                    ChangeAnimId(value);
                 }
 
                 NotifyPropertyChanged(nameof(SelectedAnimationID));
@@ -339,12 +340,12 @@ namespace XenoKit.Controls
         }
 
 
-        private async void ChangeAnimIdAsync(int id)
+        private void ChangeAnimId(int id)
         {
             string result = id.ToString();
             if (files.SelectedItem?.SelectedCamFile?.File.Animations.FirstOrDefault(a => a.Index == result && a != SelectedAnimation) != null)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another camera. Please enter a unique one.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("ID Already Used", "The entered ID is already used by another camera. Please enter a unique one.", MessagePromptIcon.Warning);
             }
             else
             {
@@ -355,11 +356,11 @@ namespace XenoKit.Controls
             files.SelectedItem?.SelectedCamFile?.File.SortEntries();
         }
 
-        private async void ChangeAnimName(string name)
+        private void ChangeAnimName(string name)
         {
             if (files.SelectedItem?.SelectedCamFile?.File.Animations.FirstOrDefault(a => a.Name == name && a != SelectedAnimation) != null)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Name Already Used", "The entered name is already used by another camera. Please enter a unique one.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("Name Already Used", "The entered name is already used by another camera. Please enter a unique one.", MessagePromptIcon.Warning);
             }
             else
             {
@@ -372,24 +373,24 @@ namespace XenoKit.Controls
 
         #region FileSelection
         public RelayCommand AddCamFileCommand => new RelayCommand(AddCamFile, CanAddCamFile);
-        private async void AddCamFile()
+        private void AddCamFile()
         {
-            var result = await DialogCoordinator.Instance.ShowInputAsync(this, "New CAM.EAN", "Enter the character ID (3-letter code) that the EAN is for.", DialogSettings.Default);
+            string result = StringInput.Show("New CAM EAN", "ID (3-letter code)", string.Empty, null, "Enter the character ID (3-letter code) that the CAM EAN is for. A 1 letter special code (F or C) is also accepted.");
 
             if (string.IsNullOrWhiteSpace(result))
             {
                 return;
             }
 
-            if (result.Length != 3)
+            if (!IsEanFileSuffixAllowed(result))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "New CAM.EAN", "The entered ID contained too many or too few letters.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is invalid. Please enter a 3-letter character code or a special character (F or C).", "New CAM EAN", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
             if (Xv2File<EAN_File>.IsCharaCodeUsed(files.SelectedMove.Files.CamEanFile, result.ToUpper()))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "New CAM.EAN", "The entered ID is already in use.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already in use.", "New CAM EAN", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
@@ -408,13 +409,11 @@ namespace XenoKit.Controls
         }
 
         public RelayCommand RenameCamFileCommand => new RelayCommand(RenameCamFile, CanRenameCamFile);
-        private async void RenameCamFile()
+        private void RenameCamFile()
         {
-            var dialogSettings = DialogSettings.Default;
             string originalCode = files.SelectedItem.SelectedCamFile.CharaCode;
-            dialogSettings.DefaultText = files.SelectedItem.SelectedCamFile.CharaCode;
 
-            var result = await DialogCoordinator.Instance.ShowInputAsync(this, "Change ID", "Enter the character ID (3-letter code).", dialogSettings);
+            string result = StringInput.Show("Change ID", "ID (3-letter code)", files.SelectedItem.SelectedCamFile.CharaCode, null, "Change the character ID (3-letter character code or 1-letter special character) that this EAN is associated with.");
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -423,24 +422,30 @@ namespace XenoKit.Controls
 
             result = result.ToUpper();
 
-            if (result.Length != 3)
+            if (!IsEanFileSuffixAllowed(result))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Change ID", "The entered ID contained too many or too few letters.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is invalid. Please enter a 3-letter character code or a special character (F or C).", "Change ID", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
             if (Xv2File<EAN_File>.IsCharaCodeUsed(files.SelectedMove.Files.CamEanFile, result, files.SelectedMove.Files.CamEanFile.IndexOf(files.SelectedItem.SelectedCamFile)))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Change ID", "The entered ID is already in use.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already in use.", "Change ID", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
-
 
             files.SelectedItem.SelectedCamFile.CharaCode = result;
             UndoManager.Instance.AddUndo(new UndoableProperty<Xv2File<EAN_File>>(nameof(Xv2File<EAN_File>.CharaCode), files.SelectedItem.SelectedCamFile, originalCode, files.SelectedItem.SelectedCamFile.CharaCode, $"EAN ID ({originalCode} -> {result})"));
 
         }
 
+        private static bool IsEanFileSuffixAllowed(string suffix)
+        {
+            if (suffix.Equals("F", StringComparison.OrdinalIgnoreCase) || suffix.Equals("C", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return suffix.Length == 3;
+        }
 
         private bool CanDeleteCamFile()
         {
@@ -723,8 +728,8 @@ namespace XenoKit.Controls
         #endregion
 
         #region KeyframeCommands
-        public RelayCommand AddKeyframeCommand => new RelayCommand(AddKeyframeAsync, CanAddKeyframe);
-        private void AddKeyframeAsync()
+        public RelayCommand AddKeyframeCommand => new RelayCommand(AddKeyframe, CanAddKeyframe);
+        private void AddKeyframe()
         {
             float posX = Viewport.Instance.Camera.CameraState.Position.X;
             float posY = Viewport.Instance.Camera.CameraState.Position.Y;
@@ -834,7 +839,7 @@ namespace XenoKit.Controls
         }
 
         public RelayCommand RebaseKeyframeCommand => new RelayCommand(RebaseKeyframe, IsKeyframesSelected);
-        private async void RebaseKeyframe()
+        private void RebaseKeyframe()
         {
             List<int> keyframes = keyframeListBox.SelectedItems.Cast<int>().ToList();
             List<IUndoRedo> undos = new List<IUndoRedo>();
@@ -848,7 +853,7 @@ namespace XenoKit.Controls
             {
                 if(keyframes.Min() + form.RebaseAmount < 0)
                 {
-                    _ = await DialogCoordinator.Instance.ShowMessageAsync(this, "Rebase Keyframes", "The specified rebase amount is invalid. The Start Frame of the selection + Rebase Amount cannot go below 0.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("The specified rebase amount is invalid. The Start Frame of the selection + Rebase Amount cannot go below 0.", "Invalid Rebase Amount", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 

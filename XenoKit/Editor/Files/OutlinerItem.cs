@@ -1,20 +1,15 @@
-using MahApps.Metro.Controls;
 using System;
+using System.IO;
 using System.ComponentModel;
+using MahApps.Metro.Controls;
 using Xv2CoreLib;
 using Xv2CoreLib.ACB;
 using Xv2CoreLib.EAN;
+using Xv2CoreLib.EffectContainer;
 using xv2 = Xv2CoreLib.Xenoverse2;
 using file = Xv2CoreLib.FileManager;
 using XenoKit.Engine;
-using Xv2CoreLib.EffectContainer;
-using System.IO;
-using System.Collections.Generic;
-using XenoKit.Engine.Model;
 using XenoKit.Editor.Data;
-using Xv2CoreLib.BAC;
-using Xv2CoreLib.BCM;
-using Xv2CoreLib.BSA;
 using XenoKit.Engine.Stage;
 
 namespace XenoKit.Editor

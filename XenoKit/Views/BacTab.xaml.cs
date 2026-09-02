@@ -6,7 +6,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using MahApps.Metro.Controls.Dialogs;
 using GalaSoft.MvvmLight.CommandWpf;
 using XenoKit.ViewModel.BAC;
 using Xv2CoreLib;
@@ -17,6 +16,7 @@ using XenoKit.Windows;
 using XenoKit.Engine;
 using XenoKit.Editor;
 using XenoKit.Windows.EAN;
+using LB_Common.Forms;
 
 namespace XenoKit.Controls
 {
@@ -304,7 +304,7 @@ namespace XenoKit.Controls
             }
         }
 
-        private async void EditBacId(int newId)
+        private void EditBacId(int newId)
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
             var existing = Files.Instance.SelectedItem.SelectedBacFile.File.BacEntries.FirstOrDefault(a => a.SortID == newId && a != SelectedBacEntry);
@@ -318,7 +318,7 @@ namespace XenoKit.Controls
 
             if (existing != null && undos.Count == 0)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another BAC entry.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already used by another BAC entry.", "ID Already Used", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 return;
             }
             else

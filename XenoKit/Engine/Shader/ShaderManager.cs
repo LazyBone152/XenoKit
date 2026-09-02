@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using LB_Common.Forms;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -84,7 +85,7 @@ namespace XenoKit.Engine.Shader
 
             if(!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XenoKit/ExtShaders")))
             {
-                MessageBox.Show("The folder \"XenoKit/ExtShaders\" was not found. XenoKit CANNOT function without this folder, as it contains important shaders. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessagePrompt.Show("The folder \"XenoKit/ExtShaders\" was not found. XenoKit CANNOT function without this folder, as it contains important shaders. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 Environment.Exit(0);
             }
 
@@ -128,13 +129,13 @@ namespace XenoKit.Engine.Shader
 
             if (!File.Exists(vsPath))
             {
-                MessageBox.Show($"The shader \"{vsPath}\" was not found. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessagePrompt.Show($"The shader \"{vsPath}\" was not found. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 Environment.Exit(0);
             }
 
             if (!File.Exists(psPath))
             {
-                MessageBox.Show($"The shader \"{psPath}\" was not found. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessagePrompt.Show($"The shader \"{psPath}\" was not found. \n\nThese files come in the same zip that XenoKit comes in - you need to also extract them into the same directory as XenoKit.exe.\n\nThe program will now close.", "ERROR", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 Environment.Exit(0);
             }
 

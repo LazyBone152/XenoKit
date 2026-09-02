@@ -23,6 +23,7 @@ using Xv2CoreLib.EMD;
 using System.Threading.Tasks;
 using XenoKit.Engine.Model;
 using XenoKit.Helper;
+using LB_Common.Forms;
 
 namespace XenoKit.Views
 {
@@ -68,23 +69,23 @@ namespace XenoKit.Views
             UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
         }
 
-        public async void RenameSelectedFile(string newName)
+        public void RenameSelectedFile(string newName)
         {
             string fullNewName = newName + Path.GetExtension(SelectedFile.Name);
 
             //Check if name can be used
             if (Character.CheckCharaFilePathIsReserved(fullNewName))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Name Is Reserved", string.Format("The file \"{0}\" cannot be added because it would replace a vital character file.\n\nIf you must add this file then rename it first.", fullNewName), MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("Name Is Reserved", string.Format("The file \"{0}\" cannot be added because it would replace a vital character file.\n\nIf you must add this file then rename it first.", fullNewName), MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 return;
             }
 
             if (Character.PartSetFiles.Any(x => x.Name.Equals(fullNewName, StringComparison.OrdinalIgnoreCase) && x != SelectedFile))
             {
                 string autoName = Character.GetUnusedCharaFileName(fullNewName);
-                var result = await DialogCoordinator.Instance.ShowMessageAsync(this, string.Format("Rename file to \"{0}\"?", autoName), "The entered name is already used by another file.", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
+                var result = MessagePrompt.Show("The entered name is already used by another file.", string.Format("Rename file to \"{0}\"?", autoName), MessagePromptButtons.YesNo, MessagePromptIcon.Question);
 
-                if (result == MessageDialogResult.Affirmative)
+                if (result == MessagePromptResult.Yes)
                 {
                     fullNewName = autoName;
                 }

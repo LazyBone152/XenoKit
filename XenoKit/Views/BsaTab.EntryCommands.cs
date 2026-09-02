@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
+using LB_Common.Forms;
 using MahApps.Metro.Controls.Dialogs;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace XenoKit.Views
             SelectEntry(entry);
         }
 
-        private async void AddEntryAtSpecificId()
+        private void AddEntryAtSpecificId()
         {
             BSA_File file = GetSelectedFile();
             if (file == null) return;
@@ -48,7 +49,7 @@ namespace XenoKit.Views
 
             if (file.BSA_Entries.Any(entry => entry.SortID == selector.Parameter))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another BSA entry.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already used by another BSA entry.", "ID Already Used", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 return;
             }
 
@@ -118,19 +119,14 @@ namespace XenoKit.Views
             RefreshEntryList();
         }
 
-        private async void ReindexEntries()
+        private void ReindexEntries()
         {
             BSA_File file = GetSelectedFile();
             if (file == null) return;
 
-            MessageDialogResult result = await DialogCoordinator.Instance.ShowMessageAsync(
-                this,
-                "Reindex BSA Entries",
-                "Reindex projectile entries by current sorted order?",
-                MessageDialogStyle.AffirmativeAndNegative,
-                DialogSettings.Default);
+            MessagePromptResult result = MessagePrompt.Show("Reindex projectile entries by current sorted order?", "Reindex BSA Entries", MessagePromptButtons.YesNo, MessagePromptIcon.Question);
 
-            if (result != MessageDialogResult.Affirmative) return;
+            if (result != MessagePromptResult.Yes) return;
 
             List<IUndoRedo> undos = new List<IUndoRedo>();
             Dictionary<int, int> idMap = new Dictionary<int, int>();

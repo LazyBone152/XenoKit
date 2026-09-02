@@ -1,4 +1,5 @@
-﻿using MahApps.Metro.Controls;
+﻿using LB_Common.Forms;
+using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -101,7 +102,7 @@ namespace XenoKit.Windows
             }
             else if (listBox.SelectedItems.Count > 2)
             {
-                MessageBox.Show("Only one or two PartSets may be selected.\n\nSelect the base form PartSet first, and the transformed one last.", "PartSet Selector", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessagePrompt.Show("Only one or two PartSets may be selected.\n\nSelect the base form PartSet first, and the transformed one last.", "PartSet Selector", MessagePromptButtons.OK, MessagePromptIcon.Warning);
             }
         }
     }

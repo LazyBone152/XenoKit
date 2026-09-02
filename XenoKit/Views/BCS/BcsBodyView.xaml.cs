@@ -15,6 +15,7 @@ using Xv2CoreLib.Resource.UndoRedo;
 using MahApps.Metro.Controls.Dialogs;
 using GalaSoft.MvvmLight.CommandWpf;
 using XenoKit.ViewModel.BCS;
+using LB_Common.Forms;
 
 namespace XenoKit.Views
 {
@@ -149,11 +150,11 @@ namespace XenoKit.Views
             NotifyPropertyChanged(nameof(SelectedBody));
         }
 
-        private async void EditBodyID(int newId)
+        private void EditBodyID(int newId)
         {
             if (BcsFile.Bodies.Any(x => x.SortID == newId && x != SelectedBody))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another body.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already used by another body.", "ID Already Used", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 return;
             }
 

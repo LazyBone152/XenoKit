@@ -1,13 +1,13 @@
-﻿using GalaSoft.MvvmLight.CommandWpf;
-using MahApps.Metro.Controls.Dialogs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Controls;
-using XenoKit.Editor;
+using GalaSoft.MvvmLight.CommandWpf;
+using LB_Common.Forms;
 using Xv2CoreLib;
 using Xv2CoreLib.ACB;
 using Xv2CoreLib.Resource.UndoRedo;
+using XenoKit.Editor;
 
 namespace XenoKit.Views
 {
@@ -38,11 +38,11 @@ namespace XenoKit.Views
 
         #region SeFileSelection
         public RelayCommand AddSeFileCommand => new RelayCommand(AddSeFile, CanAddSeFile);
-        private async void AddSeFile()
+        private void AddSeFile()
         {
             //New SE files are only possible on characters.
 
-            var result = await DialogCoordinator.Instance.ShowInputAsync(this, "New SE", "Enter the costume ID (or IDs) that the SE is for (if entering multiple costumes, separate them by a comma):", DialogSettings.Default);
+            string result = StringInput.Show("New SE", "Costume IDs (comma-separated):", null, null, "Enter the costume ID (or IDs) that the SE is for (if entering multiple costumes, separate them by a comma):");
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -53,13 +53,13 @@ namespace XenoKit.Views
 
             if(costumes == null)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "New SE", "The entered costumes could not be parsed.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered costumes could not be parsed.", "New SE", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
             if (Xv2File<ACB_Wrapper>.HasCostume(files.SelectedMove.Files.SeAcbFile, costumes))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "New SE", "One or more of the entered costumes are already in use on a SE ACB.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("One or more of the entered costumes are already in use on another SE ACB.", "New SE", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
@@ -82,13 +82,12 @@ namespace XenoKit.Views
         }
 
         public RelayCommand RenameSeFileCommand => new RelayCommand(RenameSeFile, CanRenameSeFile);
-        private async void RenameSeFile()
+        private void RenameSeFile()
         {
-            var dialogSettings = DialogSettings.Default;
             List<int> originalCostumes = files.SelectedItem.SelectedSeAcbFile.Costumes;
-            dialogSettings.DefaultText = files.SelectedItem.SelectedSeAcbFile.GetCostumesString();
+            int originalIndex = files.SelectedMove.Files.SeAcbFile.IndexOf(files.SelectedItem.SelectedSeAcbFile);
 
-            var result = await DialogCoordinator.Instance.ShowInputAsync(this, "Edit Costumes", "Enter the costume ID (or IDs) that the SE is for (if entering multiple costumes, separate them by a comma):", dialogSettings);
+            string result = StringInput.Show("Edit Costumes", "Costumes (comma-separated):", files.SelectedItem.SelectedSeAcbFile.GetCostumesString(), null, "Enter the costume ID (or IDs) that the SE is for (if entering multiple costumes, separate them by a comma):");
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -99,13 +98,13 @@ namespace XenoKit.Views
 
             if (costumes == null)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Edit Costumes", "The entered costumes could not be parsed.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered costumes could not be parsed.", "Edit Costumes", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
-            if (Xv2File<ACB_Wrapper>.HasCostume(files.SelectedMove.Files.SeAcbFile, costumes, files.SelectedMove.Files.SeAcbFile.IndexOf(files.SelectedItem.SelectedSeAcbFile)))
+            if (Xv2File<ACB_Wrapper>.HasCostume(files.SelectedMove.Files.SeAcbFile, costumes, originalIndex))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Edit Costumes", "One or more of the entered costumes are already in use on a SE ACB.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("One or more of the entered costumes are already in use on another SE ACB.", "Edit Costumes", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
@@ -148,7 +147,7 @@ namespace XenoKit.Views
         #endregion
 
 
-        #region SeFileSelection
+        #region VoxFileSelection
         public RelayCommand AddEnVoxFileCommand => new RelayCommand(AddEnVoxFile, CanAddVoxFile);
         private void AddEnVoxFile()
         {
@@ -161,9 +160,8 @@ namespace XenoKit.Views
             AddVoxFile_Base(false);
         }
 
-        private async void AddVoxFile_Base(bool isEnglish)
+        private void AddVoxFile_Base(bool isEnglish)
         {
-
             //New VOX on characters will use Costume
             //New VOX on skills will use CharaCode
 
@@ -172,7 +170,7 @@ namespace XenoKit.Views
 
             if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Moveset)
             {
-                var result = await DialogCoordinator.Instance.ShowInputAsync(this, "New Voice", "Enter the costume ID (or IDs) that the voice file is for (if entering multiple costumes, separate them by a comma):", DialogSettings.Default);
+                string result = StringInput.Show("New Voice", "Costume IDs (comma-separated):", null, null, "Enter the costume ID (or IDs) that the voice file is for (if entering multiple costumes, separate them by a comma):");
 
                 if (string.IsNullOrWhiteSpace(result))
                 {
@@ -183,19 +181,19 @@ namespace XenoKit.Views
 
                 if (costumes == null)
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "New Voice", "The entered costumes could not be parsed.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("The entered costumes could not be parsed.", "New Voice", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 
                 if (Xv2File<ACB_Wrapper>.HasCostume(files.SelectedMove.Files.SeAcbFile, costumes))
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "New Voice", "One or more of the entered costumes are already in use on a VOX ACB.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("One or more of the entered costumes are already in use on another VOX ACB.", "New Voice", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
             }
             else if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Skill)
             {
-                var result = await DialogCoordinator.Instance.ShowInputAsync(this, "New Voice", "Enter the character ID (3-letter code) that the new voice is for.", DialogSettings.Default);
+                string result = StringInput.Show("New Voice", "Character ID (3-letter code):", null, null, "Enter the character ID (3-letter code) that the new voice is for.");
 
                 if (string.IsNullOrWhiteSpace(result))
                 {
@@ -204,13 +202,13 @@ namespace XenoKit.Views
 
                 if (result.Length != 3)
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "New Voice", "The entered ID contained too many or too few letters.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("The entered ID contained too many or too few letters.", "New Voice", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 
                 if (Xv2File<ACB_Wrapper>.IsCharaCodeUsed(files.SelectedMove.Files.VoxAcbFile, result.ToUpper()))
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "New Voice", "The entered ID is already used in a voice for this skill.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("The entered ID is already used in a voice for this skill.", "New Voice", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 
@@ -236,25 +234,24 @@ namespace XenoKit.Views
             //Skill: always can delete
             //Character: only if not default
 
-            UndoManager.Instance.AddUndo(new UndoableListRemove<Xv2File<ACB_Wrapper>>(files.SelectedMove.Files.VoxAcbFile, files.SelectedItem.SelectedSeAcbFile, $"Remove Voice"));
+            UndoManager.Instance.AddUndo(new UndoableListRemove<Xv2File<ACB_Wrapper>>(files.SelectedMove.Files.VoxAcbFile, files.SelectedItem.SelectedVoxAcbFile, $"Remove Voice"));
             files.SelectedMove.Files.VoxAcbFile.Remove(files.SelectedItem.SelectedVoxAcbFile);
         }
 
         public RelayCommand RenameVoxFileCommand => new RelayCommand(RenameVoxFile, CanRenameVoxFile);
-        private async void RenameVoxFile()
+        private void RenameVoxFile()
         {
-            var dialogSettings = DialogSettings.Default;
-            List<int> originalCostumes = files.SelectedItem.SelectedSeAcbFile.Costumes;
-            string originalCharaCode = files.SelectedItem.SelectedSeAcbFile.CharaCode;
+            List<int> originalCostumes = files.SelectedItem.SelectedVoxAcbFile.Costumes;
+            string originalCharaCode = files.SelectedItem.SelectedVoxAcbFile.CharaCode;
+            bool isEnglish = files.SelectedItem.SelectedVoxAcbFile.IsEnglish;
+            int originalIndex = files.SelectedMove.Files.VoxAcbFile.IndexOf(files.SelectedItem.SelectedVoxAcbFile);
 
             string charaCode = string.Empty;
             List<int> costumes = null;
 
             if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Character || files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Moveset)
             {
-                dialogSettings.DefaultText = files.SelectedItem.SelectedVoxAcbFile.GetCostumesString();
-
-                var result = await DialogCoordinator.Instance.ShowInputAsync(this, "Costume for this voice file...", "Enter the costume ID (or IDs) that the voice file is for (if entering multiple costumes, separate them by a comma):", DialogSettings.Default);
+                string result = StringInput.Show("Edit Costumes", "Costumes (comma-separated):", files.SelectedItem.SelectedVoxAcbFile.GetCostumesString(), null, "Enter the costume ID (or IDs) that the voice file is for (if entering multiple costumes, separate them by a comma):");
 
                 if (string.IsNullOrWhiteSpace(result))
                 {
@@ -265,13 +262,13 @@ namespace XenoKit.Views
 
                 if (costumes == null)
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "Costume for this voice file...", "The entered costumes could not be parsed.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("The entered costumes could not be parsed.", "Costume for this voice file...", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 
-                if (Xv2File<ACB_Wrapper>.HasCostume(files.SelectedMove.Files.SeAcbFile, costumes))
+                if (Xv2File<ACB_Wrapper>.HasCostume(files.SelectedMove.Files.VoxAcbFile, costumes, originalIndex, isEnglish))
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "Costume for this voice file...", "One or more of the entered costumes are already in use on a SE ACB.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("One or more of the entered costumes are already in use on a VOX ACB.", "Costume for this voice file...", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 
@@ -281,9 +278,7 @@ namespace XenoKit.Views
             }
             else if (files.SelectedItem.Type == OutlinerItem.OutlinerItemType.Skill)
             {
-                dialogSettings.DefaultText = files.SelectedItem.SelectedEanFile.CharaCode;
-
-                var result = await DialogCoordinator.Instance.ShowInputAsync(this, "Character code for this voice file...", "Enter the character ID (3-letter code) that the new voice is for.", DialogSettings.Default);
+                string result = StringInput.Show("Character code for this voice file...", "Character ID (3-letter code):", files.SelectedItem.SelectedVoxAcbFile.CharaCode, null, "Enter the character ID (3-letter code) that the new voice is for.");
 
                 if (string.IsNullOrWhiteSpace(result))
                 {
@@ -292,13 +287,13 @@ namespace XenoKit.Views
 
                 if (result.Length != 3)
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "Character code for this voice file...", "The entered ID contained too many or too few letters.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("The entered ID contained too many or too few letters.", "Character code for this voice file...", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 
-                if (Xv2File<ACB_Wrapper>.IsCharaCodeUsed(files.SelectedMove.Files.VoxAcbFile, result.ToUpper()))
+                if (Xv2File<ACB_Wrapper>.IsCharaCodeUsed(files.SelectedMove.Files.VoxAcbFile, result.ToUpper(), originalIndex, isEnglish))
                 {
-                    await DialogCoordinator.Instance.ShowMessageAsync(this, "Character code for this voice file...", "The entered ID is already used in a voice for this skill.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                    MessagePrompt.Show("The entered ID is already used in a voice for this skill.", "Character code for this voice file...", MessagePromptButtons.OK, MessagePromptIcon.Error);
                     return;
                 }
 
@@ -306,8 +301,6 @@ namespace XenoKit.Views
                 UndoManager.Instance.AddUndo(new UndoableProperty<Xv2File<ACB_Wrapper>>(nameof(Xv2File<ACB_Wrapper>.CharaCode), files.SelectedItem.SelectedVoxAcbFile, originalCharaCode, result, $"Edit Voice Chara Code"));
 
             }
-
-
         }
 
 

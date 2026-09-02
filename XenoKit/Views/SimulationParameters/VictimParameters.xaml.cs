@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using LB_Common.Forms;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.Engine;
@@ -26,7 +27,7 @@ namespace XenoKit.Views.SimulationParameters
             {
                 if(value == true && SceneManager.Actors[1] == null)
                 {
-                    if(MessageBox.Show("Do you want to load the default victim character?\n\nIf you select no, you may manually load a character as usual, and then right-click on it in the outliner and set it as the Victim, but until you do so no victim will be available.", "No Victim Set", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                    if (MessagePrompt.Show("Do you want to load the default victim character?\n\nIf you select no, you may manually load a character as usual, and then right-click on it in the outliner and set it as the Victim, but until you do so no victim will be available.", "No Victim Set", MessagePromptButtons.YesNo, MessagePromptIcon.Question) == MessagePromptResult.Yes)
                     {
                         SceneManager.EnsureActorIsSet(1);
                     }

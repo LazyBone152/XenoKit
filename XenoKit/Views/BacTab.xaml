@@ -97,26 +97,26 @@
                     <Button Command="{Binding AddBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Plus"/>
                     </Button>
-                    <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Add" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
                 <StackPanel ToolTip="Add a new action entry at a specific ID" VerticalAlignment="Center">
                     <Button Command="{Binding AddBacEntryAtSpecificIDCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Plus"/>
                     </Button>
-                    <TextBlock Text="Add..." HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Add..." HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
                 <StackPanel ToolTip="Override a common moveset action (CMN.bac)." VerticalAlignment="Center" Visibility="{Binding ElementName=UserControl, Path=IsMovesetBac, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Button Command="{Binding OverrideCMNCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Plus"/>
                     </Button>
-                    <TextBlock Text="CMN..." HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="CMN..." HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
                 
                 <StackPanel VerticalAlignment="Center" ToolTip="Remove Entry">
                     <Button Command="{Binding RemoveBacEntryCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Delete"/>
                     </Button>
-                    <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
 
             </StackPanel>
@@ -124,7 +124,7 @@
             <GridSplitter Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Grid.Column="1" Grid.ColumnSpan="1"/>
 
             <!-- BacViewMode Toggle -->
-            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0, 13.5, 0, 0">
+            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0, -35, -20, 0">
                 <Controls:ToggleSwitch x:Name="timelineToggle" OnContent="Timeline" OffContent="List" Toggled="TimeLine_Toggled" IsOn="True" ToolTip="The view mode may be changed between Timeline and List."/>
             </StackPanel>
             
@@ -178,14 +178,14 @@
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
-                    <TextBlock Text="New" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="New" HorizontalAlignment="Center" FontSize="10"/>
 
                 </StackPanel>
                 <StackPanel VerticalAlignment="Center">
                     <Button Command="{Binding RemoveBacTypeCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                         <iconPacks:PackIconMaterialLight Kind="Delete"/>
                     </Button>
-                    <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="8"/>
+                    <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="10"/>
                 </StackPanel>
             </StackPanel>
             <DataGrid Visibility="{Binding ElementName=UserControl, Path=IsDataGridMode, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="bacTypeDataGrid" Grid.Row="1" Grid.Column="2" Margin="5" SelectionChanged="BacType_SelectionChanged" ItemsSource="{Binding ElementName=UserControl, Path=SelectedBacEntry.IBacTypes.Binding}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CanUserAddRows="False" CanUserDeleteRows="False" AutoGenerateColumns="False" Controls:ControlsHelper.ContentCharacterCasing="Normal">

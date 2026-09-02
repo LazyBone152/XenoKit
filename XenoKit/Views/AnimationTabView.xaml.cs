@@ -18,8 +18,8 @@ using System.Windows.Media;
 using XenoKit.Helper;
 using XenoKit.Inspector;
 using XenoKit.Engine.Animation;
-using Xv2CoreLib.AnimationFramework;
 using XenoKit.Engine.Gizmo;
+using LB_Common.Forms;
 
 namespace XenoKit.Controls
 {
@@ -548,7 +548,7 @@ namespace XenoKit.Controls
             {
                 if(SelectedAnimation != null && value >= 0)
                 {
-                    ChangeAnimIdAsync(value);
+                    ChangeAnimId(value);
                 }
 
                 NotifyPropertyChanged(nameof(SelectedAnimationID));
@@ -569,12 +569,12 @@ namespace XenoKit.Controls
             }
         }
 
-        private async void ChangeAnimIdAsync(int id)
+        private void ChangeAnimId(int id)
         {
             string result = id.ToString();
             if (SelectedEanFile?.Animations.FirstOrDefault(a => a.Index == result && a != SelectedAnimation) != null)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another animation. Please enter a unique one.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already used by another animation. Please enter a unique one.", "ID Already Used", MessagePromptButtons.OK, MessagePromptIcon.Error);
             }
             else
             {
@@ -585,11 +585,11 @@ namespace XenoKit.Controls
             SelectedEanFile.SortEntries();
         }
 
-        private async void ChangeAnimName(string name)
+        private void ChangeAnimName(string name)
         {
             if (SelectedEanFile?.Animations.FirstOrDefault(a => a.Name == name && a != SelectedAnimation) != null)
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Name Already Used", "The entered name is already used by another animation. Please enter a unique one.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered name is already used by another animation. Please enter a unique one.", "Name Already Used", MessagePromptButtons.OK, MessagePromptIcon.Error);
             }
             else
             {
@@ -602,24 +602,24 @@ namespace XenoKit.Controls
 
         #region FileSelection
         public RelayCommand AddEanFileCommand => new RelayCommand(AddEanFile, CanAddEanFile);
-        private async void AddEanFile()
+        private void AddEanFile()
         {
-            var result = await DialogCoordinator.Instance.ShowInputAsync(this, "New EAN", "Enter the character ID (3-letter code) that the EAN is for.", DialogSettings.Default);
+            string result = StringInput.Show("New EAN", "ID (3-letter code)", string.Empty, null, "Enter the character ID (3-letter code) that the EAN is for. A 1 letter special code (F or C) is also accepted.");
 
             if (string.IsNullOrWhiteSpace(result))
             {
                 return;
             }
 
-            if(result.Length != 3)
+            if (!IsEanFileSuffixAllowed(result))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "New EAN", "The entered ID contained too many or too few letters.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is invalid. Please enter a 3-letter character code or a special character (F or C).", "New EAN", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
-            if(Xv2File<EAN_File>.IsCharaCodeUsed(files.SelectedMove.Files.EanFile, result.ToUpper()))
+            if (Xv2File<EAN_File>.IsCharaCodeUsed(files.SelectedMove.Files.EanFile, result.ToUpper()))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "New EAN", "The entered ID is already in use.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already in use.", "New EAN", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
@@ -638,13 +638,11 @@ namespace XenoKit.Controls
         }
 
         public RelayCommand RenameEanFileCommand => new RelayCommand(RenameEanFile, CanRenameEanFile);
-        private async void RenameEanFile()
+        private void RenameEanFile()
         {
-            var dialogSettings = DialogSettings.Default;
             string originalCode = files.SelectedItem.SelectedEanFile.CharaCode;
-            dialogSettings.DefaultText = files.SelectedItem.SelectedEanFile.CharaCode;
 
-            var result = await DialogCoordinator.Instance.ShowInputAsync(this, "Change ID", "Enter the character ID (3-letter code).", dialogSettings);
+            string result = StringInput.Show("Change ID", "ID (3-letter code)", files.SelectedItem.SelectedEanFile.CharaCode, null, "Change the character ID (3-letter character code or 1-letter special character) that this EAN is associated with.");
 
             if (string.IsNullOrWhiteSpace(result))
             {
@@ -653,24 +651,29 @@ namespace XenoKit.Controls
 
             result = result.ToUpper();
 
-            if (result.Length != 3)
+            if (!IsEanFileSuffixAllowed(result))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Change ID", "The entered ID contained too many or too few letters.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is invalid. Please enter a 3-letter character code or a special character (F or C).", "Change ID", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
             if (Xv2File<EAN_File>.IsCharaCodeUsed(files.SelectedMove.Files.EanFile, result, files.SelectedMove.Files.EanFile.IndexOf(files.SelectedItem.SelectedEanFile)))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "Change ID", "The entered ID is already in use.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already in use.", "Change ID", MessagePromptButtons.OK, MessagePromptIcon.Error);
                 return;
             }
 
-            
             files.SelectedItem.SelectedEanFile.CharaCode = result;
             UndoManager.Instance.AddUndo(new UndoableProperty<Xv2File<EAN_File>>(nameof(Xv2File<EAN_File>.CharaCode), files.SelectedItem.SelectedEanFile, originalCode, files.SelectedItem.SelectedEanFile.CharaCode, $"EAN ID ({originalCode} -> {result})"));
-
         }
 
+        private static bool IsEanFileSuffixAllowed(string suffix)
+        {
+            if (suffix.Equals("F", StringComparison.OrdinalIgnoreCase) || suffix.Equals("C", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return suffix.Length == 3;
+        }
 
         private bool CanDeleteEanFile()
         {
@@ -962,17 +965,19 @@ namespace XenoKit.Controls
         }
 
         public RelayCommand PasteBoneCommand => new RelayCommand(PasteBone, CanPasteNode);
-        private async void PasteBone()
+        private void PasteBone()
         {
             List<EAN_Node> bones = (List<EAN_Node>)Clipboard.GetData(ClipboardConstants.EanNode);
 
             //Validate bones
-            var result = await DialogCoordinator.Instance.ShowMessageAsync(this, "Rescale?", "Do you want to rescale the pasted keyframes to match the animation duration?", MessageDialogStyle.AffirmativeAndNegative, DialogSettings.Default);
+            var result = MessagePrompt.Show("Do you want to rescale the pasted keyframes to match the animation duration?", "Rescale?", MessagePromptButtons.YesNo, MessagePromptIcon.Question);
 
-            foreach (var bone in bones)
+            if (result == MessagePromptResult.Yes)
             {
-                if(result == MessageDialogResult.Affirmative)
+                foreach (var bone in bones)
+                {
                     bone.RescaleNode(SelectedAnimation.FrameCount);
+                }
             }
 
             //Paste
@@ -1157,17 +1162,16 @@ namespace XenoKit.Controls
 
         #region ToolsCommand
         public RelayCommand FixInterpolationCommand => new RelayCommand(FixInterpolation);
-        private async void FixInterpolation()
+        private void FixInterpolation()
         {
-            MessageDialogResult result = await DialogCoordinator.Instance.ShowMessageAsync(
-                this,
-                "Fix Face Interpolation",
+            var result = MessagePrompt.Show(
                 "This will attempt to fix face interpolation issues by adding \"dummy\" components to every face animation on every bone that is missing certain components.\n\nDo you want to continue?",
-                MessageDialogStyle.AffirmativeAndNegative,
-                DialogSettings.Default
+                "Fix Face Interpolation",
+                MessagePromptButtons.YesNo,
+                MessagePromptIcon.Question
             );
 
-            if (result != MessageDialogResult.Affirmative)
+            if (result != MessagePromptResult.Yes)
             {
                 return;
             }

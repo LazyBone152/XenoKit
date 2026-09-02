@@ -5,12 +5,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using XenoKit.Editor;
-using XenoKit.Engine;
 using Xv2CoreLib.BCS;
-using XenoKit.ViewModel.BCS;
 using Xv2CoreLib.Resource.UndoRedo;
 using MahApps.Metro.Controls.Dialogs;
 using System.Collections.Generic;
+using LB_Common.Forms;
 
 namespace XenoKit.Views
 {
@@ -359,11 +358,11 @@ namespace XenoKit.Views
             NotifyPropertyChanged(nameof(BcsFile));
         }
 
-        private async void EditColorGroupID(int newId)
+        private void EditColorGroupID(int newId)
         {
             if(BcsFile.PartColors.Any(x => x.SortID == newId && x != SelectedColorGroup))
             {
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another Color Group.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("The entered ID is already used by another Color Group.", "ID Already Used", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 return;
             }
             string newIdStr = newId.ToString();

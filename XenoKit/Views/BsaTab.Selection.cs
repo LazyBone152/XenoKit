@@ -3,11 +3,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using MahApps.Metro.Controls.Dialogs;
-using XenoKit.Editor;
+using LB_Common.Forms;
 using XenoKit.Engine;
 using XenoKit.Engine.Scripting.BSA;
-using XenoKit.ViewModel.BSA;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.Resource.UndoRedo;
 
@@ -48,7 +46,7 @@ namespace XenoKit.Views
         /// <summary>
         /// Mirrors BacTab.EditBacId: rejects a collision rather than silently replacing the other entry.
         /// </summary>
-        private async void EditBsaId(int newId)
+        private void EditBsaId(int newId)
         {
             BSA_File file = GetSelectedFile();
             if (file == null || selectedEntry == null) return;
@@ -56,7 +54,7 @@ namespace XenoKit.Views
             if (file.BSA_Entries.Any(entry => entry.SortID == newId && !ReferenceEquals(entry, selectedEntry)))
             {
                 NotifyPropertyChanged(nameof(SelectedBsaID));
-                await DialogCoordinator.Instance.ShowMessageAsync(this, "ID Already Used", "The entered ID is already used by another BSA entry.", MessageDialogStyle.Affirmative, DialogSettings.Default);
+                MessagePrompt.Show("ID Already Used", "The entered ID is already used by another BSA entry.", MessagePromptButtons.OK, MessagePromptIcon.Warning);
                 return;
             }
 

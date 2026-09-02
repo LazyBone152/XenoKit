@@ -18,7 +18,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <iconPacks:PackIconMaterialLight Kind="Information"  Margin="0, 5" Foreground="{DynamicResource MahApps.Brushes.Accent}" Height="33" Width="33" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <iconPacks:PackIconMaterialLight Kind="Information"  Margin="0, 5" Height="33" Width="33" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="1" Text="Before XenoKit can run, it must be properly configured. Please enter the path to the game directory below:" Foreground="{DynamicResource MahApps.Brushes.Accent}" TextAlignment="Left" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="11"  Width="304"/>
 
             </Grid>

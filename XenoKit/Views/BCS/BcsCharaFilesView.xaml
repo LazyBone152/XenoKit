@@ -24,7 +24,7 @@
                 <KeyBinding Key="Return" Command="{Binding Path=SearchCommand, ElementName=UserControl}"/>
             </TextBox.InputBindings>
         </TextBox>
-        <DataGrid x:Name="filesDataGrid" Grid.Row="1" PreviewMouseDoubleClick="filesDataGrid_MouseDoubleClick" ItemsSource="{Binding ElementName=UserControl, Path=FilteredFiles}" SelectedItem="{Binding ElementName=UserControl, Path=SelectedFile}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" AllowDrop="True" Drop="filesDataGrid_Drop">
+        <DataGrid x:Name="filesDataGrid" Grid.Row="1" Margin="10" PreviewMouseDoubleClick="filesDataGrid_MouseDoubleClick" ItemsSource="{Binding ElementName=UserControl, Path=FilteredFiles}" SelectedItem="{Binding ElementName=UserControl, Path=SelectedFile}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" AllowDrop="True" Drop="filesDataGrid_Drop">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Name" Width="Auto" MinWidth="250" SortMemberPath="Name">
