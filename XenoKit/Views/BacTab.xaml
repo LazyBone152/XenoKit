@@ -124,7 +124,7 @@
             <GridSplitter Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Stretch" Background="{DynamicResource MahApps.Brushes.Accent}" Grid.Column="1" Grid.ColumnSpan="1"/>
 
             <!-- BacViewMode Toggle -->
-            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0, -35, -20, 0">
+            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0, 17.5, -25, 0">
                 <Controls:ToggleSwitch x:Name="timelineToggle" OnContent="Timeline" OffContent="List" Toggled="TimeLine_Toggled" IsOn="True" ToolTip="The view mode may be changed between Timeline and List."/>
             </StackPanel>
             

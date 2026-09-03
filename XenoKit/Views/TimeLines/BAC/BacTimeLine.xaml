@@ -160,19 +160,19 @@
                     </TransformGroup>
                 </Separator.RenderTransform>
             </Separator>
-            <StackPanel VerticalAlignment="Center" ToolTip="Zoom Out">
+            <StackPanel VerticalAlignment="Center" ToolTip="Zoom Out" Visibility="{Binding ElementName=UserControl, Path=ZoomButtonVisibility}">
                 <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="Button_ZoomOut_Click">
                     <iconPacks:PackIconMaterialDesign Kind="ZoomOut"/>
                 </Button>
                 <TextBlock Text="Out" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
-            <StackPanel VerticalAlignment="Center" ToolTip="Zoom In">
+            <StackPanel VerticalAlignment="Center" ToolTip="Zoom In" Visibility="{Binding ElementName=UserControl, Path=ZoomButtonVisibility}">
                 <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" Click="Button_ZoomIn_Click">
                     <iconPacks:PackIconMaterialDesign Kind="ZoomIn"/>
                 </Button>
                 <TextBlock Text="In" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
-            <Slider VerticalAlignment="Center" Width="150" Margin="10,-7.5,0,0" Minimum="1" Maximum="100" Value="{Binding ElementName=UserControl, Path=UnitSize}"/>
+            <Slider VerticalAlignment="Center" Width="150" Margin="10,2.5,0,0" Minimum="1" Maximum="100" Value="{Binding ElementName=UserControl, Path=UnitSize}"/>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" x:Name="timeScroll" Height="20" Margin="0,0,15,0" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Top">

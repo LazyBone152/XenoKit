@@ -113,6 +113,8 @@ namespace XenoKit.Views.TimeLines
         public Brush SelectedBrush => Brushes.White;
         public Brush SelectedTextBrush => Brushes.Black;
 
+        public Visibility ZoomButtonVisibility => ActualWidth <= 600 ? Visibility.Collapsed : Visibility.Visible;
+
         public List<ITimeLineItem> SelectedItems { get; } = new List<ITimeLineItem>();
 
         public ObservableCollection<TimeLineLayer<IBacType>> Layers { get; set; } = new ObservableCollection<TimeLineLayer<IBacType>>();
@@ -121,6 +123,7 @@ namespace XenoKit.Views.TimeLines
         {
             InitializeComponent();
             DataContext = this;
+            SizeChanged += BacTimeLine_SizeChanged;
             mainScroll.SizeChanged += MainScroll_SizeChanged;
             UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
             SceneManager.BacDataChanged += SceneManager_BacDataChanged;
@@ -141,6 +144,12 @@ namespace XenoKit.Views.TimeLines
             {
                 BacTypeFilters.Add(new SelectorItem(i, BAC_File.GetBacTypeNameWithTypeID(i)));
             }
+        }
+
+        private void BacTimeLine_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if(e.WidthChanged)
+                NotifyPropertyChanged(nameof(ZoomButtonVisibility));
         }
 
         private void HandleBacEvent(BAC_Entry oldEntry, BAC_Entry newEntry)
