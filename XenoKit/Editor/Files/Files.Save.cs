@@ -7,6 +7,8 @@ using Xv2CoreLib.SAV;
 using xv2 = Xv2CoreLib.Xenoverse2;
 using file = Xv2CoreLib.FileManager;
 using LB_Common.Forms;
+using System;
+using System.Runtime.ExceptionServices;
 
 namespace XenoKit.Editor
 {
