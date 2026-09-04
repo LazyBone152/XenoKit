@@ -10,6 +10,7 @@ using XenoKit.Editor;
 using XenoKit.Windows;
 using Xv2CoreLib;
 using Xv2CoreLib.BAC;
+using Xv2CoreLib.BEV;
 using Xv2CoreLib.BSA;
 using Xv2CoreLib.Resource.UndoRedo;
 
@@ -36,6 +37,8 @@ namespace XenoKit.Views
             UndoManager.Instance.AddUndo(new UndoableListAdd<BSA_Entry>(file.BSA_Entries, entry, "BSA Entry Add"));
             RefreshEntryList();
             SelectEntry(entry);
+
+            Log.Add("BSA entry added with ID: " + entry.SortID);
         }
 
         private void AddEntryAtSpecificId()
@@ -59,6 +62,8 @@ namespace XenoKit.Views
             UndoManager.Instance.AddUndo(new UndoableListAdd<BSA_Entry>(file.BSA_Entries, newEntry, "BSA Entry Add"));
             RefreshEntryList();
             SelectEntry(newEntry);
+
+            Log.Add("BSA entry added with ID: " + newEntry.SortID);
         }
 
         private void DuplicateEntry()

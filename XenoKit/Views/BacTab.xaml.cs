@@ -377,6 +377,8 @@ namespace XenoKit.Controls
 
             ReapplyBacFilter();
             SelectBacEntry(newBacEntry);
+
+            Log.Add("BAC entry added with ID: " + newBacEntry.SortID);
         }
 
         public RelayCommand AddBacEntryAtSpecificIDCommand => new RelayCommand(AddBacEntryAtSpecificID, IsBacFileLoaded);
@@ -410,6 +412,7 @@ namespace XenoKit.Controls
                     ReapplyBacFilter();
                 }
 
+                Log.Add("BAC entry added with ID: " + entry.SortID);
                 SelectBacEntry(entry);
             }
         }
