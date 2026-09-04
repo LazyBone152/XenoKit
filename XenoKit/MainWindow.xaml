@@ -165,7 +165,7 @@
                     </Grid.RowDefinitions>
                     <StackPanel x:Name="effectTab_EepkComboBox"  Orientation="Horizontal" Height="44">
                         <Grid Margin="5"/>
-                        <ComboBox SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedEepk}" ItemsSource="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.EepkFiles.Binding}" DisplayMemberPath="DisplayName" Height="23" Width="182" Margin="2, 0"/>
+                        <ComboBox SelectedItem="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedEepk}" ItemsSource="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedMove.Files.EepkFiles.Binding}" DisplayMemberPath="DisplayName" Controls:TextBoxHelper.Watermark="Select a EEPK..." Height="23" Width="182" Margin="2, 0"/>
                     </StackPanel>
                     <eepkView:EepkEditor Grid.Row="1" x:Name="eepkEditor" effectContainerFile="{Binding Source={x:Static editor:Files.Instance}, Path=SelectedItem.SelectedEepk.File}"/>
                 </Grid>
