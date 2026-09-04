@@ -18,12 +18,62 @@
         <Grid.Resources>
             <lbUtils:BindingProxy x:Key="Proxy" Data="{Binding}" />
         </Grid.Resources>
+        
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50"/>
             <ColumnDefinition MinWidth="200" MaxWidth="300"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <TreeView x:Name="treeView" Grid.Column="0" ItemsSource="{Binding ElementName=Window, Path=BcsFile.PartSets.Binding}" VirtualizingStackPanel.IsVirtualizing="True" SelectedItemChanged="TreeView_SelectedItemChanged" Loaded="treeView_Loaded" TreeViewItem.Selected="TreeViewItem_Selected">
+        <StackPanel Grid.Column="0" Margin="0, 25">
+
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
+                <Button Command="{Binding ElementName=Window, Path=AddPartSetCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                </Button>
+                <TextBlock Text="Part Set" HorizontalAlignment="Center" FontSize="10"/>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
+                <Button HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30" lbUtils:ContextMenuLeftClickBehavior.IsLeftClickEnabled="True">
+                    <Button.ContextMenu>
+                        <ContextMenu Opened="AddPartType_SubmenuOpened" ItemsSource="{Binding Source={StaticResource Proxy}, Path=Data.AddPartTypes}" FontSize="12">
+                            <ContextMenu.Resources>
+                                <Style TargetType="{x:Type MenuItem}">
+                                    <EventSetter Event="Click" Handler="AddPartTypes_Click"/>
+                                </Style>
+                            </ContextMenu.Resources>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                    <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                </Button>
+                <TextBlock Text="Part..." HorizontalAlignment="Center" FontSize="10"/>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
+                <Button Command="{Binding ElementName=Window, Path=AddPhysicsPartCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                </Button>
+                <TextBlock Text="Physics" HorizontalAlignment="Center" FontSize="10"/>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
+                <Button Command="{Binding ElementName=Window, Path=AddColorSelectorCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Plus"/>
+                </Button>
+                <TextBlock Text="Color" HorizontalAlignment="Center" FontSize="10"/>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
+                <Button Command="{Binding ElementName=Window, Path=DeleteSelectionCommand}" ToolTip="Delete the selected item." HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="Delete"/>
+                </Button>
+                <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="10"/>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
+                <Button Command="{Binding ElementName=Window, Path=DuplicateInputCommand}" ToolTip="Duplicate the selected item." HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
+                    <iconPacks:PackIconMaterialLight Kind="ContentDuplicate"/>
+                </Button>
+                <TextBlock Text="Duplicate" HorizontalAlignment="Center" FontSize="10"/>
+            </StackPanel>
+        </StackPanel>
+        <TreeView x:Name="treeView" Grid.Column="1" ItemsSource="{Binding ElementName=Window, Path=BcsFile.PartSets.Binding}" VirtualizingStackPanel.IsVirtualizing="True" SelectedItemChanged="TreeView_SelectedItemChanged" Loaded="treeView_Loaded" TreeViewItem.Selected="TreeViewItem_Selected">
             <TreeView.Resources>
                 
                 <HierarchicalDataTemplate DataType="{x:Type bcs:PartSet}" ItemsSource="{Binding Parts.Binding}">
@@ -141,7 +191,7 @@
             </TreeView.InputBindings>
         </TreeView>
 
-        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding PartSetVisibility, ElementName=Window}">
+        <Grid Grid.Column="2" Margin="5,5" Visibility="{Binding PartSetVisibility, ElementName=Window}">
             <StackPanel>
                 <Expander Header="Part Set" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
                     <StackPanel>
@@ -158,7 +208,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding Path=PartVisibility, ElementName=Window}">
+        <Grid Grid.Column="2" Margin="5,5" Visibility="{Binding Path=PartVisibility, ElementName=Window}">
             <StackPanel>
                 <Expander Header="Model" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
                     <StackPanel>
@@ -351,7 +401,7 @@
             
         </Grid>
 
-        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding PhysicsPartVisibility, ElementName=Window}">
+        <Grid Grid.Column="2" Margin="5,5" Visibility="{Binding PhysicsPartVisibility, ElementName=Window}">
             <StackPanel>
                 <Expander Header="Model" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
                     <StackPanel>
@@ -513,7 +563,7 @@
 
         </Grid>
 
-        <Grid Grid.Column="1" Margin="5,5" Visibility="{Binding ColorSelectorVisibility, ElementName=Window}">
+        <Grid Grid.Column="2" Margin="5,5" Visibility="{Binding ColorSelectorVisibility, ElementName=Window}">
             <StackPanel>
                 <Expander Header="Color Selector" IsExpanded="True" controls:ControlsHelper.ContentCharacterCasing="Normal">
                     <StackPanel>

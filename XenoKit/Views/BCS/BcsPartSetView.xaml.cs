@@ -46,7 +46,7 @@ namespace XenoKit.Views
         //Selected Items
         public object SelectedItem
         {
-            get => treeView.SelectedItem;
+            get => treeView?.SelectedItem;
         }
 
         public PartSet SelectedPartSet => SelectedItem as PartSet;
@@ -89,7 +89,7 @@ namespace XenoKit.Views
 
                 if (partSet == null) return null;
 
-                List<string> types = new List<string>();
+                List<string> types = new List<string>(10);
 
                 if (!partSet.HasPart((PartType)0)) types.Add(((PartType)0).ToString());
                 if (!partSet.HasPart((PartType)1)) types.Add(((PartType)1).ToString());
@@ -255,6 +255,26 @@ namespace XenoKit.Views
             }
         }
 
+        public RelayCommand DeleteSelectionCommand => new RelayCommand(DeleteSelection, IsAnythingSelected);
+        private void DeleteSelection()
+        {
+            if (IsColorSelectorSelected())
+            {
+                RemoveColorSelector();
+            }
+            else if (IsPhysicsPartSelected())
+            {
+                RemovePhysicsPart();
+            }
+            else if (IsPartSelected())
+            {
+                RemovePart();
+            }
+            else if (IsPartSetSelected())
+            {
+                RemovePartSet();
+            }
+        }
 
         #region PartSetCommands
         public RelayCommand EquipPartSetCommand => new RelayCommand(EquipPartSet, CanEquipPartSet);

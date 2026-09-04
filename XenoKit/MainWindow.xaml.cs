@@ -301,20 +301,10 @@ namespace XenoKit
             }
         }
 
-        public void ShowTextForm()
-        {
-            MessagePromptResult result = MessagePrompt.Show("Exception Thrown", "The program has encountered an exception with the following error message. (These error messages can be disabled in the settings menu. When disabled they will still appear in the log, and can also be copied from there by right clicking)",
-                MessagePromptButtons.OK, MessagePromptIcon.Error, "ajsbfjkasdbfjkasdbfkjasfdlknaslfk/nafsfasfasfasfas/nasdfasfsafsaf", "OK", null, "Copy Message", null);
-
-            if (result == MessagePromptResult.Negative)
-            {
-                //Clipboard.SetText("ajsbfjkasdbfjkasdbfkjasfdlknaslfk/nafsfasfasfasfas/nasdfasfsafsaf");
-            }
-        }
-
         public async void ShowException(Exception ex)
         {
-            MessagePromptResult result = MessagePrompt.Show("Exception Thrown", "The program has encountered an exception with the following error message. (These error messages can be disabled in the settings menu. When disabled they will still appear in the log, and can also be copied from there by right clicking)",
+            MessagePromptResult result = MessagePrompt.Show("The program has encountered an exception with the following error message. (These error messages can be disabled in the settings menu. When disabled they will still appear in the log, and can also be copied from there by right clicking)",
+                "Exception Thrown",
                 MessagePromptButtons.OK, MessagePromptIcon.Error, ex.Message, "OK", null, "Copy Message", null);
 
             if(result == MessagePromptResult.Negative)

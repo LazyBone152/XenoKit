@@ -24,13 +24,13 @@
 
         <StackPanel Grid.Column="0" Margin="0, 25">
 
-            <StackPanel VerticalAlignment="Center">
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
                 <Button Command="{Binding AddColorGroupCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                     <iconPacks:PackIconMaterialLight Kind="Plus"/>
                 </Button>
                 <TextBlock Text="New" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
-            <StackPanel VerticalAlignment="Center">
+            <StackPanel VerticalAlignment="Center" Margin="2.5">
                 <Button Command="{Binding RemoveColorGroupCommand}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="30" Style="{DynamicResource MahApps.Styles.Button.Circle}" Height="30">
                     <iconPacks:PackIconMaterialLight Kind="Delete"/>
                 </Button>
