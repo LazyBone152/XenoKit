@@ -14,7 +14,6 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input.Touch;
 
-
 namespace Microsoft.Xna.Framework
 {
     /// <summary>
@@ -144,11 +143,6 @@ namespace Microsoft.Xna.Framework
                         Platform.Dispose();
                         Platform = null;
                     }
-
-                    ContentTypeReaderManager.ClearTypeCreators();
-
-                    if (SoundEffect._systemState == SoundEffect.SoundSystemState.Initialized)
-                        SoundEffect.PlatformShutdown();
                 }
 #if ANDROID
                 Activity = null;

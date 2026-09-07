@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -303,9 +304,17 @@ namespace XenoKit
 
         public async void ShowException(Exception ex)
         {
+            //Create a detailed exception message to display in the rich text box of the message prompt.
+            string richText = ex.Message;
+
+            if (ex.InnerException != null)
+                richText += $"\n\nInner Exception: {ex.InnerException?.Message}";
+            
+            richText += $"\n\nStack Trace:\n{ex.StackTrace}";
+
             MessagePromptResult result = MessagePrompt.Show("The program has encountered an exception with the following error message. (These error messages can be disabled in the settings menu. When disabled they will still appear in the log, and can also be copied from there by right clicking)",
                 "Exception Thrown",
-                MessagePromptButtons.OK, MessagePromptIcon.Error, ex.Message, "OK", null, "Copy Message", null);
+                MessagePromptButtons.OK, MessagePromptIcon.Error, richText, "OK", null, "Copy Message", null);
 
             if(result == MessagePromptResult.Negative)
             {

@@ -52,7 +52,6 @@ namespace XenoKit.Editor
             else if (type == OutlinerItemType.CMN)
             {
                 AnimationVisibility = Visibility.Visible;
-                StateVisibility = Visibility.Visible;
                 ActionVisibility = Visibility.Visible;
                 EffectVisibility = Visibility.Visible;
                 AudioVisibility = Visibility.Visible;

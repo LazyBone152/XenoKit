@@ -129,7 +129,7 @@ namespace MonoGame.Framework
                     _window = null;
                     Window = null;
                 }
-                Microsoft.Xna.Framework.Media.MediaManagerState.CheckShutdown();
+                //Microsoft.Xna.Framework.Media.MediaManagerState.CheckShutdown();
             }
 
             base.Dispose(disposing);

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>net480;net8-windows</TargetFrameworks>
+    <TargetFrameworks>net480;net10.0-windows</TargetFrameworks>
     <DefineConstants>WINDOWS;XNADESIGNPROVIDED;STBSHARP_INTERNAL</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseWindowsForms>true</UseWindowsForms>
@@ -35,13 +35,6 @@
     <Compile Include="Platform\Input\Mouse.Windows.cs" />
     <Compile Include="Platform\Input\MouseCursor.Windows.cs" />
 
-    <Compile Include="Platform\Media\MediaLibrary.Default.cs" />
-    <Compile Include="Platform\Media\MediaManagerState.cs" />
-    <Compile Include="Platform\Media\MediaPlayer.WMS.cs" />
-    <Compile Include="Platform\Media\Song.WMS.cs" />
-    <Compile Include="Platform\Media\Video.WMS.cs" />
-    <Compile Include="Platform\Media\VideoPlayer.WMS.cs" />
-    <Compile Include="Platform\Media\VideoSampleGrabber.cs" />
     <Compile Include="Platform\TitleContainer.Desktop.cs" />
     <Compile Include="Platform\Utilities\AssemblyHelper.cs" />
     <Compile Include="Platform\Utilities\CurrentPlatform.cs" />
@@ -67,30 +60,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.Jit" Version="2.0.8" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Version="4.0.1" Include="SharpDX" />
-    <PackageReference Version="4.0.1" Include="SharpDX.Direct2D1" />
-    <PackageReference Version="4.0.1" Include="SharpDX.Direct3D11" />
-    <PackageReference Version="4.0.1" Include="SharpDX.DXGI" />
-    <PackageReference Version="4.0.1" Include="SharpDX.MediaFoundation" />
-    <PackageReference Version="4.0.1" Include="SharpDX.XAudio2" />
-    <PackageReference Version="4.0.1" Include="SharpDX.XInput" />
+    <PackageReference Include="NETStandard.Library" Version="2.0.3" />
+    <PackageReference Version="4.2.0" Include="SharpDX" />
+    <PackageReference Version="4.2.0" Include="SharpDX.Direct2D1" />
+    <PackageReference Version="4.2.0" Include="SharpDX.Direct3D11" />
+    <PackageReference Include="SharpDX.Direct3D9" Version="4.2.0" />
+    <PackageReference Version="4.2.0" Include="SharpDX.DXGI" />
+    <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+    <PackageReference Version="4.2.0" Include="SharpDX.MediaFoundation" />
+    <PackageReference Version="4.2.0" Include="SharpDX.XAudio2" />
+    <PackageReference Version="4.2.0" Include="SharpDX.XInput" />
     <PackageReference Include="StbImageSharp" Version="2.27.7" />
     <PackageReference Include="StbImageWriteSharp" Version="1.13.5" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.6.0" />
+    <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="Microsoft.NETCore.App">
-      <Version>2.1.30</Version>
-    </PackageReference>
-  </ItemGroup>
-
   <Import Project="Platform\DirectX.targets" />
-  <Import Project="Platform\XAudio.targets" />
 </Project>

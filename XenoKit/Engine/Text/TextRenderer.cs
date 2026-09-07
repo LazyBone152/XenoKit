@@ -40,7 +40,7 @@ namespace XenoKit.Engine.Text
             fontSystem = new FontSystem();
             fontSystem.AddFont(File.ReadAllBytes(string.Format(@"{0}{1}\Fonts\arial.ttf", Path.GetPathRoot(Environment.SystemDirectory), Environment.SpecialFolder.Windows)));
 
-            string texturePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"XenoKit/Textures/textBackground1.dds");
+            string texturePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"XenoKit/Textures/textBackground.dds");
 
             if (File.Exists(texturePath))
             {

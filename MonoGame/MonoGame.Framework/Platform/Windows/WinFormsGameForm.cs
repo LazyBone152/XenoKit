@@ -51,6 +51,8 @@ namespace Microsoft.Xna.Framework.Windows
 
         public bool AllowAltF4 = true;
 
+        [System.ComponentModel.Browsable(false)]
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
         internal bool IsResizing { get; set; }
 
         #region Events

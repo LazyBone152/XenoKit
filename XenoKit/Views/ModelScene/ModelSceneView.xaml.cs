@@ -171,7 +171,7 @@ namespace XenoKit.Views
             set => ModelScene.DytIndex = value;
         }
 
-        public Bone EMO_SelectedBone
+        public Xv2CoreLib.EMA.Bone EMO_SelectedBone
         {
             get => EMO_SelectedPart?.LinkedBone;
             set

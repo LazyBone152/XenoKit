@@ -16,7 +16,7 @@ using Xv2CoreLib.CUS;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.ESK;
 using Xv2CoreLib.FPF;
-using file = Xv2CoreLib.FileManager;
+using @file = Xv2CoreLib.FileManager;
 using xv2 = Xv2CoreLib.Xenoverse2;
 
 namespace XenoKit.Controls

@@ -18,7 +18,7 @@ using Xv2CoreLib.CUS;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.EffectContainer;
 using xv2 = Xv2CoreLib.Xenoverse2;
-using file = Xv2CoreLib.FileManager;
+using @file = Xv2CoreLib.FileManager;
 using Xv2CoreLib.ValuesDictionary;
 using Xv2CoreLib.SAV;
 using Xv2CoreLib.SPM;

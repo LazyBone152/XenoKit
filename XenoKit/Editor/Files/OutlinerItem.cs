@@ -7,7 +7,7 @@ using Xv2CoreLib.ACB;
 using Xv2CoreLib.EAN;
 using Xv2CoreLib.EffectContainer;
 using xv2 = Xv2CoreLib.Xenoverse2;
-using file = Xv2CoreLib.FileManager;
+using @file = Xv2CoreLib.FileManager;
 using XenoKit.Engine;
 using XenoKit.Editor.Data;
 using XenoKit.Engine.Stage;

@@ -170,7 +170,7 @@ namespace XenoKit.Engine.Animation
                     continue;
 
                 
-                Bone bone = animation.EmaFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
+                Xv2CoreLib.EMA.Bone bone = animation.EmaFile.Skeleton.GetBone(node.BoneName); // Bone from Ean file, we have to revert the relative Transform before we apply animation values (because animations values are for the inside ean file skeleton first)
                 ESK_RelativeTransform transform = bone.EskRelativeTransform;
 
                 SimdVector3 ean_initialBonePosition = new SimdVector3(transform.PositionX, transform.PositionY, transform.PositionZ) * transform.PositionW;

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>net480;net8-windows</TargetFrameworks>
+    <TargetFrameworks>net480;net10.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <PackageId>MonoGame.Framework.WpfInterop</PackageId>
     <Version>1.9.1</Version>
@@ -25,6 +25,8 @@ Supports .Net 4.5.2, .Net Core 3.1 and .Net 5</Description>
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.NETCore.Jit" Version="2.0.8" />
+    <PackageReference Include="NETStandard.Library" Version="2.0.3" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
@@ -32,6 +34,8 @@ Supports .Net 4.5.2, .Net Core 3.1 and .Net 5</Description>
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
@@ -46,10 +50,5 @@ Supports .Net 4.5.2, .Net Core 3.1 and .Net 5</Description>
     <ProjectReference Include="..\..\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="Microsoft.NETCore.App">
-      <Version>2.1.30</Version>
-    </PackageReference>
-  </ItemGroup>
 
 </Project>
