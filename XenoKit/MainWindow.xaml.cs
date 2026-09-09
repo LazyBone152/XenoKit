@@ -302,7 +302,7 @@ namespace XenoKit
             }
         }
 
-        public async void ShowException(Exception ex)
+        public void ShowException(Exception ex)
         {
             //Create a detailed exception message to display in the rich text box of the message prompt.
             string richText = ex.Message;

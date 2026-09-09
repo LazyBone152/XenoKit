@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows;
 using XenoKit.Editor;
+using XenoKit.Helper;
 
 namespace XenoKit
 {
@@ -22,7 +23,7 @@ namespace XenoKit
             #if !DEBUG
             e.Handled = true;
 
-            ExceptionHandler(e.Exception);
+            ExceptionHelper.HandleException(e.Exception);
             #endif
         }
 
@@ -30,26 +31,15 @@ namespace XenoKit
         {
 #if !DEBUG
             e.SetObserved();
-            ExceptionHandler(e.Exception);
+            ExceptionHelper.HandleException(e.Exception);
 #endif
         }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            #if !DEBUG
-            ExceptionHandler(e.ExceptionObject as Exception);
+#if !DEBUG
+            ExceptionHelper.HandleException(e.ExceptionObject as Exception);
             #endif
-        }
-
-        private void ExceptionHandler(Exception e)
-        {
-            Log.Add($"Unhandled Exception: {e.Message}", e.ToString(), LogType.Error);
-
-            if (!Xv2CoreLib.Resource.App.SettingsManager.Instance.Settings.XenoKit_SuppressErrorsToLogOnly)
-            {
-                MainWindow window = (MainWindow)Application.Current.MainWindow;
-                window.ShowException(e);
-            }
         }
     }
 }
