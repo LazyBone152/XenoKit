@@ -683,9 +683,9 @@ namespace XenoKit.Engine.Shader
                     case 14:
                         //General lighting
                         {
-                            EMB_File lightingEmb = FileManager.Instance.LoadFile<EMB_File>("lighting/cmn.emb", false);
+                            EMB_TextureFile lightingEmb = FileManager.Instance.LoadFile<EMB_TextureFile>("lighting/cmn.emb", false);
                             sampler = new GlobalSampler(slot,
-                                                        TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), Viewport.Instance.GraphicsDevice),
+                                                        TextureLoader.ConvertToTexture2D(lightingEmb.GetEntry(0), GetTextureName(slot), Viewport.Instance.GraphicsDevice),
                                                         new SamplerState()
                                                         {
                                                             AddressU = TextureAddressMode.Clamp,
@@ -708,10 +708,10 @@ namespace XenoKit.Engine.Shader
 
                             if (SettingsManager.Instance.Settings.XenoKit_RimLightingEnabled)
                             {
-                                EMB_File lightingEmb = FileManager.Instance.LoadFile<EMB_File>("lighting/environment/BFpot.emb", false); //ToP
+                                EMB_TextureFile lightingEmb = FileManager.Instance.LoadFile<EMB_TextureFile>("lighting/environment/BFpot.emb", false); //ToP
                                 //EMB_File lightingEmb = FileManager.Instance.GetParsedFileFromGame<EMB_File>("lighting/environment/BFtwf.emb", false); //Future In Ruins
                                 //EMB_File lightingEmb = FileManager.Instance.GetParsedFileFromGame<EMB_File>("lighting/environment/BFten.emb", false); //World Tournament
-                                texture = TextureLoader.ConvertToTexture2D(lightingEmb.Entry[0], GetTextureName(slot), Viewport.Instance.GraphicsDevice);
+                                texture = TextureLoader.ConvertToTexture2D(lightingEmb.GetEntry(0), GetTextureName(slot), Viewport.Instance.GraphicsDevice);
                             }
                             else
                             {
@@ -796,7 +796,7 @@ namespace XenoKit.Engine.Shader
                 //EMB_File defaultEnv = FileManager.Instance.GetParsedFileFromGame("stage/BFhel/BFhelENV.emb") as EMB_File;
                 //EMB_File defaultEnv = FileManager.Instance.GetParsedFileFromGame("stage/BFtfl/BFtflENV.emb") as EMB_File;
                 EMB_File defaultEnv = FileManager.Instance.LoadFile<EMB_File>("stage/BFtwn/BFtwnENV.emb");
-                textureCube = TextureLoader.ConvertToTextureCube(defaultEnv.Entry[0], GetTextureName(5), Viewport.Instance.GraphicsDevice);
+                textureCube = TextureLoader.ConvertToTextureCube(defaultEnv.GetEntry(0), GetTextureName(5), Viewport.Instance.GraphicsDevice);
             }
 
             if(Texture_SamplerCubeMap != null)

@@ -38,7 +38,7 @@ namespace XenoKit.Engine.Model
             string embPath = $"stage/{visual.EmbFile}";
             string emaPath = $"stage/{visual.EmaFile}";
 
-            EMB_File embFile = FileManager.Instance.LoadFile<EMB_File>(embPath);
+            EMB_TextureFile embFile = FileManager.Instance.LoadFile<EMB_TextureFile>(embPath);
             Textures = Xv2Texture.LoadTextureArray(embFile);
 
             foreach(var lod in visual.LODs)

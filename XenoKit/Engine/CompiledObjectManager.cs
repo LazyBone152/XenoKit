@@ -61,7 +61,7 @@ namespace XenoKit.Engine
                     {
                         result = new Xv2ShaderEffect(material, shaderType);
                     }
-                    else if (typeof(T) == typeof(Xv2Texture) && key is EmbEntry embEntry)
+                    else if (typeof(T) == typeof(Xv2Texture) && key is EMB_TextureEntry embEntry)
                     {
                         result = new Xv2Texture(embEntry);
                     }

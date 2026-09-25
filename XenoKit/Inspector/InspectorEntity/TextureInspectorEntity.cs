@@ -8,7 +8,7 @@ namespace XenoKit.Inspector.InspectorEntities
     public class TextureInspectorEntity : InspectorEntity
     {
         public override string FileType => "Textures";
-        public EMB_File EmbFile { get; private set; }
+        public EMB_TextureFile EmbFile { get; private set; }
         public Xv2Texture[] Textures { get; private set; }
 
         public bool IsDyt { get; private set; }
@@ -30,7 +30,7 @@ namespace XenoKit.Inspector.InspectorEntities
 
         public override bool Load()
         {
-            EmbFile = EMB_File.LoadEmb(Path);
+            EmbFile = EMB_TextureFile.Load(Path);
             Textures = Xv2Texture.LoadTextureArray(EmbFile);
             return true;
         }
@@ -42,7 +42,7 @@ namespace XenoKit.Inspector.InspectorEntities
 
         public override bool Save()
         {
-            EmbFile.SaveBinaryEmbFile(Path);
+            EmbFile.Save(Path);
             return true;
         }
 

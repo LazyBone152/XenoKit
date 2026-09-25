@@ -10,7 +10,7 @@ namespace XenoKit.ViewModel.EMD
 {
     public class EmdTextureViewModel : ObservableObject
     {
-        private EMB_File embFile;
+        private EMB_TextureFile embFile;
         private IModelFile modelFile;
         private EMO_File emoFile;
         private EMD_TextureSamplerDef texture;
@@ -165,21 +165,21 @@ namespace XenoKit.ViewModel.EMD
             }
         }
 
-        public EmbEntry SelectedEmbEntry
+        public EMB_TextureEntry SelectedEmbEntry
         {
             get => embFile != null ? embFile.GetEntry(texture.EmbIndex) : null;
             set
             {
                 if(embFile != null)
                 {
-                    EmbIndex = (byte)embFile.Entry.IndexOf(value);
+                    EmbIndex = (byte)value.ID;
                 }
             }
         }
         public Visibility TextureSelectorVisibility => embFile != null ? Visibility.Visible : Visibility.Collapsed;
         public Visibility TextureIndexVisibility => embFile == null ? Visibility.Visible : Visibility.Collapsed;
 
-        public EmdTextureViewModel(EMD_TextureSamplerDef texture, object submeshContext, IModelFile modelFile, EMB_File embFile)
+        public EmdTextureViewModel(EMD_TextureSamplerDef texture, object submeshContext, IModelFile modelFile, EMB_TextureFile embFile)
         {
             this.texture = texture;
             this.modelFile = modelFile;

@@ -10,10 +10,8 @@ using XenoKit.Editor;
 using XenoKit.Editor.Data;
 using XenoKit.Engine.Animation;
 using XenoKit.Engine.Objects;
-using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.Shader;
 using XenoKit.Engine.Textures;
-using XenoKit.Views;
 using Xv2CoreLib;
 using Xv2CoreLib.EMB_CLASS;
 using Xv2CoreLib.EMD;
@@ -39,9 +37,9 @@ namespace XenoKit.Engine.Model
 
         public EMD_File EmdFile => Model.Type == ModelType.Nsk ? Model.SourceNskFile.EmdFile : Model.SourceEmdFile;
         public EMO_File EmoFile => Model.SourceEmoFile;
-        public EMB_File EmbFile { get; private set; }
+        public EMB_TextureFile EmbFile { get; private set; }
         public EMM_File EmmFile { get; private set; }
-        public EMB_File DytFile { get; private set; }
+        public EMB_TextureFile DytFile { get; private set; }
         public ESK_File EskFile { get; private set; }
 
         public Xv2ModelFile Model { get; private set; }
@@ -121,7 +119,7 @@ namespace XenoKit.Engine.Model
             SelectedSubmeshesChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SetFiles(ShaderType type, EMB_File emb, EMM_File emm, EMB_File dyt = null, ESK_File eskFile = null)
+        public void SetFiles(ShaderType type, EMB_TextureFile emb, EMM_File emm, EMB_TextureFile dyt = null, ESK_File eskFile = null)
         {
             ShaderType = type;
             EmbFile = emb;
@@ -155,7 +153,7 @@ namespace XenoKit.Engine.Model
 
             if (!string.IsNullOrWhiteSpace(EmbPath) && EmbFile != null)
             {
-                EmbFile.SaveBinaryEmbFile(embPath);
+                EmbFile.Save(embPath);
                 numSaved++;
                 Log.Add($"Saved \"{EmbPath}\"");
             }
@@ -169,7 +167,7 @@ namespace XenoKit.Engine.Model
 
             if (!string.IsNullOrWhiteSpace(DytPath) && DytFile != null)
             {
-                DytFile.SaveBinaryEmbFile(dytPath);
+                DytFile.Save(dytPath);
                 numSaved++;
                 Log.Add($"Saved \"{DytPath}\"");
             }

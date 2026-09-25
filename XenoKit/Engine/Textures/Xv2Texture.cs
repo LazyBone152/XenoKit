@@ -15,8 +15,8 @@ namespace XenoKit.Engine.Textures
         {
             if(DefaultTexture == null)
             {
-                EMB_File defaultEmb = EMB_File.LoadEmb(Properties.Resources.DefaultEmb);
-                DefaultTexture = new Xv2Texture(defaultEmb.Entry[0], false);
+                EMB_TextureFile defaultEmb = EMB_TextureFile.Load(Properties.Resources.DefaultEmb);
+                DefaultTexture = new Xv2Texture(defaultEmb.GetEntry(0), false);
             }
         }
         #endregion
@@ -41,12 +41,12 @@ namespace XenoKit.Engine.Textures
                 _texture = value;
             }
         }
-        public EmbEntry EmbEntry { get; private set; }
+        public EMB_TextureEntry EmbEntry { get; private set; }
 
         //TODO: logic for this
         public bool IsDirty { get; set; }
 
-        public Xv2Texture(EmbEntry embEntry, bool autoUpdate = true)
+        public Xv2Texture(EMB_TextureEntry embEntry, bool autoUpdate = true)
         {
             EmbEntry = embEntry;
             Texture = TextureLoader.ConvertToTexture2D(embEntry, null, Viewport.Instance.GraphicsDevice);
@@ -74,28 +74,14 @@ namespace XenoKit.Engine.Textures
             return new Xv2Texture(EmbEntry.Copy(), false);
         }
 
-        public static Xv2Texture[] LoadTextureArray(EMB_File embFile)
+        public static Xv2Texture[] LoadTextureArray(EMB_TextureFile embFile)
         {
-            Xv2Texture[] textures = new Xv2Texture[embFile.Entry.Count];
+            int count = embFile.Entry.Count > 0 ? embFile.Entry.Max(x => x.ID) + 1 : 0;
+            Xv2Texture[] textures = new Xv2Texture[count];
 
             for (int i = 0; i < textures.Length; i++)
             {
-                textures[i] = Viewport.Instance.CompiledObjectManager.GetCompiledObject<Xv2Texture>(embFile.Entry[i]);
-            }
-
-            return textures;
-        }
-
-        private static Xv2Texture[] LoadTextureArray2(EMB_File embFile)
-        {
-            //Alternative loader method that can handle arbitary indexing
-            int maxId = embFile.Entry.Max(x => x.ID);
-            Xv2Texture[] textures = new Xv2Texture[maxId + 1];
-
-            for (int i = 0; i < textures.Length; i++)
-            {
-                //TODO: GetEntryWithID needs to be optimized, as EmbEntry internally uses a string for its ID and its converting to int all the time
-                EmbEntry entry = embFile.GetEntryWithID(i);
+                EMB_TextureEntry entry = embFile.GetEntry(i);
 
                 if(entry != null)
                 {

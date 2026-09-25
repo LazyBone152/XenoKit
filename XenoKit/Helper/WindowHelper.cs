@@ -6,7 +6,7 @@ namespace XenoKit.Helper
 {
     public static class WindowHelper
     {
-        public static EmbEditForm GetActiveEmbForm(EMB_File _embFile)
+        public static EmbEditForm GetActiveEmbForm(EMB_TextureFile _embFile)
         {
             foreach (var window in App.Current.Windows)
             {

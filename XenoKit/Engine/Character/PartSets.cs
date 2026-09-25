@@ -635,8 +635,8 @@ namespace XenoKit.Engine
         private bool nullPartSet = false;
         public EMD_File EmdFile { get; private set; }
         private EMM_File EmmFile = null;
-        private EMB_File EmbFile = null;
-        private EMB_File DytFile = null;
+        private EMB_TextureFile EmbFile = null;
+        private EMB_TextureFile DytFile = null;
         private EAN_File EanFile = null;
         private ESK_File EskFile = null;
 
@@ -1036,12 +1036,12 @@ namespace XenoKit.Engine
                     var file = GetFileFromOwner(path);
 
                     if (file != null)
-                        EmbFile = (EMB_File)file;
+                        EmbFile = (EMB_TextureFile)file;
                 }
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EmbFile = FileManager.Instance.LoadFile<EMB_File>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    EmbFile = FileManager.Instance.LoadFile<EMB_TextureFile>(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if (EmbFile != null)
@@ -1078,12 +1078,12 @@ namespace XenoKit.Engine
                     var file = GetFileFromOwner(path);
 
                     if (file != null)
-                        DytFile = (EMB_File)file;
+                        DytFile = (EMB_TextureFile)file;
                 }
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    DytFile = FileManager.Instance.LoadFile<EMB_File>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    DytFile = FileManager.Instance.LoadFile<EMB_TextureFile>(path, chara.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if (DytFile != null)
@@ -1262,6 +1262,16 @@ namespace XenoKit.Engine
         #region Rendering
         public override void Update()
         {
+            if (IsTexturesDirty && EmbFile != null)
+            {
+                Textures = Xv2Texture.LoadTextureArray(EmbFile);
+            }
+
+            if (IsDytDirty && DytFile != null)
+            {
+                Dyts = Xv2Texture.LoadTextureArray(DytFile);
+            }
+
             if (!IsPhysicsPart)
             {
                 foreach (CharaPart physicsPart in PhysicsParts)

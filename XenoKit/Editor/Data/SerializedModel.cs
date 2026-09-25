@@ -29,11 +29,11 @@ namespace XenoKit.Editor.Data
 
         //Material and textures (only those used by the model object will be serialized)
         public List<EmmMaterial> Materials { get; set; } = new List<EmmMaterial>();
-        public List<EmbEntry> Textures { get; set; } = new List<EmbEntry>();
+        public List<EMB_TextureEntry> Textures { get; set; } = new List<EMB_TextureEntry>();
 
         public SerializedModel() { }
 
-        public SerializedModel(EMD_Model[] emdModel, EMM_File emmFile, EMB_File embFile)
+        public SerializedModel(EMD_Model[] emdModel, EMM_File emmFile, EMB_TextureFile embFile)
         {
             EmdModel = emdModel;
 
@@ -49,7 +49,7 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        public SerializedModel(EMD_Mesh[] emdMesh, EMM_File emmFile, EMB_File embFile)
+        public SerializedModel(EMD_Mesh[] emdMesh, EMM_File emmFile, EMB_TextureFile embFile)
         {
             EmdMesh = emdMesh;
 
@@ -62,7 +62,7 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        public SerializedModel(EMD_Submesh[] emdSubmesh, EMM_File emmFile, EMB_File embFile)
+        public SerializedModel(EMD_Submesh[] emdSubmesh, EMM_File emmFile, EMB_TextureFile embFile)
         {
             EmdSubmesh = emdSubmesh;
 
@@ -72,7 +72,7 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        public SerializedModel(EMG_Mesh[] emgMesh, EMM_File emmFile, EMB_File embFile, Skeleton skeleton)
+        public SerializedModel(EMG_Mesh[] emgMesh, EMM_File emmFile, EMB_TextureFile embFile, Skeleton skeleton)
         {
             EmoMesh = emgMesh;
             Bones = skeleton.GetBoneNames();
@@ -86,7 +86,7 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        public SerializedModel(EMG_File[] emgFile, EMM_File emmFile, EMB_File embFile, Skeleton skeleton)
+        public SerializedModel(EMG_File[] emgFile, EMM_File emmFile, EMB_TextureFile embFile, Skeleton skeleton)
         {
             EmoModel = emgFile;
             Bones = skeleton.GetBoneNames();
@@ -103,7 +103,7 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        private void CreateTextureAndMaterials(EMD_Submesh submesh, EMM_File emmFile, EMB_File embFile)
+        private void CreateTextureAndMaterials(EMD_Submesh submesh, EMM_File emmFile, EMB_TextureFile embFile)
         {
             CreateTextures(submesh.TextureSamplerDefs, embFile);
 
@@ -116,7 +116,7 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        private void CreateTextureAndMaterials(EMG_SubmeshGroup submeshGroup, EMM_File emmFile, EMB_File embFile)
+        private void CreateTextureAndMaterials(EMG_SubmeshGroup submeshGroup, EMM_File emmFile, EMB_TextureFile embFile)
         {
             CreateTextures(submeshGroup.TextureSamplerDefs, embFile);
 
@@ -129,7 +129,7 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        private void CreateTextures(IList<EMD_TextureSamplerDef> textureDefs, EMB_File embFile)
+        private void CreateTextures(IList<EMD_TextureSamplerDef> textureDefs, EMB_TextureFile embFile)
         {
             foreach(var textureDef in textureDefs)
             {
@@ -139,7 +139,7 @@ namespace XenoKit.Editor.Data
         }
 
         #region Paste Methods
-        public List<IUndoRedo> PasteTexturesAndMaterials(EMB_File embFile, EMM_File emmFile)
+        public List<IUndoRedo> PasteTexturesAndMaterials(EMB_TextureFile embFile, EMM_File emmFile)
         {
             List<IUndoRedo> undos = new List<IUndoRedo>();
 
@@ -234,15 +234,15 @@ namespace XenoKit.Editor.Data
             }
         }
 
-        private void PasteTextures(IList<EMD_TextureSamplerDef> textures, EMB_File embFile, List<IUndoRedo> undos)
+        private void PasteTextures(IList<EMD_TextureSamplerDef> textures, EMB_TextureFile embFile, List<IUndoRedo> undos)
         {
             foreach(var texture in textures)
             {
-                EmbEntry serializedEmb = Textures.FirstOrDefault(x => x.ID == texture.EmbIndex);
+                EMB_TextureEntry serializedEmb = Textures.FirstOrDefault(x => x.ID == texture.EmbIndex);
 
                 if (serializedEmb != null)
                 {
-                    EmbEntry existingEntry = embFile.Compare(serializedEmb);
+                    EMB_TextureEntry existingEntry = embFile.Compare(serializedEmb);
 
                     if(existingEntry != null)
                     {
@@ -253,8 +253,8 @@ namespace XenoKit.Editor.Data
                         if(embFile.Entry.Count < EMB_File.MAX_EFFECT_TEXTURES)
                         {
                             texture.EmbIndex = (byte)embFile.Entry.Count;
-                            embFile.Add(serializedEmb);
-                            undos.Add(new UndoableListAdd<EmbEntry>(embFile.Entry, serializedEmb));
+                            embFile.AddTexture(serializedEmb);
+                            undos.Add(new UndoableListAdd<EMB_TextureEntry>(embFile.Entry, serializedEmb));
                         }
                         else
                         {

@@ -16,13 +16,13 @@ namespace XenoKit.Engine.Textures
                 graphicsDevice = Viewport.Instance.GraphicsDevice;
 
             byte[] bytes = File.ReadAllBytes(path);
-            EmbEntry embEntry = new EmbEntry();
+            EMB_TextureEntry embEntry = new();
             embEntry.Data = bytes;
 
             return ConvertToTexture2D(embEntry, Path.GetFileName(path), graphicsDevice);
         }
 
-        public static Texture2D ConvertToTexture2D(EmbEntry embEntry, string name = null, GraphicsDevice graphicsDevice = null)
+        public static Texture2D ConvertToTexture2D(EMB_TextureEntry embEntry, string name = null, GraphicsDevice graphicsDevice = null)
         {
             if (graphicsDevice == null)
                 graphicsDevice = Viewport.Instance.GraphicsDevice;
@@ -142,7 +142,7 @@ namespace XenoKit.Engine.Textures
             }
         }
 
-        private static Texture2D ConvertToTexture2D_fallback(EmbEntry embEntry, string name = null, GraphicsDevice graphicsDevice = null)
+        private static Texture2D ConvertToTexture2D_fallback(EMB_TextureEntry embEntry, string name = null, GraphicsDevice graphicsDevice = null)
         {
             if (graphicsDevice == null)
                 graphicsDevice = Viewport.Instance.GraphicsDevice;

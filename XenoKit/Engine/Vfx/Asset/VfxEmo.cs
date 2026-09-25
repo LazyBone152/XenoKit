@@ -13,6 +13,7 @@ using XenoKit.Engine.Animation;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector3 = System.Numerics.Vector3;
 using SimdQuaternion = System.Numerics.Quaternion;
+using Xv2CoreLib.EMB_CLASS;
 
 namespace XenoKit.Engine.Vfx.Asset
 {
@@ -27,12 +28,14 @@ namespace XenoKit.Engine.Vfx.Asset
         private EMA_File MaterialAnimations;
         private EMA_File ObjAnimations;
         private EMM_File EmmFile;
+        private EMB_TextureFile EmbFile;
 
         private ushort EmaIndex = ushort.MaxValue;
         private EMA_Animation MaterialAnimation;
         private EMA_Animation Animation;
         private ushort _animationEndFrame = 0;
         private ushort _matAnimationEndFrame = 0;
+        private bool _isTexturesDirty = false;
 
         private EmaAnimationPlayer AnimationPlayer;
         private Xv2Skeleton Skeleton => Model?.Skeleton;
@@ -92,7 +95,16 @@ namespace XenoKit.Engine.Vfx.Asset
                 }
                 else if (file.fileType == EffectFile.FileType.EMB)
                 {
-                    Textures = (file.EmbFile != null) ? Xv2Texture.LoadTextureArray(file.EmbFile) : null;
+                    if (file.EmbFile != null)
+                    {
+                        EmbFile = file.EmbFile;
+                        Textures = Xv2Texture.LoadTextureArray(file.EmbFile);
+                        file.EmbFile.TexturesChanged += EmbFile_TexturesChanged;
+                    }
+                    else
+                    {
+                        Textures = null;
+                    }
                 }
                 else if (file.fileType == EffectFile.FileType.EMM)
                 {
@@ -137,6 +149,14 @@ namespace XenoKit.Engine.Vfx.Asset
 
         public override void Dispose()
         {
+            foreach (EffectFile file in Asset.Files)
+            {
+                if(file.fileType == EffectFile.FileType.EMB && file.EmbFile != null)
+                {
+                    file.EmbFile.TexturesChanged -= EmbFile_TexturesChanged;
+                }
+            }
+
             RemoveFromRenderSystem();
             base.Dispose();
         }
@@ -214,6 +234,13 @@ namespace XenoKit.Engine.Vfx.Asset
             if (!HasStarted) return;
 
             AttachmentBone = GetAdjustedTransform();
+
+            //Update textures if they have changed
+            if (_isTexturesDirty && EmbFile != null)
+            {
+                _isTexturesDirty = false;
+                Textures = Xv2Texture.LoadTextureArray(EmbFile);
+            }
 
             //Animation has been changed
             if (EffectPart.EMA_AnimationIndex != EmaIndex)
@@ -336,6 +363,10 @@ namespace XenoKit.Engine.Vfx.Asset
             Time = Time == 0 ? AnimationLoopEndFrame : Time - 1;
         }
 
+        private void EmbFile_TexturesChanged(object sender, EventArgs e)
+        {
+            _isTexturesDirty = true;
+        }
     }
 
     public class VfxEmaMaterialNode

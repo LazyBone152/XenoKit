@@ -330,7 +330,7 @@ namespace XenoKit.Views
 
             if (SelectedFile.FileType == Xv2PartSetFile.Type.DYT_EMB || SelectedFile.FileType == Xv2PartSetFile.Type.EMB)
             {
-                if(SelectedFile.File is EMB_File embFile)
+                if(SelectedFile.File is EMB_TextureFile embFile)
                 {
                     window = WindowHelper.GetActiveEmbForm(embFile);
 
@@ -365,9 +365,9 @@ namespace XenoKit.Views
 
                     if (!TabManager.FocusTab(modelScene))
                     {
-                        EMB_File embFile = LoadFile<EMB_File>(embPath);
+                        EMB_TextureFile embFile = LoadFile<EMB_TextureFile>(embPath);
                         EMM_File emmFile = LoadFile<EMM_File>(emmPath);
-                        EMB_File dytFile = dytPath != null ? LoadFile<EMB_File>(dytPath) : null;
+                        EMB_TextureFile dytFile = dytPath != null ? LoadFile<EMB_TextureFile>(dytPath) : null;
                         modelScene.SetFiles(Engine.Shader.ShaderType.Chara, embFile, emmFile, dytFile, Character.EskFile.File);
                         modelScene.SetPaths(true, SelectedFile.RelativePath, embPath, emmPath, dytPath);
 

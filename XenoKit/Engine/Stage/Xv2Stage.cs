@@ -143,7 +143,7 @@ namespace XenoKit.Engine.Stage
                         {
                             string embPath = $"stage/{entity.Visual.EmbFile}";
                             EMB_File embFile = FileManager.Instance.LoadFile<EMB_File>(embPath);
-                            EnvTexture = TextureLoader.ConvertToTextureCube(embFile.Entry[0], ShaderManager.GetTextureName(5), GraphicsDevice);
+                            EnvTexture = TextureLoader.ConvertToTextureCube(embFile.GetEntry(0), ShaderManager.GetTextureName(5), GraphicsDevice);
                         }
                         else
                         {

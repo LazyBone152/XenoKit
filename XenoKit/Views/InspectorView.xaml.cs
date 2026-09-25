@@ -181,7 +181,7 @@ namespace XenoKit.Views
                     return;
                 }
 
-                DDS_File dds = new DDS_File(emb.EmbFile.Entry[0].Data);
+                DDS_File dds = new DDS_File(emb.EmbFile.GetEntry(0).Data);
 
                 if(!dds.Header.IsCubemap())
                 {
@@ -189,7 +189,7 @@ namespace XenoKit.Views
                     return;
                 }
 
-                TextureCube cubemap = TextureLoader.ConvertToTextureCube(emb.EmbFile.Entry[0], "ENV");
+                TextureCube cubemap = TextureLoader.ConvertToTextureCube(emb.EmbFile.GetEntry(0), "ENV");
                 Engine.Viewport.Instance?.ShaderManager.SetSceneCubeMap(cubemap);
 
                 Log.Add($"Scene cubemap changed to \"{Path.GetFileName(emb.Path)}\"");
