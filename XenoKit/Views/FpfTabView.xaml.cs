@@ -464,7 +464,7 @@ namespace XenoKit.Controls
             if (string.IsNullOrWhiteSpace(characterCode))
                 return;
 
-            if (file.Instance.fileIO == null)
+            if (file.Instance.FileIO == null)
             {
                 Log.Add("Game file IO is not ready, FPF files cannot be loaded.", LogType.Error);
                 return;
@@ -532,17 +532,17 @@ namespace XenoKit.Controls
 
             if (actor?.CharacterData?.OnlyLoadFromCPK == true)
             {
-                if (file.Instance.fileIO.cpkReader == null)
+                if (file.Instance.FileIO.cpkReader == null)
                     return new string[0];
 
-                return file.Instance.fileIO.cpkReader.GetFilesInDirectory($"data/{directory}")
+                return file.Instance.FileIO.cpkReader.GetFilesInDirectory($"data/{directory}")
                     .Where(path => Path.GetExtension(path).Equals(".fpf", StringComparison.OrdinalIgnoreCase))
                     .Select(RemoveDataPrefix)
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray();
             }
 
-            return file.Instance.fileIO.GetFilesInDirectory(directory, ".fpf", false)
+            return file.Instance.FileIO.GetFilesInDirectory(directory, ".fpf", false)
                 .Select(RemoveDataPrefix)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();

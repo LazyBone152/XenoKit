@@ -1235,9 +1235,9 @@ namespace XenoKit.Engine
                 return false;
 
             if (chara.CharacterData.OnlyLoadFromCPK)
-                return FileManager.Instance.fileIO.FileExistsInCpk(path);
+                return FileManager.Instance.FileIO.FileExistsInCpk(path);
 
-            return FileManager.Instance.fileIO.FileExists(path);
+            return FileManager.Instance.FileIO.FileExists(path);
         }
 
         private object GetFileFromOwner(string path)
