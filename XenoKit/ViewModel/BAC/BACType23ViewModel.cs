@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Media;
+using XenoKit.Helper.Find;
 using Xv2CoreLib;
 using Xv2CoreLib.BAC;
 using Xv2CoreLib.Resource.UndoRedo;
@@ -96,16 +97,16 @@ namespace XenoKit.ViewModel.BAC
         {
             get
             {
-                return Color.FromArgb(Xv2ColorConverter.ConvertColor(bacType.Tint_A), Xv2ColorConverter.ConvertColor(bacType.Tint_R), Xv2ColorConverter.ConvertColor(bacType.Tint_G), Xv2ColorConverter.ConvertColor(bacType.Tint_B));
+                return Color.FromArgb((byte)(bacType.Tint_A * 255f), (byte)(bacType.Tint_R * 255f), (byte)(bacType.Tint_G * 255f), (byte)(bacType.Tint_B * 255f));
             }
             set
             {
-                float r = Xv2ColorConverter.ConvertColor(value.R);
-                float g = Xv2ColorConverter.ConvertColor(value.G);
-                float b = Xv2ColorConverter.ConvertColor(value.B);
-                float a = Xv2ColorConverter.ConvertColor(value.A);
+                float r = value.R / 255f;
+                float g = value.G / 255f;
+                float b = value.B / 255f;
+                float a = value.A / 255f;
 
-                if(r != bacType.Tint_R || g != bacType.Tint_G || b != bacType.Tint_B || a != bacType.Tint_A)
+                if (r != bacType.Tint_R || g != bacType.Tint_G || b != bacType.Tint_B || a != bacType.Tint_A)
                 {
                     List<IUndoRedo> undos = new List<IUndoRedo>();
                     undos.Add(new UndoableProperty<BAC_Type23>(nameof(bacType.Tint_R), bacType, bacType.Tint_R, r));
