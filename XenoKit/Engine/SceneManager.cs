@@ -421,44 +421,60 @@ namespace XenoKit.Engine
         {
             if (actorSlot >= Actors.Length) throw new InvalidOperationException($"SceneManager.AsyncEnsureActorIsSet: idx {actorSlot} is greater than the maximum amount of Actors.");
             
-            if (Actors[actorSlot] == null)
+            try
             {
-                if (ActorIsLoading[actorSlot]) return;
-                ActorIsLoading[actorSlot] = true;
-
-                var characters = Files.Instance.GetLoadedCharacters();
-                Actor chara = characters.FirstOrDefault(x => !Actors.Contains(x));
-
-                if (chara != null)
+                if (Actors[actorSlot] == null)
                 {
-                    SetActor(characters[0], actorSlot);
-                }
-                else
-                {
-                    //Select a character based on idx. This way we dont populate the scene with multiple Gokus.
-                    int charId = 0;
-
-                    switch (actorSlot)
+                    //We must wait before returning if the actor is presently being loaded.
+                    //Returning early results in Actor being null when the code expects it to be loaded
+                    if (ActorIsLoading[actorSlot])
                     {
-                        case 1: //Victim
-                            charId = 16;
-                            break;
+                        while (ActorIsLoading[actorSlot])
+                        {
+                            await Task.Delay(50);
+                        }
+
+                        return;
                     }
 
-                    try
+                    ActorIsLoading[actorSlot] = true;
+
+                    var characters = Files.Instance.GetLoadedCharacters();
+                    Actor chara = characters.FirstOrDefault(x => !Actors.Contains(x));
+
+                    if (chara != null)
                     {
-                        //Load character
-                        Actor defaultActor = await Files.Instance.AsyncLoadCharacter(charId, 0, true);
-                        SetActor(defaultActor, actorSlot);
+                        SetActor(characters[0], actorSlot);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Log.Add("Actor Set Error: " + ex.Message, ex.ToString(), LogType.Error);
+                        //Select a character based on idx. This way we dont populate the scene with multiple Gokus.
+                        int charId = 0;
+
+                        switch (actorSlot)
+                        {
+                            case 1: //Victim
+                                charId = 16;
+                                break;
+                        }
+
+                        try
+                        {
+                            //Load character
+                            Actor defaultActor = await Files.Instance.AsyncLoadCharacter(charId, 0, true);
+                            SetActor(defaultActor, actorSlot);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Add("Actor Set Error: " + ex.Message, ex.ToString(), LogType.Error);
+                        }
                     }
                 }
             }
-
-            ActorIsLoading[actorSlot] = false;
+            finally
+            {
+                ActorIsLoading[actorSlot] = false;
+            }
         }
 
         public static bool CharacterExists(int index)

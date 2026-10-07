@@ -27,6 +27,37 @@ namespace EEPK_Organiser.View
             lightDataGrid.SelectionChanged += LightDataGrid_SelectionChanged;
         }
 
+        partial void XenoKit_OnSelectedTabChanged(Tabs tab)
+        {
+            Viewport.Instance?.VfxPreview.ClearPreview();
+
+            if (effectContainerFile == null)
+                return;
+
+            switch (tab)
+            {
+                case Tabs.Effect:
+                    PlaySelectedEffect();
+                    SetEffectPartGizmo();
+                    break;
+                case Tabs.Pbind:
+                    PlayAsset(GetSelectedAsset(AssetType.PBIND));
+                    break;
+                case Tabs.Tbind:
+                    PlayAsset(GetSelectedAsset(AssetType.TBIND));
+                    break;
+                case Tabs.Cbind:
+                    PlayAsset(GetSelectedAsset(AssetType.CBIND));
+                    break;
+                case Tabs.Emo:
+                    PlayAsset(GetSelectedAsset(AssetType.EMO));
+                    break;
+                case Tabs.Light:
+                    PlayAsset(GetSelectedAsset(AssetType.LIGHT));
+                    break;
+            }
+        }
+
         partial void XenoKit_OnEffectPartSelectionChange()
         {
             SetEffectPartGizmo();

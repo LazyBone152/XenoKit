@@ -37,6 +37,9 @@ namespace XenoKit.Editor
         [CustomSerialize]
         [YAXErrorIfMissed(YAXExceptionTypes.Ignore)]
         public bool EnableFog { get; set; } = true;
+        [CustomSerialize]
+        [YAXErrorIfMissed(YAXExceptionTypes.Ignore, DefaultValue = true)]
+        public bool RealTimeRecolorUpdate { get; set; } = true;
 
         [CustomSerialize]
         [YAXErrorIfMissed(YAXExceptionTypes.Ignore)]

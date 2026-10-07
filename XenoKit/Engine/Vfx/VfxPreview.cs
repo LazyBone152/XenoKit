@@ -76,6 +76,21 @@ namespace XenoKit.Engine.Vfx
             Asset = new VfxEffect(SceneManager.Actors[0], DefaultEffectPart);
         }
 
+        public void ClearPreview()
+        {
+            if(Effect != null)
+            {
+                Effect.Dispose();
+                Effect = null;
+            }
+
+            if(Asset != null)
+            {
+                Asset.Dispose();
+                Asset = null;
+            }
+        }
+
         public void Stop()
         {
             //Reset effect to first frame and pause
