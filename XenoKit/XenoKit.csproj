@@ -29,7 +29,7 @@
 		<PackageReference Include="FontStashSharp.MonoGame" Version="1.5.8" />
 		<PackageReference Include="FontStashSharp.Rasterizers.StbTrueTypeSharp" Version="1.2.8" />
     <PackageReference Include="MvvmLightStd10" Version="5.4.1.2" />
-		<PackageReference Include="gong-wpf-dragdrop" Version="3.2.0" />
+    <PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
 		<PackageReference Include="MahApps.Metro" Version="2.4.11" />
 		<PackageReference Include="MahApps.Metro.IconPacks.Core" Version="6.0.0" />
 		<PackageReference Include="MahApps.Metro.IconPacks.Lucide" Version="6.0.0" />

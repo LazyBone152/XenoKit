@@ -137,6 +137,11 @@ namespace XenoKit.Controls
 
         }
 
+        void IDropTarget.DropHint(IDropHintInfo dropHintInfo)
+        {
+            
+        }
+
         #endregion
 
         private void listBox_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)

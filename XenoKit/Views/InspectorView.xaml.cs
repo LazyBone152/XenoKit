@@ -383,6 +383,10 @@ namespace XenoKit.Views
         {
         }
 
+        void IDropTarget.DropHint(IDropHintInfo dropHintInfo)
+        {
+        }
+
         public void ProcessFileDrop(string[] files)
         {
             Inspector.LoadFiles(files, null);

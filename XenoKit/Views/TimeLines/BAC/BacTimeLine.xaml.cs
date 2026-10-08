@@ -1452,6 +1452,10 @@ namespace XenoKit.Views.TimeLines
 
         }
 
+        void IDropTarget.DropHint(IDropHintInfo dropHintInfo)
+        {
+        }
+
         private ITimeLineItem GetDropItem(IDropInfo dropInfo)
         {
             if (dropInfo.Data is DataObject data)
@@ -1467,6 +1471,7 @@ namespace XenoKit.Views.TimeLines
 
             return null;
         }
+
         #endregion
 
         #region Filters
