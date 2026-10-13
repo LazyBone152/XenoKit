@@ -6,12 +6,14 @@ using XenoKit.Editor;
 namespace EEPK_Organiser.Forms
 {
     public partial class RecolorAll : AutoObservableWindow
-	{
-		private Timer UpdateTimer;
+    {
+        public bool EnableLivePreview { get; set; } = true;
+
+        private Timer UpdateTimer;
 
 		private void XenoKitInit() 
 		{
-			if (LocalSettings.Instance.RealTimeRecolorUpdate)
+			if (LocalSettings.Instance.RealTimeRecolorUpdate && EnableLivePreview)
             {
 				UpdateTimer = new Timer(10);
                 Closed += RecolorAll_Closed;
