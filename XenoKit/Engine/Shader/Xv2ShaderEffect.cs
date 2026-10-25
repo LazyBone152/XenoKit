@@ -155,7 +155,7 @@ namespace XenoKit.Engine.Shader
 
             InitTechnique();
 
-            material.DecompiledParameters.PropertyChanged += DecompiledParameters_PropertyChanged;
+            material.DecompiledParameters.ParametersChanged += DecompiledParameters_ParametersChanged;
             material.PropertyChanged += Material_PropertyChanged;
             Xv2Stage.CurrentSpmChanged += Xv2Stage_CurrentSpmChanged;
             SettingsManager.SettingsSaved += SettingsManager_SettingsChanged;
@@ -169,7 +169,7 @@ namespace XenoKit.Engine.Shader
             if(!delayInit)
                 InitTechnique();
 
-            material.DecompiledParameters.PropertyChanged += DecompiledParameters_PropertyChanged;
+            material.DecompiledParameters.ParametersChanged += DecompiledParameters_ParametersChanged;
             material.PropertyChanged += Material_PropertyChanged;
             Xv2Stage.CurrentSpmChanged += Xv2Stage_CurrentSpmChanged;
             SettingsManager.SettingsSaved += SettingsManager_SettingsChanged;
@@ -1336,20 +1336,15 @@ namespace XenoKit.Engine.Shader
         }
 
         //Auto-updating
-        private void DecompiledParameters_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void DecompiledParameters_ParametersChanged(object sender, ParameterChangeType changeType)
         {
-            if (e.PropertyName == nameof(DecompiledMaterial.ParametersChanged))
+            if(changeType == ParameterChangeType.UpdateShaderProgram)
             {
-                if (Material.DecompiledParameters.ParametersChanged == 1)
-                {
-                    IsDirty = true;
-                }
-                else if (Material.DecompiledParameters.ParametersChanged == 2)
-                {
-                    IsShaderProgramDirty = true;
-                }
-
-                Material.DecompiledParameters.ResetParametersChanged();
+                IsShaderProgramDirty = true;
+            }
+            else if(changeType == ParameterChangeType.UpdateParameters)
+            {
+                IsDirty = true;
             }
         }
 
@@ -1411,7 +1406,7 @@ namespace XenoKit.Engine.Shader
 
         public void Release()
         {
-            Material.DecompiledParameters.PropertyChanged -= DecompiledParameters_PropertyChanged;
+            Material.DecompiledParameters.ParametersChanged -= DecompiledParameters_ParametersChanged;
             Material.PropertyChanged -= Material_PropertyChanged;
         }
 
