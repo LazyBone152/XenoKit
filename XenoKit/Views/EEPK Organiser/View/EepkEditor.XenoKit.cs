@@ -20,11 +20,11 @@ namespace EEPK_Organiser.View
             XenoKitVisible = Visibility.Visible;
             NotifyPropertyChanged(nameof(XenoKitVisible));
 
-            pbindDataGrid.SelectionChanged += PbindDataGrid_SelectionChanged;
-            tbindDataGrid.SelectionChanged += TbindDataGrid_SelectionChanged;
-            cbindDataGrid.SelectionChanged += CbindDataGrid_SelectionChanged;
-            emoDataGrid.SelectionChanged += EmoDataGrid_SelectionChanged;
-            lightDataGrid.SelectionChanged += LightDataGrid_SelectionChanged;
+            pbindView.SelectionChanged += PbindDataGrid_SelectionChanged;
+            tbindView.SelectionChanged += TbindDataGrid_SelectionChanged;
+            cbindView.SelectionChanged += CbindDataGrid_SelectionChanged;
+            emoView.SelectionChanged += EmoDataGrid_SelectionChanged;
+            lightView.SelectionChanged += LightDataGrid_SelectionChanged;
         }
 
         partial void XenoKit_OnSelectedTabChanged(Tabs tab)
@@ -101,7 +101,7 @@ namespace EEPK_Organiser.View
                 Viewport.Instance.VfxPreview.PreviewAsset(asset);
         }
 
-        partial void AssetEmoOpenEditor(Asset asset)
+        public void AssetEmoOpenEditor(Asset asset)
         {
             EffectFile emb = asset.Files.FirstOrDefault(x => x.fileType == EffectFile.FileType.EMB);
             EffectFile emm = asset.Files.FirstOrDefault(x => x.fileType == EffectFile.FileType.EMM);

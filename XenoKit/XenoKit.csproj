@@ -204,6 +204,7 @@
     <Compile Include="..\..\XV2 Tools\EEPK Editor\ViewModel\MaterialViewModel.cs">
       <Link>Views\EEPK Organiser\ViewModel\MaterialViewModel.cs</Link>
     </Compile>
+    <Compile Include="..\..\XV2 Tools\EEPK Editor\View\AssetContainerView.xaml.cs" Link="Views\EEPK Organiser\View\AssetContainerView.xaml.cs" />
     <Compile Include="..\..\XV2 Tools\EEPK Editor\View\Controls\ShapeDraw.xaml.cs">
       <Link>Views\EEPK Organiser\View\Controls\ShapeDraw.xaml.cs</Link>
     </Compile>
@@ -368,6 +369,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="..\..\XV2 Tools\EEPK Editor\View\AssetContainerView.xaml" Link="Views\EEPK Organiser\View\AssetContainerView.xaml" />
     <Page Include="..\..\XV2 Tools\EEPK Editor\View\Controls\ShapeDraw.xaml">
       <Link>Views\EEPK Organiser\View\Controls\ShapeDraw.xaml</Link>
       <Generator>MSBuild:Compile</Generator>
