@@ -100,7 +100,7 @@ namespace XenoKit.Engine
 		public VfxPreview VfxPreview { get; protected set; }
 		public ShaderManager ShaderManager { get; private set; }
         public DirLight LightSource { get; private set; }
-        public SunLight SunLight { get; private set; }
+        public StageLight StageLight { get; private set; }
         public Input Input { get; private set; }
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; private set; }
@@ -140,7 +140,7 @@ namespace XenoKit.Engine
             CurrentStage = _defaultStage;
             Input = new Input();
             LightSource = new DirLight();
-            SunLight = new SunLight();
+            StageLight = new StageLight();
             ObjectPoolManager = new ObjectPoolManager();
             ShaderManager = new ShaderManager();
             Simulation = new Simulation();
@@ -200,7 +200,7 @@ namespace XenoKit.Engine
             CheckHotkeys();
             CurrentGizmo.Update();
 
-            SunLight.Update();
+            StageLight.Update();
             LightSource.Update();
             CurrentStage?.Update();
 

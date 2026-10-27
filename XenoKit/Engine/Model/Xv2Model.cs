@@ -1512,7 +1512,7 @@ namespace XenoKit.Engine.Model
 #endif
             if (Vector3.Distance(world.Translation, ViewportInstance.Camera.CameraState.Position) < 1f) return true;
 
-            BoundingFrustum frustum = RenderSystem.IsShadowPass ? ViewportInstance.SunLight.LightFrustum : ViewportInstance.Camera.Frustum;
+            BoundingFrustum frustum = RenderSystem.IsShadowPass ? ViewportInstance.StageLight.LightFrustum : ViewportInstance.Camera.Frustum;
 
             return frustum.Intersects(BoundingBox.Transform(world));
         }

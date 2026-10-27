@@ -649,7 +649,7 @@ namespace XenoKit.Engine.Shader
 
             if (shaderProgram.UsePixelShaderBuffer[PS_USER_CB])
             {
-                Parameters["g_vShadowParam_PS"].SetValue(new Vector4(34.32481f, 68.64962f, 0, 0));
+                Parameters["g_vShadowParam_PS"].SetValue(new Vector4(-10f, -85f, 0, 0));
             }
 
             //cb_ps_bool
@@ -665,7 +665,7 @@ namespace XenoKit.Engine.Shader
             Parameters["g_vShadowParam_PS"]?.SetValue(new Vector4(16, 32, 0, 0));
             Parameters["g_vShadowColor_PS"]?.SetValue(new Vector4(0.5f, 0.5f, 0.5f, 1));
 
-            UpdateShadowMapValue();
+            UpdateShadowMap();
             UpdateSpmValues();
 
             //Set parameter references that will be updated every frame (since doing it via string look up would be bad)
@@ -728,126 +728,135 @@ namespace XenoKit.Engine.Shader
             g_vUserFlag1_VS = Parameters["g_vUserFlag1_VS"];
         }
 
-        private void ApplyParameter(ShaderParameter parameter)
+        private void ApplyParameters()
         {
-            switch (parameter)
+            bool shadowMapRequired = false;
+            
+            foreach (ShaderParameter parameter in SdsParameters)
             {
-                case ShaderParameter.W:
-                    g_mW_VS?.SetValue(World);
-                    break;
-                case ShaderParameter.WV:
-                    g_mWV_VS?.SetValue(WV);
-                    break;
-                case ShaderParameter.WVP:
-                    g_mWVP_VS?.SetValue(WVP);
-                    break;
-                case ShaderParameter.VP:
-                    g_mVP_VS?.SetValue(Viewport.Instance.Camera.ViewProjectionMatrix);
-                    break;
-                case ShaderParameter.WLP_SM: //World Light Projection (Shadow Map)
-                    g_mWLP_SM_VS?.SetValue(World * Viewport.Instance.SunLight.LightViewProjectionMatrix);
-                    break;
-                case ShaderParameter.WLPB_SM: //World Light Projection Bias (Shadow Map)
-                    g_mWLPB_SM_VS?.SetValue(World * Viewport.Instance.SunLight.LightViewProjectionBiasMatrix);
-                    //Parameters["g_mWLPB_SM_VS"]?.SetValue(Viewport.Instance.LightSource.LightMatrix);
-                    break;
-                case ShaderParameter.WLP_PM: //Same as _SM variant
-                    g_mWLP_PM_VS?.SetValue(World * Viewport.Instance.SunLight.LightViewProjectionMatrix);
-                    break;
-                case ShaderParameter.WLPB_PM: //Same as _SM variant
-                    g_mWLPB_PM_VS?.SetValue(World * Viewport.Instance.SunLight.LightViewProjectionBiasMatrix);
-                    break;
-                case ShaderParameter.WIT: //World Instance Transform
-                    g_mWIT_VS?.SetValue(World);
-                    break;
-                case ShaderParameter.WVP_Prev:
-                    g_mWVP_Prev_VS?.SetValue(PrevWVP);
-                    break;
+                switch (parameter)
+                {
+                    case ShaderParameter.W:
+                        g_mW_VS?.SetValue(World);
+                        break;
+                    case ShaderParameter.WV:
+                        g_mWV_VS?.SetValue(WV);
+                        break;
+                    case ShaderParameter.WVP:
+                        g_mWVP_VS?.SetValue(WVP);
+                        break;
+                    case ShaderParameter.VP:
+                        g_mVP_VS?.SetValue(Viewport.Instance.Camera.ViewProjectionMatrix);
+                        break;
+                    case ShaderParameter.WLP_SM: //World Light Projection (Shadow Map)
+                    case ShaderParameter.WLPB_SM: //World Light Projection Bias (Shadow Map)
+                    case ShaderParameter.WLP_PM: //Same as _SM variant
+                    case ShaderParameter.WLPB_PM: //Different bias matrix to _SM version
+                        shadowMapRequired = true;
+                        break;
+                    case ShaderParameter.WIT: //World Instance Transform
+                        g_mWIT_VS?.SetValue(World);
+                        break;
+                    case ShaderParameter.WVP_Prev:
+                        g_mWVP_Prev_VS?.SetValue(PrevWVP);
+                        break;
 
-                case ShaderParameter.MatCol0_PS:
-                    g_MaterialCol0_PS?.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
-                    break;
-                case ShaderParameter.MatCol1_PS:
-                    g_MaterialCol1_PS?.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
-                    break;
-                case ShaderParameter.MatCol2_PS:
-                    g_MaterialCol2_PS?.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
-                    break;
-                case ShaderParameter.MatCol3_PS:
-                    g_MaterialCol3_PS?.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
-                    break;
-                case ShaderParameter.MatCol0_VS:
-                    g_MaterialCol0_VS?.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
-                    break;
-                case ShaderParameter.MatCol1_VS:
-                    g_MaterialCol1_VS?.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
-                    break;
-                case ShaderParameter.MatCol2_VS:
-                    g_MaterialCol2_VS?.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
-                    break;
-                case ShaderParameter.MatCol3_VS:
-                    g_MaterialCol3_VS?.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
-                    break;
+                    case ShaderParameter.MatCol0_PS:
+                        g_MaterialCol0_PS?.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
+                        break;
+                    case ShaderParameter.MatCol1_PS:
+                        g_MaterialCol1_PS?.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
+                        break;
+                    case ShaderParameter.MatCol2_PS:
+                        g_MaterialCol2_PS?.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
+                        break;
+                    case ShaderParameter.MatCol3_PS:
+                        g_MaterialCol3_PS?.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
+                        break;
+                    case ShaderParameter.MatCol0_VS:
+                        g_MaterialCol0_VS?.SetVector4(MatCol0 != null ? MatCol0 : Material.DecompiledParameters.MatCol0.Values);
+                        break;
+                    case ShaderParameter.MatCol1_VS:
+                        g_MaterialCol1_VS?.SetVector4(MatCol1 != null ? MatCol1 : Material.DecompiledParameters.MatCol1.Values);
+                        break;
+                    case ShaderParameter.MatCol2_VS:
+                        g_MaterialCol2_VS?.SetVector4(MatCol2 != null ? MatCol2 : Material.DecompiledParameters.MatCol2.Values);
+                        break;
+                    case ShaderParameter.MatCol3_VS:
+                        g_MaterialCol3_VS?.SetVector4(MatCol3 != null ? MatCol3 : Material.DecompiledParameters.MatCol3.Values);
+                        break;
+                    case ShaderParameter.TexScrl0_VS:
+                        g_TexScroll0_VS?.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
+                        break;
+                    case ShaderParameter.TexScrl1_VS:
+                        g_TexScroll1_VS?.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
+                        break;
+                    case ShaderParameter.TexScrl0_PS:
+                        g_TexScroll0_PS?.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
+                        break;
+                    case ShaderParameter.TexScrl1_PS:
+                        g_TexScroll1_PS?.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
+                        break;
 
-                case ShaderParameter.TexScrl0_VS:
-                    g_TexScroll0_VS?.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
-                    break;
-                case ShaderParameter.TexScrl1_VS:
-                    g_TexScroll1_VS?.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
-                    break;
-                case ShaderParameter.TexScrl0_PS:
-                    g_TexScroll0_PS?.SetVector4(TexScrl0 != null ? TexScrl0 : Material.DecompiledParameters.TexScrl0.Values);
-                    break;
-                case ShaderParameter.TexScrl1_PS:
-                    g_TexScroll1_PS?.SetVector4(TexScrl1 != null ? TexScrl1 : Material.DecompiledParameters.TexScrl1.Values);
-                    break;
+                    case ShaderParameter.LightVec0_VS:
+                        if (ShaderType == ShaderType.Stage)
+                        {
+                            g_vLightVec0_VS?.SetValue(Viewport.Instance.StageLight.LightDirection);
+                        }
+                        else
+                        {
+                            g_vLightVec0_VS?.SetValue(Viewport.Instance.LightSource.GetLightDirection(WVP));
+                        }
+                        break;
+                    case ShaderParameter.LightVec0_PS:
+                        if (ShaderType == ShaderType.Stage)
+                        {
+                            g_vLightVec0_PS?.SetValue(Viewport.Instance.StageLight.LightDirection);
+                        }
+                        else
+                        {
+                            g_vLightVec0_PS?.SetValue(Viewport.Instance.LightSource.GetLightDirection(WVP));
+                        }
+                        break;
+                    case ShaderParameter.UserFlag0_VS:
+                        g_vUserFlag0_VS?.SetValue(Viewport.Instance.LightSource.Position);
+                        break;
+                    case ShaderParameter.EyePos_VS: //Camera position in object space
+                        g_vEyePos_VS?.SetValue(new Vector4(Vector3.Transform(Viewport.Instance.Camera.CameraState.Position, Matrix.Invert(World)), 1f));
+                        break;
+                    case ShaderParameter.EyePos_PS:
+                        g_vEyePos_PS?.SetValue(new Vector4(Vector3.Transform(Viewport.Instance.Camera.CameraState.Position, Matrix.Invert(World)), 1f));
+                        break;
 
-                case ShaderParameter.LightVec0_VS:
-                    if(ShaderType == ShaderType.Stage)
-                    {
-                        g_vLightVec0_VS?.SetValue(Viewport.Instance.SunLight.Direction);
-                    }
-                    else
-                    {
-                        g_vLightVec0_VS?.SetValue(Viewport.Instance.LightSource.GetLightDirection(WVP));
-                    }
-                    break;
-                case ShaderParameter.LightVec0_PS:
-                    if (ShaderType == ShaderType.Stage)
-                    {
-                        g_vLightVec0_PS?.SetValue(Viewport.Instance.SunLight.Direction);
-                    }
-                    else
-                    {
-                        g_vLightVec0_PS?.SetValue(Viewport.Instance.LightSource.GetLightDirection(WVP));
-                    }
-                    break;
-                case ShaderParameter.UserFlag0_VS:
-                    g_vUserFlag0_VS?.SetValue(Viewport.Instance.LightSource.Position);
-                    break;
-                case ShaderParameter.EyePos_VS: //Camera position in object space
-                    g_vEyePos_VS?.SetValue(new Vector4(Vector3.Transform(Viewport.Instance.Camera.CameraState.Position, Matrix.Invert(World)), 1f));
-                    break;
-                case ShaderParameter.EyePos_PS:
-                    g_vEyePos_PS?.SetValue(new Vector4(Vector3.Transform(Viewport.Instance.Camera.CameraState.Position, Matrix.Invert(World)), 1f));
-                    break;
+                    case ShaderParameter.FadeColor:
+                        if (ECF_Multi != null)
+                        {
+                            g_vFadeMulti_PS?.SetVector4(ECF_Multi);
+                            g_vFadeRim_PS?.SetVector4(ECF_Rim);
+                            g_vFadeAdd_PS?.SetVector4(ECF_Add);
+                        }
+                        else
+                        {
+                            //Set default values
+                            g_vFadeMulti_PS?.SetValue(Vector4.One);
+                            g_vFadeRim_PS?.SetValue(Vector4.Zero);
+                            g_vFadeAdd_PS?.SetValue(Vector4.Zero);
+                        }
+                        break;
 
-                case ShaderParameter.FadeColor:
-                    if (ECF_Multi != null)
-                    {
-                        g_vFadeMulti_PS?.SetVector4(ECF_Multi);
-                        g_vFadeRim_PS?.SetVector4(ECF_Rim);
-                        g_vFadeAdd_PS?.SetVector4(ECF_Add);
-                    }
-                    else
-                    {
-                        //Set default values
-                        g_vFadeMulti_PS?.SetValue(Vector4.One);
-                        g_vFadeRim_PS?.SetValue(Vector4.Zero);
-                        g_vFadeAdd_PS?.SetValue(Vector4.Zero);
-                    }
-                    break;
+                }
+            }
 
+            if (shadowMapRequired)
+            {
+                Matrix4x4 wlp = World * Viewport.Instance.StageLight.LightViewProjectionMatrix;
+
+                g_mWLP_SM_VS?.SetValue(wlp);
+                g_mWLPB_SM_VS?.SetValue(wlp * Viewport.Instance.StageLight.BiasMatrix_SM);
+                g_mWLP_PM_VS?.SetValue(wlp);
+                g_mWLPB_PM_VS?.SetValue(wlp * Viewport.Instance.StageLight.BiasMatrix_PM);
+
+                Parameters["g_vShadowParam_PS"]?.SetValue(new Vector4(Viewport.Instance.StageLight.ShadowFadeStart, Viewport.Instance.StageLight.ShadowFadeEnd, 0, 0));
             }
         }
 
@@ -893,10 +902,7 @@ namespace XenoKit.Engine.Shader
             if (UseWVP)
                 WVP = World * Viewport.Instance.Camera.ViewProjectionMatrix;
 
-            foreach (ShaderParameter parameter in SdsParameters)
-            {
-                ApplyParameter(parameter);
-            }
+            ApplyParameters();
 
             Parameters["g_bOutputGlareMRT_PS"]?.SetValue(glareOutputAllowed && MatParam.Glare == 1);
             glareOutputAllowed = true;
@@ -1017,18 +1023,6 @@ namespace XenoKit.Engine.Shader
             //Required for T1_VFX_MTN_DIS_ALPHA, unsure where the value comes from (it changes)
             //Parameters["g_vColor13_PS"]?.SetValue(new Vector4(1.00f, 1.00f, 1.00f, 0.80559f));
 
-            if (MathHelpers.FloatEquals(World.Translation.X, -191.0107) &&
-                MathHelpers.FloatEquals(World.Translation.Y, -30.51358) &&
-                MathHelpers.FloatEquals(World.Translation.Z, 161.74263))
-            {
-                Vector4 test = new Vector4(MatParam.SpcCoeff, MatParam.SpcPower, 0, 0);
-                Vector4 test2 = new Vector4(2.0159f, 2.06009f, 2.01842f, 2.01591f);
-                Parameters["g_vSpecular_PS"]?.SetValue(test);
-                Parameters["g_vSpecular_VS"]?.SetValue(test);
-                Parameters["g_vParam0_PS"]?.SetValue(new Vector4(0.00556f, 0.99444f, 180.00f, 0.00f));
-                Parameters["g_vParam1_PS"]?.SetValue(new Vector4(0.50f, 0.50f, 0.10f, 104857.70313f));
-
-            }
             //Parameters["g_vSpecular_VS"]?.SetValue(new Vector4(2.0159f, 2.06009f, 2.01842f, 2.01591f));
             //g_vEyePos_VS?.SetValue(new Vector4(Vector3.Transform(Viewport.Instance.Camera.CameraState.Position, Matrix.Invert(World)), 1f));
             //Update global parameters
@@ -1383,19 +1377,20 @@ namespace XenoKit.Engine.Shader
             }
         }
 
-        private void UpdateShadowMapValue()
+        private void UpdateShadowMap()
         {
-            Parameters["g_vShadowMap_PS"]?.SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 0.00012f, 0.001f, 0.85f));
+            Parameters["g_vShadowMap_PS"]?.SetValue(new Vector4(SettingsManager.settings.XenoKit_ShadowMapRes, 1f / SettingsManager.settings.XenoKit_ShadowMapRes, Viewport.Instance.StageLight.ShadowParams.DepthBias, Viewport.Instance.StageLight.ShadowParams.ShadowParam48));
         }
 
         private void Xv2Stage_CurrentSpmChanged(object sender, EventArgs e)
         {
+            UpdateShadowMap();
             UpdateSpmValues();
         }
 
         private void SettingsManager_SettingsChanged(object sender, EventArgs e)
         {
-            UpdateShadowMapValue();
+            UpdateShadowMap();
         }
 
         public void SetShaderProgram(ShaderProgram shader)

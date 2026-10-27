@@ -16,6 +16,13 @@ namespace XenoKit.Engine.View
         public Matrix4x4 ViewMatrix { get; private set; }
         public Matrix4x4 ProjectionMatrix { get; private set; }
         public Matrix4x4 ViewProjectionMatrix { get; private set; }
+        public float NearClip { get; private set; } = 0.01f;
+        public float FarClip { get; private set; } = 1f;
+        public float AspectRatio { get; private set; } = 1f;
+        /// <summary>
+        /// Vertical field of view in radians.
+        /// </summary>
+        public float FovY { get; private set; } = 1f;
         public BoundingFrustum Frustum { get; protected set; } = new BoundingFrustum(Matrix.Identity);
         public virtual CameraState CameraState { get; protected set; } = new CameraState();
 
@@ -355,13 +362,13 @@ namespace XenoKit.Engine.View
         public void RecalculateMatrices()
         {
             //Projection Matrix
-            float fieldOfViewRadians = (float)(Math.PI / 180 * CameraState.FieldOfView);
-            float nearClipPlane = ViewportInstance.CurrentStage.NearClip;
-            float farClipPlane = ViewportInstance.CurrentStage.FarClip;
-            float aspectRatio = RenderSystem.RenderWidth / (float)RenderSystem.RenderHeight;
+            FovY = (float)(Math.PI / 180 * CameraState.FieldOfView);
+            NearClip = ViewportInstance.CurrentStage.NearClip;
+            FarClip = ViewportInstance.CurrentStage.FarClip * 2;
+            AspectRatio = RenderSystem.RenderWidth / (float)RenderSystem.RenderHeight;
 
-            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(fieldOfViewRadians, aspectRatio, nearClipPlane, farClipPlane);
-            //ProjectionMatrix = EngineUtils.CreateInfinitePerspective(fieldOfViewRadians, aspectRatio, nearClipPlane);
+            ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(FovY, AspectRatio, NearClip, FarClip);
+            //ProjectionMatrix = EngineUtils.CreateInfinitePerspective(FovY, AspectRatio, NearClip);
 
             //View Matrix
             if (IsReflectionView)

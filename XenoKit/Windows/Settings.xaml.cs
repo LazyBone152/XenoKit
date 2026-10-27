@@ -1,4 +1,5 @@
-﻿using LB_Common.Forms;
+﻿using CommunityToolkit.Mvvm.Input;
+using LB_Common.Forms;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using System;
@@ -201,6 +202,12 @@ namespace XenoKit.Windows
             }
         }
 
+        public float ShadowDistanceModifier
+        {
+            get => LocalSettings.ShadowDistanceModifier;
+            set => LocalSettings.ShadowDistanceModifier = value;
+        }
+
         private string OriginalGameDir;
 
         public SettingsWindow(MainWindow parent)
@@ -281,6 +288,13 @@ namespace XenoKit.Windows
         private void ThemeAccentComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             _parent.InitTheme();
+        }
+
+        [RelayCommand]
+        private void ResetShadowDistance()
+        {
+            LocalSettings.ShadowDistanceModifier = 1f;
+            NotifyPropertyChanged(nameof(ShadowDistanceModifier));
         }
     }
 }

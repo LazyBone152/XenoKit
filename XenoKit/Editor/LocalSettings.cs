@@ -51,6 +51,10 @@ namespace XenoKit.Editor
         [YAXErrorIfMissed(YAXExceptionTypes.Ignore)]
         public float CameraSpinSpeed { get; set; } = 1f;
 
+        [CustomSerialize]
+        [YAXErrorIfMissed(YAXExceptionTypes.Ignore, DefaultValue = 1)]
+        public float ShadowDistanceModifier { get; set; } = 1f;
+
         public SerializedCameraState[] CameraStates { get; set; } = new SerializedCameraState[5];
 
         private static bool Load()
