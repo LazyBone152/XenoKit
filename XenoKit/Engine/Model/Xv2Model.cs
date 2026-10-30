@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Documents;
-using System.Windows.Media.Imaging;
 using XenoKit.Editor;
 using XenoKit.Engine.Animation;
 using XenoKit.Engine.Collision;
@@ -14,7 +12,6 @@ using XenoKit.Engine.Shader;
 using XenoKit.Engine.Textures;
 using XenoKit.Engine.Vertex;
 using Xv2CoreLib;
-using Xv2CoreLib.Color;
 using Xv2CoreLib.EMD;
 using Xv2CoreLib.EMG;
 using Xv2CoreLib.EMO;
@@ -1154,12 +1151,6 @@ namespace XenoKit.Engine.Model
         public float[] TexTile01 { get; private set; } = new float[4];
         public float[] TexTile23 { get; private set; } = new float[4];
 
-        //Custom Color DYT
-        private int CustomColrDytCreatedFromIndex = 0;
-        private int CustomColorIndex = -1;
-        private int CustomColorGroup = -1;
-        public Xv2Texture CustomColorDyt = null;
-
         //Skinning:
         public bool EnableSkinning { get; set; }
         public string[] BoneNames;
@@ -1375,24 +1366,11 @@ namespace XenoKit.Engine.Model
 
             Xv2ShaderEffect material = MaterialIndex != -1 ? materials[MaterialIndex] : (EnableSkinning ? DefaultShaders.VertexColor_W : DefaultShaders.WhiteWireframe);
 
-
             if (!RenderSystem.CheckDrawPass(material)) return;
 
             //Only do frustum culling for non-instanced draws
             if (!FrustumIntersects(newWorld) && instanceData == null)
                 return;
-
-            //Handle BCS Colors
-            if (dyts != null)
-            {
-                UpdateCustomColorDyt(actor, dytIdx, dyts, material);
-
-                if (CustomColorDyt != null)
-                {
-                    GraphicsDevice.Textures[4] = CustomColorDyt.Texture;
-                    GraphicsDevice.VertexTextures[4] = CustomColorDyt.Texture;
-                }
-            }
 
             material.World = newWorld;
             material.PrevWVP = PrevWVP[actor];
@@ -1401,12 +1379,10 @@ namespace XenoKit.Engine.Model
             foreach (SamplerInfo sampler in Samplers)
             {
                 GraphicsDevice.SamplerStates[sampler.samplerSlot] = sampler.state;
-                //GraphicsDevice.VertexSamplerStates[sampler.samplerSlot] = sampler.state;
 
                 //Set textures if index is valid.
                 if (sampler.parameter <= textures?.Length - 1 && sampler.parameter >= 0)
                 {
-                    //GraphicsDevice.VertexTextures[sampler.textureSlot] = textures[sampler.parameter].Texture;
                     GraphicsDevice.Textures[sampler.textureSlot] = textures[sampler.parameter].Texture;
                 }
             }
@@ -1555,91 +1531,6 @@ namespace XenoKit.Engine.Model
             }
         }
 
-        #endregion
-
-        #region CustomColor
-        private void UpdateCustomColorDyt(int actor, int dytIdx, Xv2Texture[] Dyts, Xv2ShaderEffect material)
-        {
-            if ((CustomColrDytCreatedFromIndex != dytIdx || CustomColorDyt == null) && CustomColorIndex != -1 && Dyts.Length > CustomColrDytCreatedFromIndex)
-            {
-                CustomColorDyt?.Dispose();
-
-                var colors = SceneManager.Actors[actor].CharacterData.BcsFile.File.GetColor(CustomColorGroup, CustomColorIndex);
-
-                if (colors == null)
-                {
-                    CustomColorDyt = null;
-                    return;
-                }
-
-                var dyt = Dyts[dytIdx].HardCopy();
-                int dytLineBase = (int)(material.Material.DecompiledParameters.MatScale1.X) * 16;
-
-                for (int c = 0; c < 4; c++)
-                {
-                    //As far as I can tell, Color 2 isn't used by the game... so skip
-                    if (c == 1) continue;
-
-                    int dytLine = c * 4;
-                    int height = dytLineBase + dytLine;
-
-                    for (int width = 0; width < dyt.EmbEntry.Texture.PixelWidth; width++)
-                    {
-                        var bcsColor = colors.GetColor(c);
-                        Xv2Color color = new Xv2Color(bcsColor);
-                        color.ToHsl(out double hue, out double saturation, out double lightness);
-
-                        var pixelRgb = dyt.EmbEntry.Texture.GetPixel(width, height);
-                        Xv2Color pixelColor = new Xv2Color(pixelRgb.R, pixelRgb.G, pixelRgb.B);
-                        pixelColor.ToHsl(out _, out _, out double pixelLightness);
-                        pixelColor = Xv2Color.FromHsl(hue, saturation, (lightness * 0.8f) + (pixelLightness * 0.2f));
-
-                        //The pixel is colored by a factor of the original color and that defined in the BCS color (e.g: if BCS A is 0, then only the original pixels color is kept, but if its 1, then it should only be the BCS color, or if its somewhere inbetween, then they are merged)
-                        float originalFactor = 1f - bcsColor.A;
-                        byte r = (byte)((pixelColor.R_Byte * bcsColor.A) + (pixelRgb.R * originalFactor));
-                        byte g = (byte)((pixelColor.G_Byte * bcsColor.A) + (pixelRgb.G * originalFactor));
-                        byte b = (byte)((pixelColor.B_Byte * bcsColor.A) + (pixelRgb.B * originalFactor));
-
-                        dyt.EmbEntry.Texture.SetPixel(width, height, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + 1, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + 2, pixelRgb.A, r, g, b);
-                        dyt.EmbEntry.Texture.SetPixel(width, height + 3, pixelRgb.A, r, g, b);
-
-                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
-                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 1, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
-                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 2, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
-                        //dyt.EmbEntry.Texture.SetPixel(width, height + dytLine + 3, pixelRgb.A, newPixelRgb.R_int, newPixelRgb.G_int, newPixelRgb.B_int);
-
-                    }
-                }
-
-                dyt.EmbEntry.SaveDds(false);
-                dyt.IsDirty = true;
-                CustomColorDyt = dyt;
-
-                //System.IO.File.WriteAllBytes("OG.dds", Dyts[dytIdx].EmbEntry.Data);
-                //System.IO.File.WriteAllBytes("NEW.dds", dyt.EmbEntry.Data);
-
-                CustomColrDytCreatedFromIndex = dytIdx;
-            }
-        }
-
-        public void ApplyCustomColor(int colorGroup, int colorIndex)
-        {
-            if (CustomColorGroup != colorGroup || CustomColorIndex != colorIndex)
-            {
-                CustomColorDyt = null;
-                CustomColorIndex = colorIndex;
-                CustomColorGroup = colorGroup;
-            }
-        }
-
-        public void ResetCustomColor()
-        {
-            CustomColorDyt = null;
-            CustomColorGroup = -1;
-            CustomColorIndex = -1;
-        }
         #endregion
 
         #region Init

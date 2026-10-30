@@ -21,7 +21,8 @@ namespace XenoKit.Engine.Shader
             DTMAP_BLEND_CST_ADD,
             DTMAP_BLEND_CST_MUL,
             DTMAP_BLEND_CST_HUE,
-            DTMAP_BLEND_CST_HSV,
+            DTMAP_BLEND_CST_HSV, 
+            DTMAP_BLEND_CST_YUV_MODIFIED,
 
             //ExtShaders
             YBS_Copy,
@@ -39,6 +40,7 @@ namespace XenoKit.Engine.Shader
 
         public PostProccessShader Shader { get; private set; }
         private YBSShaderParameters YBSParameters;
+        private PostShaderParameters CustomParameters;
 
         //Samplers:
         public readonly SamplerState[] ImageSampler = new SamplerState[4];
@@ -90,13 +92,17 @@ namespace XenoKit.Engine.Shader
                     ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear, 0);
                     ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear, 1);
                     break;
+                case PostProccessShader.DTMAP_BLEND_CST_YUV_MODIFIED:
+                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Linear, 0);
+                    ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Linear, 1);
+                    break;
                 case PostProccessShader.YBS_Copy:
                 case PostProccessShader.YBS_Dim:
                     ImageSampler[0] = CreateSampler(TextureAddressMode.Mirror, TextureAddressMode.Clamp, TextureFilter.MinLinearMagPointMipPoint, 0);
                     break;
                 case PostProccessShader.YBS_CopyRegion:
                     ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.MinLinearMagPointMipPoint, 0);
-                    ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.MinLinearMagPointMipPoint, 1);
+                    ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.MinLinearMagPointMipPoint, 1);
                     break;
 
             }
@@ -191,71 +197,91 @@ namespace XenoKit.Engine.Shader
                 PrevWVP = world * viewMatrix * projMatrix;
             }
 
-            switch (Shader)
+            if(CustomParameters != null)
             {
-                case PostProccessShader.EDGELINE_VFX:
-                    float inverseTargetWidth = 1f / Viewport.Instance.RenderSystem.CurrentRT_Width;
-                    float inverseTargetHeight = 1f / Viewport.Instance.RenderSystem.CurrentRT_Height;
-                    float inverseSourceWidth = 1f / Viewport.Instance.RenderSystem.RenderWidth;
-                    float inverseSourceHeight = 1f / Viewport.Instance.RenderSystem.RenderHeight;
-                    g_vParam0_PS?.SetValue(new Vector4(
-                        inverseTargetWidth,
-                        inverseTargetHeight,
-                        inverseSourceWidth,
-                        inverseSourceHeight));
-                    g_vParam1_PS?.SetValue(new Vector4(0, 1f, 7.5f, 0));
-                    break;
-                case PostProccessShader.AGE_TEST_EDGELINE_MRT:
-                    g_vParam0_PS?.SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
-                    if (Viewport.Instance.RenderSystem.SuperSampleFactor > 1)
-                    {
-                        g_vParam1_PS?.SetValue(new Vector4(0.000312f, 0.000552f, 2.4f, 0.5f));
-                    }
-                    else
-                    {
-                        g_vParam1_PS?.SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
-                    }
-                    break;
-                case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
-                    g_vParam0_PS?.SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));
-                    g_vScreen_VS?.SetValue(new Vector4(Viewport.Instance.RenderSystem.RenderWidth, Viewport.Instance.RenderSystem.RenderHeight, 0.10f, 10106.85645f));
-                    break;
-                case PostProccessShader.DTMAP_BLEND_CST_ADD:
-                case PostProccessShader.DTMAP_BLEND_CST_MUL:
-                case PostProccessShader.DTMAP_BLEND_CST_HUE:
-                case PostProccessShader.DTMAP_BLEND_CST_HSV:
-                    g_vParam0_VS?.SetValue(Vector4.One);
-                    g_vParam1_VS?.SetValue(Vector4.One);
-                    g_vParam0_PS?.SetValue(Vector4.Zero);
-                    break;
-                case PostProccessShader.BIRD_BG_EDGELINE_RGB_HF:
-                    g_vEdge_PS?.SetValue(new Vector4(0.1f, 0.1f, 0.1f, 5f));
-                    g_vParam0_PS?.SetValue(new Vector4(0.034f, 0.885f, 0.85f, 0.138f));
-                    g_vParam1_PS?.SetValue(new Vector4(1.724f, 0.00f, 0.00f, 0.00f));
-                    break;
-                case PostProccessShader.YBS_Copy:
-                case PostProccessShader.YBS_Pixel:
-                case PostProccessShader.YBS_Glare:
-                case PostProccessShader.YBS_Smooth:
-                    afRGBA_Modulate?.SetValue(YBSParameters.afRGBA_Modulate);
-                    afUV_TexCoordOffsetV16?.SetValue(YBSParameters.afUV_TexCoordOffsetV16);
-                    break;
-                case PostProccessShader.YBS_Dim:
-                    afRGBA_Modulate.SetValue(YBSParameters.afRGBA_Modulate);
-                    afUV_TexCoordOffsetV16.SetValue(YBSParameters.afUV_TexCoordOffsetV16);
-                    fParam_HDRFormatFactor_LOGRGB.SetValue(YBSParameters.fParam_HDRFormatFactor_LOGRGB);
-                    break;
-                case PostProccessShader.YBS_Merge2:
-                case PostProccessShader.YBS_Merge5:
-                case PostProccessShader.YBS_Merge8:
-                    afRGBA_Modulate.SetValue(YBSParameters.afRGBA_Modulate);
-                    break;
-                case PostProccessShader.YBS_SceneMerge:
-                    fParam_DitherOffsetScale.SetValue(YBSParameters.fParam_DitherOffsetScale);
-                    afRGBA_Modulate.SetValue(YBSParameters.afRGBA_Modulate);
-                    afRGBA_Offset.SetValue(YBSParameters.afRGBA_Offset);
-                    break;
+                g_vParam0_PS?.SetValue(CustomParameters.g_vParam0_PS);
+                g_vParam1_PS?.SetValue(CustomParameters.g_vParam1_PS);
+                g_vParam0_VS?.SetValue(CustomParameters.g_vParam0_VS);
+                g_vParam1_VS?.SetValue(CustomParameters.g_vParam1_VS);
+                CustomParameters = null;
             }
+            else
+            {
+                switch (Shader)
+                {
+                    case PostProccessShader.EDGELINE_VFX:
+                        float inverseTargetWidth = 1f / Viewport.Instance.RenderSystem.CurrentRT_Width;
+                        float inverseTargetHeight = 1f / Viewport.Instance.RenderSystem.CurrentRT_Height;
+                        float inverseSourceWidth = 1f / Viewport.Instance.RenderSystem.RenderWidth;
+                        float inverseSourceHeight = 1f / Viewport.Instance.RenderSystem.RenderHeight;
+                        g_vParam0_PS?.SetValue(new Vector4(
+                            inverseTargetWidth,
+                            inverseTargetHeight,
+                            inverseSourceWidth,
+                            inverseSourceHeight));
+                        g_vParam1_PS?.SetValue(new Vector4(0, 1f, 7.5f, 0));
+                        break;
+                    case PostProccessShader.AGE_TEST_EDGELINE_MRT:
+                        g_vParam0_PS?.SetValue(new Vector4(0.0f, 9, 3f, 0.6f));
+                        if (Viewport.Instance.RenderSystem.SuperSampleFactor > 1)
+                        {
+                            g_vParam1_PS?.SetValue(new Vector4(0.000312f, 0.000552f, 2.4f, 0.5f));
+                        }
+                        else
+                        {
+                            g_vParam1_PS?.SetValue(new Vector4(0.00039f, 0.00069f, 3f, 0.6f));
+                        }
+                        break;
+                    case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
+                        g_vParam0_PS?.SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));
+                        g_vScreen_VS?.SetValue(new Vector4(Viewport.Instance.RenderSystem.RenderWidth, Viewport.Instance.RenderSystem.RenderHeight, 0.10f, 10106.85645f));
+                        break;
+                    case PostProccessShader.DTMAP_BLEND_CST_ADD:
+                    case PostProccessShader.DTMAP_BLEND_CST_MUL:
+                    case PostProccessShader.DTMAP_BLEND_CST_HUE:
+                    case PostProccessShader.DTMAP_BLEND_CST_HSV:
+                    case PostProccessShader.DTMAP_BLEND_CST_YUV_MODIFIED:
+                        g_vParam0_VS?.SetValue(Vector4.One);
+                        g_vParam1_VS?.SetValue(Vector4.One);
+                        g_vParam0_PS?.SetValue(Vector4.Zero);
+                        break;
+                    case PostProccessShader.BIRD_BG_EDGELINE_RGB_HF:
+                        g_vEdge_PS?.SetValue(new Vector4(0.1f, 0.1f, 0.1f, 5f));
+                        g_vParam0_PS?.SetValue(new Vector4(0.034f, 0.885f, 0.85f, 0.138f));
+                        g_vParam1_PS?.SetValue(new Vector4(1.724f, 0.00f, 0.00f, 0.00f));
+                        break;
+                    case PostProccessShader.YBS_Copy:
+                    case PostProccessShader.YBS_Pixel:
+                    case PostProccessShader.YBS_Glare:
+                    case PostProccessShader.YBS_Smooth:
+                        afRGBA_Modulate?.SetValue(YBSParameters.afRGBA_Modulate);
+                        afUV_TexCoordOffsetV16?.SetValue(YBSParameters.afUV_TexCoordOffsetV16);
+                        break;
+                    case PostProccessShader.YBS_Dim:
+                        afRGBA_Modulate.SetValue(YBSParameters.afRGBA_Modulate);
+                        afUV_TexCoordOffsetV16.SetValue(YBSParameters.afUV_TexCoordOffsetV16);
+                        fParam_HDRFormatFactor_LOGRGB.SetValue(YBSParameters.fParam_HDRFormatFactor_LOGRGB);
+                        break;
+                    case PostProccessShader.YBS_Merge2:
+                    case PostProccessShader.YBS_Merge5:
+                    case PostProccessShader.YBS_Merge8:
+                        afRGBA_Modulate.SetValue(YBSParameters.afRGBA_Modulate);
+                        break;
+                    case PostProccessShader.YBS_SceneMerge:
+                        fParam_DitherOffsetScale.SetValue(YBSParameters.fParam_DitherOffsetScale);
+                        afRGBA_Modulate.SetValue(YBSParameters.afRGBA_Modulate);
+                        afRGBA_Offset.SetValue(YBSParameters.afRGBA_Offset);
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set parameters to use for the next draw. Cleared immediately after.
+        /// </summary>
+        public void SetParameters(PostShaderParameters parameters)
+        {
+            CustomParameters = parameters;
         }
 
         public void SetParameters(YBSShaderParameters parameters)
@@ -302,6 +328,7 @@ namespace XenoKit.Engine.Shader
                 case PostProccessShader.DTMAP_BLEND_CST_MUL:
                 case PostProccessShader.DTMAP_BLEND_CST_HUE:
                 case PostProccessShader.DTMAP_BLEND_CST_HSV:
+                case PostProccessShader.DTMAP_BLEND_CST_YUV_MODIFIED:
                     blendState.ApplyCustom(0, BlendFunction.Add, Blend.One, Blend.Zero);
                     blendState.ApplyNone(1);
                     break;
@@ -368,6 +395,15 @@ namespace XenoKit.Engine.Shader
 
             return rs;
         }
+
+    }
+
+    public class PostShaderParameters
+    {
+        public Vector4 g_vParam0_VS;
+        public Vector4 g_vParam1_VS;
+        public Vector4 g_vParam0_PS;
+        public Vector4 g_vParam1_PS;
 
     }
 

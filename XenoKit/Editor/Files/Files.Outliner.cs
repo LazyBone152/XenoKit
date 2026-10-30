@@ -67,7 +67,11 @@ namespace XenoKit.Editor
                         Viewport.Instance.SetActiveStage(null);
                     }
 
-                    SceneManager.UnsetActor(item.character);
+                    if(item.Type == OutlinerItem.OutlinerItemType.Character || item.Type == OutlinerItem.OutlinerItemType.CaC)
+                    {
+                        item.character.Release();
+                        SceneManager.UnsetActor(item.character);
+                    }
 
                     lock(OutlinerItems)
                         OutlinerItems.Remove(item);

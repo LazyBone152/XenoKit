@@ -214,83 +214,15 @@ namespace XenoKit
             Viewport.Instance.RenderSystem.DumpShadowMapNextFrame = true;
         }
 
-        private void DebugMenu_TestClick(object sender, RoutedEventArgs e)
+        private void DebugMenu_InvalidateBcsColors(object sender, RoutedEventArgs e)
         {
-            int count = 250000000;
-
-            Stopwatch sw = Stopwatch.StartNew();
-
-            for (int i = 0; i < count; i++)
-            {
-                System.Numerics.Vector3 vector1 = new System.Numerics.Vector3(5f, -2f, 10f);
-                System.Numerics.Vector3 vector2 = new System.Numerics.Vector3(50f, 2f, 20f);
-                System.Numerics.Vector3 vector4 = new System.Numerics.Vector3(2, 2f, 2);
-                Vector3 vector3 = Vector3.Add(vector1, vector2);
-                Vector3 vector5 = Vector3.Multiply(vector3, vector4);
-
-                System.Numerics.Matrix4x4 mat = Matrix4x4.CreateTranslation(vector5);
-                var mat2 = Matrix4x4.CreateScale(new Vector3(1, 2, 4));
-                var mat3 = Matrix4x4.Multiply(mat, mat2);
-            }
-
-            sw.Stop();
-            TimeSpan standardElapsed = sw.Elapsed;
-            sw.Restart();
-
-            for (int i = 0; i < count; i++)
-            {
-                System.Numerics.Vector3 vector1 = new System.Numerics.Vector3(5f, -2f, 10f);
-                System.Numerics.Vector3 vector2 = new System.Numerics.Vector3(50f, 2f, 20f);
-                System.Numerics.Vector3 vector4 = new System.Numerics.Vector3(2, 2f, 2);
-                Vector3 vector3 = vector1 + vector2;
-                Vector3 vector5 = vector3 * vector4;
-
-                System.Numerics.Matrix4x4 mat = Matrix4x4.CreateTranslation(vector5);
-                var mat2 = Matrix4x4.CreateScale(new Vector3(1, 2, 4));
-                var mat3 = mat * mat2;
-            }
-
-            sw.Stop();
-            TimeSpan methodsElapsed = sw.Elapsed;
-            sw.Restart();
-
-            for (int i = 0; i < count; i++)
-            {
-                Microsoft.Xna.Framework.Vector3 vector1 = new Microsoft.Xna.Framework.Vector3(5f, -2f, 10f);
-                Microsoft.Xna.Framework.Vector3 vector2 = new Microsoft.Xna.Framework.Vector3(50f, 2f, 20f);
-                Microsoft.Xna.Framework.Vector3 vector4 = new Microsoft.Xna.Framework.Vector3(2, 2f, 2);
-                Microsoft.Xna.Framework.Vector3 vector3 = vector1 + vector2;
-                Microsoft.Xna.Framework.Vector3 vector5 = vector3 * vector4;
-
-                Microsoft.Xna.Framework.Matrix mat = Microsoft.Xna.Framework.Matrix.CreateTranslation(vector5);
-                var mat2 = Microsoft.Xna.Framework.Matrix.CreateScale(new Microsoft.Xna.Framework.Vector3(1, 2, 4));
-                var mat3 = mat * Microsoft.Xna.Framework.Matrix.CreateScale(new Microsoft.Xna.Framework.Vector3(1, 2, 4));
-            }
-
-            sw.Stop();
-            TimeSpan xnaElapsed = sw.Elapsed;
-            sw.Restart();
-
-            for (int i = 0; i < count; i++)
-            {
-                Microsoft.Xna.Framework.Vector3 vector1 = new Microsoft.Xna.Framework.Vector3(5f, -2f, 10f);
-                Microsoft.Xna.Framework.Vector3 vector2 = new Microsoft.Xna.Framework.Vector3(50f, 2f, 20f);
-                Microsoft.Xna.Framework.Vector3 vector4 = new Microsoft.Xna.Framework.Vector3(2, 2f, 2);
-                Microsoft.Xna.Framework.Vector3.Add(ref vector1, ref vector2, out Microsoft.Xna.Framework.Vector3 vector3);
-                Microsoft.Xna.Framework.Vector3.Multiply(ref vector3, ref vector4, out Microsoft.Xna.Framework.Vector3 vector5);
-
-                Microsoft.Xna.Framework.Matrix mat = Microsoft.Xna.Framework.Matrix.CreateTranslation(vector5);
-                var mat2 = Microsoft.Xna.Framework.Matrix.CreateScale(new Microsoft.Xna.Framework.Vector3(1, 2, 4));
-
-                Microsoft.Xna.Framework.Matrix.Multiply(ref mat, ref mat2, out Microsoft.Xna.Framework.Matrix mat3);
-            }
-
-            sw.Stop();
-            TimeSpan xnaMethodsElapsed = sw.Elapsed;
-
-            Log.Add($"SIMD: {System.Numerics.Vector.IsHardwareAccelerated}");
-            Log.Add($"Numerics = Standard: {standardElapsed}, Method: {methodsElapsed}");
-            Log.Add($"XNA = Standard: {xnaElapsed}, Method: {xnaMethodsElapsed}");
+            Viewport.Instance?.CustomColorManager?.InvalidateAllCustomColors();
         }
+        private void DebugMenu_DumpBcsColors(object sender, RoutedEventArgs e)
+        {
+            Viewport.Instance?.CustomColorManager?.DumpAllCustomColors();
+        }
+
+
     }
 }

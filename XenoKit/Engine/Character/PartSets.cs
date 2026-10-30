@@ -17,6 +17,7 @@ using Xv2CoreLib.EMD;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.ESK;
 using Xv2CoreLib.FPF;
+using Xv2CoreLib.Resource.UndoRedo;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace XenoKit.Engine
@@ -50,6 +51,7 @@ namespace XenoKit.Engine
             ID = partSetId;
             this.chara = chara;
             LoadPartSet();
+            UndoManager.Instance.UndoOrRedoCalled += Instance_UndoOrRedoCalled;
         }
 
         #region LoadBase
@@ -77,7 +79,7 @@ namespace XenoKit.Engine
             LoadPart(9, false, false);
 
             //Apply BCS colors after all parts have been loaded
-            SetBcsColors(partSet);
+            InitBcsColors();
             ApplyCustomColors();
 
             //Load flags
@@ -466,7 +468,7 @@ namespace XenoKit.Engine
                 if (part != null)
                 {
                     part.ResetCustomColors();
-                    part.LoadCustomColors(BcsColors);
+                    part.LoadCustomColors();
                 }
             }
         }
@@ -485,7 +487,7 @@ namespace XenoKit.Engine
             }
         }
 
-        public void SetBcsColors(PartSet partSet)
+        public void InitBcsColors()
         {
             BcsColors.Clear();
             SetBcsColors(partSet.Boots);
@@ -544,6 +546,14 @@ namespace XenoKit.Engine
             SetBcsColor((int)CustomColorGroup.PartColorMaterials.CC03_BOOTS_, cac.Presets[preset].I_58);
         }
 
+        private void Instance_UndoOrRedoCalled(object source, UndoEventRaisedEventArgs e)
+        {
+            if (e.UndoGroup == UndoGroup.BCS && e.UndoArg == "COLOR" && e.UndoContext == partSet)
+            {
+                InitBcsColors();
+                ApplyCustomColors();
+            }
+        }
         #endregion
 
         public bool IsPartSet(PartSet partSet)
@@ -607,16 +617,21 @@ namespace XenoKit.Engine
                 }
             }
         }
+        
+        public void Release()
+        {
+            UndoManager.Instance.UndoOrRedoCalled -= Instance_UndoOrRedoCalled;
+        }
     }
 
     public class CharaPart : EngineObject
     {
-        private Actor chara;
-        private PartSet parentPartSet;
-        public Part part;
-        private PhysicsPart physicsPart;
-        public PartType partType;
-        private PartTypeFlags partTypeFlag;
+        public readonly Actor ParentActor;
+        public readonly PartSet ParentPartSet;
+        public readonly Part part;
+        private readonly PhysicsPart physicsPart;
+        public readonly PartType partType;
+        private readonly PartTypeFlags partTypeFlag;
 
         //Physics Object stuff:
         private bool IsPhysicsPart;
@@ -634,14 +649,16 @@ namespace XenoKit.Engine
         //Source Files:
         private bool nullPartSet = false;
         public EMD_File EmdFile { get; private set; }
-        private EMM_File EmmFile = null;
-        private EMB_TextureFile EmbFile = null;
-        private EMB_TextureFile DytFile = null;
-        private EAN_File EanFile = null;
-        private ESK_File EskFile = null;
+        public EMM_File EmmFile { get; private set; }
+        public EMB_TextureFile EmbFile { get; private set; }
+        public EMB_TextureFile DytFile { get; private set; }
+        public EAN_File EanFile { get; private set; }
+        public ESK_File EskFile { get; private set; }
 
-        //Dyt Sampler:
+        //Dyt:
         private SamplerInfo DytSampler;
+        private CustomColorCanvas CustomColorCanvas;
+        private bool UseCustomColor = false;
 
         //Eye Material Index
         private int LeftEyeIndex = -1;
@@ -654,11 +671,11 @@ namespace XenoKit.Engine
 
         public CharaPart(Actor chara, Part part, PartType type)
         {
-            this.chara = chara;
+            this.ParentActor = chara;
             this.part = part;
             partType = type;
             partTypeFlag = GetPartTypeAsFlag();
-            parentPartSet = chara.CharacterData.BcsFile.File.GetParentPartSet(part);
+            ParentPartSet = chara.CharacterData.BcsFile.File.GetParentPartSet(part);
 
             DytSampler = new SamplerInfo()
             {
@@ -686,9 +703,9 @@ namespace XenoKit.Engine
 
         public CharaPart(Actor chara, PhysicsPart part, Part parentPart, CharaPart parent, PartType type)
         {
-            this.chara = chara;
+            this.ParentActor = chara;
             this.part = parentPart;
-            parentPartSet = chara.CharacterData.BcsFile.File.GetParentPartSet(part);
+            ParentPartSet = chara.CharacterData.BcsFile.File.GetParentPartSet(part);
             physicsPart = part;
             partType = type;
             partTypeFlag = GetPartTypeAsFlag();
@@ -832,82 +849,33 @@ namespace XenoKit.Engine
 
             if(Skeleton != null)
             {
-                SkeletoBoneIndices = Skeleton.ScdGetBoneIndices(chara.Skeleton);
+                SkeletoBoneIndices = Skeleton.ScdGetBoneIndices(ParentActor.Skeleton);
             }
         }
 
-        public void LoadCustomColors(List<CustomColorGroup> colors)
+        public void LoadCustomColors()
         {
-            foreach(CustomColorGroup color in colors)
-            {
-                if(color.Color != -1 && color.Group != -1)
-                {
-                    Xv2CoreLib.BCS.PartColor colorGroup = chara.CharacterData.BcsFile.File.PartColors?.FirstOrDefault(x => x.ID == color.Group);
-                    if (colorGroup == null) continue;
+            UseCustomColor = true;
+            CustomColorCanvas?.IsDirty = true;
 
-                    if (Model != null)
-                    {
-                        foreach (Xv2Model model in Model.Models)
-                        {
-                            foreach (Xv2Mesh mesh in model.Meshes)
-                            {
-                                foreach (Xv2Submesh submesh in mesh.Submeshes)
-                                {
-                                    if (IsCustomColorMaterial(submesh.Name, colorGroup.Name))
-                                    {
-                                        submesh.ApplyCustomColor(color.Group, color.Color);
-                                    }
-                                }
-                            }
-                        }
-                    }
+            if (!IsPhysicsPart)
+            {
+                foreach (var physicsPart in PhysicsParts)
+                {
+                    physicsPart.LoadCustomColors();
                 }
             }
-
-            //We have to load colors from ALL the parts, because they draw the colors from all the parts for whatever reason. No idea on the reasoning for this
-            //i am now enlightened
-            /*
-            foreach (var _part in parentPartSet.Parts)
-            {
-                foreach (var colSel in _part.ColorSelectors)
-                {
-                    var colorGroup = chara.CharacterData.BcsFile.File.PartColors?.FirstOrDefault(x => x.ID == colSel.PartColorGroup);
-                    if (colorGroup == null) continue;
-
-                    if (Model != null)
-                    {
-                        foreach (var model in Model.Models)
-                        {
-                            foreach (var mesh in model.Meshes)
-                            {
-                                foreach (var submesh in mesh.Submeshes)
-                                {
-                                    if (IsCustomColorMaterial(submesh.Name, colorGroup.Name))
-                                    {
-                                        submesh.ApplyCustomColor(colSel.PartColorGroup, colSel.ColorIndex);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            */
         }
 
         public void ResetCustomColors()
         {
-            if (Model == null) return;
+            UseCustomColor = false;
 
-            foreach (Xv2Model model in Model.Models)
+            if (!IsPhysicsPart)
             {
-                foreach (Xv2Mesh mesh in model.Meshes)
+                foreach(var physicsPart in PhysicsParts)
                 {
-                    foreach (Xv2Submesh submesh in mesh.Submeshes)
-                    {
-                        submesh.ResetCustomColor();
-                    }
+                    physicsPart.ResetCustomColors();
                 }
             }
         }
@@ -920,7 +888,7 @@ namespace XenoKit.Engine
 
             for (int i = 0; i < physicsPartCount; i++)
             {
-                PhysicsParts[i] = new CharaPart(chara, part.PhysicsParts[i], part, this, partType);
+                PhysicsParts[i] = new CharaPart(ParentActor, part.PhysicsParts[i], part, this, partType);
             }
         }
 
@@ -988,7 +956,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
+                if (ParentActor.ShortName == owner && Utils.CompareCharaFolder(path, ParentActor.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -998,7 +966,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EmdFile = FileManager.Instance.LoadFile<EMD_File>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    EmdFile = FileManager.Instance.LoadFile<EMD_File>(path, ParentActor.CharacterData.OnlyLoadFromCPK);
                 }
             }
             else
@@ -1031,7 +999,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
+                if (ParentActor.ShortName == owner && Utils.CompareCharaFolder(path, ParentActor.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -1041,7 +1009,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EmbFile = FileManager.Instance.LoadFile<EMB_TextureFile>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    EmbFile = FileManager.Instance.LoadFile<EMB_TextureFile>(path, ParentActor.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if (EmbFile != null)
@@ -1073,7 +1041,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
+                if (ParentActor.ShortName == owner && Utils.CompareCharaFolder(path, ParentActor.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -1083,7 +1051,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    DytFile = FileManager.Instance.LoadFile<EMB_TextureFile>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    DytFile = FileManager.Instance.LoadFile<EMB_TextureFile>(path, ParentActor.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if (DytFile != null)
@@ -1116,7 +1084,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
+                if (ParentActor.ShortName == owner && Utils.CompareCharaFolder(path, ParentActor.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -1126,7 +1094,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EmmFile = FileManager.Instance.LoadFile<EMM_File>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    EmmFile = FileManager.Instance.LoadFile<EMM_File>(path, ParentActor.CharacterData.OnlyLoadFromCPK);
                 }
 
                 if(EmmFile != null)
@@ -1159,7 +1127,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == owner && Utils.CompareCharaFolder(path, chara.ShortName))
+                if (ParentActor.ShortName == owner && Utils.CompareCharaFolder(path, ParentActor.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -1169,7 +1137,7 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EanFile = FileManager.Instance.LoadFile<EAN_File>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    EanFile = FileManager.Instance.LoadFile<EAN_File>(path, ParentActor.CharacterData.OnlyLoadFromCPK);
                 }
             }
 
@@ -1197,7 +1165,7 @@ namespace XenoKit.Engine
             if (path != null)
             {
                 //If the file belongs to this character, then we pull the files from the Xv2Character object itself. 
-                if (chara.ShortName == physicsPart.CharaCode && Utils.CompareCharaFolder(path, chara.ShortName))
+                if (ParentActor.ShortName == physicsPart.CharaCode && Utils.CompareCharaFolder(path, ParentActor.ShortName))
                 {
                     var file = GetFileFromOwner(path);
 
@@ -1207,14 +1175,14 @@ namespace XenoKit.Engine
                 else
                 {
                     //This character doesn't own these files so we just load them directly.
-                    EskFile = FileManager.Instance.LoadFile<ESK_File>(path, chara.CharacterData.OnlyLoadFromCPK);
+                    EskFile = FileManager.Instance.LoadFile<ESK_File>(path, ParentActor.CharacterData.OnlyLoadFromCPK);
                 }
             }
         }
 
         private string GetFilePath(string path, string pathOnParent = null)
         {
-            if (chara.CharacterData.GetPartSetFile(Path.GetFileName(path)) != null)
+            if (ParentActor.CharacterData.GetPartSetFile(Path.GetFileName(path)) != null)
                 return path;
 
             if (FileExists(path))
@@ -1234,7 +1202,7 @@ namespace XenoKit.Engine
             if (string.IsNullOrWhiteSpace(path))
                 return false;
 
-            if (chara.CharacterData.OnlyLoadFromCPK)
+            if (ParentActor.CharacterData.OnlyLoadFromCPK)
                 return FileManager.Instance.FileIO.FileExistsInCpk(path);
 
             return FileManager.Instance.FileIO.FileExists(path);
@@ -1242,7 +1210,7 @@ namespace XenoKit.Engine
 
         private object GetFileFromOwner(string path)
         {
-            var file = chara.CharacterData.GetPartSetFile(Path.GetFileName(path));
+            var file = ParentActor.CharacterData.GetPartSetFile(Path.GetFileName(path));
 
             if (file == null)
             {
@@ -1283,7 +1251,7 @@ namespace XenoKit.Engine
 
         public void UpdatePhysicsPart()
         {
-            Skeleton?.ScdUpdate(chara.Skeleton, SkeletoBoneIndices);
+            Skeleton?.ScdUpdate(ParentActor.Skeleton, SkeletoBoneIndices);
         }
 
         public void ApplyFpfPreviewToPhysicsParts(FPF_File fpfFile, FpfPoseMatrix poseMatrices, FpfPoseMatrix skinOffsetMatrices, FpfSkinOffsetMode skinOffsetMode, HashSet<int> usedEntries)
@@ -1326,8 +1294,8 @@ namespace XenoKit.Engine
 
         private Matrix4x4 GetPhysicsPartAttachMatrix()
         {
-            int boneIndex = chara.Skeleton.GetBoneIndex(physicsPart?.BoneToAttach);
-            return boneIndex >= 0 ? chara.Skeleton.Bones[boneIndex].AbsoluteAnimationMatrix : Matrix4x4.Identity;
+            int boneIndex = ParentActor.Skeleton.GetBoneIndex(physicsPart?.BoneToAttach);
+            return boneIndex >= 0 ? ParentActor.Skeleton.Bones[boneIndex].AbsoluteAnimationMatrix : Matrix4x4.Identity;
         }
 
         private static FPF_Entry FindFpfPreviewEntry(FPF_File fpfFile, int boneCount, HashSet<int> usedEntries)
@@ -1367,39 +1335,26 @@ namespace XenoKit.Engine
             //Check if part hiding is enabled for this Part Type
             if (hideFlags.HasFlag(partTypeFlag)) return;
 
-            int texIdx = GetDytIndex(part.Texture);
-
-            if (Dyts != null)
-            {
-                //Set dyt sampler/texture
-                GraphicsDevice.SamplerStates[4] = DytSampler.state;
-                GraphicsDevice.VertexSamplerStates[4] = DytSampler.state;
-
-                if (texIdx >= 0 && texIdx <= Dyts.Length - 1)
-                {
-                    GraphicsDevice.Textures[4] = Dyts[texIdx].Texture;
-                    GraphicsDevice.VertexTextures[4] = Dyts[texIdx].Texture;
-                }
-            }
+            int texIdx = DrawDytHandling();
 
             //Set eye movement parameters in shaders
             if (partType == PartType.FaceEye)
             {
                 if (LeftEyeIndex != -1)
                 {
-                    Materials[LeftEyeIndex].SetEyeMovement(chara.EyeIrisLeft_UV);
+                    Materials[LeftEyeIndex].SetEyeMovement(ParentActor.EyeIrisLeft_UV);
                 }
 
                 if (RightEyeIndex != -1)
                 {
-                    Materials[RightEyeIndex].SetEyeMovement(chara.EyeIrisRight_UV);
+                    Materials[RightEyeIndex].SetEyeMovement(ParentActor.EyeIrisRight_UV);
                 }
             }
 
             if (Model != null)
             {
                 //Draw Model
-                Model.Draw(chara.Transform, chara.ActorSlot, Materials, Textures, Dyts, texIdx, chara.Skeleton);
+                Model.Draw(ParentActor.Transform, ParentActor.ActorSlot, Materials, Textures, Dyts, texIdx, ParentActor.Skeleton);
             }
 
             if (!IsPhysicsPart)
@@ -1419,30 +1374,57 @@ namespace XenoKit.Engine
                 IsMaterialsDirty = false;
             }
 
-            int texIdx = GetDytIndex(physicsPart.Texture);
-
-            if (Dyts != null)
-            {
-                //Set dyt sampler/texture
-                GraphicsDevice.SamplerStates[4] = DytSampler.state;
-                GraphicsDevice.VertexSamplerStates[4] = DytSampler.state;
-
-                if (texIdx >= 0 && texIdx <= Dyts.Length - 1)
-                {
-                    GraphicsDevice.Textures[4] = Dyts[texIdx].Texture;
-                    GraphicsDevice.VertexTextures[4] = Dyts[texIdx].Texture;
-                }
-            }
+            int texIdx = DrawDytHandling();
 
             if (Model != null)
             {
-                Model.Draw(chara.Transform, chara.ActorSlot, Materials, Textures, Dyts, texIdx, Skeleton);
+                Model.Draw(ParentActor.Transform, ParentActor.ActorSlot, Materials, Textures, Dyts, texIdx, Skeleton);
             }
+        }
+
+        private int DrawDytHandling()
+        {
+            int texIdx = GetDytIndex(part.Texture);
+
+            if (Dyts != null)
+            {
+                //Update custom color DYT
+                if (UseCustomColor && CustomColorCanvas == null)
+                {
+                    CustomColorCanvas = new CustomColorCanvas(this);
+                    ViewportInstance.CustomColorManager.RegisterCanvas(CustomColorCanvas);
+                }
+                else if (!UseCustomColor && CustomColorCanvas != null)
+                {
+                    CustomColorCanvas.IsDiscarded = true;
+                    CustomColorCanvas = null;
+                }
+
+                //Set dyt sampler/texture
+                GraphicsDevice.SamplerStates[4] = DytSampler.state;
+
+                if (UseCustomColor && CustomColorCanvas?.HasCustomColors == true)
+                {
+                    if (CustomColorCanvas.DytIndex != texIdx)
+                        CustomColorCanvas.SetDytIndex(texIdx);
+
+                    GraphicsDevice.Textures[4] = CustomColorCanvas.Canvas;
+                }
+                else
+                {
+                    if (texIdx >= 0 && texIdx <= Dyts.Length - 1)
+                    {
+                        GraphicsDevice.Textures[4] = Dyts[texIdx].Texture;
+                    }
+                }
+            }
+
+            return texIdx;
         }
 
         private int GetDytIndex(int partIdx)
         {
-            if (chara.ForceDytOverride > -1) return chara.ForceDytOverride;
+            if (ParentActor.ForceDytOverride > -1) return ParentActor.ForceDytOverride;
             return partIdx;
         }
 
@@ -1454,7 +1436,7 @@ namespace XenoKit.Engine
             if (Model != null)
             {
                 //Draw Model
-                Model.Draw(chara.Transform, chara.ActorSlot, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, chara.Skeleton);
+                Model.Draw(ParentActor.Transform, ParentActor.ActorSlot, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, ParentActor.Skeleton);
             }
 
             if (!IsPhysicsPart)
@@ -1470,14 +1452,14 @@ namespace XenoKit.Engine
         {
             if (Model != null)
             {
-                Model.Draw(chara.Transform, chara.ActorSlot, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, Skeleton);
+                Model.Draw(ParentActor.Transform, ParentActor.ActorSlot, normalPass ? RenderSystem.NORMAL_FADE_WATERDEPTH_W_M : RenderSystem.ShadowModel_W, Skeleton);
             }
         }
 
 
         #endregion
 
-        private bool IsCustomColorMaterial(string materialName, string colorMaterialPrefix)
+        public static bool IsCustomColorMaterial(string materialName, string colorMaterialPrefix)
         {
             if (materialName.Length <= colorMaterialPrefix.Length) return false;
 
@@ -1569,6 +1551,10 @@ namespace XenoKit.Engine
             return 0;
         }
     
+        public IEnumerable<CustomColorGroup> GetColorGroups()
+        {
+            return ParentActor.PartSet.BcsColors;
+        }
     }
 
     public class CustomColorGroup

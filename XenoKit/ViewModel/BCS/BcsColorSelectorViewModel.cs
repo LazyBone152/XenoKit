@@ -83,7 +83,7 @@ namespace XenoKit.ViewModel.BCS
             {
                 if (SceneManager.Actors[0].PartSet.IsPartSet(partSet))
                 {
-                    SceneManager.Actors[0].PartSet.SetBcsColors(partSet);
+                    SceneManager.Actors[0].PartSet.InitBcsColors();
                     SceneManager.Actors[0].PartSet.ApplyCustomColors();
                 }
             }

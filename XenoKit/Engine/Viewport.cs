@@ -105,6 +105,7 @@ namespace XenoKit.Engine
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; private set; }
         public RenderSystem RenderSystem { get; private set; }
+        public CustomColorManager CustomColorManager { get; private set; }
         public CompiledObjectManager CompiledObjectManager { get; private set; } = new CompiledObjectManager();
         public ObjectPoolManager ObjectPoolManager { get; private set; }
         public Simulation Simulation { get; private set; }
@@ -167,6 +168,7 @@ namespace XenoKit.Engine
             AudioEngine = new AudioEngine();
             VfxManager = new VfxManager();
             RenderSystem = new RenderSystem(spriteBatch, true);
+            CustomColorManager = new CustomColorManager();
             TextRenderer = new TextRenderer();
             VfxPreview = new VfxPreview();
 
@@ -309,6 +311,7 @@ namespace XenoKit.Engine
             ObjectPoolManager.DelayedUpdate();
 
             ShaderManager.DelayedUpdate();
+            CustomColorManager.DelayedUpdate();
             RenderSystem.DelayedUpdate();
 
             for (int i = 0; i < SceneManager.Actors.Length; i++)
@@ -337,6 +340,8 @@ namespace XenoKit.Engine
             if (!DrawThisFrame) return;
 
             ShaderManager.SetAllGlobalSamplers();
+
+            CustomColorManager.Draw();
 
             //RenderSystem goes first
             RenderSystem.Draw();

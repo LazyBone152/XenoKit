@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using Xv2CoreLib.Color;
 using Xv2CoreLib.EMD;
 using Xv2CoreLib.FMP;
 using Xv2CoreLib.Resource;
@@ -369,5 +370,10 @@ namespace XenoKit.Engine
             blendState[applyTo].ColorWriteChannels = ColorWriteChannels.All;
         }
         #endregion
+
+        public static Color ToXna(this LB_Common.Numbers.CustomColor customColor)
+        {
+            return new Color(MathHelper.Clamp(customColor.R, 0, 1f), MathHelper.Clamp(customColor.G, 0, 1f), MathHelper.Clamp(customColor.B, 0, 1f), MathHelper.Clamp(customColor.A, 0, 1f));
+        }
     }
 }

@@ -143,6 +143,11 @@ namespace XenoKit.Engine
             PartSet = new CharaPartSet(this, initialPartSet);
         }
 
+        public void Release()
+        {
+            PartSet?.Release();
+        }
+
         #region Transform
         public override Matrix4x4 Transform => RootMotionTransform * ActionMovementTransform * BaseTransform;
 
