@@ -118,8 +118,7 @@
             <Controls:MetroTabItem Header="Rendering" Controls:HeaderedControlHelper.HeaderFontSize="14">
                 <ScrollViewer>
                     <Grid Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundAltMediumLow}">
-
-                        <StackPanel HorizontalAlignment="Left">
+                        <StackPanel HorizontalAlignment="Left" Margin="0,0,0,20">
                             <Grid Margin="3,5,0,0" Width="250" ToolTip="Enable or disable the default wireframe shader that is used when a material is missing. Requires a restart of XenoKit to take effect.">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="150"/>
@@ -170,13 +169,13 @@
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Label Content="Shadow Quality" ToolTip="Quality of the shadow maps. &#x0a;&#x0a;LOW, MEDIUM and HIGH match the in-game shadow settings. ULTRA is twice the resolution of HIGH (16k)."/>
+                                <Label Content="Shadow Quality" ToolTip="Quality of the shadow maps. &#x0a;&#x0a;LOW, MEDIUM and HIGH match the in-game shadow settings. HIGHER pushes the shadow resolution beyond what the game offers at the cost of extra VRAM usage.&#x0a;&#x0a;Aprox VRAM usage:&#x0a;LOW: 4.2mb&#x0a;MEDIUM: 67 MB mb&#x0a;HIGH: 268 MB&#x0a;HIGHER: 576 MB"/>
                                 <ComboBox Grid.Column="1" SelectedIndex="{Binding ShadowMapRes, UpdateSourceTrigger=PropertyChanged}">
                                     <ComboBoxItem Content="DISABLED"/>
                                     <ComboBoxItem Content="LOW"/>
                                     <ComboBoxItem Content="MEDIUM"/>
                                     <ComboBoxItem Content="HIGH"/>
-                                    <ComboBoxItem Content="ULTRA"/>
+                                    <ComboBoxItem Content="HIGHER"/>
                                 </ComboBox>
                             </Grid>
                             <Grid Margin="3,5,0,0" Width="250">
@@ -184,8 +183,8 @@
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Label Content="Shadow Distance*" FontWeight="Bold" ToolTip="Controls the distance at which shadows will be rendered. &#x0a;&#x0a;IMPORTANT: The quality of the shadows will degrade as this is increased, as the shadow map must contain more shadow information. Combine it with a higher Shadow Quality setting to get a good result."/>
-                                <Slider x:Name="shadowDistanceSlider" Grid.Column="1" Value="{Binding ShadowDistanceModifier, UpdateSourceTrigger=PropertyChanged}" Minimum="0.1" Maximum="4">
+                                <Label Content="Shadow Distance*" FontWeight="Bold" ToolTip="Controls the distance at which shadows will be rendered. &#x0a;&#x0a;IMPORTANT: The quality and stability of the shadows will degrade as this is increased, as the shadow map must contain even more shadow information. The lowest setting is the default and sets the scale to 1.0, while the maximum setting sets the scale to 10.0"/>
+                                <Slider x:Name="shadowDistanceSlider" Grid.Column="1" Value="{Binding ShadowDistanceModifier, UpdateSourceTrigger=PropertyChanged}" Minimum="1" Maximum="10">
                                     <Slider.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Reset to Default" Command="{Binding ResetShadowDistanceCommand}"/>

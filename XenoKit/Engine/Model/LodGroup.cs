@@ -115,6 +115,10 @@ namespace XenoKit.Engine.Model
             Lod lod = GetCurrentLod();
             //bool isInstanced = (ParentObject.Flags & ObjectFlags.Instancing) != 0;
 
+            //Skip grass shadows for now. They are not implemented (requires GI_ShadowModel_Grass - which is yet to be sussed out)
+            if (lod.IsGrassSimulation) 
+                return;
+
             if (ModelInstanceTree != null)
             {
                 for (int i = 0; i < ModelInstanceTree.InstanceGroups.Length; i++)

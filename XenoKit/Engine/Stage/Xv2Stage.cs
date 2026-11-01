@@ -100,8 +100,9 @@ namespace XenoKit.Engine.Stage
 
             if (SpmFile == null)
             {
-                Log.Add($"No .spm file could be found for stage {StageDefEntry.CODE}.", LogType.Error);
-                return;
+                //Fallback to Common.spm if none can be found for the stage
+                SpmFile = FileManager.Instance.LoadFile<SPM_File>($"stage/Common/Common.spm", false, false);
+                Log.Add($"No .spm file could be found for stage {StageDefEntry.CODE}. Fallback to Common.spm.", LogType.Warning);
             }
 
             UpdateStageLighting();
@@ -118,7 +119,7 @@ namespace XenoKit.Engine.Stage
             foreach (var _object in FmpFile.Objects)
             {
                 bool isEnabled = (_object.Flags & ObjectFlags.Enabled) != 0;
-                bool isRef = (hasWaterEntry && _object.Name.StartsWith("REF")) || _object.HasCommand("MIRROR OBJECT");
+                bool isRef = (hasWaterEntry && _object.Name.StartsWith("REF")) || _object.HasCommand(CommandType.MirrorObject);
                 if (!isRef && !isEnabled) continue;
 
                 StageObject stageObj = new StageObject();

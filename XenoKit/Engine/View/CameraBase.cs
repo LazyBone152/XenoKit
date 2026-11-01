@@ -23,6 +23,7 @@ namespace XenoKit.Engine.View
         /// Vertical field of view in radians.
         /// </summary>
         public float FovY { get; private set; } = 1f;
+        public SimdVector3 Forward { get; private set; } = -SimdVector3.UnitZ;
         public BoundingFrustum Frustum { get; protected set; } = new BoundingFrustum(Matrix.Identity);
         public virtual CameraState CameraState { get; protected set; } = new CameraState();
 
@@ -361,12 +362,13 @@ namespace XenoKit.Engine.View
 
         public void RecalculateMatrices()
         {
-            //Projection Matrix
             FovY = (float)(Math.PI / 180 * CameraState.FieldOfView);
             NearClip = ViewportInstance.CurrentStage.NearClip;
-            FarClip = ViewportInstance.CurrentStage.FarClip * 2;
+            FarClip = ViewportInstance.CurrentStage.FarClip;
             AspectRatio = RenderSystem.RenderWidth / (float)RenderSystem.RenderHeight;
+            Forward = SimdVector3.Normalize(CameraState.TargetPosition - CameraState.Position);
 
+            //Projection Matrix
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(FovY, AspectRatio, NearClip, FarClip);
             //ProjectionMatrix = EngineUtils.CreateInfinitePerspective(FovY, AspectRatio, NearClip);
 

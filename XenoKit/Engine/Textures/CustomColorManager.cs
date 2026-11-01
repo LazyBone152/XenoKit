@@ -9,6 +9,7 @@ using Xv2CoreLib.Resource.App;
 using XenoKit.Editor;
 using XenoKit.Engine.Rendering;
 using XenoKit.Engine.Shader;
+using System;
 
 namespace XenoKit.Engine.Textures
 {
@@ -106,9 +107,8 @@ namespace XenoKit.Engine.Textures
                 return;
             }
 
-            //Span<bool> enabled = stackalloc bool[8];
             customColor.HasCustomColors = false;
-            bool[] enabled = new bool[8];
+            Span<bool> enabled = stackalloc bool[8];
             BCS_File bcsFile = part.ParentActor.CharacterData.BcsFile.File;
             EMM_File emmFile = part.EmmFile;
             int dytIdx = customColor.DytIndex >= part.Dyts.Length ? 0 : customColor.DytIndex;

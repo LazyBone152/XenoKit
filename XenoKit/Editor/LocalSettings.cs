@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using XenoKit.Engine;
+using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Rendering;
 using XenoKit.Engine.View;
 using Xv2CoreLib.EAN;
@@ -50,10 +51,6 @@ namespace XenoKit.Editor
         [CustomSerialize]
         [YAXErrorIfMissed(YAXExceptionTypes.Ignore)]
         public float CameraSpinSpeed { get; set; } = 1f;
-
-        [CustomSerialize]
-        [YAXErrorIfMissed(YAXExceptionTypes.Ignore, DefaultValue = 1)]
-        public float ShadowDistanceModifier { get; set; } = 1f;
 
         public SerializedCameraState[] CameraStates { get; set; } = new SerializedCameraState[5];
 

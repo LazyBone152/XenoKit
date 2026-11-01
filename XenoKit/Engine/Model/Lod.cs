@@ -1,4 +1,5 @@
-﻿using XenoKit.Engine.Shader;
+﻿using System.Linq;
+using XenoKit.Engine.Shader;
 using XenoKit.Engine.Textures;
 using Xv2CoreLib.EMM;
 using Matrix4x4 = System.Numerics.Matrix4x4;
@@ -13,6 +14,7 @@ namespace XenoKit.Engine.Model
         public EMM_File MaterialFile {  get; set; }
 
         private readonly Xv2ShaderEffect[] _materials;
+        public bool IsGrassSimulation { get; private set; }
 
         public Lod(float distance, Xv2ModelFile model, EMM_File emmFile)
         {
@@ -24,6 +26,7 @@ namespace XenoKit.Engine.Model
             {
                 _materials = Xv2ShaderEffect.LoadMaterials(emmFile, ShaderType.Stage);
                 Model.InitMaterialIndex(_materials);
+                IsGrassSimulation = emmFile.Materials.Any(x => x.ShaderProgram.Contains("GrassSimulation"));
             }
         }
 

@@ -12,6 +12,8 @@ namespace XenoKit.Engine.Lighting
         public float FadeStartRatio = 0.9f;
         public float DepthBias = 0.01f; //g_vShadowMap_PS 3rd parameter
         public float ShadowParam48 = 1f; //g_vShadowMap_PS 4th parameter
+        public float ShadowHeightStart = 0f;
+        public float ShadowHeightRange = 1f;
 
         public void SetFromSpm(SPM_Entry spm)
         {
@@ -27,11 +29,15 @@ namespace XenoKit.Engine.Lighting
             {
                 ShadowFarMin = spm.ExtendedData.ShadowFarMin;
                 ShadowFarExponent = spm.ExtendedData.ShadowFarExponent;
+                ShadowHeightStart = spm.ExtendedData.ShadowHeightStart;
+                ShadowHeightRange = spm.ExtendedData.ShadowHeightRange;
             }
             else
             {
                 ShadowFarMin = 2;
                 ShadowFarExponent = 1;
+                ShadowHeightStart = 0f;
+                ShadowHeightRange = 1f;
             }
         }
     }

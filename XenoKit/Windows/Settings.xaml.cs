@@ -128,7 +128,7 @@ namespace XenoKit.Windows
                         return 2;
                     case 8192:
                         return 3;
-                    case 16384:
+                    case 12000: //Higher
                         return 4;
                     default:
                         return 0;
@@ -151,7 +151,7 @@ namespace XenoKit.Windows
                         settings.XenoKit_ShadowMapRes = 8192;
                         break;
                     case 4:
-                        settings.XenoKit_ShadowMapRes = 16384;
+                        settings.XenoKit_ShadowMapRes = 12000; //Higher
                         break;
                 }
             }
@@ -204,8 +204,8 @@ namespace XenoKit.Windows
 
         public float ShadowDistanceModifier
         {
-            get => LocalSettings.ShadowDistanceModifier;
-            set => LocalSettings.ShadowDistanceModifier = value;
+            get => settings.XenoKit_ShadowDistanceModifier;
+            set => settings.XenoKit_ShadowDistanceModifier = value;
         }
 
         private string OriginalGameDir;
@@ -293,7 +293,7 @@ namespace XenoKit.Windows
         [RelayCommand]
         private void ResetShadowDistance()
         {
-            LocalSettings.ShadowDistanceModifier = 1f;
+            settings.XenoKit_ShadowDistanceModifier = 1f;
             NotifyPropertyChanged(nameof(ShadowDistanceModifier));
         }
     }
