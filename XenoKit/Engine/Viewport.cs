@@ -24,6 +24,7 @@ using XenoKit.Engine.Scripting;
 using XenoKit.Engine.Scripting.BSA;
 using XenoKit.Engine.Textures;
 using Xv2CoreLib.Resource;
+using SharpDX.Direct3D;
 
 namespace XenoKit.Engine
 {
@@ -675,5 +676,24 @@ namespace XenoKit.Engine
             }
         }
 
+        public int GetMaximumTextureSize()
+        {
+            return GraphicsDevice._d3dDevice.FeatureLevel switch
+            {
+                FeatureLevel.Level_11_0 or
+                FeatureLevel.Level_11_1 or
+                FeatureLevel.Level_12_0 or
+                FeatureLevel.Level_12_1 => 16384,
+
+                FeatureLevel.Level_10_0 or
+                FeatureLevel.Level_10_1 => 8192,
+
+                FeatureLevel.Level_9_3 => 4096,
+                FeatureLevel.Level_9_2 => 2048,
+                FeatureLevel.Level_9_1 => 2048,
+
+                _ => 2048
+            };
+        }
     }
 }
