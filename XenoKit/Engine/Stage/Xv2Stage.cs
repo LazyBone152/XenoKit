@@ -49,8 +49,8 @@ namespace XenoKit.Engine.Stage
         public SPM_Entry CurrentSpm => SpmFile.Entries[0];
 
         //Stage Settings
-        public float NearClip => FmpFile != null ? FmpFile.SettingsA.NearDistance : 0.1f;
-        public float FarClip => FmpFile != null ? FmpFile.SettingsA.FarDistance : 5000f;
+        public float NearClip => FmpFile != null ? FmpFile.Settings.NearDistance : 0.1f;
+        public float FarClip => FmpFile != null ? FmpFile.Settings.FarDistance : 5000f;
 
         //Fog
         public bool FogEnabled => LocalSettings.Instance.EnableFog;
