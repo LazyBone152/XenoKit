@@ -16,7 +16,7 @@ namespace XenoKit.Engine.Shader
 
         public int[] GlobalSamplers { get; private set; }
 
-        internal Xv2Shader(GraphicsDevice device, Xv2ShaderEffect effect, ShaderProgram shaderProgram, bool isVertexShader) : base(device)
+        internal Xv2Shader(GraphicsDevice device, Xv2ShaderEffectBase effect, ShaderProgram shaderProgram, bool isVertexShader) : base(device)
         {
             GraphicsDevice = device;
             DxbcParser dxbcParser = (isVertexShader) ? shaderProgram.VsParser : shaderProgram.PsParser;

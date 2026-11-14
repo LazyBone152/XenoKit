@@ -33,17 +33,17 @@ namespace XenoKit.Engine.Model
         public void DrawReflection(Matrix4x4 world, Xv2Texture[] textures, ModelInstanceData instanceData)
         {
             Model?.SetAsReflectionMesh(true);
-            Model?.Draw(world, 0, _materials, textures, null, 0, null, instanceData);
+            Model?.Draw(world, -1, _materials, textures, null, 0, null, instanceData);
         }
 
         public void Draw(Matrix4x4 world, Xv2Texture[] textures, ModelInstanceData instanceData)
         {
-            Model?.Draw(world, 0, _materials, textures, null, 0, null, instanceData);
+            Model?.Draw(world, -1, _materials, textures, null, 0, null, instanceData);
         }
 
         public void DrawSimple(Matrix4x4 world, Xv2ShaderEffect material, ModelInstanceData instanceData)
         {
-            Model?.Draw(world, 0, material, null, instanceData);
+            Model?.Draw(world, -1, material, null, instanceData);
         }
     }
 }

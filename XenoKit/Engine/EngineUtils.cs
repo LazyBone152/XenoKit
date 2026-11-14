@@ -4,7 +4,9 @@ using Xv2CoreLib.Resource;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector2 = System.Numerics.Vector2;
 using SimdVector3 = System.Numerics.Vector3;
+using SimdVector4 = System.Numerics.Vector4;
 using SimdQuaternion = System.Numerics.Quaternion;
+using System.Runtime.CompilerServices;
 
 namespace XenoKit.Engine
 {
@@ -100,6 +102,49 @@ namespace XenoKit.Engine
             float yaw = (float)Math.Atan2(siny_cosp, cosy_cosp);
 
             return new Vector3(roll, pitch, yaw) * (180f / MathHelper.Pi);
+        }
+
+        //Color
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CalculateLuminance(Vector3 rgb)
+        {
+            return CalculateLuminance(rgb.X, rgb.Y, rgb.Z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CalculateLuminance(SimdVector3 rgb)
+        {
+            return CalculateLuminance(rgb.X, rgb.Y, rgb.Z);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CalculateLuminance(Vector3 rgb, float a)
+        {
+            return CalculateLuminance(rgb.X, rgb.Y, rgb.Z) * a;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CalculateLuminance(SimdVector3 rgb, float a)
+        {
+            return CalculateLuminance(rgb.X, rgb.Y, rgb.Z) * a;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CalculateLuminance(Vector4 color)
+        {
+            return CalculateLuminance(color.X, color.Y, color.Z) * color.W;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CalculateLuminance(SimdVector4 color)
+        {
+            return CalculateLuminance(color.X, color.Y, color.Z) * color.W;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float CalculateLuminance(float r, float g, float b)
+        {
+            return r * 0.299f + g * 0.587f + b * 0.114f;
         }
     }
 }

@@ -338,7 +338,7 @@ namespace XenoKit.Engine.Model
                 GraphicsDevice.Textures[4] = DytIndex < DytTexture.Length && DytIndex >= 0 ? DytTexture[DytIndex].Texture : DytTexture[0].Texture;
             }
 
-            Model.Draw(Matrix4x4.Identity, 0, Materials, Textures, DytTexture, DytIndex, Skeleton);
+            Model.Draw(Matrix4x4.Identity, -1, Materials, Textures, DytTexture, DytIndex, Skeleton);
             
             if (SceneManager.ShowModelEditorHighlights)
             {

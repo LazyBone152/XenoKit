@@ -233,7 +233,7 @@ namespace XenoKit.Inspector.InspectorEntities
                 GraphicsDevice.Textures[4] = DytFile.DytIndex >= DytFile.Textures.Length ? DytFile.Textures[0].Texture : DytFile.Textures[DytFile.DytIndex].Texture;
             }
 
-            Model.Draw(Parent != null ? Parent.Transform : Matrix4x4.Identity, 0, CompiledMaterials, TextureFile?.Textures, DytFile?.Textures, DytFile != null ? DytFile.DytIndex : 0, Parent?.Skeleton);
+            Model.Draw(Parent != null ? Parent.Transform : Matrix4x4.Identity, -1, CompiledMaterials, TextureFile?.Textures, DytFile?.Textures, DytFile != null ? DytFile.DytIndex : 0, Parent?.Skeleton);
         }
 
         public override void DrawPass(bool normalPass)

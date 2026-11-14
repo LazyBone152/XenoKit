@@ -19,6 +19,8 @@ namespace XenoKit.Engine.Shader.DXBC
         public DxbcConstantBuffer[] CBuffers { get; set; }
         public DxbcResourceBinding[] ResourceBindings { get; set; }
 
+        public bool UsesAlphaDepth { get; private set; }
+
 
         public DxbcParser(byte[] bytecode)
         {
@@ -109,6 +111,11 @@ namespace XenoKit.Engine.Shader.DXBC
                         BindPoint = BitConverter.ToInt32(bytecode, rbOffset + 20),
                         BindCount = BitConverter.ToInt32(bytecode, rbOffset + 24)
                     };
+
+                    if (ResourceBindings[i].ShaderInputType == DxbcResourceBinding.ResourceBindingType.Sampler && ResourceBindings[i].BindPoint == 10 && name?.Contains("AlphaDepth") == true)
+                    {
+                        UsesAlphaDepth = true;
+                    }
 
                     if (shaderModel == 5)
                     {

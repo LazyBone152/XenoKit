@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using XenoKit.Engine.Lighting;
 using Xv2CoreLib;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.Resource;
@@ -11,6 +12,8 @@ namespace XenoKit.Engine.Vfx.Asset
 {
     public abstract class VfxAsset : RenderObject, IDisposable
     {
+        public override LightMode LightingMode => (EffectPart.Flags2 & EepkEffectPartFlags2.UseCharaLight) != 0 ? LightMode.VfxCharaLight : LightMode.Vfx;
+
         public float CurrentFrame { get; protected set; }
         public bool HasStarted { get; protected set; }
         public bool IsFinished { get; protected set; }
@@ -113,7 +116,7 @@ namespace XenoKit.Engine.Vfx.Asset
         /// </summary>
         public virtual void Terminate()
         {
-            if (EffectPart.Deactivation ==DeactivationMode.Immediate || (EffectPart.Deactivation == DeactivationMode.LoopCancel && !FinishAnimationBeforeTerminating))
+            if (EffectPart.Deactivation == DeactivationMode.Immediate || (EffectPart.Deactivation == DeactivationMode.LoopCancel && !FinishAnimationBeforeTerminating))
             {
                 IsFinished = true;
             }

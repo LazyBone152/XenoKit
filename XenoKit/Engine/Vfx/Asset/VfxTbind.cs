@@ -79,7 +79,7 @@ namespace XenoKit.Engine.Vfx.Asset
             foreach (TbindNodeState state in nodeStates.Values)
             {
                 if (state.Material != null)
-                    state.Material.SetTextureScrollOverrides(
+                    state.Material.ApplyTextureScrollOverrides(
                         null,
                         state.TextureScrollActive[1] ? state.TextureScroll[1] : null);
 

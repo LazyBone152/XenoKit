@@ -16,6 +16,7 @@ namespace XenoKit.Engine.View
         public Matrix4x4 ViewMatrix { get; private set; }
         public Matrix4x4 ProjectionMatrix { get; private set; }
         public Matrix4x4 ViewProjectionMatrix { get; private set; }
+        public Matrix4x4 InverseViewMatrix { get; private set; }
         public float NearClip { get; private set; } = 0.01f;
         public float FarClip { get; private set; } = 1f;
         public float AspectRatio { get; private set; } = 1f;
@@ -364,7 +365,7 @@ namespace XenoKit.Engine.View
         {
             FovY = (float)(Math.PI / 180 * CameraState.FieldOfView);
             NearClip = ViewportInstance.CurrentStage.NearClip;
-            FarClip = ViewportInstance.CurrentStage.FarClip;
+            FarClip = ViewportInstance.CurrentStage.FarClip * 1.5f; //Bandaid fix, as the far clip in SPM for some stages wrong. TODO: Find out why
             AspectRatio = RenderSystem.RenderWidth / (float)RenderSystem.RenderHeight;
             Forward = SimdVector3.Normalize(CameraState.TargetPosition - CameraState.Position);
 
@@ -388,6 +389,7 @@ namespace XenoKit.Engine.View
             }
 
             ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
+            InverseViewMatrix = ViewMatrix.Invert();
 
             if(SceneManager.FrustumUpdateEnabled)
                 Frustum.Matrix = ViewProjectionMatrix;

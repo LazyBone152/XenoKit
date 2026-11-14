@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using XenoKit.Editor;
+using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Pool;
 using Xv2CoreLib;
 using Xv2CoreLib.EEPK;
@@ -16,6 +17,7 @@ namespace XenoKit.Engine.Vfx.Particle
         public WeakReference Effect;
         public override bool IsAlive => Effect.IsAlive;
         public override EngineObjectTypeEnum EngineObjectType => EngineObjectTypeEnum.VFX;
+        public override LightMode LightingMode => LightMode.VfxCharaLight;
 
         public ParticleSystem ParticleSystem { get; private set; }
         public ParticleNode Node;

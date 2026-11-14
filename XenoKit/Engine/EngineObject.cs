@@ -4,6 +4,7 @@ using XenoKit.Engine.Vfx;
 using XenoKit.Engine.Pool;
 using XenoKit.Engine.Shader;
 using XenoKit.Engine.Rendering;
+using XenoKit.Engine.Lighting;
 
 namespace XenoKit.Engine
 {
@@ -28,6 +29,7 @@ namespace XenoKit.Engine
         public VfxManager VfxManager => ViewportInstance.VfxManager;
         public CompiledObjectManager CompiledObjectManager => ViewportInstance.CompiledObjectManager;
         public ObjectPoolManager ObjectPoolManager => ViewportInstance.ObjectPoolManager;
+        public LightSystem LightSystem => ViewportInstance.LightSystem;
 
         public virtual string Name { get; set; }
         public virtual System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;

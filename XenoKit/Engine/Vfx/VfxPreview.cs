@@ -18,6 +18,19 @@ namespace XenoKit.Engine.Vfx
             DefaultEffectPart = new EffectPart();
         }
 
+        public void EarlyUpdate()
+        {
+            switch (SceneManager.CurrentSceneState)
+            {
+                case EditorTabs.Effect:
+                    Effect?.EarlyUpdate();
+                    break;
+                default:
+                    Asset?.EarlyUpdate();
+                    break;
+            }
+        }
+
         public override void Update()
         {
             switch (SceneManager.CurrentSceneState)

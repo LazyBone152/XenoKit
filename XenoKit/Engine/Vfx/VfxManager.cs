@@ -265,6 +265,22 @@ namespace XenoKit.Engine.Vfx
         #endregion
 
         #region UpdateAndRendering
+        public void EarlyUpdate()
+        {
+            lock (Effects)
+            {
+                for (int i = Effects.Count - 1; i >= 0; i--)
+                {
+                    if (Effects[i].IsDestroyed)
+                    {
+                        Effects[i].Dispose();
+                        Effects.RemoveAt(i);
+                        continue;
+                    }
+                }
+            }
+        }
+
         public override void Update()
         {
             Update(false);
@@ -277,16 +293,8 @@ namespace XenoKit.Engine.Vfx
                 Effects.AddRange(NewEffects);
                 NewEffects.Clear();
 
-
                 for (int i = Effects.Count - 1; i >= 0; i--)
                 {
-                    if (Effects[i].IsDestroyed)
-                    {
-                        Effects[i].Dispose();
-                        Effects.RemoveAt(i);
-                        continue;
-                    }
-
                     if (simulate)
                     {
                         Effects[i].Simulate();
@@ -303,6 +311,7 @@ namespace XenoKit.Engine.Vfx
 
         public void Simulate()
         {
+            EarlyUpdate();
             Update(true);
         }
 

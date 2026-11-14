@@ -2,12 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using XenoKit.Editor;
-using XenoKit.Engine.Model;
 using XenoKit.Engine.Shader;
-using XenoKit.Inspector.InspectorEntities;
 using Xv2CoreLib.EMM;
 using Xv2CoreLib.Resource.App;
 
@@ -79,8 +74,8 @@ namespace XenoKit.Engine.Rendering
         private RenderTargetWrapper BodyOutlineSourceRT;
 
         //Characters and the stage enviroments are drawn onto these RTs using their proper materials
-        private RenderTargetWrapper ColorPassRT0;
-        private RenderTargetWrapper ColorPassRT1;
+        private RenderTargetWrapper ColorPassRT0; //Color
+        private RenderTargetWrapper ColorPassRT1; //Glare
 
         //ShaderProgram BIRD_BG_EDGELINE_RGB_HF is used with ColorPassRT0 as input, drawn onto this RT (adds black outline to charas)
         //The remaining stage elements are then drawn to this RT and ColorPassRT1
@@ -159,7 +154,6 @@ namespace XenoKit.Engine.Rendering
             ShadowModel = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("ShadowModel"));
             GI_ShadowModel = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel"));
             GI_ShadowModel_Grass = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel_Grass"));
-            //GI_ShadowModel_Grass = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("GI_ShadowModel_Grass"));
             NORMAL_FADE_WATERDEPTH_W_M = CompiledObjectManager.GetCompiledObject<Xv2ShaderEffect>(EmmMaterial.CreateDefaultMaterial("NORMAL_FADE_WATERDEPTH_W_M"), ShaderType.CharaNormals);
 
             //Load all the shaders that are used in the rendering process
@@ -252,40 +246,6 @@ namespace XenoKit.Engine.Rendering
             RenderHeight = (int)RenderResolution[1];
         }
 
-
-
-
-
-
-
-        #region Screenshot
-        /// <summary>
-        /// Requests a screenshot to be saved during the renderering of the next frame.
-        /// </summary>
-
-
-        #endregion
-
-        #region Update
-
-
-
-
-
-
-
-
-
-        #endregion
-
-        #region RenderTarget
-        public void TestRTMerge(RenderTarget2D renderTarget1, RenderTarget2D renderTarget2)
-        {
-            SetTexture(renderTarget1, 0);
-            SetTexture(renderTarget2, 1);
-            PostFilter.Apply(AddTex);
-        }
-
         public void DisplayRenderTarget(RenderTarget2D renderTarget, bool scaleToViewport = false, float scale = 1f, BlendState blendState = null)
         {
             Rectangle destination = scaleToViewport ? new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height) : new Rectangle(0, 0, (int)(renderTarget.Width * scale), (int)(renderTarget.Height * scale));
@@ -295,63 +255,7 @@ namespace XenoKit.Engine.Rendering
             SpriteBatch.End();
         }
 
-        private void DumpRenderTargets()
-        {
-            DumpRenderTargetsNextFrame = false;
-            bool dumpShadowMap = DumpShadowMapNextFrame;
-            DumpShadowMapNextFrame = false;
-
-            Directory.CreateDirectory(SettingsManager.Instance.GetAbsPathInAppFolder("RT_Dump"));
-
-            foreach (RenderTargetWrapper renderTarget in registeredRenderTargets)
-            {
-                if (dumpShadowMap && renderTarget.Name != nameof(RenderSystem.ShadowPassRT0)) continue;
-
-                if (!string.IsNullOrEmpty(renderTarget.Name))
-                {
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        renderTarget.RenderTarget.SaveAsPng(ms, renderTarget.Width, renderTarget.Height);
-                        File.WriteAllBytes(SettingsManager.Instance.GetAbsPathInAppFolder($"RT_Dump/{renderTarget.Name}.png"), ms.ToArray());
-                    }
-                }
-            }
-
-            Log.Add("Render Targets dumped", LogType.Info);
-        }
-
-        /// <summary>
-        /// Register a <see cref="RenderTargetWrapper"/> with this <see cref="RenderSystem"/> instance. Registered RenderTargets will be automatically updated when the viewport changes size.
-        /// </summary>
-
-        #endregion
-
-        #region AddRemoveEntity
-
-
-
-
-
-
-
-
-
-
-        #endregion
-
-
-
-
-
-
-        public RenderTargetWrapper GetColorPassRT0()
-        {
-            return ColorPassRT0;
-        }
-
     }
-
-
 
     public enum DrawPass
     {
@@ -370,5 +274,4 @@ namespace XenoKit.Engine.Rendering
         EffectLowRez,
         EffectLowRezSmoke
     }
-
 }

@@ -610,6 +610,25 @@ namespace XenoKit.Engine.Model
                 model.CalculateBounds();
             }
         }
+        
+        public BoundingBox CalculateBoundingBox()
+        {
+            CalculateAABBs();
+            Vector3 min = new Vector3(float.MaxValue);
+            Vector3 max = new Vector3(float.MinValue);
+
+            foreach(var model in Models)
+            {
+                min.X = MathF.Min(min.X, model.BoundingBox.Min.X);
+                min.Y = MathF.Min(min.Y, model.BoundingBox.Min.Y);
+                min.Z = MathF.Min(min.Z, model.BoundingBox.Min.Z);
+                max.X = MathF.Max(max.X, model.BoundingBox.Max.X);
+                max.Y = MathF.Max(max.Y, model.BoundingBox.Max.Y);
+                max.Z = MathF.Max(max.Z, model.BoundingBox.Max.Z);
+            }
+
+            return new BoundingBox(min, max);
+        }
         #endregion
 
         public void ApplyTransformations(bool addUndoStep = true)
@@ -874,6 +893,7 @@ namespace XenoKit.Engine.Model
 
             foreach (var mesh in Meshes)
             {
+                mesh.CalculateBounds();
                 min = SimdVector3.Min(mesh.BoundingBox.Min.ToNumerics(), min);
                 max = SimdVector3.Max(mesh.BoundingBox.Max.ToNumerics(), max);
             }
@@ -1140,10 +1160,9 @@ namespace XenoKit.Engine.Model
         private bool IsDisposed = false;
         private bool IsReflection = false;
 
-
         //AABB
-        public BoundingBox BoundingBox { get; set; }
-        public SimdVector3 BoundingBoxCenter { get; set; }
+        public BoundingBox BoundingBox { get; private set; }
+        public SimdVector3 BoundingBoxCenter { get; private set; }
         private readonly DrawableBoundingBox VisibleAABB;
 
         //Samplers:
@@ -1363,7 +1382,7 @@ namespace XenoKit.Engine.Model
 
             Xv2Bone attachBone = Parent.AttachBone;
             Matrix4x4 newWorld = attachBone != null ? Transform * attachBone.AbsoluteAnimationMatrix * world : Transform * world;
-
+            
             Xv2ShaderEffect material = MaterialIndex != -1 ? materials[MaterialIndex] : (EnableSkinning ? DefaultShaders.VertexColor_W : DefaultShaders.WhiteWireframe);
 
             if (!RenderSystem.CheckDrawPass(material)) return;
@@ -1373,7 +1392,7 @@ namespace XenoKit.Engine.Model
                 return;
 
             material.World = newWorld;
-            material.PrevWVP = PrevWVP[actor];
+            material.PrevWVP = PrevWVP[actor == -1 ? 0 : actor];
 
             //Set samplers/textures
             foreach (SamplerInfo sampler in Samplers)
@@ -1387,7 +1406,7 @@ namespace XenoKit.Engine.Model
                 }
             }
 
-            material.SetTextureTile(TexTile01, TexTile23);
+            material.ApplyTextureTile(TexTile01, TexTile23);
 
             DrawEnd(actor, material, skeleton, instanceData, glareOutputAllowed);
 
@@ -1409,7 +1428,7 @@ namespace XenoKit.Engine.Model
                 return;
 
             material.World = newWorld;
-            material.PrevWVP = PrevWVP[actor];
+            material.PrevWVP = PrevWVP[actor == -1 ? 0 : actor];
 
             DrawEnd(actor, material, skeleton, instanceData);
         }
@@ -1417,33 +1436,25 @@ namespace XenoKit.Engine.Model
         private void DrawEnd(int actor, Xv2ShaderEffect material, Xv2Skeleton skeleton, ModelInstanceData instanceData = null, bool? glareOutputAllowed = null)
         {
             if (IsDisposed) return;
-            if(MathHelpers.FloatEquals(material.World.Translation.X, -191.0107) &&
-                MathHelpers.FloatEquals(material.World.Translation.Y, -30.51358) &&
-                MathHelpers.FloatEquals(material.World.Translation.Z, 161.74263))
-            {
-                Vector4 test = new Vector4(Vector3.Transform(Viewport.Instance.Camera.CameraState.Position, Matrix.Invert(material.World)), 1f);
-                SceneManager.DebugTestValue = test.ToString();
-            }
+
             RenderSystem.MeshDrawCalls++;
             material.ActorSlot = actor;
 
             if (EnableSkinning && skeleton != null)
             {
                 CreateSkinningMatrices(skeleton);
-                material.SetSkinningMatrices(SkinningMatrices);
+                material.ApplySkinningMatrices(SkinningMatrices);
             }
             else
             {
-                material.SetSkinningMatrices(DefaultSkinningMatrices);
+                material.ApplySkinningMatrices(DefaultSkinningMatrices);
             }
 
             //Shader passes and vertex drawing
             foreach (EffectPass pass in material.CurrentTechnique.Passes)
             {
-                if (Type == ModelType.Emd)
-                    material.SetColorFade(SceneManager.Actors[actor]);
-
-                material.SetVfxLight();
+                if (Type == ModelType.Emd && actor != -1)
+                    material.ApplyColorFade(SceneManager.Actors[actor]);
 
                 if (glareOutputAllowed.HasValue)
                     material.SetGlareOutputAllowed(glareOutputAllowed.Value);
@@ -1477,7 +1488,7 @@ namespace XenoKit.Engine.Model
 
             }
 
-            PrevWVP[actor] = material.WVP;
+            PrevWVP[actor == -1 ? 0 : actor] = material.WVP;
         }
 
         private bool FrustumIntersects(Matrix world)
@@ -1488,7 +1499,7 @@ namespace XenoKit.Engine.Model
 #endif
             if (Vector3.Distance(world.Translation, ViewportInstance.Camera.CameraState.Position) < 1f) return true;
 
-            BoundingFrustum frustum = RenderSystem.IsShadowPass ? ViewportInstance.StageLight.LightFrustum : ViewportInstance.Camera.Frustum;
+            BoundingFrustum frustum = RenderSystem.IsShadowPass ? ViewportInstance.LightSystem.BgLight.LightFrustum : ViewportInstance.Camera.Frustum;
 
             return frustum.Intersects(BoundingBox.Transform(world));
         }

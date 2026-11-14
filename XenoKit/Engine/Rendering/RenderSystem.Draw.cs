@@ -3,11 +3,9 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using XenoKit.Editor;
-using XenoKit.Engine.Model;
 using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.Shader;
-using XenoKit.Inspector.InspectorEntities;
-using Xv2CoreLib.EMM;
+using XenoKit.Engine.View;
 using Xv2CoreLib.Resource.App;
 
 namespace XenoKit.Engine.Rendering
@@ -433,11 +431,13 @@ namespace XenoKit.Engine.Rendering
 
         private void DrawSimpleEntity(List<RenderObject> entities, bool normalPass)
         {
-            foreach (RenderObject entity in entities.ToArray())
+            foreach (RenderObject entity in entities)
             {
                 if (entity.DrawThisFrame)
                 {
                     if (entity.EngineObjectType != EngineObjectTypeEnum.Actor && normalPass) continue; //skip if stage and its a normal pass (stages only have a shadow pass here)
+                    LightSystem.LightMode = entity.LightingMode;
+
                     entity.DrawPass(normalPass);
                 }
             }
@@ -447,17 +447,18 @@ namespace XenoKit.Engine.Rendering
         {
             if (SceneManager.UseRenderScene) return;
             int particleCount = 0;
-            RenderObject[] drawEntities = entities.ToArray();
 
             //OPAQUE PASS
             CurrentDrawPass = Rendering.DrawPass.Opaque;
 
-            foreach (RenderObject entity in drawEntities)
+            foreach (RenderObject entity in entities)
             {
                 if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
+                    LightSystem.LightMode = entity.LightingMode;
+
                     entity.Draw();
 
                     if (entity.EngineObjectType == EngineObjectTypeEnum.VFX)
@@ -469,12 +470,13 @@ namespace XenoKit.Engine.Rendering
             CurrentDrawPass = Rendering.DrawPass.AlphaBlend;
 
             //foreach (Entity entity in entities.OrderByDescending(x => System.Numerics.Vector3.Distance(CameraBase.CameraState.Position, x.AbsoluteTransform.Translation)))
-            foreach (RenderObject entity in drawEntities)
+            foreach (RenderObject entity in entities)
             {
                 if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
+                    LightSystem.LightMode = entity.LightingMode;
                     entity.Draw();
                 }
             }
@@ -482,12 +484,13 @@ namespace XenoKit.Engine.Rendering
             //ADDITIVE PASS
             CurrentDrawPass = Rendering.DrawPass.Additive;
 
-            foreach (RenderObject entity in drawEntities)
+            foreach (RenderObject entity in entities)
             {
                 if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
+                    LightSystem.LightMode = entity.LightingMode;
                     entity.Draw();
                 }
             }
@@ -495,12 +498,13 @@ namespace XenoKit.Engine.Rendering
             //SUBTRACTIVE PASS
             CurrentDrawPass = Rendering.DrawPass.Subtractive;
 
-            foreach (RenderObject entity in drawEntities)
+            foreach (RenderObject entity in entities)
             {
                 if (entity.LowRezMode != lowRezMode && lowRezMode != -1) continue;
 
                 if (entity.DrawThisFrame)
                 {
+                    LightSystem.LightMode = entity.LightingMode;
                     entity.Draw();
                     entity.DrawThisFrame = false;
                 }

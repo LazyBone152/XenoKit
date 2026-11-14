@@ -1,14 +1,12 @@
 ﻿using System.Linq;
+using XenoKit.Engine.Lighting;
 using Xv2CoreLib.EEPK;
 using Xv2CoreLib.EMA;
-using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.App;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace XenoKit.Engine.Vfx.Asset
 {
-    //Only support for 1 light per actor right now
-
     public class VfxLight : VfxAsset
     {
         private readonly EMA_File EmaFile;
@@ -35,10 +33,10 @@ namespace XenoKit.Engine.Vfx.Asset
             }
         }
 
-        public float[] RGBA = new float[4]; //g_vColor0_PS
-        public float[] Light = new float[4]; //g_vParam4_PS (x = min attenuation, y = max attenuation)
-        public float[] LightStrength = new float[4]; //g_vParam3_PS (Ambient Light Strength = 1f, Anim Light Strength = A / 2, capped to 10 max)
-        public float[] LightSourcePosition = new float[4]; //g_vParam5_PS, relative to local world
+        private readonly PointLight PointLight;
+
+        private readonly float[] color = new float[4];
+        private readonly float[] range = new float[2];
 
         //Keyframe index cache, for better performance when keyframe seeking
         private readonly int[] ColorKeyframeIndex = new int[4];
@@ -46,9 +44,23 @@ namespace XenoKit.Engine.Vfx.Asset
 
         public VfxLight(Matrix4x4 startWorld, EMA_File emaFile, EffectPart effectPart, Actor actor, bool spawnedByProjectile = false) : base(startWorld, effectPart, actor, spawnedByProjectile)
         {
+            PointLight = LightSystem.RentPointLight();
+            PointLight?.SetInitialState(actor, effectPart);
             EmaFile = emaFile;
             SetDefaultValues();
             SetAnimation();
+
+            //PointLight can be null if there are too many PointLights active at once (limit of 128, defined in LightSystem)
+            if (PointLight is null)
+                IsFinished = true;
+        }
+
+        public override void Dispose()
+        {
+            if(PointLight != null)
+                LightSystem.ReturnPointLight(PointLight);
+
+            base.Dispose();
         }
 
         private void ResetKeyframeIndex()
@@ -59,11 +71,7 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private void SetDefaultValues()
         {
-            RGBA[0] = RGBA[1] = RGBA[2] = RGBA[3] = 0f;
-            Light[0] = Light[1] = 0f;
-            LightStrength[0] = 1f;
-            LightStrength[1] = 0f;
-            LightSourcePosition[0] = LightSourcePosition[1] = LightSourcePosition[2] = LightSourcePosition[3] = 0f;
+            PointLight?.Reset(false);
         }
 
         private void SetAnimation()
@@ -94,6 +102,21 @@ namespace XenoKit.Engine.Vfx.Asset
 
         private void Update(bool simulate)
         {
+            if (PointLight is null) return;
+
+            if (Time > AnimationLoopEndFrame && EffectPart.EMA_Loop)
+            {
+                Time = EffectPart.EMA_LoopStartFrame;
+                ResetKeyframeIndex();
+            }
+            else if (Time >= AnimationEndFrame)
+            {
+                IsFinished = true;
+
+                if(Time > AnimationEndFrame)
+                    return;
+            }
+
             //Animation has been changed
             if (EffectPart.EMA_AnimationIndex != EmaIndex)
             {
@@ -105,38 +128,30 @@ namespace XenoKit.Engine.Vfx.Asset
             if (Animation == null)
                 return;
 
-            if(Time > AnimationLoopEndFrame && EffectPart.EMA_Loop)
-            {
-                Time = EffectPart.EMA_LoopStartFrame;
-                ResetKeyframeIndex();
-            }
-            else if(Time > AnimationEndFrame)
-            {
-                IsFinished = true;
-                return;
-            }
-
             foreach(EMA_Command comand in Animation.Nodes[0].Commands)
             {
                 //RGBA
                 if(comand.Parameter == 2)
                 {
+                    if (comand.Component < 0 || comand.Component > 3) continue;
+
                     int keyframeIndex = ColorKeyframeIndex[comand.Component];
-                    RGBA[comand.Component] = comand.GetKeyframeValue(Time);
+                    color[comand.Component] = comand.GetKeyframeValue(Time);
                     ColorKeyframeIndex[comand.Component] = keyframeIndex;
                 }
 
                 //Light
                 if (comand.Parameter == 3)
                 {
+                    if (comand.Component < 0 || comand.Component > 1) continue;
+
                     int keyframeIndex = ColorKeyframeIndex[comand.Component];
-                    Light[comand.Component] = comand.GetKeyframeValue(Time);
+                    range[comand.Component] = comand.GetKeyframeValue(Time);
                     ColorKeyframeIndex[comand.Component] = keyframeIndex;
                 }
             }
 
-            //Animation light strength is always A / 2, clamped to [0,10] (at least, when theres only 1 light in play)
-            LightStrength[1] = MathHelpers.Clamp(0f, 10f, RGBA[3] / 2f);
+            PointLight.SetValues(Transform.Translation, new System.Numerics.Vector4(color[0], color[1], color[2], color[3]), range[0], range[1]);
 
             if (simulate)
             {

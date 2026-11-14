@@ -8,12 +8,9 @@ using SimdVector3 = System.Numerics.Vector3;
 
 namespace XenoKit.Engine.Lighting
 {
-    public class StageLight : EngineObject
+    public class BackgroundLight : DirLight
     {
         public readonly ShadowParams ShadowParams = new ShadowParams();
-
-        public SimdVector3 ShadowDirection { get; private set; }
-        public SimdVector3 LightDirection { get; private set; }
 
         private Matrix4x4 LightViewMatrix { get; set; }
         private Matrix4x4 LightProjectionMatrix { get; set; }
@@ -27,7 +24,7 @@ namespace XenoKit.Engine.Lighting
         public BoundingFrustum LightFrustum { get; private set; }
         private readonly SimdVector3[] _frustumCorners = new SimdVector3[8];
 
-        public StageLight()
+        public BackgroundLight()
         {
             Xv2Stage.CurrentSpmChanged += Xv2Stage_CurrentSpmChanged;
             SettingsManager.SettingsSaved += SettingsManager_SettingsSaved;
@@ -45,18 +42,13 @@ namespace XenoKit.Engine.Lighting
             CreateBiasMatrix(SettingsManager.settings.XenoKit_ShadowMapRes);
         }
 
-        public override void Update()
+        public void Update()
         {
-            LightDirection = new SimdVector3(Viewport.Instance.CurrentStage.CurrentSpm.LightDirX, Viewport.Instance.CurrentStage.CurrentSpm.LightDirY, Viewport.Instance.CurrentStage.CurrentSpm.LightDirZ);
-
             UpdateShadows();
         }
 
         private void UpdateShadows()
         {
-            ShadowDirection = new SimdVector3(ViewportInstance.CurrentStage.CurrentSpm.ShadowDirX, ViewportInstance.CurrentStage.CurrentSpm.ShadowDirY, ViewportInstance.CurrentStage.CurrentSpm.ShadowDirZ);
-            ShadowDirection = SimdVector3.Normalize(ShadowDirection);
-
             ComputeLiSPSM();
             //ComputeShadows();
             LightFrustum.Matrix = LightViewProjectionMatrix;
@@ -66,14 +58,12 @@ namespace XenoKit.Engine.Lighting
         {
             const float epsilon = 1e-5f;
 
-            SimdVector3 lightDir = SimdVector3.Normalize(ShadowDirection);
+            SimdVector3 lightDir = SimdVector3.Normalize(Direction);
             float shadowDistance = ComputeShadowDistance();
             float depthPadding = 10f;
             var camera = Viewport.Instance.Camera;
 
             //Get camera frustum corners and center in world space
-            Matrix4x4.Invert(camera.ViewMatrix, out Matrix4x4 inverseCameraView);
-
             float tanHalfFov = MathF.Tan(camera.FovY * 0.5f);
             SimdVector3 center = SimdVector3.Zero;
 
@@ -85,7 +75,7 @@ namespace XenoKit.Engine.Lighting
 
                 SimdVector3 viewCorner = new SimdVector3((i & 1) != 0 ? halfWidth : -halfWidth, (i & 2) != 0 ? halfHeight : -halfHeight, -distance);
 
-                _frustumCorners[i] = SimdVector3.Transform(viewCorner, inverseCameraView);
+                _frustumCorners[i] = SimdVector3.Transform(viewCorner, camera.InverseViewMatrix);
                 center += _frustumCorners[i];
             }
 
@@ -107,7 +97,7 @@ namespace XenoKit.Engine.Lighting
             LightViewMatrix = Matrix4x4.CreateLookAt(lightEye, center, up);
 
             //LiSPSM warp axis
-            SimdVector3 camFwdWorld = SimdVector3.Normalize(SimdVector3.TransformNormal(new SimdVector3(0f, 0f, -1f), inverseCameraView));
+            SimdVector3 camFwdWorld = SimdVector3.Normalize(SimdVector3.TransformNormal(new SimdVector3(0f, 0f, -1f), camera.InverseViewMatrix));
             SimdVector3 camFwdLight = SimdVector3.TransformNormal(camFwdWorld, LightViewMatrix);
             float sinGamma = MathF.Sqrt(camFwdLight.X * camFwdLight.X + camFwdLight.Y * camFwdLight.Y);
             float ax, ay;
@@ -246,14 +236,12 @@ namespace XenoKit.Engine.Lighting
         {
             //Standard non-perspective shadow mapping
 
-            SimdVector3 lightDir = SimdVector3.Normalize(ShadowDirection);
+            SimdVector3 lightDir = SimdVector3.Normalize(Direction);
             float shadowDistance = ShadowParams.ShadowFarMax * SettingsManager.settings.XenoKit_ShadowDistanceModifier;
             float depthPadding = 25f; 
             var camera = Viewport.Instance.Camera;
 
             //Get camera frustum corners and center in world space
-            Matrix4x4.Invert(camera.ViewMatrix, out Matrix4x4 inverseCameraView);
-
             float tanHalfFov = MathF.Tan(camera.FovY * 0.5f);
             SimdVector3 center = SimdVector3.Zero;
 
@@ -266,7 +254,7 @@ namespace XenoKit.Engine.Lighting
 
                 SimdVector3 viewCorner = new SimdVector3((i & 1) != 0 ? halfWidth : -halfWidth, (i & 2) != 0 ? halfHeight : -halfHeight, -distance);
 
-                _frustumCorners[i] = SimdVector3.Transform(viewCorner, inverseCameraView);
+                _frustumCorners[i] = SimdVector3.Transform(viewCorner, camera.InverseViewMatrix);
                 center += _frustumCorners[i];
             }
 
@@ -322,10 +310,10 @@ namespace XenoKit.Engine.Lighting
             //Mimics the way the game calculates shadow distance
             const float HeightEps = 0.01f;
 
-            float d = MathF.Abs(Vector3.Dot(Camera.Forward, ShadowDirection));
+            float d = MathF.Abs(Vector3.Dot(Viewport.Instance.Camera.Forward, Direction));
             float p = MathF.Pow(1f - d, ShadowParams.ShadowFarExponent);
 
-            float h = MathHelper.Clamp(MathF.Max(Camera.CameraState.Position.Y - ShadowParams.ShadowHeightStart, 0f) / (ShadowParams.ShadowHeightRange + HeightEps), 0f, 1f);
+            float h = MathHelper.Clamp(MathF.Max(Viewport.Instance.Camera.CameraState.Position.Y - ShadowParams.ShadowHeightStart, 0f) / (ShadowParams.ShadowHeightRange + HeightEps), 0f, 1f);
 
             float t = (1f - p) * h + p;
             float f = (ShadowParams.ShadowFarMax - ShadowParams.ShadowFarMin) * t + ShadowParams.ShadowFarMin;
@@ -352,11 +340,8 @@ namespace XenoKit.Engine.Lighting
         {
             if (Viewport.Instance.CurrentStage?.CurrentSpm != null)
             {
-                LightDirection = new SimdVector3(Viewport.Instance.CurrentStage.CurrentSpm.LightDirX, Viewport.Instance.CurrentStage.CurrentSpm.LightDirY, Viewport.Instance.CurrentStage.CurrentSpm.LightDirZ);
                 ShadowParams.SetFromSpm(Viewport.Instance.CurrentStage.CurrentSpm);
             }
-
-            UpdateShadows();
         }
     }
 }

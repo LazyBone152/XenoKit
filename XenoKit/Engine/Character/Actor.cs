@@ -13,6 +13,7 @@ using Xv2CoreLib.FPF;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector3 = System.Numerics.Vector3;
 using SimdVector4 = System.Numerics.Vector4;
+using XenoKit.Engine.Lighting;
 
 namespace XenoKit.Engine
 {
@@ -316,6 +317,7 @@ namespace XenoKit.Engine
             if(RenderSystem.CurrentDrawPass == Rendering.DrawPass.Opaque)
                 ActionControl.Draw();
 
+            LightSystem.CalculateLighting(LightMode.Character, actorSlot: ActorSlot);
             PartSet.Draw();
 
             if(RenderSystem.CurrentDrawPass == Rendering.DrawPass.Opaque)

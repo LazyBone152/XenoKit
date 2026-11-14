@@ -100,8 +100,7 @@ namespace XenoKit.Engine
         public AudioEngine AudioEngine { get; protected set; }
 		public VfxPreview VfxPreview { get; protected set; }
 		public ShaderManager ShaderManager { get; private set; }
-        public DirLight LightSource { get; private set; }
-        public StageLight StageLight { get; private set; }
+        public LightSystem LightSystem { get; private set; }
         public Input Input { get; private set; }
         public TextRenderer TextRenderer { get; private set; }
         public VfxManager VfxManager { get; private set; }
@@ -141,8 +140,7 @@ namespace XenoKit.Engine
             _defaultStage = Xv2Stage.CreateDefaultStage();
             CurrentStage = _defaultStage;
             Input = new Input();
-            LightSource = new DirLight();
-            StageLight = new StageLight();
+            LightSystem = new LightSystem();
             ObjectPoolManager = new ObjectPoolManager();
             ShaderManager = new ShaderManager();
             Simulation = new Simulation();
@@ -193,8 +191,25 @@ namespace XenoKit.Engine
         }
 
         #region Main Loop
+        private void EarlyUpdate()
+        {
+            if (!SceneManager.IsOnInspectorTab)
+            {
+                if (SceneManager.IsOnEffectTab)
+                {
+                    VfxPreview.EarlyUpdate();
+                }
+                else
+                {
+                    VfxManager.EarlyUpdate();
+                }
+            }
+        }
+
         protected override void Update(GameTime time)
         {
+            EarlyUpdate();
+
             DrawThisFrame = !(SettingsManager.settings.XenoKit_HalfRenderRate && !MathHelpers.IsEven(Tick));
             IsBlackVoid = false;
             GameTime = time;
@@ -203,8 +218,6 @@ namespace XenoKit.Engine
             CheckHotkeys();
             CurrentGizmo.Update();
 
-            StageLight.Update();
-            LightSource.Update();
             CurrentStage?.Update();
 
             FrameRate.Update((float)time.ElapsedGameTime.TotalSeconds);
@@ -246,6 +259,7 @@ namespace XenoKit.Engine
                 Simulation.Update();
             }
 
+            LightSystem.Update();
             RenderSystem.Update();
 
             //Update camera last - this way it has the lowest priority for mouse click events
@@ -304,7 +318,13 @@ namespace XenoKit.Engine
                 DelayedUpdateTimer++;
             }
 
+            LateUpdate();
             Tick++;
+        }
+
+        private void LateUpdate()
+        {
+
         }
 
         protected void DelayedUpdate()

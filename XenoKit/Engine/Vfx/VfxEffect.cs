@@ -196,12 +196,7 @@ namespace XenoKit.Engine.Vfx
                 asset.SetExternalTransform(transform);
         }
 
-        public override void Update()
-        {
-            Update(false);
-        }
-
-        private void Update(bool simulate)
+        public void EarlyUpdate()
         {
             for (int i = Assets.Count - 1; i >= 0; i--)
             {
@@ -219,16 +214,6 @@ namespace XenoKit.Engine.Vfx
                     Initialize();
                     break;
                 }
-
-                //var asset = Assets[i];
-                //Task updateTask = new Task(() => asset.Update());
-                //VfxManager.CurrentTasks.Add(updateTask);
-                //updateTask.Start();
-
-                if (simulate)
-                    Assets[i].Simulate();
-                else
-                    Assets[i].Update();
             }
 
             if (Assets.Count == 0)
@@ -255,12 +240,30 @@ namespace XenoKit.Engine.Vfx
                 {
                     InitializeFromAsset();
                 }
-
             }
+            
+        }
+
+        public override void Update()
+        {
+            Update(false);
+        }
+
+        private void Update(bool simulate)
+        {
+            for (int i = Assets.Count - 1; i >= 0; i--)
+            {
+                if (simulate)
+                    Assets[i].Simulate();
+                else
+                    Assets[i].Update();
+            }
+            
         }
 
         public void Simulate()
         {
+            EarlyUpdate();
             Update(true);
         }
 

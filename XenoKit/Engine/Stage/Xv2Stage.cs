@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using XenoKit.Editor;
+using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Model;
 using XenoKit.Engine.Textures;
 using Xv2CoreLib;
@@ -36,6 +37,7 @@ namespace XenoKit.Engine.Stage
                 return _drawThisFrame > 0;
             }
         }
+        public override LightMode LightingMode => LightMode.Stage;
 
         public override EngineObjectTypeEnum EngineObjectType => EngineObjectTypeEnum.Stage;
 
@@ -60,6 +62,11 @@ namespace XenoKit.Engine.Stage
         public Vector4 BackgroundGlareTone { get; private set; }
         public Vector4 EffectGlareTone { get; private set; }
         public Vector4 EdgeColor { get; private set; }
+
+        //Scene Parameters (SPM)
+        public Vector4 Color14 { get; private set; }
+        public Vector4 AmbientColor { get; private set; }
+        public Vector4 RimColor { get; private set; }
 
         //Reflections
         public TextureCube EnvTexture { get; private set; }
@@ -235,9 +242,20 @@ namespace XenoKit.Engine.Stage
             FogMultiColor = new Vector4(CurrentSpm.FogMultiColorR, CurrentSpm.FogMultiColorG, CurrentSpm.FogMultiColorB, CurrentSpm.FogMultiColorA);
             FogAddColor = new Vector4(CurrentSpm.FogAddColorR, CurrentSpm.FogAddColorG, CurrentSpm.FogAddColorB, CurrentSpm.FogAddColorA);
             Fog = new Vector4(CurrentSpm.FogStartDist, CurrentSpm.FogEndDist, 1.11111f, -0.0037f);
-            BackgroundGlareTone = new Vector4(CurrentSpm.F_416[0], CurrentSpm.F_416[0], CurrentSpm.F_416[0], CurrentSpm.BackgroundGlareAdditiveColorR);
-            EffectGlareTone = new Vector4(CurrentSpm.EffectGlareTone, CurrentSpm.EffectGlareTone, CurrentSpm.EffectGlareTone, CurrentSpm.F_416[2]);
+            BackgroundGlareTone = new Vector4(CurrentSpm.ToneR * CurrentSpm.ToneScale, CurrentSpm.ToneG * CurrentSpm.ToneScale, CurrentSpm.ToneB * CurrentSpm.ToneScale, CurrentSpm.ToneA);
+            EffectGlareTone = new Vector4(CurrentSpm.EffectGlareTone, CurrentSpm.EffectGlareTone, CurrentSpm.EffectGlareTone, CurrentSpm.F_420[1]);
             EdgeColor = new Vector4(CurrentSpm.EdgeStrokesColorR, CurrentSpm.EdgeStrokesColorG, CurrentSpm.EdgeStrokesColorB, CurrentSpm.EdgeStrokesWidth);
+            AmbientColor = new Vector4(CurrentSpm.HemiSet0MidR, CurrentSpm.HemiSet0MidG, CurrentSpm.HemiSet0MidB, 1f);
+            RimColor = new Vector4(CurrentSpm.RimColorR, CurrentSpm.RimColorG, CurrentSpm.RimColorB, CurrentSpm.RimColorA);
+
+            if(CurrentSpm.ExtendedData != null)
+            {
+                Color14 = new Vector4(CurrentSpm.ExtendedData.F_272, CurrentSpm.ExtendedData.F_276, CurrentSpm.ExtendedData.F_280, 1f);
+            }
+            else
+            {
+                Color14 = Vector4.One;
+            }
         }
 
         public void SetSpmFile(SPM_File spmFile)

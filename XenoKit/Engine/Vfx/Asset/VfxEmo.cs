@@ -14,6 +14,7 @@ using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector3 = System.Numerics.Vector3;
 using SimdQuaternion = System.Numerics.Quaternion;
 using Xv2CoreLib.EMB_CLASS;
+using XenoKit.Editor;
 
 namespace XenoKit.Engine.Vfx.Asset
 {
@@ -64,6 +65,8 @@ namespace XenoKit.Engine.Vfx.Asset
         public List<VfxEmaMaterialNode> MaterialNodes = new List<VfxEmaMaterialNode>();
 
         private Matrix4x4 AttachmentBone = Matrix4x4.Identity;
+
+        public float BoundingRadius { get; private set; }
 
         public VfxEmo(Matrix4x4 startWorld, Xv2CoreLib.EffectContainer.Asset asset, EffectPart effectPart, Actor actor, bool spawnedByProjectile = false) : base(startWorld, effectPart, actor, spawnedByProjectile)
         {
@@ -125,6 +128,8 @@ namespace XenoKit.Engine.Vfx.Asset
             {
                 Materials = Xv2ShaderEffect.LoadMaterials(EmmFile, ShaderType.Default);
                 Model.InitMaterialIndex(Materials);
+
+                BoundingRadius = BoundingSphere.CreateFromBoundingBox(Model.CalculateBoundingBox()).Radius;
             }
             else
             {
@@ -211,12 +216,11 @@ namespace XenoKit.Engine.Vfx.Asset
                 MaterialNodes[i].TexScrl[1][0] = material.DecompiledParameters.TexScrl1.U;
                 MaterialNodes[i].TexScrl[1][1] = material.DecompiledParameters.TexScrl1.V;
 
-
                 foreach (Xv2ShaderEffect compiledMaterial in Materials)
                 {
                     if (compiledMaterial.Material.Name == material.Name)
                     {
-                        compiledMaterial.SetMaterialAnimationValues(MaterialNodes[i]);
+                        compiledMaterial.ApplyMaterialAnimationValues(MaterialNodes[i]);
                     }
                 }
             }
@@ -248,12 +252,9 @@ namespace XenoKit.Engine.Vfx.Asset
                 SetAnimation();
             }
 
-            //SetDefaultValues();
-
             if (Time >= AnimationLoopEndFrame - 1 && EffectPart.EMA_Loop && !IsTerminating)
             {
                 Time = EffectPart.EMA_LoopStartFrame;
-                //ResetKeyframeIndex();
             }
             else if (Time >= AnimationEndFrame && !EffectPart.EMA_Loop)
             {
@@ -313,14 +314,6 @@ namespace XenoKit.Engine.Vfx.Asset
                                     MaterialNodes[i].TexScrl[command.Parameter - 4][command.Component] = command.GetKeyframeValue(Time);
                                 }
                             }
-
-                            foreach (Xv2ShaderEffect compiledMaterial in Materials)
-                            {
-                                if (compiledMaterial.Material.Name == material.Name)
-                                {
-                                    compiledMaterial.SetMaterialAnimationValues(MaterialNodes[i]);
-                                }
-                            }
                         }
                     }
                 }
@@ -347,7 +340,33 @@ namespace XenoKit.Engine.Vfx.Asset
         {
             if (DrawThisFrame && Model != null)
             {
-                Model.Draw(Matrix4x4.CreateScale(Scale) * AttachmentBone, 0, Materials, Textures, null, 0, Skeleton, null, !EffectPart.NoGlare);
+                LightSystem.CalculateLighting(LightingMode, Transform.Translation, BoundingRadius);
+
+                //Apply animated material parameters for this draw
+                if (Materials != null && MaterialAnimation != null)
+                {
+                    for (int i = 0; i < MaterialAnimation.Nodes.Count; i++)
+                    {
+                        EmmMaterial material = EmmFile.GetMaterial(MaterialAnimation.Nodes[i].BoneName);
+                        if (material == null) continue;
+
+                        foreach (Xv2ShaderEffect compiledMaterial in Materials)
+                        {
+                            if (compiledMaterial.Material.Name == material.Name)
+                            {
+                                compiledMaterial.ApplyMaterialAnimationValues(MaterialNodes[i]);
+                            }
+                        }
+                    }
+                }
+
+                Model.Draw(Matrix4x4.CreateScale(Scale) * AttachmentBone, -1, Materials, Textures, null, 0, Skeleton, null, !EffectPart.NoGlare);
+
+                //Clear the animated material parameters
+                foreach (Xv2ShaderEffect compiledMaterial in Materials)
+                {
+                    compiledMaterial.ClearMaterialAnimationValues();
+                }
             }
         }
 

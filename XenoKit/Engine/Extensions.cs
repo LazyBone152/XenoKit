@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Runtime.CompilerServices;
 using Xv2CoreLib.Color;
 using Xv2CoreLib.EMD;
 using Xv2CoreLib.FMP;
@@ -11,11 +12,13 @@ namespace XenoKit.Engine
     public static class Extensions
     {
         #region System.Numerics Helpers
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Vector3 GetUp(this System.Numerics.Matrix4x4 m)
         {
             return new System.Numerics.Vector3(m.M21, m.M22, m.M23);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetUp(this System.Numerics.Matrix4x4 m, System.Numerics.Vector3 v)
         {
             m.M21 = v.X;
@@ -23,11 +26,13 @@ namespace XenoKit.Engine
             m.M23 = v.Z;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Vector3 GetForward(this System.Numerics.Matrix4x4 m)
         {
             return new System.Numerics.Vector3(-m.M31, -m.M32, -m.M33);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetForward(this System.Numerics.Matrix4x4 m, System.Numerics.Vector3 v)
         {
             m.M31 = -v.X;
@@ -35,6 +40,7 @@ namespace XenoKit.Engine
             m.M33 = -v.Z;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Matrix4x4 Invert(this System.Numerics.Matrix4x4 m)
         {
             System.Numerics.Matrix4x4.Invert(m, out System.Numerics.Matrix4x4 result);
@@ -84,12 +90,14 @@ namespace XenoKit.Engine
             );
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Matrix ToXna(this FMP_Transform matrix)
         {
             return matrix.ToMatrix();
 
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BoundingBox ConvertToBoundingBox(this EMD_AABB aabb)
         {
             Vector3 min = new Vector3(aabb.MinX, aabb.MinY, aabb.MinZ);
@@ -116,46 +124,55 @@ namespace XenoKit.Engine
         #region System.Numerics Conversion
         //Extension methods for converting between MonoGame and System.Numerics types
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 ToXna(this System.Numerics.Vector2 vector)
         {
             return new Vector2(vector.X, vector.Y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Vector2 ToNumerics(this Vector2 vector)
         {
             return new System.Numerics.Vector2(vector.X, vector.Y);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 ToXna(this System.Numerics.Vector3 vector)
         {
             return new Vector3(vector.X, vector.Y, vector.Z);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Vector3 ToNumerics(this Vector3 vector)
         {
             return new System.Numerics.Vector3(vector.X, vector.Y, vector.Z);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 ToXna(this System.Numerics.Vector4 vector)
         {
             return new Vector4(vector.X, vector.Y, vector.Z, vector.W);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Vector4 ToNumerics(this Vector4 vector)
         {
             return new System.Numerics.Vector4(vector.X, vector.Y, vector.Z, vector.W);
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Quaternion ToXna(this System.Numerics.Quaternion quaternion)
         {
             return new Quaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Quaternion ToNumerics(this Quaternion quaternion)
         {
             return new System.Numerics.Quaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Matrix ToXna(System.Numerics.Matrix4x4 matrix)
         {
             return new Matrix(
@@ -165,6 +182,7 @@ namespace XenoKit.Engine
                 matrix.M41, matrix.M42, matrix.M43, matrix.M44);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Matrix4x4 ToNumerics(Matrix matrix)
         {
             return new System.Numerics.Matrix4x4(
@@ -177,27 +195,31 @@ namespace XenoKit.Engine
         #endregion
 
         #region Vector3Helpers
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsAproxEqual(this Vector3 a, Vector3 b)
         {
             return MathHelpers.FloatEquals(a.X, b.X) && MathHelpers.FloatEquals(a.Y, b.Y) && MathHelpers.FloatEquals(a.Z, b.Z);
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsAproxEqual(this System.Numerics.Vector3 a, System.Numerics.Vector3 b)
         {
             return MathHelpers.FloatEquals(a.X, b.X) && MathHelpers.FloatEquals(a.Y, b.Y) && MathHelpers.FloatEquals(a.Z, b.Z);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ClampScale(this Vector3 scale)
         {
             scale.Clamp(0.01f, float.MaxValue);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ClampScale(this System.Numerics.Vector3 scale)
         {
             scale.Clamp(0.01f, float.MaxValue);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Clamp(this Vector3 a, float min, float max)
         {
             a.X = MathHelper.Clamp(a.X, min, max);
@@ -205,6 +227,7 @@ namespace XenoKit.Engine
             a.Z = MathHelper.Clamp(a.Z, min, max);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Clamp(this System.Numerics.Vector3 a, float min, float max)
         {
             a.X = MathHelper.Clamp(a.X, min, max);
@@ -246,6 +269,7 @@ namespace XenoKit.Engine
                 euler.Z += 360;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static System.Numerics.Vector3 GetCenter(this EMD_AABB aabb)
         {
             return new System.Numerics.Vector3(aabb.CenterX, aabb.CenterY, aabb.CenterZ) * aabb.CenterW;
@@ -371,6 +395,7 @@ namespace XenoKit.Engine
         }
         #endregion
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Color ToXna(this LB_Common.Numbers.CustomColor customColor)
         {
             return new Color(MathHelper.Clamp(customColor.R, 0, 1f), MathHelper.Clamp(customColor.G, 0, 1f), MathHelper.Clamp(customColor.B, 0, 1f), MathHelper.Clamp(customColor.A, 0, 1f));
