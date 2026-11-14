@@ -14,8 +14,8 @@
              Dialog:DialogParticipation.Register="{Binding}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="UserControl">
-    
-    <Grid>
+
+    <Grid Margin="0,10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="50"/>
             <ColumnDefinition MinWidth="160" MaxWidth="260"/>
@@ -37,8 +37,9 @@
                 <TextBlock Text="Remove" HorizontalAlignment="Center" FontSize="10"/>
             </StackPanel>
         </StackPanel>
-        
-        <DataGrid Grid.Column="1" x:Name="dataGrid" SelectedItem="{Binding ElementName=UserControl, Path=SelectedColorGroup}" ItemsSource="{Binding ElementName=UserControl, Path=BcsFile.PartColors.Binding}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+
+        <DataGrid Grid.Column="1" x:Name="dataGrid" SelectedItem="{Binding ElementName=UserControl, Path=SelectedColorGroup}" ItemsSource="{Binding ElementName=UserControl, Path=BcsFile.PartColors.Binding}" 
+                  AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" BorderThickness="1" BorderBrush="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}">
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="ID" MinWidth="50" SortMemberPath="SortID">
                     <DataGridTemplateColumn.CellTemplate>
@@ -87,22 +88,29 @@
         <ScrollViewer Grid.Column="2" Margin="5,5">
             <Grid Visibility="{Binding ElementName=UserControl, Path=ColorVisibility}">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" MaxHeight="480"/>
+                    <RowDefinition Height="435"/>
+                    <RowDefinition Height="20"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="460"/>
+                </Grid.ColumnDefinitions>
 
-                <ListBox x:Name="colorListBox" ItemsSource="{Binding ElementName=UserControl, Path=SelectedColorGroup.ColorsList.Binding}" SelectedItem="{Binding ElementName=UserControl, Path=SelectedColor}" Width="300" VerticalAlignment="Top" HorizontalAlignment="Left" SelectionMode="Extended">
+                <ListBox x:Name="colorListBox" ItemsSource="{Binding ElementName=UserControl, Path=SelectedColorGroup.ColorsList.Binding}" SelectedItem="{Binding ElementName=UserControl, Path=SelectedColor}" 
+                         Height="430" Width="305" VerticalAlignment="Top" HorizontalAlignment="Left" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Visible"
+                         BorderBrush="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}" BorderThickness="1" controls:ControlsHelper.CornerRadius="5">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" IsItemsHost="True" MaxWidth="300">
+                            <WrapPanel Orientation="Horizontal" IsItemsHost="True" MaxWidth="300" Margin="0,5,0,0">
                             </WrapPanel>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="Black" BorderThickness="1" Margin="2">
-                                <Grid Background="{Binding ColorPreview}" Width="30" Height="20" ToolTip="{Binding ToolTip}"/>
-                            </Border>
+                            <Grid Margin="2">
+                                <Border Background="{Binding ColorPreview}" Width="30" Height="20" ToolTip="{Binding ToolTip}" CornerRadius="5" BorderBrush="White" BorderThickness="1"/>
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                     <ListBox.ContextMenu>
@@ -126,7 +134,8 @@
                     </ListBox.InputBindings>
                 </ListBox>
 
-                <StackPanel Grid.Row="1" Margin="0, 2">
+                <Separator Grid.Row="1" Height="1" VerticalAlignment="Center" Background="{DynamicResource MahApps.Brushes.Gray.SemiTransparent}"/>
+                <StackPanel Grid.Row="2" Margin="0, 2">
                     <WrapPanel>
                         <Grid Margin="3,3" Width="450">
                             <Grid.ColumnDefinitions>

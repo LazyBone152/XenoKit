@@ -22,7 +22,7 @@
         </ObjectDataProvider>
 
     </UserControl.Resources>
-    <Grid Margin="5,5">
+    <Grid Margin="5,10">
         <StackPanel>
             <Border BorderBrush="{DynamicResource MahApps.Brushes.Accent4}" BorderThickness="1">
                 <StackPanel Margin="10">
