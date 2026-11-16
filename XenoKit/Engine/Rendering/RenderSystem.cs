@@ -14,6 +14,7 @@ namespace XenoKit.Engine.Rendering
         public readonly YBSPostProcess YBS;
         public readonly ParticleBatcher ParticleBatcher;
         private readonly SpriteBatch SpriteBatch;
+        private readonly ScreenSpacePointLight SSPL;
 
         private readonly List<RenderObject> Reflections = new List<RenderObject>(4);
         private readonly List<RenderObject> Characters = new List<RenderObject>(4);
@@ -55,7 +56,7 @@ namespace XenoKit.Engine.Rendering
         public int RecreateRenderTargetsNextFrames = 0;
 
         //Render Resolution:
-        public readonly float[] RenderResolution = new float[4];
+        public readonly float[] ScreenInfo = new float[4];
         public float SuperSampleFactor { get; private set; }
         public int RenderWidth { get; private set; }
         public int RenderHeight { get; private set; }
@@ -117,8 +118,7 @@ namespace XenoKit.Engine.Rendering
         private PostShaderEffect DTMAP_BLEND_CST_MUL;
         private PostShaderEffect DTMAP_BLEND_CST_HUE;
         private PostShaderEffect DTMAP_BLEND_CST_HSV;
-        private PostShaderEffect DepthToColor;
-        private PostShaderEffect AddTex; //Merge up to 2 textures into a RenderTarget
+        private PostShaderEffect Decal;
 
         private Texture2D BodyOutlinePaletteTexture;
         private readonly Color[] BodyOutlinePalette = new Color[16 * 16];
@@ -140,6 +140,7 @@ namespace XenoKit.Engine.Rendering
 
             ParticleBatcher = new ParticleBatcher();
             SpriteBatch = spriteBatch;
+            SSPL = new ScreenSpacePointLight();
         }
 
         private void CreateInternalResources()
@@ -160,8 +161,6 @@ namespace XenoKit.Engine.Rendering
             AGE_TEST_EDGELINE_MRT = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_TEST_EDGELINE_MRT"));
             BIRD_BG_EDGELINE_RGB_HF = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("BIRD_BG_EDGELINE_RGB_HF"));
             DepthToDepth = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DepthToDepth"));
-            DepthToColor = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DepthToColor"));
-            AddTex = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AddTex"));
             NineConeFilter = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("NineConeFilter"));
             AGE_MERGE_AddLowRez_AddMrt = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("AGE_MERGE_AddLowRez_AddMrt"));
             EDGELINE_VFX = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("EDGELINE_VFX"));
@@ -170,6 +169,7 @@ namespace XenoKit.Engine.Rendering
             DTMAP_BLEND_CST_MUL = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DTMAP_BLEND_CST_MUL"));
             DTMAP_BLEND_CST_HUE = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DTMAP_BLEND_CST_HUE"));
             DTMAP_BLEND_CST_HSV = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("DTMAP_BLEND_CST_HSV"));
+            Decal = CompiledObjectManager.GetCompiledObject<PostShaderEffect>(ShaderManager.GetShaderProgram("Decal"));
 
             //Create RTs
             ReflectionRT = new RenderTargetWrapper(this, 0.25f, SurfaceFormat.Color, true, "ReflectionRT");
@@ -205,7 +205,6 @@ namespace XenoKit.Engine.Rendering
                 CounterClockwiseStencilFunction = CompareFunction.NotEqual
             };
 
-
             //Register all render targets so they get auto-updated if the viewport changes size
             RegisterRenderTarget(ReflectionRT);
             RegisterRenderTarget(ShadowPassRT0);
@@ -226,24 +225,26 @@ namespace XenoKit.Engine.Rendering
             RegisterRenderTarget(DepthBuffer);
             RegisterRenderTarget(ScreenshotRT);
             RegisterRenderTarget(SmallSceneRT);
-
         }
 
         private void SetRenderResolution()
         {
             if(ViewportInstance.IsFullScreen)
             {
-                RenderResolution[0] = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-                RenderResolution[1] = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+                ScreenInfo[0] = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+                ScreenInfo[1] = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             }
             else
             {
-                RenderResolution[0] = GraphicsDevice.Viewport.Width * SettingsManager.settings.XenoKit_SuperSamplingFactor;
-                RenderResolution[1] = GraphicsDevice.Viewport.Height * SettingsManager.settings.XenoKit_SuperSamplingFactor;
+                ScreenInfo[0] = GraphicsDevice.Viewport.Width * SettingsManager.settings.XenoKit_SuperSamplingFactor;
+                ScreenInfo[1] = GraphicsDevice.Viewport.Height * SettingsManager.settings.XenoKit_SuperSamplingFactor;
             }
 
-            RenderWidth = (int)RenderResolution[0];
-            RenderHeight = (int)RenderResolution[1];
+            ScreenInfo[2] = Camera.NearClip;
+            ScreenInfo[3] = Camera.FarClip;
+
+            RenderWidth = (int)ScreenInfo[0];
+            RenderHeight = (int)ScreenInfo[1];
         }
 
         public void DisplayRenderTarget(RenderTarget2D renderTarget, bool scaleToViewport = false, float scale = 1f, BlendState blendState = null)

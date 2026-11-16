@@ -1,7 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using XenoKit.Editor;
+using XenoKit.Engine.Lighting;
 using Xv2CoreLib.EMM;
+using SimdVector3 = System.Numerics.Vector3;
+using SimdVector4 = System.Numerics.Vector4;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 
 namespace XenoKit.Engine.Shader
@@ -23,6 +27,7 @@ namespace XenoKit.Engine.Shader
             DTMAP_BLEND_CST_HUE,
             DTMAP_BLEND_CST_HSV, 
             DTMAP_BLEND_CST_YUV_MODIFIED,
+            Decal,
 
             //ExtShaders
             YBS_Copy,
@@ -93,6 +98,7 @@ namespace XenoKit.Engine.Shader
                     ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear, 1);
                     break;
                 case PostProccessShader.DTMAP_BLEND_CST_YUV_MODIFIED:
+                case PostProccessShader.Decal:
                     ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Linear, 0);
                     ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Wrap, TextureFilter.Linear, 1);
                     break;
@@ -104,7 +110,6 @@ namespace XenoKit.Engine.Shader
                     ImageSampler[0] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.MinLinearMagPointMipPoint, 0);
                     ImageSampler[1] = CreateSampler(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.MinLinearMagPointMipPoint, 1);
                     break;
-
             }
 
             //Create remaining samplers
@@ -174,7 +179,7 @@ namespace XenoKit.Engine.Shader
                 InitTechnique();
                 IsShaderProgramDirty = false;
             }
-
+            
             ApplyStates();
 
             Matrix4x4 world = Matrix4x4.Identity;
@@ -233,8 +238,8 @@ namespace XenoKit.Engine.Shader
                         }
                         break;
                     case PostProccessShader.AGE_TEST_DEPTH_TO_PFXD:
-                        g_vParam0_PS?.SetValue(new Vector4(0.04187f, 0.95813f, 80f, 0f));
-                        g_vScreen_VS?.SetValue(new Vector4(Viewport.Instance.RenderSystem.RenderWidth, Viewport.Instance.RenderSystem.RenderHeight, 0.10f, 10106.85645f));
+                        Parameters["g_vParam0_PS"]?.SetValue(Viewport.Instance.Camera.DepthReconstruction);
+                        g_vScreen_VS?.SetVector4(Viewport.Instance.RenderSystem.ScreenInfo);
                         break;
                     case PostProccessShader.DTMAP_BLEND_CST_ADD:
                     case PostProccessShader.DTMAP_BLEND_CST_MUL:
@@ -331,6 +336,9 @@ namespace XenoKit.Engine.Shader
                 case PostProccessShader.DTMAP_BLEND_CST_YUV_MODIFIED:
                     blendState.ApplyCustom(0, BlendFunction.Add, Blend.One, Blend.Zero);
                     blendState.ApplyNone(1);
+                    break;
+                case PostProccessShader.Decal:
+                    blendState.ApplyCustom(0, BlendFunction.Add, Blend.One, Blend.One, BlendFunction.Add, Blend.Zero, Blend.One);
                     break;
             }
 

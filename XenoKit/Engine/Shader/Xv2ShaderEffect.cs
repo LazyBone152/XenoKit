@@ -1,7 +1,9 @@
-﻿using System;
-using System.Linq;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Linq;
+using System.Windows.Documents;
+using XenoKit.Editor;
 using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Stage;
 using XenoKit.Engine.Vfx.Asset;
@@ -9,6 +11,7 @@ using Xv2CoreLib.EMM;
 using Xv2CoreLib.Resource;
 using Xv2CoreLib.Resource.App;
 using Xv2CoreLib.SDS;
+using static XenoKit.Engine.Shader.PostShaderEffect;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdQuaternion = System.Numerics.Quaternion;
 using SimdVector3 = System.Numerics.Vector3;
@@ -54,6 +57,10 @@ namespace XenoKit.Engine.Shader
             Material = material;
             ShaderType = type;
 
+            //Only try to determine the type if one wasn't passed in
+            if (ShaderType == 0)
+                DeterminateShaderTypeFromName();
+
             InitTechnique();
 
             Material.DecompiledParameters.ParametersChanged += DecompiledParameters_ParametersChanged;
@@ -67,7 +74,7 @@ namespace XenoKit.Engine.Shader
             GraphicsDevice = Viewport.Instance.GraphicsDevice;
             Material = material;
 
-            if(!delayInit)
+            if (!delayInit)
                 InitTechnique();
 
             Material.DecompiledParameters.ParametersChanged += DecompiledParameters_ParametersChanged;
@@ -80,14 +87,31 @@ namespace XenoKit.Engine.Shader
         {
         }
 
-        //Render States2
+        private void DeterminateShaderTypeFromName()
+        {
+            if (Material?.ShaderProgram == null) return;
+
+            if (Material.ShaderProgram.StartsWith("SSPL_"))
+            {
+                ShaderType = ShaderType.SSPL;
+            }
+        }
+
+        //Render States
         public override BlendState GetBlendState()
         {
             BlendState blendState = new BlendState();
             blendState.IndependentBlendEnable = true;
             IsSubtractiveBlending = false;
 
-            if (ShaderType == ShaderType.CharaNormals || ShaderType == ShaderType.CharaShadow)
+            if(ShaderType == ShaderType.SSPL)
+            {
+                blendState.ApplyAlphaBlend(0);
+                blendState[0].AlphaSourceBlend = Blend.Zero;
+
+                return blendState;
+            }
+            else if (ShaderType == ShaderType.CharaNormals || ShaderType == ShaderType.CharaShadow)
             {
                 blendState.ApplyNone(0);
                 blendState.ApplyNone(1);
@@ -194,7 +218,21 @@ namespace XenoKit.Engine.Shader
         {
             DepthStencilState depth = new DepthStencilState();
 
-            if (ShaderType == ShaderType.CharaNormals || ShaderType == ShaderType.CharaShadow)
+            if(ShaderType == ShaderType.SSPL)
+            {
+                depth.DepthBufferEnable = false;
+                depth.DepthBufferFunction = CompareFunction.Never;
+                depth.DepthBufferWriteEnable = false;
+                depth.StencilEnable = true;
+                depth.StencilMask = depth.StencilWriteMask = depth.ReferenceStencil = 1;
+                depth.StencilFail = depth.CounterClockwiseStencilFail = StencilOperation.Keep;
+                depth.StencilDepthBufferFail = depth.CounterClockwiseStencilDepthBufferFail = StencilOperation.Keep;
+                depth.StencilPass = depth.CounterClockwiseStencilPass = StencilOperation.Replace;
+                depth.StencilFunction = depth.CounterClockwiseStencilFunction = CompareFunction.NotEqual;
+
+                return depth;
+            }
+            else if (ShaderType == ShaderType.CharaNormals || ShaderType == ShaderType.CharaShadow)
             {
                 depth.DepthBufferEnable = true;
                 depth.DepthBufferWriteEnable = true;
@@ -302,6 +340,9 @@ namespace XenoKit.Engine.Shader
 
             switch (ShaderType)
             {
+                case ShaderType.SSPL:
+                    state.CullMode = CullMode.None;
+                    break;
                 case ShaderType.CharaShadow:
                     state.CullMode = CullMode.CullCounterClockwiseFace;
                     break;
@@ -347,13 +388,18 @@ namespace XenoKit.Engine.Shader
 
             //Calculate matrices
             if (UseWV)
-                WV = World * Viewport.Instance.Camera.ViewMatrix;
+            {
+                WV = ShaderType == ShaderType.SSPL ?
+                    World * Viewport.Instance.Camera.ZReversedViewMatrix :
+                    World * Viewport.Instance.Camera.ViewMatrix;
+            }
 
             if (UseWVP)
+            {
                 WVP = World * Viewport.Instance.Camera.ViewProjectionMatrix;
+            }
 
             ApplyParameters();
-
 
             Parameters["g_bOutputGlareMRT_PS"]?.SetValue(glareOutputAllowed && MatParam.Glare == 1);
             glareOutputAllowed = true;
@@ -435,6 +481,11 @@ namespace XenoKit.Engine.Shader
                 return;
             }
 
+            if (shaderProgram.PsParser.UsesAlphaDepth)
+            {
+                Parameters["g_vParam0_PS"]?.SetValue(Viewport.Instance.Camera.DepthReconstruction);
+            }
+
             //Testing
             //SetParameters2();
             //Parameters["g_vTone_PS"]?.SetValue(-Vector4.One);
@@ -477,7 +528,7 @@ namespace XenoKit.Engine.Shader
             //Update global parameters
             if (shaderProgram.UseVertexShaderBuffer[VS_STAGE_CB])
             {
-                g_vScreen_VS?.SetVector4(Viewport.Instance.RenderSystem.RenderResolution);
+                g_vScreen_VS?.SetVector4(Viewport.Instance.RenderSystem.ScreenInfo);
                 g_SystemTime_VS?.SetValue(Viewport.SystemTime);
             }
 
@@ -496,7 +547,7 @@ namespace XenoKit.Engine.Shader
             foreach (Xv2Shader shader in _shaders)
                 shader.SetGlobalSamplers(Viewport.Instance.ShaderManager);
         }
-        
+
         private void ApplyParameters()
         {
             bool shadowMapRequired = false;
@@ -740,6 +791,42 @@ namespace XenoKit.Engine.Shader
             }
         }
 
+        public void ApplySSPLParameters(int numLights, PointLight[] pointLights, Vector4[] SSPLParam)
+        {
+            if (ShaderType != ShaderType.SSPL)
+            {
+                Log.Add("ApplySSPLParameters: Not a SSPL shader", LogType.Debug);
+                return;
+            }
+
+            for (int i = 0; i < 15; i++)
+            {
+                string colorName = $"g_vColor{i}_PS";
+                string paramName = $"g_vParam{i}_PS";
+
+                if (i < numLights && pointLights[i] != null)
+                {
+                    //Z must be reversed to account for the coordinate system mismatch. The SSPL shaders expect a left-handed view matrix and positions relative to that left-handed matrix
+                    //This is only a problem with the SSPL shaders because they work in view space
+                    SimdVector3 cameraSpacePosition = SimdVector3.Transform(pointLights[i].Position, Viewport.Instance.Camera.ZReversedViewMatrix);
+
+                    float range = pointLights[i].RangeEnd - pointLights[i].RangeStart;
+                    float a = pointLights[i].Color.W;
+
+                    Parameters[colorName]?.SetValue(new SimdVector4(pointLights[i].Color.X * (0.4f * a), pointLights[i].Color.Y * (0.4f * a), pointLights[i].Color.Z * (0.4f * a), pointLights[i].RangeEnd));
+                    Parameters[paramName]?.SetValue(new SimdVector4(cameraSpacePosition, 1f / MathF.Max(range, 1e-4f)));
+                }
+                else
+                {
+                    Parameters[colorName]?.SetValue(new Vector4(0, 0, 0, 1));
+                    Parameters[paramName]?.SetValue(new Vector4(0, 0, 0, 1));
+                }
+            }
+
+            World = Matrix4x4.Identity;
+            Parameters["g_vParam15_PS"]?.SetValue(Viewport.Instance.Camera.DepthReconstruction);
+            Parameters["g_vSSPLParam"]?.SetValue(SSPLParam);
+        }
         protected void ApplyStates()
         {
             GraphicsDevice.BlendState = _blendState;
@@ -1077,6 +1164,7 @@ namespace XenoKit.Engine.Shader
         Stage,
         StageShadow, //ShadowModel
         PostFilter,
+        SSPL
     }
 
     public enum ActorShaderPath

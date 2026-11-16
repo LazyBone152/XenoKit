@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using XenoKit.Editor;
+using XenoKit.Engine.Lighting;
 using XenoKit.Engine.Scripting.BAC;
 using XenoKit.Engine.Shader;
 using XenoKit.Engine.View;
@@ -73,6 +74,15 @@ namespace XenoKit.Engine.Rendering
             if (SceneManager.UseRenderScene)
                 DrawRenderScene(RenderPipelineStage.ModelMain);
 
+            if (!ViewportInstance.IsBlackVoid)
+            {
+                //Some stage objects should be drawn AFTER SamplerAlphaDepth is created, while others are drawn before
+                //TODO: Look into that. Moving AlphaDepth creation to after all stage objects are drawn for now, as it needs to contain stage depth info for some shaders to work
+                SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
+                GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
+                DrawEntity(Stages, LOW_REZ_NONE);
+            }
+
             //Create SamplerAlphaDepth
             SetRenderTargets(SamplerAlphaDepth.RenderTarget);
             GraphicsDevice.Clear(Color.Red);
@@ -80,14 +90,6 @@ namespace XenoKit.Engine.Rendering
             PostFilter.Apply(AGE_TEST_DEPTH_TO_PFXD);
             GraphicsDevice.Textures[0] = null;
 
-            if (!ViewportInstance.IsBlackVoid)
-            {
-                //Some stage objects should be drawn AFTER SamplerAlphaDepth is created, while others are drawn before
-
-                SetRenderTargets(ColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget, NormalPassRT1.RenderTarget);
-                GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
-                DrawEntity(Stages, LOW_REZ_NONE);
-            }
 
             //Black Chara Outline Shader
             if (SettingsManager.settings.XenoKit_UseOutlinePostEffect || hasActiveBodyOutline)
@@ -108,6 +110,22 @@ namespace XenoKit.Engine.Rendering
             SetTexture(ColorPassRT0.RenderTarget);
             PostFilter.SetTextureCoordinates(0.0002f, 0.00035f);
             PostFilter.Apply(BIRD_BG_EDGELINE_RGB_HF);
+
+            //Render stage point lights via SSPL post process shader
+            if (!Viewport.Instance.CurrentStage.IsDefaultStage)
+            {
+                GraphicsDevice.SetRenderTarget(LowRezRT0.RenderTarget); //Reuse LowRezRT
+                GraphicsDevice.Clear(Color.Black);
+
+                if (SSPL.Apply())
+                {
+                    //Merge back to main RT
+                    RenderSystem.SetRenderTargets(NextColorPassRT0.RenderTarget);
+                    GraphicsDevice.SetDepthBuffer(DepthBuffer.RenderTarget);
+                    SetTexture(LowRezRT0.RenderTarget);
+                    RenderSystem.PostFilter.Apply(Decal);
+                }
+            }
 
             //Initial Effect Pass
             SetRenderTargets(NextColorPassRT0.RenderTarget, ColorPassRT1.RenderTarget);

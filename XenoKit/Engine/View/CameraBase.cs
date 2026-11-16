@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using Matrix4x4 = System.Numerics.Matrix4x4;
 using SimdVector2 = System.Numerics.Vector2;
 using SimdVector3 = System.Numerics.Vector3;
+using SimdVector4 = System.Numerics.Vector4;
 using SimdQuaternion = System.Numerics.Quaternion;
 using Xv2CoreLib.Resource;
 using XenoKit.Editor;
@@ -17,6 +18,7 @@ namespace XenoKit.Engine.View
         public Matrix4x4 ProjectionMatrix { get; private set; }
         public Matrix4x4 ViewProjectionMatrix { get; private set; }
         public Matrix4x4 InverseViewMatrix { get; private set; }
+        public Matrix4x4 ZReversedViewMatrix { get; private set; }
         public float NearClip { get; private set; } = 0.01f;
         public float FarClip { get; private set; } = 1f;
         public float AspectRatio { get; private set; } = 1f;
@@ -25,6 +27,7 @@ namespace XenoKit.Engine.View
         /// </summary>
         public float FovY { get; private set; } = 1f;
         public SimdVector3 Forward { get; private set; } = -SimdVector3.UnitZ;
+        public SimdVector4 DepthReconstruction { get; private set; }
         public BoundingFrustum Frustum { get; protected set; } = new BoundingFrustum(Matrix.Identity);
         public virtual CameraState CameraState { get; protected set; } = new CameraState();
 
@@ -368,6 +371,7 @@ namespace XenoKit.Engine.View
             FarClip = ViewportInstance.CurrentStage.FarClip * 1.5f; //Bandaid fix, as the far clip in SPM for some stages wrong. TODO: Find out why
             AspectRatio = RenderSystem.RenderWidth / (float)RenderSystem.RenderHeight;
             Forward = SimdVector3.Normalize(CameraState.TargetPosition - CameraState.Position);
+            DepthReconstruction = new SimdVector4((FarClip / (FarClip - NearClip)), 0, NearClip, 0);
 
             //Projection Matrix
             ProjectionMatrix = Matrix4x4.CreatePerspectiveFieldOfView(FovY, AspectRatio, NearClip, FarClip);
@@ -390,8 +394,9 @@ namespace XenoKit.Engine.View
 
             ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
             InverseViewMatrix = ViewMatrix.Invert();
+            ZReversedViewMatrix = ViewMatrix * Matrix4x4.CreateScale(1, 1, -1);
 
-            if(SceneManager.FrustumUpdateEnabled)
+            if (SceneManager.FrustumUpdateEnabled)
                 Frustum.Matrix = ViewProjectionMatrix;
         }
 

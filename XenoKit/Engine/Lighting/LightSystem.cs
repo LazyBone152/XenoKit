@@ -24,6 +24,9 @@ namespace XenoKit.Engine.Lighting
         private readonly List<PointLight> PointLights = new List<PointLight>(INITIAL_POINT_LIGHT_SIZE);
         private readonly List<PointLight> PointLightPool = new List<PointLight>(INITIAL_POINT_LIGHT_SIZE);
 
+        private readonly PointLight[] ValidSSPL = new PointLight[15];
+        private readonly Microsoft.Xna.Framework.Vector4[] SSPLParam = new Microsoft.Xna.Framework.Vector4[72];
+
         public LightMode LightMode;
 
         public LightSystem()
@@ -134,6 +137,34 @@ namespace XenoKit.Engine.Lighting
                 pointLight.Reset();
                 PointLightPool.Add(pointLight);
             }
+        }
+
+        public bool CalculateValidStagePointLights(out int count, out PointLight[] pointLights, out Microsoft.Xna.Framework.Vector4[] SSPLParams)
+        {
+            count = 0;
+            pointLights = ValidSSPL;
+            SSPLParams = SSPLParam;
+
+            foreach(var pointLight in PointLights)
+            {
+                if (pointLight.FlagCheck(EepkEffectPartFlags2.LightApplyToStage))
+                {
+                    ValidSSPL[count] = pointLight;
+                    SSPLParam[count] = new Vector4(pointLight.Position, pointLight.RangeEnd);
+                    count++;
+                    if (count == 15)
+                        break;
+                }
+            }
+
+            //Null out the remaining point light slots
+            for (int i = count; i < ValidSSPL.Length; i++)
+            {
+                ValidSSPL[i] = null;
+                SSPLParam[i] = new Vector4(0,0,0,1);
+            }
+
+            return count > 0;
         }
 
         #region Light Calculation

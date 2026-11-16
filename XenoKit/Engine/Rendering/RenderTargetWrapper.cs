@@ -77,8 +77,8 @@ namespace XenoKit.Engine.Rendering
             }
             else
             {
-                WidthAtInit = (int)renderSystem.RenderResolution[0];
-                HeightAtInit = (int)renderSystem.RenderResolution[1];
+                WidthAtInit = (int)renderSystem.ScreenInfo[0];
+                HeightAtInit = (int)renderSystem.ScreenInfo[1];
                 ResScaleAtInit = ResolutionScale;
                 RefResScaleAtInit = RefResolutionScale;
 
@@ -106,7 +106,7 @@ namespace XenoKit.Engine.Rendering
                 //If FullLowRez option has been changed and this RT has a ResScale applied, then it needs to be updated as well.
                 //if (ResolutionScale > 1 && FullLowRezAtInit != SettingsManager.settings.XenoKit_FullLowRez) return true;
 
-                return WidthAtInit != renderSystem.RenderResolution[0] || HeightAtInit != renderSystem.RenderResolution[1] || ResolutionScale != ResScaleAtInit || RefResScaleAtInit != RefResolutionScale;
+                return WidthAtInit != renderSystem.ScreenInfo[0] || HeightAtInit != renderSystem.ScreenInfo[1] || ResolutionScale != ResScaleAtInit || RefResScaleAtInit != RefResolutionScale;
             }
         }
 

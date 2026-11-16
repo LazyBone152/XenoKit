@@ -381,6 +381,19 @@ namespace XenoKit.Engine
             blendState[applyTo].ColorWriteChannels = colorMask;
         }
 
+        public static void ApplyCustom(this BlendState blendState, int applyTo, BlendFunction colorBlendFunction, Blend colorSource, Blend colorDestination, BlendFunction alphaBlendFunction, Blend alphaSource, Blend alphaDestination, ColorWriteChannels colorMask = ColorWriteChannels.All)
+        {
+            blendState[applyTo].AlphaBlendFunction = alphaBlendFunction;
+            blendState[applyTo].AlphaSourceBlend = alphaSource;
+            blendState[applyTo].AlphaDestinationBlend = alphaDestination;
+
+            blendState[applyTo].ColorBlendFunction = colorBlendFunction;
+            blendState[applyTo].ColorSourceBlend = colorSource;
+            blendState[applyTo].ColorDestinationBlend = colorDestination;
+
+            blendState[applyTo].ColorWriteChannels = colorMask;
+        }
+
         public static void ApplyNone(this BlendState blendState, int applyTo)
         {
             blendState[applyTo].ColorSourceBlend = Blend.One;
